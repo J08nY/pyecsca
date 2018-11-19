@@ -1,0 +1,8 @@
+/*.trs
+
+.coverage
+.mypy_cache/
+/.pytest_cache/
+/htmlcov/
+/Pipfile.lock
+__pycache__/

@@ -1,0 +1,24 @@
+from public import public
+from scipy.stats import ttest_ind
+import numpy as np
+from typing import Sequence, Optional
+
+from .trace import Trace, CombinedTrace
+
+
+def ttest(first_set: Sequence[Trace], second_set: Sequence[Trace],
+          equal_var: bool) -> Optional[CombinedTrace]:
+    if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
+        return None
+    first_stack = np.stack([first.samples for first in first_set])
+    second_stack = np.stack([second.samples for second in second_set])
+    result = ttest_ind(first_stack, second_stack, axis=0, equal_var=equal_var)
+    return CombinedTrace(None, None, result[0], parents=[*first_set, *second_set])
+
+@public
+def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> CombinedTrace:
+    return ttest(first_set, second_set, False)
+
+@public
+def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> CombinedTrace:
+    return ttest(first_set, second_set, True)
