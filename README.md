@@ -1,6 +1,6 @@
 # ![](docs/_static/logo.png) pyecsca [pɪɛtska] 
 
-**Py**thon **E**lliptic **C**urve **S**ide-**C**hannel **A**nalysis toolkit.
+**Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
 ## Requirements
 

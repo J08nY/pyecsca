@@ -7,7 +7,7 @@
 pyecsca [pɪɛtska]
 =================
 
-**Py**\ thon **E**\ lliptic **C**\ urve **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
+**Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 
 Requirements
 ============
@@ -34,18 +34,6 @@ API
 
 .. toctree::
    api/pyecsca
-
-
-..
-   Indices and tables
-..
-   ==================
-..
-   * :ref:`genindex`
-..
-   * :ref:`modindex`
-..
-   * :ref:`search`
 
 
 .. _Numpy: https://www.numpy.org

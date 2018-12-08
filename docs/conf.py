@@ -26,9 +26,9 @@ author = 'Jan Jancar'
 import sys; import os; sys.path.append(os.path.abspath('..'))
 
 # The short X.Y version
-version = ''
+version = '0.1.0'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '0.1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -73,7 +73,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+pygments_style = "trac"
 
 
 # -- Options for HTML output -------------------------------------------------
