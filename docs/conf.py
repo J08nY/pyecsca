@@ -87,12 +87,22 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'logo': 'logo_black.png',
+    'logo_name': True,
+    'logo_text_align': 'center',
+    'fixed_sidebar': True,
+    'caption_font_family': 'Graphik Web, Helvetica Neue, sans-serif',
+    'head_font_family': 'Graphik Web, Helvetica Neue, sans-serif',
+    'font_family': "Helvetica Neue, sans-serif"
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_favicon = "_static/logo_black.png"
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -104,9 +114,7 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-html_theme_options = {
 
-}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

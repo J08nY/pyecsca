@@ -7,7 +7,7 @@
 pyecsca [pɪɛtska]
 =================
 
-**Py**\ thon **EC** **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
+**Py**\ thon **E**\ lliptic **C**\ urve **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 
 Requirements
 ============
@@ -21,13 +21,13 @@ Requirements
 Testing
 -------
 
- - nose2
- - green
+ - nose2_
+ - green_
 
 Docs
 ----
 
- - sphinx
+ - sphinx_
 
 API
 ===
@@ -36,12 +36,16 @@ API
    api/pyecsca
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+..
+   Indices and tables
+..
+   ==================
+..
+   * :ref:`genindex`
+..
+   * :ref:`modindex`
+..
+   * :ref:`search`
 
 
 .. _Numpy: https://www.numpy.org
@@ -49,3 +53,6 @@ Indices and tables
 .. _matplotlib: https://matplotlib.org/
 .. _atpublic: https://public.readthedocs.io/
 .. _fastdtw: https://github.com/slaypni/fastdtw
+.. _nose2: https://nose2.readthedocs.io
+.. _green: https://github.com/CleanCut/green
+.. _sphinx: https://www.sphinx-doc.org/
