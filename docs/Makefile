@@ -10,7 +10,7 @@ BUILDDIR      = _build
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	@echo apidoc -> build api docs
+	@echo "  apidoc	to build api docs"
 
 apidoc:
 	mkdir -p api/

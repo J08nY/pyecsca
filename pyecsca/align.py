@@ -1,3 +1,6 @@
+"""
+This module provides functions for aligning traces in a trace set to a reference trace within it.
+"""
 from typing import List, Callable, Tuple
 from copy import copy, deepcopy
 from public import public
@@ -32,6 +35,21 @@ def align_reference(reference: Trace, *traces: Trace,
 def align_correlation(reference: Trace, *traces: Trace,
                       reference_offset: int, reference_length: int,
                       max_offset: int, min_correlation: float = 0.5) -> List[Trace]:
+    """
+    Align `traces` to the reference `trace`. Using the cross-correlation of a part of the reference
+    trace starting at `reference_offset` with `reference_length` and try to match it to a part of
+    the trace being matched that is at most `max_offset` mis-aligned from the reference, pick the
+    alignment offset with the largest cross-correlation. If the maximum cross-correlation of the
+    trace parts being matched is below `min_correlation`, do not include the trace.
+
+    :param reference:
+    :param traces:
+    :param reference_offset:
+    :param reference_length:
+    :param max_offset:
+    :param min_correlation:
+    :return:
+    """
     reference_centered = normalize(reference)
     reference_part = reference_centered.samples[
                      reference_offset:reference_offset + reference_length]
@@ -57,6 +75,18 @@ def align_correlation(reference: Trace, *traces: Trace,
 @public
 def align_peaks(reference: Trace, *traces: Trace,
                 reference_offset: int, reference_length: int, max_offset: int) -> List[Trace]:
+    """
+    Align `traces` to the reference `trace` so that the maximum value within the reference trace
+    window from `reference_offset` of `reference_length` aligns with the maximum
+    value of the trace being aligned within `max_offset` of the reference window.
+
+    :param reference:
+    :param traces:
+    :param reference_offset:
+    :param reference_length:
+    :param max_offset:
+    :return:
+    """
     reference_part = reference.samples[reference_offset: reference_offset + reference_length]
     reference_peak = np.argmax(reference_part)
 
@@ -74,6 +104,18 @@ def align_peaks(reference: Trace, *traces: Trace,
 @public
 def align_sad(reference: Trace, *traces: Trace,
               reference_offset: int, reference_length: int, max_offset: int) -> List[Trace]:
+    """
+    Align `traces` to the reference `trace` so that the Sum Of Absolute Differences between the
+    reference trace window from `reference_offset` of `reference_length` and the trace being aligned
+    within `max_offset` of the reference window is maximized.
+
+    :param reference:
+    :param traces:
+    :param reference_offset:
+    :param reference_length:
+    :param max_offset:
+    :return:
+    """
     reference_part = reference.samples[reference_offset: reference_offset + reference_length]
 
     def align_func(trace):
@@ -97,6 +139,20 @@ def align_sad(reference: Trace, *traces: Trace,
 
 @public
 def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True) -> List[Trace]:
+    """
+    Align `traces` to the reference `trace`. Using fastdtw (Dynamic Time Warping) with scaling as per:
+
+    Jasper G. J. van Woudenberg, Marc F. Witteman, Bram Bakker:
+    Improving Differential Power Analysis by Elastic Alignment
+
+    https://pdfs.semanticscholar.org/aceb/7c307098a414d7c384d6189226e4375cf02d.pdf
+
+    :param reference:
+    :param traces:
+    :param radius:
+    :param fast:
+    :return:
+    """
     result = [deepcopy(reference)]
     reference_samples = reference.samples
     for trace in traces:
@@ -117,6 +173,20 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1, fast: boo
 
 @public
 def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True) -> List[Trace]:
+    """
+    Align `traces` to the reference `trace`. Using fastdtw (Dynamic Time Warping) as per:
+
+    Stan Salvador, Philip Chan:
+    FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space
+
+    https://cs.fit.edu/~pkc/papers/tdm04.pdf
+
+    :param reference:
+    :param traces:
+    :param radius:
+    :param fast:
+    :return:
+    """
     result = [deepcopy(reference)]
     reference_samples = reference.samples
     for trace in traces:
