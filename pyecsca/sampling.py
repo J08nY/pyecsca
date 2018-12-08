@@ -1,7 +1,7 @@
-from copy import copy
 import numpy as np
-from scipy.signal import decimate
+from copy import copy
 from public import public
+from scipy.signal import decimate
 
 from .trace import Trace
 

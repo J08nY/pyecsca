@@ -1,11 +1,11 @@
 """
 This module provides functions for aligning traces in a trace set to a reference trace within it.
 """
-from typing import List, Callable, Tuple
-from copy import copy, deepcopy
-from public import public
 import numpy as np
+from copy import copy, deepcopy
 from fastdtw import fastdtw, dtw
+from public import public
+from typing import List, Callable, Tuple
 
 from .process import normalize
 from .trace import Trace
@@ -98,6 +98,7 @@ def align_peaks(reference: Trace, *traces: Trace,
         window_peak = np.argmax(window)
         left_space = min(max_offset, reference_offset)
         return True, int(window_peak - reference_peak - left_space)
+
     return align_reference(reference, *traces, align_func=align_func)
 
 
@@ -134,13 +135,16 @@ def align_sad(reference: Trace, *traces: Trace,
                 best_sad = sad
                 best_offset = offset
         return True, best_offset
+
     return align_reference(reference, *traces, align_func=align_func)
 
 
 @public
-def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True) -> List[Trace]:
+def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
+                    fast: bool = True) -> List[Trace]:
     """
-    Align `traces` to the reference `trace`. Using fastdtw (Dynamic Time Warping) with scaling as per:
+    Align `traces` to the reference `trace`.
+    Using fastdtw (Dynamic Time Warping) with scaling as per:
 
     Jasper G. J. van Woudenberg, Marc F. Witteman, Bram Bakker:
     Improving Differential Power Analysis by Elastic Alignment
@@ -195,11 +199,12 @@ def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = Tr
         else:
             dist, path = dtw(reference_samples, trace.samples)
         result_samples = np.zeros(len(trace.samples), dtype=trace.samples.dtype)
-        pairs = np.array(np.array(path, dtype=np.dtype("int,int")), dtype=np.dtype([("x", "int"), ("y", "int")]))
+        pairs = np.array(np.array(path, dtype=np.dtype("int,int")),
+                         dtype=np.dtype([("x", "int"), ("y", "int")]))
         result_samples[pairs["x"]] = trace.samples[pairs["y"]]
         del pairs
         # or manually:
-        #for x, y in path:
+        # for x, y in path:
         #    result_samples[x] = trace.samples[y]
         result.append(Trace(copy(trace.title), copy(trace.data), result_samples))
     return result

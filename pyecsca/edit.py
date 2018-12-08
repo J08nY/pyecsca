@@ -1,7 +1,7 @@
-from copy import copy
-from typing import Union, Tuple, Any
-from public import public
 import numpy as np
+from copy import copy
+from public import public
+from typing import Union, Tuple, Any
 
 from .trace import Trace
 
@@ -23,9 +23,11 @@ def reverse(trace: Trace) -> Trace:
 
 
 @public
-def pad(trace: Trace, lengths: Union[Tuple[int, int], int], values: Union[Tuple[Any, Any], Any] = (0, 0)) -> Trace:
+def pad(trace: Trace, lengths: Union[Tuple[int, int], int],
+        values: Union[Tuple[Any, Any], Any] = (0, 0)) -> Trace:
     if not isinstance(lengths, tuple):
         lengths = (lengths, lengths)
     if not isinstance(values, tuple):
         values = (values, values)
-    return Trace(copy(trace.title), copy(trace.data), np.pad(trace.samples, lengths, "constant", constant_values=values))
+    return Trace(copy(trace.title), copy(trace.data),
+                 np.pad(trace.samples, lengths, "constant", constant_values=values))

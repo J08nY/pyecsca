@@ -1,6 +1,6 @@
 import weakref
 from numpy import ndarray
-from typing import Optional
+from typing import Optional, Sequence
 
 
 class Trace(object):
@@ -33,7 +33,7 @@ class Trace(object):
 class CombinedTrace(Trace):
 
     def __init__(self, title: Optional[str], data: Optional[bytes],
-                 samples: ndarray, trace_set=None, parents=None):
+                 samples: ndarray, trace_set=None, parents: Sequence[Trace] = None):
         super().__init__(title, data, samples, trace_set=trace_set)
         self.parents = None
         if parents is not None:

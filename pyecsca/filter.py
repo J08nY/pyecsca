@@ -1,12 +1,13 @@
-from public import public
-from typing import Union, Tuple
-from scipy.signal import butter, lfilter
 from copy import copy
+from public import public
+from scipy.signal import butter, lfilter
+from typing import Union, Tuple
 
 from .trace import Trace
 
 
-def filter_any(trace: Trace, sampling_frequency: int, cutoff: Union[int, Tuple[int, int]], type: str) -> Trace:
+def filter_any(trace: Trace, sampling_frequency: int,
+               cutoff: Union[int, Tuple[int, int]], type: str) -> Trace:
     nyq = 0.5 * sampling_frequency
     if not isinstance(cutoff, int):
         normal_cutoff = tuple(map(lambda x: x / nyq, cutoff))

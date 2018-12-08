@@ -1,5 +1,5 @@
-from copy import copy
 import numpy as np
+from copy import copy
 from public import public
 
 from .trace import Trace
@@ -31,7 +31,9 @@ def rolling_window(samples: np.ndarray, window: int) -> np.ndarray:
 
 @public
 def rolling_mean(trace: Trace, window: int) -> Trace:
-    return Trace(copy(trace.title), copy(trace.data), np.mean(rolling_window(trace.samples, window), -1).astype(dtype=trace.samples.dtype))
+    return Trace(copy(trace.title), copy(trace.data),
+                 np.mean(rolling_window(trace.samples, window), -1).astype(
+                     dtype=trace.samples.dtype))
 
 
 @public
@@ -51,9 +53,12 @@ def recenter(trace: Trace) -> Trace:
 
 @public
 def normalize(trace: Trace) -> Trace:
-    return Trace(copy(trace.title), copy(trace.data), (trace.samples - np.mean(trace.samples)) / np.std(trace.samples))
+    return Trace(copy(trace.title), copy(trace.data),
+                 (trace.samples - np.mean(trace.samples)) / np.std(trace.samples))
 
 
 @public
 def normalize_wl(trace: Trace) -> Trace:
-    return Trace(copy(trace.title), copy(trace.data), (trace.samples - np.mean(trace.samples)) / (np.std(trace.samples) * len(trace.samples)))
+    return Trace(copy(trace.title), copy(trace.data),
+                 (trace.samples - np.mean(trace.samples)) / (
+                             np.std(trace.samples) * len(trace.samples)))
