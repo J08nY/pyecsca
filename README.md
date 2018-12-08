@@ -4,13 +4,17 @@
 
 ## Requirements
 
- - Numpy
- - Scipy
- - matplotlib
- - atpublic
- - fastdtw
+ - [Numpy](https://www.numpy.org/)
+ - [Scipy](https://www.scipy.org/)
+ - [matplotlib](https://matplotlib.org/)
+ - [atpublic](https://public.readthedocs.io/)
+ - [fastdtw](https://github.com/slaypni/fastdtw)
 
 ### Testing
 
  - nose2
  - green
+
+### Docs
+
+ - sphinx

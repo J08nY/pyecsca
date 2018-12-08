@@ -7,6 +7,7 @@ verify_ssl = true
 nose2 = "*"
 green = "*"
 mypy = "*"
+sphinx = "*"
 
 [packages]
 numpy = "*"
