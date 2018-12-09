@@ -63,6 +63,7 @@ def align_correlation(reference: Trace, *traces: Trace,
         correlation = np.correlate(trace_part, reference_part, "same")
         max_correlation_offset = correlation.argmax(axis=0)
         max_correlation = correlation[max_correlation_offset]
+        del trace_part
         if max_correlation < min_correlation:
             return False, 0
         left_space = min(max_offset, reference_offset)
@@ -103,6 +104,45 @@ def align_peaks(reference: Trace, *traces: Trace,
 
 
 @public
+def align_offset(reference: Trace, *traces: Trace,
+                 reference_offset: int, reference_length: int, max_offset: int,
+                 dist_func: Callable[[np.ndarray, np.ndarray], float], max_dist: float = float("inf")) -> List[Trace]:
+    """
+    Align `traces` to the reference `trace` so that the value of the `dist_func` is minimized
+    between the reference trace window from `reference_offset` of `reference_length` and the trace
+    being aligned within `max_offset` of the reference window.
+
+    :param reference:
+    :param traces:
+    :param reference_offset:
+    :param reference_length:
+    :param max_offset:
+    :param dist_func:
+    :return:
+    """
+    reference_part = reference.samples[reference_offset: reference_offset + reference_length]
+    def align_func(trace):
+        length = len(trace.samples)
+        best_distance = 0
+        best_offset = 0
+        for offset in range(-max_offset, max_offset):
+            start = reference_offset + offset
+            stop = start + reference_length
+            if start < 0 or stop >= length:
+                continue
+            trace_part = trace.samples[start:stop]
+            distance = dist_func(reference_part, trace_part)
+            if distance < best_distance:
+                best_distance = distance
+                best_offset = offset
+        if best_distance < max_dist:
+            return True, best_offset
+        else:
+            return False, 0
+    return align_reference(reference, *traces, align_func=align_func)
+
+
+@public
 def align_sad(reference: Trace, *traces: Trace,
               reference_offset: int, reference_length: int, max_offset: int) -> List[Trace]:
     """
@@ -117,26 +157,12 @@ def align_sad(reference: Trace, *traces: Trace,
     :param max_offset:
     :return:
     """
-    reference_part = reference.samples[reference_offset: reference_offset + reference_length]
+    def sad(reference_part, trace_part):
+        return float(np.sum(np.abs(reference_part - trace_part)))
 
-    def align_func(trace):
-        length = len(trace.samples)
-        best_sad = 0
-        best_offset = 0
-        for offset in range(-max_offset, max_offset):
-            start = reference_offset + offset
-            stop = start + reference_length
-            if start < 0 or stop >= length:
-                continue
-            trace_part = trace.samples[start:stop]
-            # todo: add other distance functions here
-            sad = np.sum(np.abs(reference_part - trace_part))
-            if sad > best_sad:
-                best_sad = sad
-                best_offset = offset
-        return True, best_offset
-
-    return align_reference(reference, *traces, align_func=align_func)
+    return align_offset(reference, *traces,
+                        reference_offset=reference_offset, reference_length=reference_length,
+                        max_offset=max_offset, dist_func=sad)
 
 
 @public

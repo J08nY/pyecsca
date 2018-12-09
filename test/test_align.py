@@ -23,13 +23,13 @@ class AlignTests(TestCase):
 
     @slow
     def test_large_align(self):
-        example = InspectorTraceSet("test/example.trs")
+        example = InspectorTraceSet("test/data/example.trs")
         result = align_correlation(*example, reference_offset=100000, reference_length=20000, max_offset=15000)
         self.assertIsNotNone(result)
 
     @slow
     def test_large_dtw_align(self):
-        example = InspectorTraceSet("test/example.trs")
+        example = InspectorTraceSet("test/data/example.trs")
         result = align_dtw(*example[:5])
         self.assertIsNotNone(result)
 
@@ -46,7 +46,8 @@ class AlignTests(TestCase):
         second_arr = np.array([10, 10, 10, 10, 90, 40, 50, 20, 10, 17, 16, 10, 10], dtype=np.dtype("i1"))
         a = Trace(None, None, first_arr)
         b = Trace(None, None, second_arr)
-        align_sad(a, b, reference_offset=2, reference_length=5, max_offset=3)
+        result = align_sad(a, b, reference_offset=2, reference_length=5, max_offset=3)
+        self.assertEqual(len(result), 2)
 
     def test_dtw_align_scale(self):
         first_arr = np.array([10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10, 8, 10, 12, 10, 13, 9], dtype=np.dtype("i1"))

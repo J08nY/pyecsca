@@ -8,3 +8,4 @@ from .tvla import *
 from .trace import *
 from .trace_set.base import *
 from .trace_set.inspector import *
+from .trace_set.chipwhisperer import *

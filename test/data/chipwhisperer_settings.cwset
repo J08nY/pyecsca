@@ -1,0 +1,132 @@
+[Aux Settings]
+[Trace Settings]
+[[ChipWhisperer/Native]]
+Config File = 
+Format = 
+[Trace Settings]
+[Target Settings]
+[[Simple Serial]]
+Connection = NewAE USB (CWLite/CW1200)
+Key Length (Bytes) = 16
+Input Length (Bytes) = 16
+Output Length (Bytes) = 16
+[[[Protocol Version]]]
+Version = auto
+Timeout (ms) = 20
+[[Simple Serial]]
+Preset Mode = Custom
+Init Command = 
+Load Key Command = 
+Load Input Command = 
+Go Command = p$TEXT$\n
+Output Format = 
+[[[NewAE USB (CWLite/CW1200)]]]
+baud = 38400
+[Target Settings]
+[Scope Settings]
+[[ChipWhisperer/OpenADC]]
+Connection = NewAE USB (CWLite/CW1200)
+Auto-Refresh DCM Status = True
+[[[NewAE USB (CWLite/CW1200)]]]
+Serial Number = Auto
+[[[[ChipWisperer-Lite USB]]]]
+[[ChipWhisperer/OpenADC]]
+[[[OpenADC]]]
+[[[[HW Information]]]]
+Version = (1, 8, 'ChipWhisperer-Lite', 0)
+Synth Date = unknown
+System Freq = 96000000
+Max Samples = 24400
+[[[OpenADC]]]
+[[[[Gain Setting]]]]
+Mode = low
+Setting = 45
+Result = 22.50390625
+[[[OpenADC]]]
+[[[[Trigger Setup]]]]
+Trigger Pin State = False
+Mode = rising edge
+Timeout (secs) = 2
+Offset = 0
+Pre-Trigger Samples = 0
+Total Samples = 24000
+Downsample Factor = 1
+Trigger Active Count = 22292
+[[[OpenADC]]]
+[[[[Clock Setup]]]]
+[[[[[ADC Clock]]]]]
+Source = CLKGEN x1 via DCM
+Phase Adjust = 0
+ADC Freq = 7384609
+ADC Sample Rate = 7384609
+DCM Locked = True
+[[[[Clock Setup]]]]
+Freq Counter = 0
+Freq Counter Src = EXTCLK Input
+[[[[[CLKGEN Settings]]]]]
+Input Source = system
+Input Frequency = 10000000.0
+Multiply = 2
+Divide = 26
+Desired Frequency = 7384615
+Current Frequency = 7384615
+DCM Locked = True
+[[ChipWhisperer/OpenADC]]
+[[[CW Extra]]]
+[[[[CW Extra Settings]]]]
+[[[[[Trigger Pins]]]]]
+Target IO1 (Serial TXD) = False
+Target IO2 (Serial RXD) = False
+Target IO3 (SmartCard Serial) = False
+Target IO4 (Trigger Line) = True
+Collection Mode = OR
+[[[[CW Extra Settings]]]]
+Trigger Module = Basic (Edge/Level)
+Clock Source = Target IO-IN
+Target HS IO-Out = CLKGEN
+HS-Glitch Out Enable (High Power) = 0
+HS-Glitch Out Enable (Low Power) = 0
+[[[[[Target IOn Pins]]]]]
+Target IO1 = Serial RXD
+Target IO2 = Serial TXD
+Target IO3 = High-Z
+Target IO4 = High-Z
+[[[[CW Extra Settings]]]]
+[[[[[Target IOn GPIO Mode]]]]]
+Target IO1: GPIO = Disabled
+Target IO2: GPIO = Disabled
+Target IO3: GPIO = Disabled
+Target IO4: GPIO = Disabled
+nRST: GPIO = Default
+PDID: GPIO = Default
+PDIC: GPIO = Default
+[[[[CW Extra Settings]]]]
+Target Power State = True
+[[[CW Extra]]]
+[[[[Glitch Module]]]]
+Clock Source = Target IO-IN
+Glitch Width (as % of period) = 10
+Glitch Width (fine adjust) = 0
+Glitch Offset (as % of period) = 10
+Glitch Offset (fine adjust) = 0
+Glitch Trigger = Manual
+Single-Shot Arm = After Scope Arm
+Ext Trigger Offset = 0
+Repeat = 1
+Output Mode = Clock XORd
+[Scope Settings]
+[Generic Settings]
+Scope Module = ChipWhisperer/OpenADC
+Target Module = Simple Serial
+Trace Format = ChipWhisperer/Native
+Auxiliary Module = None
+[[Acquisition Settings]]
+Number of Traces = 2
+Number of Sets = 1
+Traces per Set = 2
+Key/Text Pattern = Basic
+[Generic Settings]
+[[Basic]]
+Key = Random
+Plaintext = Fixed
+Fixed Plaintext = 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 00
