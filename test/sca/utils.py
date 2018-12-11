@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from unittest import TestCase
-from pyecsca import Trace
+from pyecsca.sca import Trace
 from os.path import join, exists
 from os import mkdir, getenv
 

@@ -14,7 +14,7 @@ help:
 
 apidoc:
 	mkdir -p api/
-	sphinx-apidoc ../pyecsca/ -f -o api/
+	sphinx-apidoc ../pyecsca/ -f -e -o api/
 
 .PHONY: help apidoc Makefile
 

@@ -1,8 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca import Trace, absolute, invert, threshold, rolling_mean, offset, recenter, normalize, normalize_wl
-from .utils import plot
+from pyecsca.sca import Trace, absolute, invert, threshold, rolling_mean, offset, recenter, normalize, normalize_wl
 
 
 class ProcessTests(TestCase):

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca import Trace, CombinedTrace, average, conditional_average, standard_deviation
+from pyecsca.sca import Trace, CombinedTrace, average, conditional_average, standard_deviation
 
 
 class CombineTests(TestCase):

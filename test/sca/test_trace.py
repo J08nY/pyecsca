@@ -1,6 +1,6 @@
 from unittest import TestCase
 import numpy as np
-from pyecsca import Trace
+from pyecsca.sca import Trace
 
 
 class TraceTests(TestCase):

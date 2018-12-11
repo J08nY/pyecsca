@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca import Trace, filter_lowpass, filter_highpass, filter_bandpass, filter_bandstop
+from pyecsca.sca import Trace, filter_lowpass, filter_highpass, filter_bandpass, filter_bandstop
 from .utils import plot
 
 

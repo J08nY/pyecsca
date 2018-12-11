@@ -2,7 +2,7 @@ from unittest import TestCase
 import os.path
 import tempfile
 
-from pyecsca import TraceSet, InspectorTraceSet, ChipWhispererTraceSet
+from pyecsca.sca import TraceSet, InspectorTraceSet, ChipWhispererTraceSet
 
 
 class TraceSetTests(TestCase):

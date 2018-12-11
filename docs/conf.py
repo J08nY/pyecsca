@@ -45,7 +45,6 @@ extensions = [
     'sphinx_autodoc_typehints',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
 ]
 

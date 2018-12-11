@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from pyecsca import Trace, trim, reverse, pad
+from pyecsca.sca import Trace, trim, reverse, pad
 
 
 class EditTests(TestCase):

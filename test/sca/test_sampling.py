@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca import Trace, downsample_average, downsample_pick, downsample_decimate
+from pyecsca.sca import Trace, downsample_average, downsample_pick, downsample_decimate
 from .utils import plot
 
 

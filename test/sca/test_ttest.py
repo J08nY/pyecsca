@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca import Trace, welch_ttest, student_ttest
+from pyecsca.sca import Trace, welch_ttest, student_ttest
 
 
 class TTestTests(TestCase):
