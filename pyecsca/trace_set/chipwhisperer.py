@@ -9,6 +9,7 @@ from ..trace import Trace
 
 @public
 class ChipWhispererTraceSet(TraceSet):
+    """ChipWhisperer trace set (native) format."""
 
     def __init__(self, path: str = None, name: str = None):
         if path is None and name is None:

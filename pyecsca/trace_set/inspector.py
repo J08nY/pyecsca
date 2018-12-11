@@ -4,6 +4,7 @@ from enum import IntEnum
 from io import BytesIO, RawIOBase, BufferedIOBase, UnsupportedOperation
 from pathlib import Path
 from public import public
+from typing import Union, Optional, BinaryIO, List
 
 from .base import TraceSet
 from ..trace import Trace
@@ -60,6 +61,8 @@ class Parsers(object):
 
 @public
 class InspectorTraceSet(TraceSet):
+    """Riscure Inspector trace set format (.trs)."""
+
     num_traces: int
     num_samples: int
     sample_coding: SampleCoding
@@ -97,7 +100,7 @@ class InspectorTraceSet(TraceSet):
     external_clock_frequencty: float = 0
     external_clock_time_base: int = 0
 
-    _raw_traces = None
+    _raw_traces: List[Trace] = None
     _tag_parsers: dict = {
         0x41: ("num_traces", 4, Parsers.read_int, Parsers.write_int),
         0x42: ("num_samples", 4, Parsers.read_int, Parsers.write_int),
@@ -135,7 +138,14 @@ class InspectorTraceSet(TraceSet):
     }
     _set_tags: set = set()
 
-    def __init__(self, input=None, keep_raw_traces=True):
+    def __init__(self, input: Optional[Union[str, Path, bytes, BinaryIO]] = None,
+                 keep_raw_traces: bool = True):
+        """
+        Read Inspector trace set from file path, bytes or file-like object.
+
+        :param input: Input file path, bytes or file-like object.
+        :param keep_raw_traces: Whether to store the raw (unscaled) traces as well.
+        """
         traces = None
         if isinstance(input, bytes):
             with BytesIO(input) as f:
@@ -220,10 +230,16 @@ class InspectorTraceSet(TraceSet):
 
     def _scale(self, traces):
         return list(map(lambda trace: Trace(trace.title, trace.data,
-                                            trace.samples.astype("f4") * self.y_scale, trace_set=self),
+                                            trace.samples.astype("f4") * self.y_scale,
+                                            trace_set=self),
                         traces))
 
-    def save(self, output):
+    def save(self, output: Union[Path, str, BinaryIO]):
+        """
+        Save this trace set into a file.
+
+        :param output: An output path or file-like object.
+        """
         if isinstance(output, (Path, str)):
             with open(output, "wb") as f:
                 self._write(f)
@@ -233,19 +249,22 @@ class InspectorTraceSet(TraceSet):
             raise ValueError("Cannot save data, unknown output: {}".format(output))
 
     def __bytes__(self):
+        """Return the byte-representation of this trace set file."""
         with BytesIO() as b:
             self.save(b)
             return b.getvalue()
 
     @property
-    def raw(self):
+    def raw(self) -> Optional[List[Trace]]:
+        """The raw (unscaled) traces, as read from the trace set file."""
         if self._raw_traces is None:
             return None
         return list(self._raw_traces)
 
     @property
-    def sampling_frequency(self):
-        return int(1/self.x_scale)
+    def sampling_frequency(self) -> int:
+        """The sampling frequency of the trace set."""
+        return int(1 / self.x_scale)
 
     def __repr__(self):
         args = ", ".join(["{}={!r}".format(self._tag_parsers[set_tag][0],

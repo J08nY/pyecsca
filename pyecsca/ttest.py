@@ -17,8 +17,24 @@ def ttest(first_set: Sequence[Trace], second_set: Sequence[Trace],
 
 @public
 def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> CombinedTrace:
+    """
+    Perform the Welch's t-test sample wise on two sets of traces `first_set` and `second_set`.
+    Useful for Test Vector Leakage Analysis (TVLA).
+
+    :param first_set:
+    :param second_set:
+    :return: Welch's t-values (samplewise)
+    """
     return ttest(first_set, second_set, False)
 
 @public
 def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> CombinedTrace:
+    """
+    Perform the Students's t-test sample wise on two sets of traces `first_set` and `second_set`.
+    Useful for Test Vector Leakage Analysis (TVLA).
+
+    :param first_set:
+    :param second_set:
+    :return: Student's t-values (samplewise)
+    """
     return ttest(first_set, second_set, True)

@@ -7,6 +7,12 @@ from .trace import Trace, CombinedTrace
 
 @public
 def average(*traces: Trace) -> Optional[CombinedTrace]:
+    """
+    Average `traces`, sample-wise.
+
+    :param traces:
+    :return:
+    """
     if not traces:
         return None
     if len(traces) == 1:
@@ -18,11 +24,24 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
 
 @public
 def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> Optional[CombinedTrace]:
+    """
+    Average `traces` for which the `condition` is True, sample-wise.
+
+    :param traces:
+    :param condition:
+    :return:
+    """
     return average(*filter(condition, traces))
 
 
 @public
 def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
+    """
+    Compute the standard-deviation of the `traces`, sample-wise.
+
+    :param traces:
+    :return:
+    """
     if not traces:
         return None
     dtype = traces[0].samples.dtype

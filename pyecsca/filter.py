@@ -7,32 +7,70 @@ from .trace import Trace
 
 
 def filter_any(trace: Trace, sampling_frequency: int,
-               cutoff: Union[int, Tuple[int, int]], type: str) -> Trace:
+               cutoff: Union[int, Tuple[int, int]], band_type: str) -> Trace:
     nyq = 0.5 * sampling_frequency
     if not isinstance(cutoff, int):
         normal_cutoff = tuple(map(lambda x: x / nyq, cutoff))
     else:
         normal_cutoff = cutoff / nyq
-    b, a = butter(6, normal_cutoff, btype=type, analog=False)
+    b, a = butter(6, normal_cutoff, btype=band_type, analog=False)
     result_samples = lfilter(b, a, trace.samples)
     return Trace(copy(trace.title), copy(trace.data), result_samples)
 
 
 @public
 def filter_lowpass(trace: Trace, sampling_frequency: int, cutoff: int) -> Trace:
+    """
+    Apply a lowpass digital filter (Butterworth) to `trace`, given `sampling_frequency` and
+    `cutoff` frequency.
+
+    :param trace:
+    :param sampling_frequency:
+    :param cutoff:
+    :return:
+    """
     return filter_any(trace, sampling_frequency, cutoff, "lowpass")
 
 
 @public
 def filter_highpass(trace: Trace, sampling_frequency: int, cutoff: int) -> Trace:
+    """
+    Apply a highpass digital filter (Butterworth) to `trace`, given `sampling_frequency` and
+    `cutoff` frequency.
+
+    :param trace:
+    :param sampling_frequency:
+    :param cutoff:
+    :return:
+    """
     return filter_any(trace, sampling_frequency, cutoff, "highpass")
 
 
 @public
 def filter_bandpass(trace: Trace, sampling_frequency: int, low: int, high: int) -> Trace:
+    """
+    Apply a bandpass digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the
+    passband from `low` to `high`.
+
+    :param trace:
+    :param sampling_frequency:
+    :param low:
+    :param high:
+    :return:
+    """
     return filter_any(trace, sampling_frequency, (low, high), "bandpass")
 
 
 @public
 def filter_bandstop(trace: Trace, sampling_frequency: int, low: int, high: int) -> Trace:
+    """
+    Apply a bandstop digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the
+    stopband from `low` to `high`.
+
+    :param trace:
+    :param sampling_frequency:
+    :param low:
+    :param high:
+    :return:
+    """
     return filter_any(trace, sampling_frequency, (low, high), "bandstop")

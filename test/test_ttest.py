@@ -4,7 +4,7 @@ import numpy as np
 from pyecsca import Trace, welch_ttest, student_ttest
 
 
-class TvlaTests(TestCase):
+class TTestTests(TestCase):
 
     def setUp(self):
         self.a = Trace(None, b"\xff", np.array([20, 80], dtype=np.dtype("i1")))

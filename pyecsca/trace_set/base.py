@@ -15,12 +15,15 @@ class TraceSet(object):
         self._keys = list(kwargs.keys())
 
     def __len__(self):
+        """Return the number of traces."""
         return len(self._traces)
 
     def __getitem__(self, index) -> Trace:
+        """Get the trace at `index`."""
         return self._traces[index]
 
     def __iter__(self):
+        """Iterate over the traces."""
         yield from self._traces
 
     def __repr__(self):

@@ -2,8 +2,12 @@ import weakref
 from numpy import ndarray
 from typing import Optional, Sequence
 
+from public import public
 
+
+@public
 class Trace(object):
+    """A power trace, which has an optional title, optional data bytes and mandatory samples."""
 
     def __init__(self, title: Optional[str], data: Optional[bytes],
                  samples: ndarray, trace_set=None):
@@ -30,7 +34,9 @@ class Trace(object):
                 self.title, self.data, self.samples, self.trace_set)
 
 
+@public
 class CombinedTrace(Trace):
+    """A power trace that was combined from other traces, `parents`."""
 
     def __init__(self, title: Optional[str], data: Optional[bytes],
                  samples: ndarray, trace_set=None, parents: Sequence[Trace] = None):

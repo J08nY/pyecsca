@@ -8,6 +8,7 @@ nose2 = "*"
 green = "*"
 mypy = "*"
 sphinx = "*"
+sphinx-autodoc-typehints = "*"
 
 [packages]
 numpy = "*"

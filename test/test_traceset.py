@@ -12,6 +12,9 @@ class TraceSetTests(TestCase):
         self.assertIsNotNone(InspectorTraceSet())
         self.assertIsNotNone(ChipWhispererTraceSet())
 
+
+class InspectorTraceSetTests(TestCase):
+
     def test_load_fname(self):
         result = InspectorTraceSet("test/data/example.trs")
         self.assertIsNotNone(result)
@@ -52,4 +55,4 @@ class ChipWhispererTraceSetTest(TestCase):
     def test_load_fname(self):
         result = ChipWhispererTraceSet("test/data/", "chipwhisperer")
         self.assertIsNotNone(result)
-        print(result[:])
+        self.assertEqual(len(result), 2)
