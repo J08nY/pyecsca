@@ -1,0 +1,14 @@
+source 2007 Bernstein--Lange
+compute XX = X1^2
+compute ZZ = Z1^2
+compute w = a ZZ+3 XX
+compute s = 2 Y1 Z1
+compute ss = s^2
+compute sss = s ss
+compute R = Y1 s
+compute RR = R^2
+compute B = (X1+R)^2-XX-RR
+compute h = w^2-2 B
+compute X3 = h s
+compute Y3 = w(B-h)-2 RR
+compute Z3 = sss

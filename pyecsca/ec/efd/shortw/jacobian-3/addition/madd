@@ -1,0 +1,12 @@
+assume Z2=1
+compute Z1Z1 = Z1^2
+compute U2 = X2 Z1Z1
+compute S2 = Y2 Z1 Z1Z1
+compute H = U2-X1
+compute I = (2 H)^2
+compute J = H I
+compute r = 2 (S2-Y1)
+compute V = X1 I
+compute X3 = r^2-J-2 V
+compute Y3 = r (V-X3)-2 Y1 J
+compute Z3 = 2 Z1 H

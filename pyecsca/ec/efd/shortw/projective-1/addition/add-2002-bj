@@ -1,0 +1,16 @@
+source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", page 339
+compute U1 = X1 Z2
+compute U2 = X2 Z1
+compute S1 = Y1 Z2
+compute S2 = Y2 Z1
+compute ZZ = Z1 Z2
+compute T = U1+U2
+compute M = S1+S2
+compute R = T^2-U1 U2+a ZZ^2
+compute F = ZZ M
+compute L = M F
+compute G = T L
+compute W = R^2-G
+compute X3 = 2 F W
+compute Y3 = R(G-2 W)-L^2
+compute Z3 = 2 F F^2

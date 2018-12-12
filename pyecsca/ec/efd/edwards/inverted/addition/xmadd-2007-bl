@@ -1,0 +1,13 @@
+source 2007 Bernstein--Lange
+assume X2 = 1
+compute A = Z1 Z2
+compute B = d A^2
+compute D = Y1 Y2
+compute E = X1 D
+compute F = E-B
+compute G = E+B
+compute H = X1-D
+compute I = X1 Y2+Y1
+compute X3 = c G H
+compute Y3 = c F I
+compute Z3 = A H I

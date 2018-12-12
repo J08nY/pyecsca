@@ -1,0 +1,14 @@
+source 2010 Costello--Lange--Naehrig
+assume Z2 = 1
+compute A = Z1^2
+compute E = X2 Z1
+compute G = Y2 A
+compute H = (X1 - E)
+compute I = (Y1 - G)
+compute II = I^2
+compute J = Z1 H
+compute K = 2 J H
+compute X3 = 2 II - (X1 + E) K
+compute JJ = J^2
+compute Y3 = ((J+ I)^2 - JJ - II) (X1 K - X3) - Y1 K^2
+compute Z3 = 2 JJ

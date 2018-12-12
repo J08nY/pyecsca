@@ -1,0 +1,14 @@
+source 2008 Sutherland
+assume ZZ1 = 1
+assume ZZZ1 = 1
+assume ZZ2 = 1
+assume ZZZ2 = 1
+compute P = X2-X1
+compute R = Y2-Y1
+compute PP = P^2
+compute PPP = P PP
+compute Q = X1 PP
+compute X3 = R^2-PPP-2 Q
+compute Y3 = R (Q-X3)-Y1 PPP
+compute ZZ3 = PP
+compute ZZZ3 = PPP

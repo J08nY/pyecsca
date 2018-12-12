@@ -1,0 +1,10 @@
+source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", formula (10) accompanied by note "7 multiplications plus 2 multiplications by a constant", plus common-subexpression elimination
+parameter b2
+assume b2 = 2*b
+compute XX = X1^2
+compute ZZ = Z1^2
+compute A = 2((X1 + Z1)^2 - XX - ZZ)
+compute aZZ = a ZZ
+compute b2ZZ = b2 ZZ
+compute X3 = (XX - aZZ)^2 - A b2ZZ
+compute Z3 = A (XX + aZZ) + 2 b2ZZ ZZ

@@ -1,0 +1,17 @@
+U = 2*Y1
+V = U^2
+W = U*V
+S = X1*V
+t0 = X1-ZZ1
+t1 = X1+ZZ1
+t2 = t0*t1
+M = 3*t2
+t3 = M^2
+t4 = 2*S
+X3 = t3-t4
+t5 = S-X3
+t6 = W*Y1
+t7 = M*t5
+Y3 = t7-t6
+ZZ3 = V*ZZ1
+ZZZ3 = W*ZZZ1

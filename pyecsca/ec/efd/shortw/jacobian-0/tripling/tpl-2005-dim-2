@@ -1,0 +1,13 @@
+source 2005 Dimitrov--Imbert--Mishra, plus common-subexpression elimination
+compute ZZ = Z1^2
+compute YY = Y1^2
+compute C = 2 YY
+compute M = 3 X1^2+a ZZ^2
+compute E = 6 X1 C-M^2
+compute EE = E^2
+compute T = 2 C^2
+compute U = M E-T
+compute U4 = 4 U
+compute X3 = X1 EE-C U4
+compute Y3 = Y1 (U4 (T-U)-E EE)
+compute Z3 = Z1 E

@@ -1,0 +1,12 @@
+source 2008 Hisil--Wong--Carter--Dawson, http://eprint.iacr.org/2008/522, Section 3.3, plus assumption Z1=1, plus standard simplification
+assume Z1 = 1
+compute A = X1^2
+compute B = Y1^2
+compute D = a A
+compute E = (X1+Y1)^2-A-B
+compute G = D + B
+compute H = D - B
+compute X3 = E (G - 2)
+compute Y3 = G H
+compute T3 = E H
+compute Z3 = G^2 - 2 G

@@ -1,0 +1,10 @@
+source 2008 Sutherland
+compute U = 2 Y1
+compute V = U^2
+compute W = U V
+compute S = X1 V
+compute M = 3 X1^2+a ZZ1^2
+compute X3 = M^2-2 S
+compute Y3 = M (S-X3)-W Y1
+compute ZZ3 = V ZZ1
+compute ZZZ3 = W ZZZ1

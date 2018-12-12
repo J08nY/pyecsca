@@ -1,0 +1,17 @@
+U2 = X2*ZZ1
+S2 = Y2*ZZZ1
+P = U2-X1
+R = S2-Y1
+PP = P^2
+PPP = P*PP
+Q = X1*PP
+t0 = R^2
+t1 = 2*Q
+t2 = t0-PPP
+X3 = t2-t1
+t3 = Q-X3
+t4 = Y1*PPP
+t5 = R*t3
+Y3 = t5-t4
+ZZ3 = ZZ1*PP
+ZZZ3 = ZZZ1*PPP

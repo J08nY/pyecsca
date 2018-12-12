@@ -1,0 +1,10 @@
+source 2008 Bernstein--Birkner--Joye--Lange--Peters http://eprint.iacr.org/2008/013, plus Z1=1, plus standard simplification
+assume Z1 = 1
+compute B = (X1+Y1)^2
+compute C = X1^2
+compute D = Y1^2
+compute E = a C
+compute F = E + D
+compute X3 = (B-C-D)(F-2)
+compute Y3 = F(E-D)
+compute Z3 = F^2-2 F

@@ -1,0 +1,7 @@
+name projective coordinates with a4=-1
+assume a = -1
+variable X
+variable Y
+variable Z
+satisfying x = X/Z
+satisfying y = Y/Z

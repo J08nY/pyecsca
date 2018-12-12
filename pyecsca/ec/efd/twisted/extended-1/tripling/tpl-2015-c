@@ -1,0 +1,18 @@
+source 2015 Chuengsatiansup
+compute YY = Y1^2
+compute aXX = a X1^2
+compute Ap = YY + aXX
+compute B = 2(2 Z1^2 - Ap)
+compute xB = aXX B
+compute yB = YY B
+compute AA = Ap (YY - aXX)
+compute F = AA - yB
+compute G = AA + xB
+compute xE = X1 (yB + AA)
+compute yH = Y1 (xB - AA)
+compute zF = Z1 F
+compute zG = Z1 G
+compute X3 = xE zF
+compute Y3 = yH zG
+compute Z3 = zF zG
+compute T3 = xE yH

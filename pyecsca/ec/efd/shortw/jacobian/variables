@@ -1,0 +1,6 @@
+name Jacobian coordinates
+variable X
+variable Y
+variable Z
+satisfying x = X/Z^2
+satisfying y = Y/Z^3

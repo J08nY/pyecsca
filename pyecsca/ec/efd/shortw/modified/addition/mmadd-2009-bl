@@ -1,0 +1,14 @@
+source 2009.04.27 Bernstein--Lange
+assume Z1 = 1
+assume Z2 = 1
+compute H = X2-X1
+compute HH = H^2
+compute HHHH = HH^2
+compute Z3 = 2 H
+compute ZZ3 = 4 HH
+compute J = 2 ((H+HH)^2-HH-HHHH)
+compute r = 2(Y2-Y1)
+compute V = X1 ZZ3
+compute X3 = r^2-J-2 V
+compute Y3 = r(V-X3)-2 Y1 J
+compute T3 = 16 a HHHH

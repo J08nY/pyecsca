@@ -1,0 +1,8 @@
+name XYZZ coordinates
+variable X
+variable Y
+variable ZZ
+variable ZZZ
+satisfying x = X/ZZ
+satisfying y = Y/ZZZ
+satisfying ZZ^3 = ZZZ^2

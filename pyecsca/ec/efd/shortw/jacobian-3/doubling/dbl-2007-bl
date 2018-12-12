@@ -1,0 +1,11 @@
+source 2007 Bernstein--Lange
+compute XX = X1^2
+compute YY = Y1^2
+compute YYYY = YY^2
+compute ZZ = Z1^2
+compute S = 2 ((X1+YY)^2-XX-YYYY)
+compute M = 3 XX+a ZZ^2
+compute T = M^2-2 S
+compute X3 = T
+compute Y3 = M (S-T)-8 YYYY
+compute Z3 = (Y1+Z1)^2-YY-ZZ

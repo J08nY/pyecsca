@@ -1,0 +1,13 @@
+t0 = X1+Y1
+B = t0^2
+C = X1^2
+D = Y1^2
+E = C+D
+J = E-cc2
+t1 = B-E
+t2 = t1*J
+X3 = c*t2
+t3 = C-D
+t4 = E*t3
+Y3 = c*t4
+Z3 = E*J

@@ -1,0 +1,9 @@
+source 2007 Meloni "New point addition formulae for ECC applications", page 192
+assume Z1 = Z2
+compute A = (X2-X1)^2
+compute B = X1 A
+compute C = X2 A
+compute D = (Y2-Y1)^2
+compute X3 = D-B-C
+compute Y3 = (Y2-Y1)(B-X3)-Y1(C-B)
+compute Z3 = Z1(X2-X1)

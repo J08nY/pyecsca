@@ -1,0 +1,10 @@
+source 2010 Costello--Lange--Naehrig
+compute A = X1^2
+compute B = Y1^2
+compute C = Z1^2
+compute D = a C
+compute X3 = (A-D)^2
+compute E = 2 (A+D)^2-X3
+compute F = ((A-D+Y1)^2-B-X3)
+compute Y3 = E F
+compute Z3 = 4 B

@@ -1,0 +1,7 @@
+source 2005 Dimitrov--Imbert--Mishra
+compute M = 3 X1^2+a Z1^4
+compute E = 12 X1 Y1^2-M^2
+compute T = 8 Y1^4
+compute X3 = 8 Y1^2 (T-M E)+X1 E^2
+compute Y3 = Y1 (4 (M E-T) (2 T-M E)-E^3)
+compute Z3 = Z1 E

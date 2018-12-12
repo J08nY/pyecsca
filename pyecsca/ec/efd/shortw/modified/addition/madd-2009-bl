@@ -1,0 +1,14 @@
+source 2009.04.27 Bernstein--Lange
+assume Z2 = 1
+compute ZZ1 = Z1^2
+compute H = X2 ZZ1-X1
+compute HH = H^2
+compute I = 4 HH
+compute J = H I
+compute r = 2(Y2 Z1 ZZ1-Y1)
+compute V = X1 I
+compute X3 = r^2-J-2 V
+compute Y3 = r(V-X3)-2 Y1 J
+compute Z3 = (Z1+H)^2 - ZZ1 - HH
+compute ZZ3 = Z3^2
+compute T3 = a ZZ3^2

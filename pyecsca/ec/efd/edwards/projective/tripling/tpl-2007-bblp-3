@@ -1,0 +1,18 @@
+source 2007 Bernstein--Birkner--Lange--Peters
+parameter cc4
+assume cc4 = 4*c*c
+compute XX = X1^2
+compute YY = Y1^2
+compute ZZ = Z1^2
+compute ZZ4 = cc4 ZZ
+compute D = XX+YY
+compute DD = D^2
+compute H = 2 D(XX-YY)
+compute P = DD-YY ZZ4
+compute Q = DD-XX ZZ4
+compute T = H+Q
+compute TT = T^2
+compute U = H-P
+compute X3 = 2 P U X1
+compute Y3 = Q((T+Y1)^2-TT-YY)
+compute Z3 = U((T+Z1)^2-TT-ZZ)

@@ -1,0 +1,10 @@
+source 2007 Bernstein--Lange
+compute B = (X1+Y1)^2
+compute C = X1^2
+compute D = Y1^2
+compute E = C+D
+compute H = (c Z1)^2
+compute J = E-2 H
+compute X3 = c (B-E)J
+compute Y3 = c E(C-D)
+compute Z3 = E J

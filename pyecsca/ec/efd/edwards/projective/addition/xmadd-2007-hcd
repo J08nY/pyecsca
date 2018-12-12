@@ -1,0 +1,18 @@
+source 2007 Hisil--Carter--Dawson
+assume X2 = 1
+compute T0 = X1 Y2
+compute T0 = T0+Y1
+compute Y3 = Y1 Y2
+compute T1 = Y3 X1
+compute Y3 = Y3-X1
+compute Z3 = Z1 Z2
+compute X3 = T0 Z3
+compute Y3 = Y3 Z3
+compute T1 = d T1
+compute Z3 = Z3^2
+compute T0 = Z3-T1
+compute Z3 = Z3+T1
+compute X3 = X3 T0
+compute Y3 = Y3 Z3
+compute Z3 = Z3 T0
+compute Z3 = c Z3

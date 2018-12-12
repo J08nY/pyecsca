@@ -1,0 +1,12 @@
+t0 = Z2-Y2
+t1 = Z3-Y3
+t2 = t0*t1
+V = s*t2
+t3 = Z2+Y2
+t4 = Z3+Y3
+W = t3*t4
+t5 = W-V
+Y5 = t5^2
+t6 = W+V
+t7 = t6^2
+Z5 = Y1*t7

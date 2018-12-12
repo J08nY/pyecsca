@@ -1,0 +1,18 @@
+source 2007 Bernstein--Lange
+compute U1 = X1 Z2
+compute U2 = X2 Z1
+compute S1 = Y1 Z2
+compute S2 = Y2 Z1
+compute ZZ = Z1 Z2
+compute T = U1+U2
+compute TT = T^2
+compute M = S1+S2
+compute R = TT-U1 U2+a ZZ^2
+compute F = ZZ M
+compute L = M F
+compute LL = L^2
+compute G = (T+L)^2-TT-LL
+compute W = 2 R^2-G
+compute X3 = 2 F W
+compute Y3 = R(G-2 W)-2 LL
+compute Z3 = 4 F F^2

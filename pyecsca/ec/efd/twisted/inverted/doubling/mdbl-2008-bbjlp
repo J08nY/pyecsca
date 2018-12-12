@@ -1,0 +1,13 @@
+source 2008 Bernstein--Birkner--Joye--Lange--Peters http://eprint.iacr.org/2008/013, Section 6, plus Z1=1
+assume Z1 = 1
+parameter d2
+assume d2 = 2*d
+compute A = X1^2
+compute B = Y1^2
+compute U = a B
+compute C = A + U
+compute D = A - U
+compute E = (X1 + Y1)^2 - A - B
+compute X3 = C D
+compute Y3 = E (C - d2)
+compute Z3 = D E

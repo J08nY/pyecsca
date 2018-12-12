@@ -1,0 +1,12 @@
+source 2007 Bernstein--Lange
+parameter cc2
+assume cc2 = 2*c*c
+assume Z1 = 1
+compute B = (X1+Y1)^2
+compute C = X1^2
+compute D = Y1^2
+compute E = C+D
+compute J = E-cc2
+compute X3 = c(B-E)J
+compute Y3 = c E(C-D)
+compute Z3 = E J

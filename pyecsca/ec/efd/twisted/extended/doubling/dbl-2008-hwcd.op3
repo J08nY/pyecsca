@@ -1,0 +1,16 @@
+A = X1^2
+B = Y1^2
+t0 = Z1^2
+C = 2*t0
+D = a*A
+t1 = X1+Y1
+t2 = t1^2
+t3 = t2-A
+E = t3-B
+G = D+B
+F = G-C
+H = D-B
+X3 = E*F
+Y3 = G*H
+T3 = E*H
+Z3 = F*G

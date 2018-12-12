@@ -1,0 +1,16 @@
+A = Z1*Z2
+t0 = A^2
+B = d*t0
+D = Y1*Y2
+E = X1*D
+F = E-B
+G = E+B
+H = X1-D
+t1 = X1*Y2
+I = t1+Y1
+t2 = G*H
+X3 = c*t2
+t3 = F*I
+Y3 = c*t3
+t4 = H*I
+Z3 = A*t4

@@ -1,0 +1,3 @@
+source 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization", page 261, fourth display
+compute X3 = (X1^2-Z1^2)^2
+compute Z3 = 4 X1 Z1 (X1^2 + a X1 Z1 + Z1^2)

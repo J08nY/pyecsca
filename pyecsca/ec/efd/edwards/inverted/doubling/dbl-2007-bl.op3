@@ -1,0 +1,14 @@
+A = X1^2
+B = Y1^2
+C = A+B
+D = A-B
+t0 = X1+Y1
+t1 = t0^2
+E = t1-C
+t2 = D*E
+Z3 = c*t2
+X3 = C*D
+t3 = Z1^2
+t4 = ccd2*t3
+t5 = C-t4
+Y3 = E*t5

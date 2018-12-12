@@ -1,0 +1,5 @@
+source 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization", page 261, fourth display, plus assumption Z1=1, plus common-subexpression elimination
+assume Z1 = 1
+compute XX1 = X1^2
+compute X3 = (XX1-1)^2
+compute Z3 = 4 X1 (XX1 + a X1 + 1)

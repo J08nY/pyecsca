@@ -1,0 +1,9 @@
+YY = Y1^2
+A = r2*YY
+t0 = YY^2
+B = d+t0
+t1 = B-A
+V = s*t1
+W = B+A
+Y3 = W-V
+Z3 = W+V

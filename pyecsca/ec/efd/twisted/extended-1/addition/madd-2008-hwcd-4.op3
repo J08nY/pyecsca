@@ -1,0 +1,17 @@
+t0 = Y1-X1
+t1 = Y2+X2
+A = t0*t1
+t2 = Y1+X1
+t3 = Y2-X2
+B = t2*t3
+t4 = 2*T2
+C = Z1*t4
+D = 2*T1
+E = D+C
+F = B-A
+G = B+A
+H = D-C
+X3 = E*F
+Y3 = G*H
+T3 = E*H
+Z3 = F*G

@@ -1,0 +1,20 @@
+source 2004 Hankerson--Menezes--Vanstone, page 91
+assume Z2=1
+compute T1 = Z1^2
+compute T2 = T1 Z1
+compute T1 = T1 X2
+compute T2 = T2 Y2
+compute T1 = T1-X1
+compute T2 = T2-Y1
+compute Z3 = Z1 T1
+compute T3 = T1^2
+compute T4 = T3 T1
+compute T3 = T3 X1
+compute T1 = 2 T3
+compute X3 = T2^2
+compute X3 = X3-T1
+compute X3 = X3-T4
+compute T3 = T3-X3
+compute T3 = T3 T2
+compute T4 = T4 Y1
+compute Y3 = T3-T4

@@ -1,0 +1,16 @@
+T0 = X1*Y2
+T0 = T0+Y1
+Y3 = Y1*Y2
+T1 = Y3*X1
+Y3 = Y3-X1
+Z3 = Z1*Z2
+X3 = T0*Z3
+Y3 = Y3*Z3
+T1 = d*T1
+Z3 = Z3^2
+T0 = Z3-T1
+Z3 = Z3+T1
+X3 = X3*T0
+Y3 = Y3*Z3
+Z3 = Z3*T0
+Z3 = c*Z3

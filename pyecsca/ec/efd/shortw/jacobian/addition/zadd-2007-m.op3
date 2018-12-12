@@ -1,0 +1,16 @@
+t0 = X2-X1
+A = t0^2
+B = X1*A
+C = X2*A
+t1 = Y2-Y1
+D = t1^2
+t2 = D-B
+X3 = t2-C
+t3 = Y2-Y1
+t4 = B-X3
+t5 = C-B
+t6 = Y1*t5
+t7 = t3*t4
+Y3 = t7-t6
+t8 = X2-X1
+Z3 = Z1*t8

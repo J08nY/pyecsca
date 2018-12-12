@@ -1,0 +1,6 @@
+source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", formulas (9) and (10)
+assume Z1 = 1
+compute X4 = (X2^2 - a Z2^2)^2 - 8 b X2 Z2^3
+compute Z4 = 4 Z2 (X2^3 + a X2 Z2^2 + b Z2^3)
+compute X5 = (X2 X3 - a Z2 Z3)^2 - 4 b Z2 Z3 (X2 Z3 + X3 Z2)
+compute Z5 = X1 (X2 Z3 - X3 Z2)^2

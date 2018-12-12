@@ -1,0 +1,16 @@
+source 2007 Bernstein--Birkner--Lange--Peters
+parameter c2
+assume c2 = 2*c
+compute XX = X1^2
+compute YY = Y1^2
+compute ZZ = (c2 Z1)^2
+compute D = XX+YY
+compute DD = D^2
+compute H = 2 D (XX-YY)
+compute P = DD-YY ZZ
+compute Q = DD-XX ZZ
+compute T = H+Q
+compute U = H-P
+compute X3 = P U X1
+compute Y3 = Q T Y1
+compute Z3 = T U Z1

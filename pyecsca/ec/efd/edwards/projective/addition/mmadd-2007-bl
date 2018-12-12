@@ -1,0 +1,9 @@
+source 2007 Bernstein--Lange
+assume Z1 = 1
+assume Z2 = 1
+compute C = X1 X2
+compute D = Y1 Y2
+compute E = d C D
+compute X3 = (1-E)((X1+Y1)(X2+Y2)-C-D)
+compute Y3 = (1+E)(D-C)
+compute Z3 = c(1-E^2)

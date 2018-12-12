@@ -1,0 +1,6 @@
+compute A = 1/ZZZ1
+compute B = (ZZ1 A)^2
+compute X3 = X1 B
+compute Y3 = Y1 A
+compute ZZ3 = 1
+compute ZZZ3 = 1

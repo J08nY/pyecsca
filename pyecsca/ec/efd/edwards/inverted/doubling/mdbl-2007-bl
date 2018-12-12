@@ -1,0 +1,12 @@
+source 2007 Bernstein--Lange
+parameter ccd2
+assume ccd2 = 2*c*c*d
+assume Z1 = 1
+compute A = X1^2
+compute B = Y1^2
+compute C = A+B
+compute D = A-B
+compute E = (X1+Y1)^2-C
+compute Z3 = c D E
+compute X3 = C D
+compute Y3 = E (C-ccd2)

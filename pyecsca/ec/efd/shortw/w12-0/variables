@@ -1,0 +1,7 @@
+name W12 coordinates with a6=0
+assume b = 0
+variable X
+variable Y
+variable Z
+satisfying x = X/Z
+satisfying y = Y/Z^2

@@ -1,0 +1,23 @@
+source 2007 Bernstein--Lange; source comments that these formulas use two temporary registers
+compute R1 = X1
+compute R2 = Y1
+compute R3 = Z1
+compute R4 = R1+R2
+compute R3 = c R3
+compute R1 = R1^2
+compute R2 = R2^2
+compute R3 = R3^2
+compute R4 = R4^2
+compute R3 = 2 R3
+compute R5 = R1+R2
+compute R2 = R1-R2
+compute R4 = R4-R5
+compute R3 = R5-R3
+compute R1 = R3 R4
+compute R3 = R3 R5
+compute R2 = R2 R5
+compute R1 = c R1
+compute R2 = c R2
+compute X3 = R1
+compute Y3 = R2
+compute Z3 = R3

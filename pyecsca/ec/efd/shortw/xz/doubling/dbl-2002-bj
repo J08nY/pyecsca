@@ -1,0 +1,3 @@
+source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", formula (10) accompanied by note "7 multiplications plus 2 multiplications by a constant"
+compute X3 = (X1^2 - a Z1^2)^2 - 8 b X1 Z1^3
+compute Z3 = 4 Z1 (X1^3 + a X1 Z1^2 + b Z1^3)

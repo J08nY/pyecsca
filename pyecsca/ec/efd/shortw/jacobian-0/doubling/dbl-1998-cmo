@@ -1,0 +1,7 @@
+source 1998 Cohen--Miyaji--Ono "Efficient elliptic curve exponentiation using mixed coordinates", formula (6)
+compute S = 4 X1 Y1^2
+compute M = 3 X1^2+a Z1^4
+compute T = M^2-2 S
+compute X3 = T
+compute Y3 = M (S-T)-8 Y1^4
+compute Z3 = 2 Y1 Z1

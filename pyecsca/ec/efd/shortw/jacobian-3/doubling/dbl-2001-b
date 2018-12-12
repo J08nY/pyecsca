@@ -1,0 +1,9 @@
+source 2001 Bernstein "A software implementation of NIST P-224"
+appliesto jacobian-3
+compute delta = Z1^2
+compute gamma = Y1^2
+compute beta = X1 gamma
+compute alpha = 3 (X1-delta) (X1+delta)
+compute X3 = alpha^2-8 beta
+compute Z3 = (Y1+Z1)^2-gamma-delta
+compute Y3 = alpha (4 beta-X3)-8 gamma^2

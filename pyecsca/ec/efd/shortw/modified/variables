@@ -1,0 +1,8 @@
+name modified Jacobian coordinates
+variable X
+variable Y
+variable Z
+variable T
+satisfying x = X/Z^2
+satisfying y = Y/Z^3
+satisfying T = a*Z^4

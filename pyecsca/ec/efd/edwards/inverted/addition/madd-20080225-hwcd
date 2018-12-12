@@ -1,0 +1,13 @@
+source 2008.02.25 Hisil--Wong--Carter--Dawson, page 8
+assume Z2 = 1
+compute A = X1
+compute B = Y1
+compute C = Z1 X2
+compute D = Z1 Y2
+compute E = A B
+compute F = C D
+compute G = E+F
+compute H = E-F
+compute X3 = ((A+D)(B+C)-G)H
+compute Y3 = ((A-C)(B+D)-H)G
+compute Z3 = c G H

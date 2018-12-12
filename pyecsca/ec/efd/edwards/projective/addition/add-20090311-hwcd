@@ -1,0 +1,15 @@
+source 2009.03.11 Hisil--Wong--Carter--Dawson, after formula (17), plus denominator elimination
+parameter k
+assume k*c = 1
+compute R1 = X2 Y2
+compute R2 = Z2^2
+compute A = X1 Y1
+compute B = Z1^2
+compute C = R2 A
+compute D = R1 B
+compute E = (X1-X2)(Y1+Y2)-A+R1
+compute F = (X1+Y2)(Y1+X2)-A-R1
+compute G = (Z1+Z2)^2-B-R2
+compute X3 = 2 E(C+D)
+compute Y3 = 2 F(C-D)
+compute Z3 = k E F G

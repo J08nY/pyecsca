@@ -1,0 +1,17 @@
+YY2 = Y2^2
+t0 = Z2^2
+ZZ2 = r*t0
+YY3 = Y3^2
+t1 = Z3^2
+ZZ3 = r*t1
+t2 = ZZ2-YY2
+t3 = ZZ3-YY3
+t4 = t2*t3
+V = s*t4
+t5 = ZZ2+YY2
+t6 = ZZ3+YY3
+W = t5*t6
+t7 = W-V
+Y5 = r*t7
+t8 = W+V
+Z5 = Y1*t8

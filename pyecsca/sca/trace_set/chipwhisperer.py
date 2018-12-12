@@ -15,14 +15,14 @@ class ChipWhispererTraceSet(TraceSet):
         if path is None and name is None:
             super().__init__()
         else:
-            data = self._read_data(path, name)
+            data = self.__read_data(path, name)
             trace_data = data["traces"]
             traces = [Trace(None, None, trace_samples, trace_set=self) for trace_samples in trace_data]
             del data["traces"]
-            config = self._read_config(path, name)
+            config = self.__read_config(path, name)
             super().__init__(*traces, **data, **config)
 
-    def _read_data(self, path, name):
+    def __read_data(self, path, name):
         types = {"keylist": None, "knownkey": None, "textin": None, "textout": None, "traces": None}
         for type in types.keys():
             type_path = join(path, name + "_" + type + ".npy")
@@ -30,7 +30,7 @@ class ChipWhispererTraceSet(TraceSet):
                 types[type] = np.load(type_path)
         return types
 
-    def _read_config(self, path, name):
+    def __read_config(self, path, name):
         config_path = join(path, "config_" + name + "_.cfg")
         if exists(config_path) and isfile(config_path):
             config = ConfigParser()

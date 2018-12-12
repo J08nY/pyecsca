@@ -1,0 +1,6 @@
+name projective coordinates
+variable X
+variable Y
+variable Z
+satisfying x = X/Z
+satisfying y = Y/Z

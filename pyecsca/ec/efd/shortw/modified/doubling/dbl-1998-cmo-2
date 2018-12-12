@@ -1,0 +1,10 @@
+source 1998 Cohen--Miyaji--Ono "Efficient elliptic curve exponentiation using mixed coordinates", formula (10), plus common-subexpression elimination
+compute XX = X1^2
+compute YY = Y1^2
+compute U = 8 YY^2
+compute S = 4 X1 YY
+compute M = 3 XX + T1
+compute X3 = M^2 - 2 S
+compute Y3 = M(S-X3)-U
+compute Z3 = 2 Y1 Z1
+compute T3 = 2 U T1

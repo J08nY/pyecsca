@@ -1,0 +1,15 @@
+C = X1*X2
+D = Y1*Y2
+E = C*D
+t0 = a*D
+H = C-t0
+t1 = X1+Y1
+t2 = X2+Y2
+t3 = t1*t2
+t4 = t3-C
+I = t4-D
+t5 = E+d
+X3 = t5*H
+t6 = E-d
+Y3 = t6*I
+Z3 = H*I

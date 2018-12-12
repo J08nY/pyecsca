@@ -1,0 +1,13 @@
+source 2008 Sutherland
+appliesto xyzz-3
+assume ZZ1 = 1
+assume ZZZ1 = 1
+compute U = 2 Y1
+compute V = U^2
+compute W = U V
+compute S = X1 V
+compute M = 3 (X1^2-1)
+compute X3 = M^2-2 S
+compute Y3 = M (S-X3)-W Y1
+compute ZZ3 = V
+compute ZZZ3 = W

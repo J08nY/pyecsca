@@ -1,0 +1,7 @@
+source 1998 Cohen--Miyaji--Ono "Efficient elliptic curve exponentiation using mixed coordinates", formula (3)
+compute u = Y2 Z1-Y1 Z2
+compute v = X2 Z1-X1 Z2
+compute A = u^2 Z1 Z2-v^3-2 v^2 X1 Z2
+compute X3 = v A
+compute Y3 = u(v^2 X1 Z2-A)-v^3 Y1 Z2
+compute Z3 = v^3 Z1 Z2

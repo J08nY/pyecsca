@@ -1,0 +1,16 @@
+source 2007 Bernstein--Lange
+parameter ccd
+assume ccd = c*c*d
+compute XX = X1^2
+compute YY = Y1^2
+compute ZZ = Z1^2
+compute D = XX+YY
+compute DD = D^2
+compute E = 4 (D-ccd ZZ)
+compute H = 2 D (YY-XX)
+compute P = DD-XX E
+compute Q = DD-YY E
+compute QQ = Q^2
+compute X3 = (H+Q) ((Q+X1)^2-QQ-XX)
+compute Y3 = 2 (H-P) P Y1
+compute Z3 = P ((Q+Z1)^2-QQ-ZZ)

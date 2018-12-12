@@ -1,0 +1,14 @@
+source 2008 Sutherland
+compute U1 = X1 ZZ2
+compute U2 = X2 ZZ1
+compute S1 = Y1 ZZZ2
+compute S2 = Y2 ZZZ1
+compute P = U2-U1
+compute R = S2-S1
+compute PP = P^2
+compute PPP = P PP
+compute Q = U1 PP
+compute X3 = R^2-PPP-2 Q
+compute Y3 = R (Q-X3)-S1 PPP
+compute ZZ3 = ZZ1 ZZ2 PP
+compute ZZZ3 = ZZZ1 ZZZ2 PPP

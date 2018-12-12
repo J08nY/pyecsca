@@ -1,0 +1,5 @@
+source 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization", page 261, third and fourth displays
+compute X5 = Z1(X2 X3-Z2 Z3)^2
+compute Z5 = X1(X2 Z3-Z2 X3)^2
+compute X4 = (X2^2-Z2^2)^2
+compute Z4 = 4 X2 Z2 (X2^2 + a X2 Z2 + Z2^2)

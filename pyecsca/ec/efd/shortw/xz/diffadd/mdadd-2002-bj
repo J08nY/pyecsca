@@ -1,0 +1,4 @@
+source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", formula (9) accompanied by note "7 multiplications plus 3 multiplications by a constant"
+assume Z1 = 1
+compute X5 = (X2 X3 - a Z2 Z3)^2 - 4 b Z2 Z3 (X2 Z3 + X3 Z2) 
+compute Z5 = X1 (X2 Z3 - X3 Z2)^2

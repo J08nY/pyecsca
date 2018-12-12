@@ -1,0 +1,17 @@
+C = X1*X2
+D = Y1*Y2
+t0 = C*D
+E = d*t0
+t1 = X1+Y1
+t2 = X2+Y2
+t3 = t1*t2
+t4 = 1-E
+t5 = t3-C
+t6 = t5-D
+X3 = t4*t6
+t7 = a*C
+t8 = 1+E
+t9 = D-t7
+Y3 = t8*t9
+t10 = E^2
+Z3 = 1-t10

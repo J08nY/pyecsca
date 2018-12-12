@@ -1,0 +1,7 @@
+name Jacobian coordinates with a4=-3
+assume a = -3
+variable X
+variable Y
+variable Z
+satisfying x = X/Z^2
+satisfying y = Y/Z^3

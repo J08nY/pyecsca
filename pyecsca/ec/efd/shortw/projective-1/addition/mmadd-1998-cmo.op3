@@ -1,0 +1,15 @@
+u = Y2-Y1
+uu = u^2
+v = X2-X1
+vv = v^2
+vvv = v*vv
+R = vv*X1
+t0 = 2*R
+t1 = uu-vvv
+A = t1-t0
+X3 = v*A
+t2 = R-A
+t3 = vvv*Y1
+t4 = u*t2
+Y3 = t4-t3
+Z3 = vvv

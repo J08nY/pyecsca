@@ -1,0 +1,5 @@
+source 2002 Izu--Takagi "A fast parallel elliptic curve multiplication resistant against side channel attacks", formulas (8) and (10)
+compute X4 = (X2^2 - a Z2^2)^2 - 8 b X2 Z2^3
+compute Z4 = 4(X2 Z2(X2^2 + a Z2^2) + b Z2^4)
+compute X5 = Z1 ((X2 X3 - a Z2 Z3)^2 - 4 b Z2 Z3(X2 Z3 + X3 Z2))
+compute Z5 = X1 (X2 Z3 - X3 Z2)^2

@@ -1,0 +1,15 @@
+source 2008 Hisil--Wong--Carter--Dawson, http://eprint.iacr.org/2008/522, Section 3.2, plus assumption Z1=1
+assume Z1 = 1
+assume Z2 = 1
+compute A = X1 X2
+compute B = Y1 Y2
+compute C = T2
+compute D = T1
+compute E = D + C
+compute F = (X1-Y1)(X2+Y2)+B-A
+compute G = B + a A
+compute H = D - C
+compute X3 = E F
+compute Y3 = G H
+compute T3 = E H
+compute Z3 = F G

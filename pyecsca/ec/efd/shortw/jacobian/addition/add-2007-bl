@@ -1,0 +1,15 @@
+source 2007 Bernstein--Lange; note that the improvement from 12M+4S to 11M+5S was already mentioned in 2001 Bernstein http://cr.yp.to/talks.html#2001.10.29
+compute Z1Z1 = Z1^2
+compute Z2Z2 = Z2^2
+compute U1 = X1 Z2Z2
+compute U2 = X2 Z1Z1
+compute S1 = Y1 Z2 Z2Z2
+compute S2 = Y2 Z1 Z1Z1
+compute H = U2-U1
+compute I = (2 H)^2
+compute J = H I
+compute r = 2 (S2-S1)
+compute V = U1 I
+compute X3 = r^2-J-2 V
+compute Y3 = r (V-X3)-2 S1 J
+compute Z3 = ((Z1+Z2)^2-Z1Z1-Z2Z2) H

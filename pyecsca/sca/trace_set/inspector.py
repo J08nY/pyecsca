@@ -149,17 +149,17 @@ class InspectorTraceSet(TraceSet):
         traces = None
         if isinstance(input, bytes):
             with BytesIO(input) as f:
-                traces = self._read(f)
+                traces = self.__read(f)
         elif isinstance(input, (Path, str)):
             with open(input, "rb") as f:
-                traces = self._read(f)
+                traces = self.__read(f)
         elif isinstance(input, (RawIOBase, BufferedIOBase)):
-            traces = self._read(input)
+            traces = self.__read(input)
         elif input is not None:
             raise ValueError(
                     "Cannot parse data, unknown input: {}".format(input))
         if traces is not None:
-            super().__init__(*self._scale(traces))
+            super().__init__(*self.__scale(traces))
         else:
             super().__init__()
         if keep_raw_traces:
@@ -167,7 +167,7 @@ class InspectorTraceSet(TraceSet):
         else:
             del traces
 
-    def _read(self, file):
+    def __read(self, file):
         self._set_tags = set()
         while True:
             tag = ord(file.read(1))
@@ -200,7 +200,7 @@ class InspectorTraceSet(TraceSet):
             result.append(Trace(title, data, samples, trace_set=self))
         return result
 
-    def _write(self, file):
+    def __write(self, file):
         for set_tag in self._set_tags:
             tag_name, tag_len, _, tag_writer = InspectorTraceSet._tag_parsers[
                 set_tag]
@@ -228,7 +228,7 @@ class InspectorTraceSet(TraceSet):
             except UnsupportedOperation:
                 file.write(trace.samples.tobytes())
 
-    def _scale(self, traces):
+    def __scale(self, traces):
         return list(map(lambda trace: Trace(trace.title, trace.data,
                                             trace.samples.astype("f4") * self.y_scale,
                                             trace_set=self),
@@ -242,9 +242,9 @@ class InspectorTraceSet(TraceSet):
         """
         if isinstance(output, (Path, str)):
             with open(output, "wb") as f:
-                self._write(f)
+                self.__write(f)
         elif isinstance(output, (RawIOBase, BufferedIOBase)):
-            self._write(output)
+            self.__write(output)
         else:
             raise ValueError("Cannot save data, unknown output: {}".format(output))
 

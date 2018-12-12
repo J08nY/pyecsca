@@ -1,0 +1,16 @@
+source 2002 Izu--Takagi "A fast parallel elliptic curve multiplication resistant against side channel attacks", page 296, Formula 3
+compute T1 = X1^2
+compute T2 = Z1^2
+compute T3 = a T2
+compute T4 = T1 - T3
+compute T5 = T4^2
+compute T6 = b T2
+compute T7 = X1 Z1
+compute T8 = T6 T7
+compute T9 = 8 T8
+compute X3 = T5 - T9
+compute T10 = T1 + T3
+compute T11 = T7 T10
+compute T12 = T6 T2
+compute T13 = T11 + T12
+compute Z3 = 4 T13

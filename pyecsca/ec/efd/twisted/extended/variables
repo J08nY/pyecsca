@@ -1,0 +1,8 @@
+name extended coordinates
+variable X
+variable Y
+variable Z
+variable T
+satisfying x = X/Z
+satisfying y = Y/Z
+satisfying x*y = T/Z

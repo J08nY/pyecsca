@@ -1,0 +1,21 @@
+source 2004 Hankerson--Menezes--Vanstone, page 91
+appliesto jacobian-3
+parameter half
+assume 2*half = 1
+compute T1 = Z1^2
+compute T2 = X1-T1
+compute T1 = X1+T1
+compute T2 = T2 T1
+compute T2 = 3 T2
+compute Y3 = 2 Y1
+compute Z3 = Y3 Z1
+compute Y3 = Y3^2
+compute T3 = Y3 X1
+compute Y3 = Y3^2
+compute Y3 = half Y3
+compute X3 = T2^2
+compute T1 = 2 T3
+compute X3 = X3-T1
+compute T1 = T3-X3
+compute T1 = T1 T2
+compute Y3 = T1-Y3

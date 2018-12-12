@@ -1,0 +1,15 @@
+t0 = X1+Y1
+B = t0^2
+C = X1^2
+D = Y1^2
+E = a*C
+F = E+D
+H = Z1^2
+t1 = 2*H
+J = F-t1
+t2 = B-C
+t3 = t2-D
+X3 = t3*J
+t4 = E-D
+Y3 = F*t4
+Z3 = F*J

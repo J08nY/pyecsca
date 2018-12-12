@@ -1,0 +1,11 @@
+source 2009.04.01 Lange
+appliesto jacobian-0
+compute A = X1^2
+compute B = Y1^2
+compute C = B^2
+compute D = 2 ((X1 + B)^2 - A - C)
+compute E = 3 A
+compute F = E^2
+compute X3 = F - 2 D
+compute Y3 = E (D - X3) - 8 C
+compute Z3 = 2 Y1 Z1

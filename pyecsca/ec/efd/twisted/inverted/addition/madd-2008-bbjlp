@@ -1,0 +1,11 @@
+source 2008 Bernstein--Birkner--Joye--Lange--Peters http://eprint.iacr.org/2008/013, Section 6, plus Z2=1, plus common-subexpression elimination
+assume Z2 = 1
+compute B = d Z1^2
+compute C = X1 X2
+compute D = Y1 Y2
+compute E = C D
+compute H = C - a D
+compute I = (X1 + Y1)(X2 + Y2) - C - D
+compute X3 = (E + B) H
+compute Y3 = (E - B) I
+compute Z3 = Z1 H I

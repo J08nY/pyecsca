@@ -1,0 +1,18 @@
+source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", formulas (9) and (10), plus common-subexpression elimination emphasizing squarings
+assume Z1 = 1
+parameter b2
+assume b2 = 2*b
+parameter b4
+assume b4 = 4*b
+compute XX = X2^2
+compute ZZ = Z2^2
+compute E = 2((X2 + Z2)^2 - XX - ZZ)
+compute aZZ = a ZZ
+compute X4 = (XX - aZZ)^2 - b2 E ZZ
+compute Z4 = E (XX + aZZ) + b4 ZZ^2
+compute A = X2 X3
+compute B = Z2 Z3
+compute C = X2 Z3
+compute D = Z2 X3
+compute X5 = (A - a B)^2 - b4 B (C + D)
+compute Z5 = X1 (C - D)^2

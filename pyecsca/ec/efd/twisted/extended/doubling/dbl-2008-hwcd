@@ -1,0 +1,13 @@
+source 2008 Hisil--Wong--Carter--Dawson, http://eprint.iacr.org/2008/522, Section 3.3
+compute A = X1^2
+compute B = Y1^2
+compute C = 2 Z1^2
+compute D = a A
+compute E = (X1+Y1)^2-A-B
+compute G = D + B
+compute F = G - C
+compute H = D - B
+compute X3 = E F
+compute Y3 = G H
+compute T3 = E H
+compute Z3 = F G

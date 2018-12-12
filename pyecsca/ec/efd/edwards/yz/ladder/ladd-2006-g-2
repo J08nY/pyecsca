@@ -1,0 +1,17 @@
+source 2006 Gaudry "Variants of the Montgomery form based on Theta functions", pages 22/52 and 23/52, with A^2/B^2 = (a^2+b^2)/(a^2-b^2) as on page 20/52, replacing incorrect B^2/A^2 and b/a on pages 22/52 and 23/52 with correct A^2/B^2 and a/b; or 2009 Gaudry--Lubicz "The arithmetic of characteristic 2 Kummer surfaces and of elliptic Kummer lines", Section 6.2, replacing incorrect A'/B' = (a^2+b^2)/(a^2-b^2) with correct A'^2/B'^2 = (a^2+b^2)/(a^2-b^2), replacing A'^2/B'^2 with A^2/B^2, and replacing z... with y...; plus notation changes: a/b and A^2/B^2 defined as 1/sqrt(r) and (1+r)/(1-r), input x^2/y^2 etc. replaced by r Z2^2/Y2^2 and r Z3^2/Y3^2 and r Z1^2/Y1^2, intermediate x'/y' replaced by W/V, output X/Y replaced by sqrt(r) Z5/Y5; plus common-subexpression elimination
+parameter s
+assume s = (1+r)/(1-r)
+compute YY2 = Y2^2
+compute ZZ2 = r Z2^2
+compute A = ZZ2-YY2
+compute B = ZZ2+YY2
+compute YY3 = Y3^2
+compute ZZ3 = r Z3^2
+compute V2 = s A^2
+compute W2 = B^2
+compute Y4 = W2-V2
+compute Z4 = W2+V2
+compute V = s A(ZZ3-YY3)
+compute W = B(ZZ3+YY3)
+compute Y5 = (r Z1)(W-V)
+compute Z5 = Y1(W+V)

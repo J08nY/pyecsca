@@ -1,0 +1,18 @@
+source 2001 Bernstein http://cr.yp.to/nistp224.html opt-idea53.c ecadd
+compute ZZ1 = Z1^2
+compute ZZZ1 = Z1 ZZ1
+compute ZZ2 = Z2^2
+compute ZZZ2 = Z2 ZZ2
+compute A = X1 ZZ2
+compute B = X2 ZZ1 -A
+compute c = Y1 ZZZ2
+compute d = Y2 ZZZ1 -c
+compute e = B^2
+compute f = B e
+compute g = A e
+compute h = Z1 Z2
+compute f2g = 2 g+f
+compute X3 = d^2-f2g
+compute Z3 = B h
+compute gx = g-X3
+compute Y3 = d gx-c f

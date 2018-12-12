@@ -1,0 +1,20 @@
+source 2008 Giessmann
+assume Z2=1
+compute T1 = Z1^2
+compute T2 = T1 Z1
+compute T1 = T1 X2
+compute T2 = T2 Y2
+compute T1 = X1-T1
+compute T2 = T2-Y1
+compute Z3 = Z1 T1
+compute T4 = T1^2
+compute T1 = T1 T4
+compute T4 = T4 X1
+compute X3 = T2^2
+compute X3 = X3+T1
+compute Y3 = T1 Y1
+compute T1 = 2 T4
+compute X3 = X3-T1
+compute T4 = X3-T4
+compute T4 = T4 T2
+compute Y3 = T4-Y3
