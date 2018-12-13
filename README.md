@@ -1,4 +1,4 @@
-# ![](docs/_static/logo.png) pyecsca [pɪɛtska] 
+# ![](docs/_static/logo_small.png) pyecsca [pɪɛtska] 
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
@@ -11,6 +11,8 @@
  - [fastdtw](https://github.com/slaypni/fastdtw)
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
+
+It also supports working with [Riscure](https://www.riscure.com) Inspector trace sets, which are of a proprietary format.
 
 ### Testing
 
