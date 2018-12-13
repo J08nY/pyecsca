@@ -2,7 +2,9 @@ from ast import parse, Expression
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from typing import List, Any, MutableMapping
 
-from .formula import Formula, AdditionFormula, DoublingFormula, TriplingFormula, DifferentialAdditionFormula, LadderFormula, ScalingFormula
+from .formula import (Formula, AdditionFormula, DoublingFormula, TriplingFormula,
+                      DifferentialAdditionFormula, LadderFormula, ScalingFormula)
+
 
 class CoordinateModel(object):
     name: str
@@ -59,12 +61,13 @@ class CoordinateModel(object):
                 elif line.startswith("variable"):
                     self.variables.append(line[9:])
                 elif line.startswith("satisfying"):
-                    self.satisfying.append(parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval"))
+                    self.satisfying.append(
+                            parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval"))
                 elif line.startswith("parameter"):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
                     self.assumptions.append(
-                        parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
+                            parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
                 line = f.readline().decode("ascii")
 
     def __repr__(self):

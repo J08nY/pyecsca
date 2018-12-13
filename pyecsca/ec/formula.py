@@ -9,13 +9,14 @@ class Formula(object):
     source: str
     parameters: List[str]
     assumptions: List[Expression]
-    code: Module
+    code: List[Module]
 
     def __init__(self, path: str, name: str, coordinate_model: Any):
         self.name = name
         self.coordinate_model = coordinate_model
         self.parameters = []
         self.assumptions = []
+        self.code = []
         self.__read_meta_file(path)
         self.__read_op3_file(path + ".op3")
 
@@ -35,7 +36,8 @@ class Formula(object):
 
     def __read_op3_file(self, path):
         with resource_stream(__name__, path) as f:
-            self.code = parse(f.read(), path, mode="exec")
+            for line in f.readlines():
+                self.code.append(parse(line.decode("ascii").replace("^", "**"), path, mode="exec"))
 
     def __repr__(self):
         return self.__class__.__name__ + "({} for {})".format(self.name, self.coordinate_model)

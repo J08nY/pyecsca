@@ -10,6 +10,8 @@
  - [atpublic](https://public.readthedocs.io/)
  - [fastdtw](https://github.com/slaypni/fastdtw)
 
+*pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
+
 ### Testing
 
  - [nose2](https://nose2.readthedocs.io)

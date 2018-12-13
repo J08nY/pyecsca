@@ -7,4 +7,7 @@ test-plots:
 test-all:
 	nose2 -v
 
-.PHONY: test test-plots test-all
+typecheck:
+	mypy -p pyecsca --ignore-missing-imports
+
+.PHONY: test test-plots test-all typecheck

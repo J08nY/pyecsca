@@ -27,6 +27,11 @@ Requirements
  - atpublic_
  - fastdtw_
 
+*pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
+
+It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
+
+
 Testing
 -------
 
@@ -71,3 +76,5 @@ License
 .. _nose2: https://nose2.readthedocs.io
 .. _green: https://github.com/CleanCut/green
 .. _sphinx: https://www.sphinx-doc.org/
+.. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
+.. _Riscure: https://www.riscure.com/

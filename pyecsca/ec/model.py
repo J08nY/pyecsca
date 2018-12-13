@@ -21,7 +21,7 @@ class CurveModel(object):
     to_weierstrass: List[Module]
     from_weierstrass: List[Module]
 
-    def __init_subclass__(cls, efd_name: str = None, **kwargs):
+    def __init_subclass__(cls, efd_name: str = "", **kwargs):
         cls._efd_name = efd_name
         files = resource_listdir(__name__, "efd/" + efd_name)
         cls.coordinates = {}
