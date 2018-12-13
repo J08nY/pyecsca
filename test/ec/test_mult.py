@@ -11,12 +11,15 @@ from pyecsca.ec.point import Point
 class ScalarMultiplierTests(TestCase):
 
     def test_rtl_simple(self):
-        p = 11
+        p = 0xfffffffdffffffffffffffffffffffff
         coords = ShortWeierstrassModel.coordinates["projective"]
-        curve = EllipticCurve(ShortWeierstrassModel, coords, dict(a=5, b=7),
-                              Point(coords, X=Mod(0, p), Y=Mod(0, p), Z=Mod(1, p)))
+        curve = EllipticCurve(ShortWeierstrassModel, coords,
+                              dict(a=0xfffffffdfffffffffffffffffffffffc,
+                                   b=0xe87579c11079f43dd824993c2cee5ed3),
+                              Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p)))
         with Context() as ctx:
-            mult = RTLMultiplier(curve, coords.formulas["add-2002-bj"],
-                                 coords.formulas["dbl-2007-bl"], ctx=ctx)
-            result = mult.multiply(10, Point(coords, X=Mod(4, p), Y=Mod(3, p), Z=Mod(1, p)))
-            print(ctx.intermediates)
+            mult = RTLMultiplier(curve, coords.formulas["add-1998-cmo"],
+                                 coords.formulas["dbl-1998-cmo"], coords.formulas["z"], ctx=ctx)
+            mult.multiply(10, Point(coords, X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, p),
+                                    Y=Mod(0xcf5ac8395bafeb13c02da292dded7a83, p),
+                                    Z=Mod(1, p)))

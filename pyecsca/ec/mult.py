@@ -42,21 +42,30 @@ class LTRMultiplier(ScalarMultiplier):
 
 class RTLMultiplier(ScalarMultiplier):
     always: bool
+    scale: bool
 
     def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
                  scl: ScalingFormula = None,
-                 ctx: Context = None, always: bool = False):
+                 ctx: Context = None, scale: bool = True, always: bool = False):
         super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
         self.always = always
+        self.scale = scale
 
     def multiply(self, scalar: int, point: Point) -> Point:
         q = copy(point)
         r = copy(self.curve.neutral)
         while scalar > 0:
             q = self.context.execute(self.formulas["dbl"], q, **self.curve.parameters)
+            if self.always:
+                tmp = self.context.execute(self.formulas["add"], r, q, **self.curve.parameters)
+            else:
+                if r == self.curve.neutral:
+                    tmp = copy(q)
+                else:
+                    tmp = self.context.execute(self.formulas["add"], r, q, **self.curve.parameters)
             if scalar & 1 != 0:
-                r = self.context.execute(self.formulas["add"], q, r, **self.curve.parameters)
-            elif self.always:
-                self.context.execute(self.formulas["add"], q, r, **self.curve.parameters)
+                r = tmp
             scalar >>= 1
+        if self.scale:
+            r = self.context.execute(self.formulas["scl"], r, **self.curve.parameters)
         return r
