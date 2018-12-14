@@ -109,6 +109,14 @@ class Mod(object):
     def __int__(self):
         return self.x
 
+    def __eq__(self, other):
+        if type(other) is not Mod:
+            return False
+        return self.x == other.x and self.n == other.n
+
+    def __ne__(self, other):
+        return not self == other
+
     def __repr__(self):
         return str(self.x)
 

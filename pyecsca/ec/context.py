@@ -7,17 +7,14 @@ from .point import Point
 
 class Context(object):
     intermediates: List[Tuple[str, Mod]]
+    actions: List[Tuple[Formula, Tuple[Point, ...]]]
 
     def __init__(self):
         self.intermediates = []
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        self.actions = []
 
     def execute(self, formula: Formula, *points: Point, **params: Mod) -> Point:
+        self.actions.append((formula, tuple(points)))
         coords = {}
         for i, point in enumerate(points):
             if point.coordinate_model != formula.coordinate_model:
