@@ -13,7 +13,9 @@ class Context(object):
         self.intermediates = []
         self.actions = []
 
-    def execute(self, formula: Formula, *points: Point, **params: Mod) -> Point:
+    def execute(self, formula: Formula, *points: Point, **params: Mod) -> Tuple[Point, ...]:
+        if len(points) != formula.num_inputs:
+            raise ValueError
         self.actions.append((formula, tuple(points)))
         coords = {}
         for i, point in enumerate(points):
@@ -29,7 +31,11 @@ class Context(object):
             previous_locals = set(locals.keys())
             for key in diff:
                 self.intermediates.append((key, locals[key]))
-        resulting = {variable: locals[variable + "3"]
-                     for variable in formula.coordinate_model.variables
-                     if variable + "3" in locals}
-        return Point(formula.coordinate_model, **resulting)
+        result = []
+        for i in range(formula.num_outputs):
+            ind = str(i + 3)
+            resulting = {variable: locals[variable + ind]
+                         for variable in formula.coordinate_model.variables
+                         if variable + ind in locals}
+            result.append(Point(formula.coordinate_model, **resulting))
+        return tuple(result)

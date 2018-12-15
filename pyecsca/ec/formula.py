@@ -10,6 +10,8 @@ class Formula(object):
     parameters: List[str]
     assumptions: List[Expression]
     code: List[Module]
+    _inputs: int
+    _outputs: int
 
     def __init__(self, path: str, name: str, coordinate_model: Any):
         self.name = name
@@ -39,29 +41,43 @@ class Formula(object):
             for line in f.readlines():
                 self.code.append(parse(line.decode("ascii").replace("^", "**"), path, mode="exec"))
 
+    @property
+    def num_inputs(self):
+        return self._inputs
+
+    @property
+    def num_outputs(self):
+        return self._outputs
+
     def __repr__(self):
         return self.__class__.__name__ + "({} for {})".format(self.name, self.coordinate_model)
 
 
 class AdditionFormula(Formula):
-    pass
+    _inputs = 2
+    _outputs = 1
 
 
 class DoublingFormula(Formula):
-    pass
+    _inputs = 1
+    _outputs = 1
 
 
 class TriplingFormula(Formula):
-    pass
+    _inputs = 1
+    _outputs = 1
 
 
 class ScalingFormula(Formula):
-    pass
+    _inputs = 1
+    _outputs = 1
 
 
 class DifferentialAdditionFormula(Formula):
-    pass
+    _inputs = 3
+    _outputs = 1
 
 
 class LadderFormula(Formula):
-    pass
+    _inputs = 3
+    _outputs = 2

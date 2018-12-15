@@ -1,9 +1,9 @@
 from copy import copy
-from typing import Mapping
+from typing import Mapping, Tuple
 
 from .context import Context
 from .curve import EllipticCurve
-from .formula import Formula, AdditionFormula, DoublingFormula, ScalingFormula
+from .formula import Formula, AdditionFormula, DoublingFormula, ScalingFormula, LadderFormula
 from .point import Point
 
 
@@ -30,19 +30,25 @@ class ScalarMultiplier(object):
             return copy(other)
         if other == self.curve.neutral:
             return copy(one)
-        return self.context.execute(self.formulas["add"], one, other, **self.curve.parameters)
+        return self.context.execute(self.formulas["add"], one, other, **self.curve.parameters)[0]
 
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
             raise NotImplementedError
         if point == self.curve.neutral:
             return copy(point)
-        return self.context.execute(self.formulas["dbl"], point, **self.curve.parameters)
+        return self.context.execute(self.formulas["dbl"], point, **self.curve.parameters)[0]
 
     def _scl(self, point: Point) -> Point:
         if "scl" not in self.formulas:
             raise NotImplementedError
-        return self.context.execute(self.formulas["scl"], point, **self.curve.parameters)
+        return self.context.execute(self.formulas["scl"], point, **self.curve.parameters)[0]
+
+    def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, Point]:
+        if "ladd" not in self.formulas:
+            raise NotImplementedError
+        return self.context.execute(self.formulas["ladd"], start, to_dbl, to_add,
+                                    **self.curve.parameters)
 
     def multiply(self, scalar: int, point: Point) -> Point:
         raise NotImplementedError
@@ -91,3 +97,22 @@ class RTLMultiplier(ScalarMultiplier):
         if "scl" in self.formulas:
             r = self._scl(r)
         return r
+
+
+class LadderMultiplier(ScalarMultiplier):
+
+    def __init__(self, curve: EllipticCurve, ladd: LadderFormula, scl: ScalingFormula = None,
+                 ctx: Context = None):
+        super().__init__(curve, ctx, ladd=ladd, scl=scl)
+
+    def multiply(self, scalar: int, point: Point) -> Point:
+        p0 = copy(point)
+        p1 = self._ladd(self.curve.neutral, point, point)[1]
+        for i in range(scalar.bit_length(), -1, -1):
+            if scalar & i != 0:
+                p0, p1 = self._ladd(point, p1, p0)
+            else:
+                p0, p1 = self._ladd(point, p0, p1)
+        if "scl" in self.formulas:
+            p0 = self._scl(p0)
+        return p0
