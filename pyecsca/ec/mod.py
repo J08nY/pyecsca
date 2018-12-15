@@ -77,8 +77,6 @@ class Mod(object):
 
     @check
     def __mul__(self, other):
-        if self.n != other.n:
-            raise ValueError
         return Mod((self.x * other.x) % self.n, self.n)
 
     @check
@@ -94,12 +92,20 @@ class Mod(object):
         return ~self * other
 
     @check
+    def __floordiv__(self, other):
+        return self * ~other
+
+    @check
+    def __rfloordiv__(self, other):
+        return ~self * other
+
+    @check
     def __div__(self, other):
-        return self.__truediv__(other)
+        return self.__floordiv__(other)
 
     @check
     def __rdiv__(self, other):
-        return self.__rtruediv__(other)
+        return self.__rfloordiv__(other)
 
     @check
     def __divmod__(self, divisor):

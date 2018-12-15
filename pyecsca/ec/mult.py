@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Mapping, Tuple
+from typing import Mapping, Tuple, Optional
 
 from .context import Context
 from .curve import EllipticCurve
@@ -12,7 +12,7 @@ class ScalarMultiplier(object):
     formulas: Mapping[str, Formula]
     context: Context
 
-    def __init__(self, curve: EllipticCurve, ctx: Context = None, **formulas: Formula):
+    def __init__(self, curve: EllipticCurve, ctx: Context = None, **formulas: Optional[Formula]):
         for formula in formulas.values():
             if formula is not None and formula.coordinate_model is not curve.coordinate_model:
                 raise ValueError
@@ -21,7 +21,7 @@ class ScalarMultiplier(object):
             self.context = ctx
         else:
             self.context = Context()
-        self.formulas = dict(formulas)
+        self.formulas = dict(filter(lambda pair: pair[1] is not None, formulas.items()))
 
     def _add(self, one: Point, other: Point) -> Point:
         if "add" not in self.formulas:

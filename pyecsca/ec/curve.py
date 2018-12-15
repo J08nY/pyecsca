@@ -12,10 +12,12 @@ class EllipticCurve(object):
     neutral: Point
 
     def __init__(self, model: Type[CurveModel], coordinate_model: CoordinateModel,
-                 parameters: Mapping[str, int], neutral: Point = None):
+                 parameters: Mapping[str, int], neutral: Point):
         if coordinate_model not in model.coordinates.values():
             raise ValueError
         if set(model.parameter_names).symmetric_difference(parameters.keys()):
+            raise ValueError
+        if neutral.coordinate_model != coordinate_model:
             raise ValueError
         self.model = model
         self.coordinate_model = coordinate_model
