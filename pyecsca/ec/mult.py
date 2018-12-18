@@ -1,10 +1,11 @@
 from copy import copy
-from typing import Mapping, Tuple, Optional, List
+from typing import Mapping, Tuple, Optional, MutableMapping
 
 from pyecsca.ec.naf import naf, wnaf
 from .context import Context
 from .curve import EllipticCurve
-from .formula import Formula, AdditionFormula, DoublingFormula, ScalingFormula, LadderFormula
+from .formula import (Formula, AdditionFormula, DoublingFormula, ScalingFormula, LadderFormula,
+                      NegationFormula)
 from .point import Point
 
 
@@ -53,8 +54,9 @@ class ScalarMultiplier(object):
                                     **self.curve.parameters)
 
     def _neg(self, point: Point) -> Point:
-        # TODO
-        raise NotImplementedError
+        if "neg" not in self.formulas:
+            raise NotImplementedError
+        return self.context.execute(self.formulas["neg"], point, **self.curve.parameters)[0]
 
     def init(self, point: Point):
         self._point = point
@@ -143,9 +145,8 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     _point_neg: Point
 
     def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
-                 scl: ScalingFormula = None,
-                 ctx: Context = None):
-        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+                 neg: NegationFormula, scl: ScalingFormula = None, ctx: Context = None):
+        super().__init__(curve, ctx, add=add, dbl=dbl, neg=neg, scl=scl)
 
     def init(self, point: Point):
         super().init(point)
@@ -161,22 +162,28 @@ class BinaryNAFMultiplier(ScalarMultiplier):
                 q = self._add(q, self._point)
             if val == -1:
                 q = self._add(q, self._point_neg)
+        if "scl" in self.formulas:
+            q = self._scl(q)
         return q
 
 
 class WindowNAFMultiplier(ScalarMultiplier):
-    _points: List[Point]
+    _points: MutableMapping[int, Point]
     _width: int
 
-    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula, width: int,
-                 scl: ScalingFormula = None,
-                 ctx: Context = None):
-        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+                 neg: NegationFormula, width: int, scl: ScalingFormula = None, ctx: Context = None):
+        super().__init__(curve, ctx, add=add, dbl=dbl, neg=neg, scl=scl)
         self._width = width
 
     def init(self, point: Point):
         self._point = point
-        # TODO: precompute {1, 3, 5, upto 2^(w-1)-1}
+        self._points = {}
+        current_point = point
+        double_point = self._dbl(point)
+        for i in range(1, (self._width + 1) // 2 + 1):
+            self._points[2 ** i - 1] = current_point
+            current_point = self._add(current_point, double_point)
 
     def multiply(self, scalar: int, point: Optional[Point] = None):
         self._init_multiply(point)
@@ -189,4 +196,6 @@ class WindowNAFMultiplier(ScalarMultiplier):
             elif val < 0:
                 neg = self._neg(self._points[-val])
                 q = self._add(q, neg)
+        if "scl" in self.formulas:
+            q = self._scl(q)
         return q

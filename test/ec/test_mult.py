@@ -3,7 +3,7 @@ from unittest import TestCase
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
-from pyecsca.ec.mult import LTRMultiplier, RTLMultiplier, LadderMultiplier
+from pyecsca.ec.mult import LTRMultiplier, RTLMultiplier, LadderMultiplier, BinaryNAFMultiplier, WindowNAFMultiplier
 from pyecsca.ec.point import Point
 
 
@@ -54,6 +54,24 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(5, other)
         self.assertEqual(res, other)
 
+    def test_binary_naf_simple(self):
+        mult = BinaryNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"],
+                                   self.coords.formulas["neg"], self.coords.formulas["z"])
+        res = mult.multiply(10, self.base)
+        other = mult.multiply(5, self.base)
+        other = mult.multiply(2, other)
+        self.assertEqual(res, other)
+
+    def test_window_naf_simple(self):
+        mult = WindowNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"],
+                                   self.coords.formulas["neg"], 3, self.coords.formulas["z"])
+        res = mult.multiply(10, self.base)
+        other = mult.multiply(5, self.base)
+        other = mult.multiply(2, other)
+        self.assertEqual(res, other)
+
     def test_basic_multipliers(self):
         ltr = LTRMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
@@ -73,3 +91,15 @@ class ScalarMultiplierTests(TestCase):
         res_rtl_always = rtl_always.multiply(10, self.base)
         self.assertEqual(res_ltr, res_ltr_always)
         self.assertEqual(res_rtl, res_rtl_always)
+
+        bnaf = BinaryNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"],
+                                   self.coords.formulas["neg"], self.coords.formulas["z"])
+        res_bnaf = bnaf.multiply(10, self.base)
+        self.assertEqual(res_bnaf, res_ltr)
+
+        wnaf = WindowNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"],
+                                   self.coords.formulas["neg"], 3, self.coords.formulas["z"])
+        res_wnaf = wnaf.multiply(10, self.base)
+        self.assertEqual(res_wnaf, res_ltr)

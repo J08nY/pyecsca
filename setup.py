@@ -31,6 +31,7 @@ setup(
         ],
         tests_require=[
             "nose2",
+            "parameterized",
             "green"
         ]
 )

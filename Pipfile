@@ -17,6 +17,7 @@ atpublic = "*"
 matplotlib = "*"
 cython = "*"
 fastdtw = {path = "./../fastdtw"}
+parameterized = "*"
 
 [requires]
 python_version = "3.7"
