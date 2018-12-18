@@ -1,0 +1,4 @@
+compute X3 = X1
+compute Y3 = -Y1
+compute Z3 = Z1
+compute T3 = T1

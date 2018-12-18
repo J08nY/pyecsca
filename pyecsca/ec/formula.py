@@ -68,6 +68,11 @@ class TriplingFormula(Formula):
     _outputs = 1
 
 
+class NegationFormula(Formula):
+    _inputs = 1
+    _outputs = 1
+
+
 class ScalingFormula(Formula):
     _inputs = 1
     _outputs = 1
