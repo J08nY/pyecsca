@@ -3,12 +3,10 @@ from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 from typing import List, MutableMapping
 
-from .coordinates import CoordinateModel
+from .coordinates import EFDCoordinateModel, CoordinateModel
 
 
 class CurveModel(object):
-    _efd_name: str
-    _loaded: bool = False
     name: str
     coordinates: MutableMapping[str, CoordinateModel]
     parameter_names: List[str]
@@ -21,6 +19,11 @@ class CurveModel(object):
     full_weierstrass: List[Module]
     to_weierstrass: List[Module]
     from_weierstrass: List[Module]
+
+
+class EFDCurveModel(CurveModel):
+    _efd_name: str
+    _loaded: bool = False
 
     def __init__(self, efd_name: str):
         self._efd_name = efd_name
@@ -43,7 +46,7 @@ class CurveModel(object):
         for fname in files:
             file_path = "efd/" + efd_name + "/" + fname
             if resource_isdir(__name__, file_path):
-                self.__read_coordinate_dir(file_path, fname)
+                self.__read_coordinate_dir(self.__class__, file_path, fname)
             else:
                 self.__read_curve_file(self.__class__, file_path)
 
@@ -79,33 +82,41 @@ class CurveModel(object):
                     cls.full_weierstrass.append(format_eq(line))
                 line = f.readline()
 
-    def __read_coordinate_dir(self, dir_path, name):
-        self.coordinates[name] = CoordinateModel(dir_path, name, self)
+    def __read_coordinate_dir(self, cls, dir_path, name):
+        cls.coordinates[name] = EFDCoordinateModel(dir_path, name, self)
+
+    def __eq__(self, other):
+        if not isinstance(other, EFDCurveModel):
+            return False
+        return self._efd_name == other._efd_name
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
 
 
 @public
-class ShortWeierstrassModel(CurveModel):
+class ShortWeierstrassModel(EFDCurveModel):
 
     def __init__(self):
         super().__init__("shortw")
 
 
 @public
-class MontgomeryModel(CurveModel):
+class MontgomeryModel(EFDCurveModel):
 
     def __init__(self):
         super().__init__("montgom")
 
 
 @public
-class EdwardsModel(CurveModel):
+class EdwardsModel(EFDCurveModel):
 
     def __init__(self):
         super().__init__("edwards")
 
 
 @public
-class TwistedEdwardsModel(CurveModel):
+class TwistedEdwardsModel(EFDCurveModel):
 
     def __init__(self):
         super().__init__("twisted")

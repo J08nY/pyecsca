@@ -1,8 +1,8 @@
 from typing import Mapping
 
-from .point import Point
 from .coordinates import CoordinateModel
 from .model import CurveModel
+from .point import Point
 
 
 class EllipticCurve(object):
@@ -23,3 +23,13 @@ class EllipticCurve(object):
         self.coordinate_model = coordinate_model
         self.parameters = dict(parameters)
         self.neutral = neutral
+
+    def is_on_curve(self, point: Point) -> bool:
+        pass
+
+    def is_neutral(self, point: Point) -> bool:
+        return self.neutral == point
+
+    def __repr__(self):
+        params = ", ".join((f"{key}={val}" for key, val in self.parameters.items()))
+        return f"EllipticCurve([{params}] on {self.model} using {self.coordinate_model})"

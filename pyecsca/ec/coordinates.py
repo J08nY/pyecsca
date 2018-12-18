@@ -16,6 +16,35 @@ class CoordinateModel(object):
     assumptions: List[Expression]
     formulas: MutableMapping[str, Formula]
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(\"{self.name}\" on {self.curve_model.name})"
+
+
+class AffineCoordinateModel(CoordinateModel):
+    name = "affine"
+    full_name = "Affine coordinates"
+
+    def __init__(self, curve_model: Any):
+        self.curve_model = curve_model
+        self.variables = ["x", "y"]
+        self.satisfying = []
+        self.parameters = []
+        self.assumptions = []
+        self.formulas = {}
+
+    def from_other(self, point):
+        if point.coordinate_model.curve_model != self.curve_model:
+            raise ValueError
+        # TODO
+        pass
+
+    def to_other(self, other: CoordinateModel, point):
+        # TODO
+        pass
+
+
+class EFDCoordinateModel(CoordinateModel):
+
     def __init__(self, dir_path: str, name: str, curve_model: Any):
         self.name = name
         self.curve_model = curve_model
@@ -69,6 +98,3 @@ class CoordinateModel(object):
                     self.assumptions.append(
                             parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
                 line = f.readline().decode("ascii")
-
-    def __repr__(self):
-        return "CoordinateModel(\"{}\" on {})".format(self.name, self.curve_model.name)

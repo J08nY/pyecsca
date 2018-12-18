@@ -267,7 +267,7 @@ class InspectorTraceSet(TraceSet):
         return int(1 / self.x_scale)
 
     def __repr__(self):
-        args = ", ".join(["{}={!r}".format(self._tag_parsers[set_tag][0],
-                                           getattr(self, self._tag_parsers[set_tag][0]))
-                          for set_tag in self._set_tags])
-        return "InspectorTraceSet({})".format(args)
+        args = ", ".join(
+                [f"{self._tag_parsers[set_tag][0]}={getattr(self, self._tag_parsers[set_tag][0])!r}"
+                 for set_tag in self._set_tags])
+        return f"InspectorTraceSet({args})"

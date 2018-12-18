@@ -20,5 +20,5 @@ class Point(object):
         return self.coordinate_model == other.coordinate_model and self.coords == other.coords
 
     def __repr__(self):
-        args = ", ".join(["{}={}".format(key, value) for key, value in self.coords.items()])
-        return "Point([{}] in {})".format(args, self.coordinate_model)
+        args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])
+        return f"Point([{args}] in {self.coordinate_model})"

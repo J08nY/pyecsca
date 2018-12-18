@@ -50,7 +50,7 @@ class Formula(object):
         return self._outputs
 
     def __repr__(self):
-        return self.__class__.__name__ + "({} for {})".format(self.name, self.coordinate_model)
+        return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
 
 
 class AdditionFormula(Formula):
