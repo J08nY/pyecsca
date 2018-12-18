@@ -8,6 +8,7 @@ from .coordinates import CoordinateModel
 
 class CurveModel(object):
     _efd_name: str
+    _loaded: bool = False
     name: str
     coordinates: MutableMapping[str, CoordinateModel]
     parameter_names: List[str]
@@ -21,28 +22,32 @@ class CurveModel(object):
     to_weierstrass: List[Module]
     from_weierstrass: List[Module]
 
-    def __init_subclass__(cls, efd_name: str = "", **kwargs):
-        cls._efd_name = efd_name
+    def __init__(self, efd_name: str):
+        self._efd_name = efd_name
+        if self._loaded:
+            return
+        else:
+            self.__class__._loaded = True
+        self.__class__.coordinates = {}
+        self.__class__.parameter_names = []
+        self.__class__.coordinate_names = []
+        self.__class__.base_addition = []
+        self.__class__.base_doubling = []
+        self.__class__.base_negation = []
+        self.__class__.base_neutral = []
+        self.__class__.full_weierstrass = []
+        self.__class__.to_weierstrass = []
+        self.__class__.from_weierstrass = []
+
         files = resource_listdir(__name__, "efd/" + efd_name)
-        cls.coordinates = {}
-        cls.parameter_names = []
-        cls.coordinate_names = []
-        cls.base_addition = []
-        cls.base_doubling = []
-        cls.base_negation = []
-        cls.base_neutral = []
-        cls.full_weierstrass = []
-        cls.to_weierstrass = []
-        cls.from_weierstrass = []
         for fname in files:
             file_path = "efd/" + efd_name + "/" + fname
             if resource_isdir(__name__, file_path):
-                cls.__read_coordinate_dir(file_path, fname)
+                self.__read_coordinate_dir(file_path, fname)
             else:
-                cls.__read_curve_file(file_path)
+                self.__read_curve_file(self.__class__, file_path)
 
-    @classmethod
-    def __read_curve_file(cls, file_path):
+    def __read_curve_file(self, cls, file_path):
         def format_eq(line, mode="exec"):
             return parse(line.replace("^", "**"), mode=mode)
 
@@ -69,31 +74,38 @@ class CurveModel(object):
                 elif line.startswith("toweierstrass"):
                     cls.to_weierstrass.append(format_eq(line[14:]))
                 elif line.startswith("fromweierstrass"):
-                    cls.to_weierstrass.append(format_eq(line[16:]))
+                    cls.from_weierstrass.append(format_eq(line[16:]))
                 else:
                     cls.full_weierstrass.append(format_eq(line))
                 line = f.readline()
 
-    @classmethod
-    def __read_coordinate_dir(cls, dir_path, name):
-        cls.coordinates[name] = CoordinateModel(dir_path, name, cls)
+    def __read_coordinate_dir(self, dir_path, name):
+        self.coordinates[name] = CoordinateModel(dir_path, name, self)
 
 
 @public
-class ShortWeierstrassModel(CurveModel, efd_name="shortw"):
-    pass
+class ShortWeierstrassModel(CurveModel):
+
+    def __init__(self):
+        super().__init__("shortw")
 
 
 @public
-class MontgomeryModel(CurveModel, efd_name="montgom"):
-    pass
+class MontgomeryModel(CurveModel):
+
+    def __init__(self):
+        super().__init__("montgom")
 
 
 @public
-class EdwardsModel(CurveModel, efd_name="edwards"):
-    pass
+class EdwardsModel(CurveModel):
+
+    def __init__(self):
+        super().__init__("edwards")
 
 
 @public
-class TwistedEdwardsModel(CurveModel, efd_name="twisted"):
-    pass
+class TwistedEdwardsModel(CurveModel):
+
+    def __init__(self):
+        super().__init__("twisted")

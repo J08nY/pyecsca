@@ -11,21 +11,21 @@ class ScalarMultiplierTests(TestCase):
 
     def setUp(self):
         self.p = 0xfffffffdffffffffffffffffffffffff
-        self.coords = ShortWeierstrassModel.coordinates["projective"]
+        self.coords = ShortWeierstrassModel().coordinates["projective"]
         self.base = Point(self.coords, X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, self.p),
                           Y=Mod(0xcf5ac8395bafeb13c02da292dded7a83, self.p),
                           Z=Mod(1, self.p))
-        self.secp128r1 = EllipticCurve(ShortWeierstrassModel, self.coords,
+        self.secp128r1 = EllipticCurve(ShortWeierstrassModel(), self.coords,
                                        dict(a=0xfffffffdfffffffffffffffffffffffc,
                                             b=0xe87579c11079f43dd824993c2cee5ed3),
                                        Point(self.coords, X=Mod(0, self.p), Y=Mod(1, self.p),
                                              Z=Mod(0, self.p)))
 
-        self.coords25519 = MontgomeryModel.coordinates["xz"]
+        self.coords25519 = MontgomeryModel().coordinates["xz"]
         self.p25519 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed
         self.base25519 = Point(self.coords25519, X=Mod(9, self.p25519),
                                Z=Mod(1, self.p25519))
-        self.curve25519 = EllipticCurve(MontgomeryModel, self.coords25519,
+        self.curve25519 = EllipticCurve(MontgomeryModel(), self.coords25519,
                                         dict(a=486662, b=1),
                                         Point(self.coords25519,
                                               X=Mod(0, self.p25519), Z=Mod(1, self.p25519)))
@@ -62,3 +62,14 @@ class ScalarMultiplierTests(TestCase):
                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
         res_rtl = rtl.multiply(10, self.base)
         self.assertEqual(res_ltr, res_rtl)
+
+        ltr_always = LTRMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"],
+                                   always=True)
+        rtl_always = RTLMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"],
+                                   always=True)
+        res_ltr_always = ltr_always.multiply(10, self.base)
+        res_rtl_always = rtl_always.multiply(10, self.base)
+        self.assertEqual(res_ltr, res_ltr_always)
+        self.assertEqual(res_rtl, res_rtl_always)

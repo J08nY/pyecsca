@@ -1,4 +1,4 @@
-from typing import Type, Mapping
+from typing import Mapping
 
 from .point import Point
 from .coordinates import CoordinateModel
@@ -6,12 +6,12 @@ from .model import CurveModel
 
 
 class EllipticCurve(object):
-    model: Type[CurveModel]
+    model: CurveModel
     coordinate_model: CoordinateModel
     parameters: Mapping[str, int]
     neutral: Point
 
-    def __init__(self, model: Type[CurveModel], coordinate_model: CoordinateModel,
+    def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
                  parameters: Mapping[str, int], neutral: Point):
         if coordinate_model not in model.coordinates.values():
             raise ValueError

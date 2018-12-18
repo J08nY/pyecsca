@@ -6,7 +6,7 @@ from typing import Sequence, Optional
 from .trace import Trace, CombinedTrace
 
 
-def ttest(first_set: Sequence[Trace], second_set: Sequence[Trace],
+def ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
           equal_var: bool) -> Optional[CombinedTrace]:
     if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
         return None
@@ -25,7 +25,7 @@ def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Comb
     :param second_set:
     :return: Welch's t-values (samplewise)
     """
-    return ttest(first_set, second_set, False)
+    return ttest_func(first_set, second_set, False)
 
 @public
 def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> CombinedTrace:
@@ -37,4 +37,4 @@ def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Co
     :param second_set:
     :return: Student's t-values (samplewise)
     """
-    return ttest(first_set, second_set, True)
+    return ttest_func(first_set, second_set, True)

@@ -100,7 +100,7 @@ class InspectorTraceSet(TraceSet):
     external_clock_frequencty: float = 0
     external_clock_time_base: int = 0
 
-    _raw_traces: List[Trace] = None
+    _raw_traces: Optional[List[Trace]] = None
     _tag_parsers: dict = {
         0x41: ("num_traces", 4, Parsers.read_int, Parsers.write_int),
         0x42: ("num_samples", 4, Parsers.read_int, Parsers.write_int),
