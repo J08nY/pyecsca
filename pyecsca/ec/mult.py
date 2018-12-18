@@ -1,4 +1,5 @@
 from copy import copy
+from public import public
 from typing import Mapping, Tuple, Optional, MutableMapping
 
 from pyecsca.ec.naf import naf, wnaf
@@ -74,6 +75,7 @@ class ScalarMultiplier(object):
         raise NotImplementedError
 
 
+@public
 class LTRMultiplier(ScalarMultiplier):
     always: bool
 
@@ -97,6 +99,7 @@ class LTRMultiplier(ScalarMultiplier):
         return r
 
 
+@public
 class RTLMultiplier(ScalarMultiplier):
     always: bool
 
@@ -121,6 +124,7 @@ class RTLMultiplier(ScalarMultiplier):
         return r
 
 
+@public
 class LadderMultiplier(ScalarMultiplier):
 
     def __init__(self, curve: EllipticCurve, ladd: LadderFormula, scl: ScalingFormula = None,
@@ -131,16 +135,40 @@ class LadderMultiplier(ScalarMultiplier):
         q = self._init_multiply(point)
         p0 = copy(q)
         p1 = self._ladd(self.curve.neutral, q, q)[1]
-        for i in range(scalar.bit_length(), -1, -1):
-            if scalar & i != 0:
-                p0, p1 = self._ladd(q, p1, p0)
-            else:
+        for i in range(scalar.bit_length() - 1, -1, -1):
+            if scalar & (1 << i) != 0:
                 p0, p1 = self._ladd(q, p0, p1)
+            else:
+                p1, p0 = self._ladd(q, p1, p0)
         if "scl" in self.formulas:
             p0 = self._scl(p0)
         return p0
 
 
+@public
+class SimpleLadderMultiplier(ScalarMultiplier):
+
+    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+                 scl: ScalingFormula = None, ctx: Context = None):
+        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+
+    def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
+        q = self._init_multiply(point)
+        p0 = copy(q)
+        p1 = self._dbl(q)
+        for i in range(scalar.bit_length() - 2, -1, -1):
+            if scalar & (1 << i) != 0:
+                p0 = self._add(p0, p1)
+                p1 = self._dbl(p1)
+            else:
+                p1 = self._add(p0, p1)
+                p0 = self._dbl(p0)
+        if "scl" in self.formulas:
+            p0 = self._scl(p0)
+        return p0
+
+
+@public
 class BinaryNAFMultiplier(ScalarMultiplier):
     _point_neg: Point
 
@@ -167,6 +195,7 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         return q
 
 
+@public
 class WindowNAFMultiplier(ScalarMultiplier):
     _points: MutableMapping[int, Point]
     _width: int

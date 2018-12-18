@@ -1,3 +1,4 @@
+from public import public
 from typing import Mapping
 
 from .coordinates import CoordinateModel
@@ -5,6 +6,7 @@ from .model import CurveModel
 from .point import Point
 
 
+@public
 class EllipticCurve(object):
     model: CurveModel
     coordinate_model: CoordinateModel

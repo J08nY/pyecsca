@@ -1,5 +1,6 @@
 from ast import parse, Expression, Module
 from pkg_resources import resource_stream
+from public import public
 from typing import List, Any
 
 
@@ -53,36 +54,43 @@ class Formula(object):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
 
 
+@public
 class AdditionFormula(Formula):
     _inputs = 2
     _outputs = 1
 
 
+@public
 class DoublingFormula(Formula):
     _inputs = 1
     _outputs = 1
 
 
+@public
 class TriplingFormula(Formula):
     _inputs = 1
     _outputs = 1
 
 
+@public
 class NegationFormula(Formula):
     _inputs = 1
     _outputs = 1
 
 
+@public
 class ScalingFormula(Formula):
     _inputs = 1
     _outputs = 1
 
 
+@public
 class DifferentialAdditionFormula(Formula):
     _inputs = 3
     _outputs = 1
 
 
+@public
 class LadderFormula(Formula):
     _inputs = 3
     _outputs = 2

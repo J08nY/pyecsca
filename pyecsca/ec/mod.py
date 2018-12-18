@@ -1,6 +1,7 @@
 from functools import wraps
+from public import public
 
-
+@public
 def gcd(a, b):
     if abs(a) < abs(b):
         return gcd(b, a)
@@ -11,7 +12,7 @@ def gcd(a, b):
 
     return a
 
-
+@public
 def extgcd(a, b):
     if abs(b) > abs(a):
         (x, y, d) = extgcd(b, a)
@@ -42,7 +43,7 @@ def check(func):
 
     return method
 
-
+@public
 class Mod(object):
 
     def __init__(self, x: int, n: int):

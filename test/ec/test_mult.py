@@ -3,7 +3,7 @@ from unittest import TestCase
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
-from pyecsca.ec.mult import LTRMultiplier, RTLMultiplier, LadderMultiplier, BinaryNAFMultiplier, WindowNAFMultiplier
+from pyecsca.ec.mult import LTRMultiplier, RTLMultiplier, LadderMultiplier, BinaryNAFMultiplier, WindowNAFMultiplier, SimpleLadderMultiplier
 from pyecsca.ec.point import Point
 
 
@@ -30,7 +30,7 @@ class ScalarMultiplierTests(TestCase):
                                         Point(self.coords25519,
                                               X=Mod(0, self.p25519), Z=Mod(1, self.p25519)))
 
-    def test_rtl_simple(self):
+    def test_rtl(self):
         mult = RTLMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
                              self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
         res = mult.multiply(10, self.base)
@@ -38,7 +38,7 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(2, other)
         self.assertEqual(res, other)
 
-    def test_ltr_simple(self):
+    def test_ltr(self):
         mult = LTRMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
                              self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
         res = mult.multiply(10, self.base)
@@ -46,7 +46,7 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(2, other)
         self.assertEqual(res, other)
 
-    def test_ladder_simple(self):
+    def test_ladder(self):
         mult = LadderMultiplier(self.curve25519, self.coords25519.formulas["ladd-1987-m"],
                                 self.coords25519.formulas["scale"])
         res = mult.multiply(15, self.base25519)
@@ -54,7 +54,15 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(5, other)
         self.assertEqual(res, other)
 
-    def test_binary_naf_simple(self):
+    def test_simple_ladder(self):
+        mult = SimpleLadderMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+        res = mult.multiply(10, self.base)
+        other = mult.multiply(5, self.base)
+        other = mult.multiply(2, other)
+        self.assertEqual(res, other)
+
+    def test_binary_naf(self):
         mult = BinaryNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
                                    self.coords.formulas["dbl-1998-cmo"],
                                    self.coords.formulas["neg"], self.coords.formulas["z"])
@@ -63,7 +71,7 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(2, other)
         self.assertEqual(res, other)
 
-    def test_window_naf_simple(self):
+    def test_window_naf(self):
         mult = WindowNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
                                    self.coords.formulas["dbl-1998-cmo"],
                                    self.coords.formulas["neg"], 3, self.coords.formulas["z"])
@@ -103,3 +111,8 @@ class ScalarMultiplierTests(TestCase):
                                    self.coords.formulas["neg"], 3, self.coords.formulas["z"])
         res_wnaf = wnaf.multiply(10, self.base)
         self.assertEqual(res_wnaf, res_ltr)
+
+        ladder = SimpleLadderMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+        res_ladder = ladder.multiply(10, self.base)
+        self.assertEqual(res_ladder, res_ltr)
