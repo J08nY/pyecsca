@@ -14,6 +14,8 @@ class Formula(object):
     _inputs: int
     _outputs: int
 
+    # TODO: Separate into EFDFormula?
+
     def __init__(self, path: str, name: str, coordinate_model: Any):
         self.name = name
         self.coordinate_model = coordinate_model

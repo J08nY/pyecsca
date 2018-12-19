@@ -15,6 +15,7 @@ class EllipticCurve(object):
 
     def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
                  parameters: Mapping[str, int], neutral: Point):
+        # TODO: Add base_point arg, order arg, cofactor arg.
         if coordinate_model not in model.coordinates.values():
             raise ValueError
         if set(model.parameter_names).symmetric_difference(parameters.keys()):
@@ -27,6 +28,7 @@ class EllipticCurve(object):
         self.neutral = neutral
 
     def is_on_curve(self, point: Point) -> bool:
+        #TODO
         pass
 
     def is_neutral(self, point: Point) -> bool:

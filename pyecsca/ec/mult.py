@@ -77,6 +77,11 @@ class ScalarMultiplier(object):
 
 @public
 class LTRMultiplier(ScalarMultiplier):
+    """
+    Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb)
+
+    The `always` parameter determines whether the double and add always method is used.
+    """
     always: bool
 
     def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
@@ -101,6 +106,11 @@ class LTRMultiplier(ScalarMultiplier):
 
 @public
 class RTLMultiplier(ScalarMultiplier):
+    """
+    Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb)
+
+    The `always` parameter determines whether the double and add always method is used.
+    """
     always: bool
 
     def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
@@ -124,8 +134,37 @@ class RTLMultiplier(ScalarMultiplier):
         return r
 
 
+class CoronMultiplier(ScalarMultiplier):
+    """
+    Coron's double and add resistant against SPA, from:
+
+    Resistance against Differential Power Analysis for Elliptic Curve Cryptosystems
+
+    https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
+    """
+
+    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+                 scl: ScalingFormula = None, ctx: Context = None):
+        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+
+    def multiply(self, scalar: int, point: Optional[Point] = None):
+        q = self._init_multiply(point)
+        p0 = copy(q)
+        for i in range(scalar.bit_length() - 2, -1, -1):
+            p0 = self._dbl(p0)
+            p1 = self._add(p0, q)
+            if scalar & (1 << i) != 0:
+                p0 = p1
+        if "scl" in self.formulas:
+            p0 = self._scl(p0)
+        return p0
+
+
 @public
 class LadderMultiplier(ScalarMultiplier):
+    """
+    Montgomery ladder multiplier, using a three input, two output ladder formula.
+    """
 
     def __init__(self, curve: EllipticCurve, ladd: LadderFormula, scl: ScalingFormula = None,
                  ctx: Context = None):
@@ -147,6 +186,9 @@ class LadderMultiplier(ScalarMultiplier):
 
 @public
 class SimpleLadderMultiplier(ScalarMultiplier):
+    """
+    Montgomery ladder multiplier, using addition and doubling formulas.
+    """
 
     def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
                  scl: ScalingFormula = None, ctx: Context = None):
@@ -170,6 +212,9 @@ class SimpleLadderMultiplier(ScalarMultiplier):
 
 @public
 class BinaryNAFMultiplier(ScalarMultiplier):
+    """
+    Binary NAF (Non Adjacent Form) multiplier, left-to-right.
+    """
     _point_neg: Point
 
     def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
@@ -197,6 +242,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
 
 @public
 class WindowNAFMultiplier(ScalarMultiplier):
+    """
+    Window NAF (Non Adjacent Form) multiplier, left-to-right.
+    """
     _points: MutableMapping[int, Point]
     _width: int
 

@@ -15,6 +15,7 @@ class Point(object):
         self.coords = coords
 
     def __eq__(self, other):
+        # TODO: Somehow compare projective points. Via a map to an affinepoint?
         if type(other) is not Point:
             return False
         return self.coordinate_model == other.coordinate_model and self.coords == other.coords
