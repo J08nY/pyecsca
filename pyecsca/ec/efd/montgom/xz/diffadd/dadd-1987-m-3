@@ -5,5 +5,5 @@ compute C = X3+Z3
 compute D = X3-Z3
 compute DA = D A
 compute CB = C B
-compute X5 = Z1(DA+CB)^2
-compute Z5 = X1(DA-CB)^2
+compute X4 = Z1(DA+CB)^2
+compute Z4 = X1(DA-CB)^2

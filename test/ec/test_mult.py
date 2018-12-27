@@ -59,8 +59,8 @@ class ScalarMultiplierTests(TestCase):
         mult = LadderMultiplier(self.curve25519, self.coords25519.formulas["ladd-1987-m"],
                                 self.coords25519.formulas["scale"])
         res = mult.multiply(15, self.base25519)
-        other = mult.multiply(3, self.base25519)
-        other = mult.multiply(5, other)
+        other = mult.multiply(5, self.base25519)
+        other = mult.multiply(3, other)
         self.assertEqual(res, other)
 
     def test_simple_ladder(self):
@@ -71,6 +71,18 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(5, self.base)
         other = mult.multiply(2, other)
         self.assertEqual(res, other)
+
+    def test_ladder_differential(self):
+        ladder = LadderMultiplier(self.curve25519, self.coords25519.formulas["ladd-1987-m"],
+                                  self.coords25519.formulas["scale"])
+        # TODO: fix this
+        differential = SimpleLadderMultiplier(self.curve25519,
+                                              self.coords25519.formulas["dadd-1987-m"],
+                                              self.coords25519.formulas["dbl-1987-m"],
+                                              self.coords25519.formulas["scale"])
+        res_ladder = ladder.multiply(15, self.base25519)
+        res_differential = differential.multiply(15, self.base25519)
+        self.assertEqual(res_ladder, res_differential)
 
     def test_binary_naf(self):
         mult = BinaryNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
@@ -89,6 +101,13 @@ class ScalarMultiplierTests(TestCase):
         other = mult.multiply(5, self.base)
         other = mult.multiply(2, other)
         self.assertEqual(res, other)
+
+        mult = WindowNAFMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+                                   self.coords.formulas["dbl-1998-cmo"],
+                                   self.coords.formulas["neg"], 3, self.coords.formulas["z"],
+                                   precompute_negation=True)
+        res_precompute = mult.multiply(10, self.base)
+        self.assertEqual(res_precompute, res)
 
     def test_basic_multipliers(self):
         ltr = LTRMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
@@ -129,7 +148,7 @@ class ScalarMultiplierTests(TestCase):
         self.assertEqual(res_ladder, res_ltr)
 
         coron = CoronMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
-                                        self.coords.formulas["dbl-1998-cmo"],
-                                        self.coords.formulas["z"])
+                                self.coords.formulas["dbl-1998-cmo"],
+                                self.coords.formulas["z"])
         res_coron = coron.multiply(10, self.base)
         self.assertEqual(res_coron, res_ltr)

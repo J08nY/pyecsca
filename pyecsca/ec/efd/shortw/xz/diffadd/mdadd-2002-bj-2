@@ -6,5 +6,5 @@ compute A = X2 X3
 compute B = Z2 Z3
 compute C = X2 Z3
 compute D = Z2 X3
-compute X5 = (A - a B)^2 - b4 B (C + D)
-compute Z5 = X1 (C - D)^2
+compute X4 = (A - a B)^2 - b4 B (C + D)
+compute Z4 = X1 (C - D)^2

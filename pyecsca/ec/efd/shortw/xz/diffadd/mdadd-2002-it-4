@@ -17,5 +17,5 @@ compute T14 = T3 - T4
 compute T15 = T14^2
 compute T16 = T13
 compute T17 = X1 T15
-compute X5 = T16 - T17
-compute Z5 = T15
+compute X4 = T16 - T17
+compute Z4 = T15

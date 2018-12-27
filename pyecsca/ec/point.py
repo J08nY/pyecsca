@@ -1,5 +1,6 @@
 from typing import Mapping
 
+from pyecsca.ec.formula import ScalingFormula
 from .coordinates import CoordinateModel
 from .mod import Mod
 
@@ -18,8 +19,15 @@ class Point(object):
         # TODO: Somehow compare projective points. Via a map to an affinepoint?
         if type(other) is not Point:
             return False
-        return self.coordinate_model == other.coordinate_model and self.coords == other.coords
+        if  self.coordinate_model != other.coordinate_model:
+            return False
+        self_scaling = list(filter(lambda x: isinstance(x, ScalingFormula), self.coordinate_model.formulas.items()))
+        other_scaling = list(filter(lambda x: isinstance(x, ScalingFormula), other.coordinate_model.formulas.items()))
+        return self.coords == other.coords
+
+    def __str__(self):
+        args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])
+        return f"[{args}]"
 
     def __repr__(self):
-        args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])
-        return f"Point([{args}] in {self.coordinate_model})"
+        return f"Point([{str(self)}] in {self.coordinate_model})"
