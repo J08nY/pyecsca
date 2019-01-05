@@ -3,6 +3,8 @@ from pkg_resources import resource_stream
 from public import public
 from typing import List, Any
 
+from .op import Op, CodeOp
+
 
 class Formula(object):
     name: str
@@ -10,7 +12,7 @@ class Formula(object):
     source: str
     parameters: List[str]
     assumptions: List[Expression]
-    code: List[Module]
+    code: List[Op]
     _inputs: int
     _outputs: int
 
@@ -42,7 +44,8 @@ class Formula(object):
     def __read_op3_file(self, path):
         with resource_stream(__name__, path) as f:
             for line in f.readlines():
-                self.code.append(parse(line.decode("ascii").replace("^", "**"), path, mode="exec"))
+                code_module = parse(line.decode("ascii").replace("^", "**"), path, mode="exec")
+                self.code.append(CodeOp(code_module))
 
     @property
     def num_inputs(self):

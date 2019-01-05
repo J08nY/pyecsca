@@ -24,13 +24,10 @@ class Context(object):
             for coord, value in point.coords.items():
                 coords[coord + str(i + 1)] = value
         locals = {**coords, **params}
-        previous_locals = set(locals.keys())
-        for line in formula.code:
-            exec(compile(line, "", mode="exec"), {}, locals)
-            diff = set(locals.keys()).difference(previous_locals)
-            previous_locals = set(locals.keys())
-            for key in diff:
-                self.intermediates.append((key, locals[key]))
+        for op in formula.code:
+            op_result = op(**locals)
+            self.intermediates.append((op.result, op_result))
+            locals[op.result] = op_result
         result = []
         for i in range(formula.num_outputs):
             ind = str(i + 3)
