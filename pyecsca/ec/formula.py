@@ -1,7 +1,7 @@
-from ast import parse, Expression, Module
+from ast import parse, Expression
 from pkg_resources import resource_stream
 from public import public
-from typing import List, Any
+from typing import List, Any, ClassVar, MutableMapping
 
 from .op import Op, CodeOp
 
@@ -9,18 +9,23 @@ from .op import Op, CodeOp
 class Formula(object):
     name: str
     coordinate_model: Any
-    source: str
+    meta: MutableMapping[str, Any]
     parameters: List[str]
     assumptions: List[Expression]
     code: List[Op]
-    _inputs: int
-    _outputs: int
+    num_inputs: ClassVar[int]
+    num_outputs: ClassVar[int]
 
-    # TODO: Separate into EFDFormula?
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
+
+
+class EFDFormula(Formula):
 
     def __init__(self, path: str, name: str, coordinate_model: Any):
         self.name = name
         self.coordinate_model = coordinate_model
+        self.meta = {}
         self.parameters = []
         self.assumptions = []
         self.code = []
@@ -33,7 +38,7 @@ class Formula(object):
             while line:
                 line = line[:-1]
                 if line.startswith("source"):
-                    self.source = line[7:]
+                    self.meta["source"] = line[7:]
                 elif line.startswith("parameter"):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
@@ -47,55 +52,79 @@ class Formula(object):
                 code_module = parse(line.decode("ascii").replace("^", "**"), path, mode="exec")
                 self.code.append(CodeOp(code_module))
 
-    @property
-    def num_inputs(self):
-        return self._inputs
-
-    @property
-    def num_outputs(self):
-        return self._outputs
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
-
 
 @public
 class AdditionFormula(Formula):
-    _inputs = 2
-    _outputs = 1
+    num_inputs = 2
+    num_outputs = 1
+
+
+@public
+class AdditionEFDFormula(AdditionFormula, EFDFormula):
+    pass
 
 
 @public
 class DoublingFormula(Formula):
-    _inputs = 1
-    _outputs = 1
+    num_inputs = 1
+    num_outputs = 1
+
+
+@public
+class DoublingEFDFormula(DoublingFormula, EFDFormula):
+    pass
 
 
 @public
 class TriplingFormula(Formula):
-    _inputs = 1
-    _outputs = 1
+    num_inputs = 1
+    num_outputs = 1
+
+
+@public
+class TriplingEFDFormula(TriplingFormula, EFDFormula):
+    pass
 
 
 @public
 class NegationFormula(Formula):
-    _inputs = 1
-    _outputs = 1
+    num_inputs = 1
+    num_outputs = 1
+
+
+@public
+class NegationEFDFormula(NegationFormula, EFDFormula):
+    pass
 
 
 @public
 class ScalingFormula(Formula):
-    _inputs = 1
-    _outputs = 1
+    num_inputs = 1
+    num_outputs = 1
+
+
+@public
+class ScalingEFDFormula(ScalingFormula, EFDFormula):
+    pass
 
 
 @public
 class DifferentialAdditionFormula(Formula):
-    _inputs = 3
-    _outputs = 1
+    num_inputs = 3
+    num_outputs = 1
+
+
+@public
+class DifferentialAdditionEFDFormula(DifferentialAdditionFormula, EFDFormula):
+    pass
 
 
 @public
 class LadderFormula(Formula):
-    _inputs = 3
-    _outputs = 2
+    num_inputs = 3
+    num_outputs = 2
+
+
+@public
+class LadderEFDFormula(LadderFormula, EFDFormula):
+    pass

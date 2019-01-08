@@ -2,8 +2,10 @@ from ast import parse, Expression
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from typing import List, Any, MutableMapping
 
-from .formula import (Formula, AdditionFormula, DoublingFormula, TriplingFormula,
-                      DifferentialAdditionFormula, LadderFormula, ScalingFormula, NegationFormula)
+from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormula,
+                      TriplingEFDFormula,
+                      DifferentialAdditionEFDFormula, LadderEFDFormula, ScalingEFDFormula,
+                      NegationEFDFormula)
 
 
 class CoordinateModel(object):
@@ -65,15 +67,15 @@ class EFDCoordinateModel(CoordinateModel):
             if fname.endswith(".op3"):
                 continue
             formula_types = {
-                "addition": AdditionFormula,
-                "doubling": DoublingFormula,
-                "tripling": TriplingFormula,
-                "diffadd": DifferentialAdditionFormula,
-                "ladder": LadderFormula,
-                "scaling": ScalingFormula,
-                "negation": NegationFormula
+                "addition": AdditionEFDFormula,
+                "doubling": DoublingEFDFormula,
+                "tripling": TriplingEFDFormula,
+                "diffadd": DifferentialAdditionEFDFormula,
+                "ladder": LadderEFDFormula,
+                "scaling": ScalingEFDFormula,
+                "negation": NegationEFDFormula
             }
-            cls = formula_types.get(formula_type, Formula)
+            cls = formula_types.get(formula_type, EFDFormula)
             self.formulas[fname] = cls(dir_path + "/" + fname, fname, self)
 
     def __read_coordinates_file(self, file_path):
