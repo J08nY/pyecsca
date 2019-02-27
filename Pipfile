@@ -16,7 +16,7 @@ scipy = "*"
 atpublic = "*"
 matplotlib = "*"
 cython = "*"
-fastdtw = {path = "./../fastdtw"}
+fastdtw = "*"
 parameterized = "*"
 
 [requires]

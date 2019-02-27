@@ -22,13 +22,14 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
 ### Docs
 
  - [sphinx](https://www.sphinx-doc.org/)
+ - [sphinx-autodoc-typehints](https://pypi.org/project/sphinx-autodoc-typehints/)
 
 
 ## License
 
     MIT License
 
-    Copyright (c) 2018
+    Copyright (c) 2018-2019
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
