@@ -7,5 +7,5 @@ compute YY3 = Y3^2
 compute ZZ3 = r Z3^2
 compute V = s(ZZ2-YY2)(ZZ3-YY3)
 compute W = (ZZ2+YY2)(ZZ3+YY3)
-compute Y5 = (r Z1)(W-V)
-compute Z5 = Y1(W+V)
+compute Y4 = (r Z1)(W-V)
+compute Z4 = Y1(W+V)

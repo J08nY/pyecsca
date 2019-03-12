@@ -29,11 +29,10 @@ class EFDCurveModel(CurveModel):
     _loaded: bool = False
 
     def __init__(self, efd_name: str):
-        self._efd_name = efd_name
         if self._loaded:
             return
-        else:
-            self.__class__._loaded = True
+        self._efd_name = efd_name
+        self.__class__._loaded = True
         self.__class__.coordinates = {}
         self.__class__.parameter_names = []
         self.__class__.coordinate_names = []

@@ -11,6 +11,7 @@
  - [fastdtw](https://github.com/slaypni/fastdtw)
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
+The data was partially changed, to make working with it easier.
 
 It also supports working with [Riscure](https://www.riscure.com) Inspector trace sets, which are of a proprietary format.
 

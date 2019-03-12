@@ -4,5 +4,5 @@ parameter s
 assume s = (1+r)/(1-r)
 compute V = s(Z2-Y2)(Z3-Y3)
 compute W = (Z2+Y2)(Z3+Y3)
-compute Y5 = (W-V)^2
-compute Z5 = Y1(W+V)^2
+compute Y4 = (W-V)^2
+compute Z4 = Y1(W+V)^2

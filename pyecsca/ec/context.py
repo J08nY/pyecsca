@@ -30,7 +30,7 @@ class Context(object):
             locals[op.result] = op_result
         result = []
         for i in range(formula.num_outputs):
-            ind = str(i + 3)
+            ind = str(i + formula.output_index)
             resulting = {variable: locals[variable + ind]
                          for variable in formula.coordinate_model.variables
                          if variable + ind in locals}

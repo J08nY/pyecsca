@@ -19,6 +19,10 @@ class Formula(object):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
 
+    @property
+    def output_index(cls):
+        return max(cls.num_inputs + 1, 3)
+
 
 class EFDFormula(Formula):
 
