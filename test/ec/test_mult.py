@@ -57,6 +57,7 @@ class ScalarMultiplierTests(TestCase):
 
     def test_ladder(self):
         mult = LadderMultiplier(self.curve25519, self.coords25519.formulas["ladd-1987-m"],
+                                self.coords25519.formulas["dbl-1987-m"],
                                 self.coords25519.formulas["scale"])
         res = mult.multiply(15, self.base25519)
         other = mult.multiply(5, self.base25519)
@@ -74,6 +75,7 @@ class ScalarMultiplierTests(TestCase):
 
     def test_ladder_differential(self):
         ladder = LadderMultiplier(self.curve25519, self.coords25519.formulas["ladd-1987-m"],
+                                  self.coords25519.formulas["dbl-1987-m"],
                                   self.coords25519.formulas["scale"])
         # TODO: fix this
         differential = SimpleLadderMultiplier(self.curve25519,

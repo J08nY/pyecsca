@@ -180,17 +180,17 @@ class LadderMultiplier(ScalarMultiplier):
     Montgomery ladder multiplier, using a three input, two output ladder formula.
     """
 
-    def __init__(self, curve: EllipticCurve, ladd: LadderFormula, scl: ScalingFormula = None,
+    def __init__(self, curve: EllipticCurve, ladd: LadderFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
                  ctx: Context = None):
-        super().__init__(curve, ctx, ladd=ladd, scl=scl)
+        super().__init__(curve, ctx, ladd=ladd, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
         if scalar == 0:
             return copy(self.curve.neutral)
         q = self._init_multiply(point)
-        p0 = copy(self.curve.neutral)
-        p1 = copy(q)
-        for i in range(scalar.bit_length() - 1, -1, -1):
+        p0 = copy(q)
+        p1 = self._dbl(q)
+        for i in range(scalar.bit_length() - 2, -1, -1):
             if scalar & (1 << i) == 0:
                 p0, p1 = self._ladd(q, p0, p1)
             else:
