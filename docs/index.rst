@@ -68,6 +68,9 @@ License
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
+Development is supported by the Masaryk University grant `MUNI/C/1707/2018 <https://www.muni.cz/en/research/projects/46834>`_,
+this support is very appreciated.
+
 .. _Numpy: https://www.numpy.org
 .. _Scipy: https://www.scipy.org
 .. _matplotlib: https://matplotlib.org/

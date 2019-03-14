@@ -1,4 +1,4 @@
-# ![](docs/_static/logo_small.png) pyecsca [pɪɛtska] 
+# ![](docs/_static/logo_black_small.png) pyecsca [pɪɛtska]
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
@@ -50,3 +50,6 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
     
+
+*Development is supported by the Masaryk University grant [MUNI/C/1701/2018](https://www.muni.cz/en/research/projects/46834),
+this support is very appreciated.*
