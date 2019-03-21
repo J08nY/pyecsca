@@ -1,4 +1,5 @@
 from ast import Module, walk, Name
+from types import CodeType
 from typing import FrozenSet
 
 from .mod import Mod
@@ -15,6 +16,7 @@ class Op(object):
 
 class CodeOp(Op):
     code: Module
+    compiled: CodeType
 
     def __init__(self, code: Module):
         self.code = code
@@ -31,8 +33,12 @@ class CodeOp(Op):
                     params.add(name)
         self.parameters = frozenset(params)
         self.variables = frozenset(variables)
+        self.compiled = compile(self.code, "", mode="exec")
+
+    def __repr__(self):
+        return f"CodeOp({self.result} = f(params={self.parameters}, vars={self.variables}))"
 
     def __call__(self, *args, **kwargs) -> Mod:
         loc = dict(kwargs)
-        exec(compile(self.code, "", mode="exec"), {}, loc)
+        exec(self.compiled, {}, loc)
         return loc[self.result]

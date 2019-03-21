@@ -1,6 +1,6 @@
-from ast import parse, Expression
+from ast import parse, Expression, Module
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
-from typing import List, Any, MutableMapping
+from typing import List, Any, MutableMapping, Union
 
 from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormula,
                       TriplingEFDFormula,
@@ -13,7 +13,7 @@ class CoordinateModel(object):
     full_name: str
     curve_model: Any
     variables: List[str]
-    satisfying: List[Expression]
+    satisfying: List[Union[Module, Expression]]
     parameters: List[str]
     assumptions: List[Expression]
     formulas: MutableMapping[str, Formula]
@@ -34,15 +34,10 @@ class AffineCoordinateModel(CoordinateModel):
         self.assumptions = []
         self.formulas = {}
 
-    def from_other(self, point):
-        if point.coordinate_model.curve_model != self.curve_model:
-            raise ValueError
-        # TODO
-        pass
-
-    def to_other(self, other: CoordinateModel, point):
-        # TODO
-        pass
+    def __eq__(self, other):
+        if not isinstance(other, AffineCoordinateModel):
+            return False
+        return self.curve_model == other.curve_model
 
 
 class EFDCoordinateModel(CoordinateModel):
@@ -88,8 +83,11 @@ class EFDCoordinateModel(CoordinateModel):
                 elif line.startswith("variable"):
                     self.variables.append(line[9:])
                 elif line.startswith("satisfying"):
-                    self.satisfying.append(
-                            parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval"))
+                    try:
+                        code = parse(line[11:].replace("^", "**"), mode="exec")
+                    except SyntaxError:
+                        code = parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval")
+                    self.satisfying.append(code)
                 elif line.startswith("parameter"):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):

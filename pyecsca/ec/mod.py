@@ -1,6 +1,7 @@
 from functools import wraps
 from public import public
 
+
 @public
 def gcd(a, b):
     if abs(a) < abs(b):
@@ -11,6 +12,7 @@ def gcd(a, b):
         a, b = b, r
 
     return a
+
 
 @public
 def extgcd(a, b):
@@ -42,6 +44,7 @@ def check(func):
         return func(self, other)
 
     return method
+
 
 @public
 class Mod(object):
@@ -141,3 +144,70 @@ class Mod(object):
                 r = (q * r)
             i = i << 1
         return r
+
+
+@public
+class Undefined(Mod):
+
+    def __init__(self):
+        pass
+
+    def __add__(self, other):
+        raise NotImplementedError
+
+    def __radd__(self, other):
+        raise NotImplementedError
+
+    def __sub__(self, other):
+        raise NotImplementedError
+
+    def __rsub__(self, other):
+        raise NotImplementedError
+
+    def __neg__(self):
+        raise NotImplementedError
+
+    def __invert__(self):
+        raise NotImplementedError
+
+    def __mul__(self, other):
+        raise NotImplementedError
+
+    def __rmul__(self, other):
+        raise NotImplementedError
+
+    def __truediv__(self, other):
+        raise NotImplementedError
+
+    def __rtruediv__(self, other):
+        raise NotImplementedError
+
+    def __floordiv__(self, other):
+        raise NotImplementedError
+
+    def __rfloordiv__(self, other):
+        raise NotImplementedError
+
+    def __div__(self, other):
+        raise NotImplementedError
+
+    def __rdiv__(self, other):
+        raise NotImplementedError
+
+    def __divmod__(self, divisor):
+        raise NotImplementedError
+
+    def __int__(self):
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        return False
+
+    def __ne__(self, other):
+        return False
+
+    def __repr__(self):
+        return "Undefined"
+
+    def __pow__(self, n):
+        raise NotImplementedError

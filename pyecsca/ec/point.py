@@ -1,10 +1,13 @@
+from copy import copy
+from public import public
 from typing import Mapping
 
-from pyecsca.ec.formula import ScalingFormula
-from .coordinates import CoordinateModel
+from .coordinates import CoordinateModel, AffineCoordinateModel
 from .mod import Mod
+from .op import CodeOp
 
 
+@public
 class Point(object):
     coordinate_model: CoordinateModel
     coords: Mapping[str, Mod]
@@ -15,14 +18,41 @@ class Point(object):
         self.coordinate_model = model
         self.coords = coords
 
+    def to_affine(self):
+        if isinstance(self.coordinate_model, AffineCoordinateModel):
+            return copy(self)
+        ops = set()
+        for s in self.coordinate_model.satisfying:
+            try:
+                ops.add(CodeOp(s))
+            except:
+                pass
+        affine_model = AffineCoordinateModel(self.coordinate_model.curve_model)
+        # TODO: just fill in with undefined
+        if not set(map(lambda x: x.result, ops)).issuperset(affine_model.variables):
+            raise NotImplementedError
+        result = {}
+        for op in ops:
+            result[op.result] = op(**self.coords)
+        return Point(affine_model, **result)
+
+    @staticmethod
+    def from_affine(affine_point):
+        # TODO
+        pass
+
+    def equals(self, other):
+        if not isinstance(other, Point):
+            return False
+        if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
+            return False
+        return self.to_affine() == other.to_affine()
+
     def __eq__(self, other):
-        # TODO: Somehow compare projective points. Via a map to an affinepoint?
-        if type(other) is not Point:
+        if not isinstance(other, Point):
             return False
-        if  self.coordinate_model != other.coordinate_model:
+        if self.coordinate_model != other.coordinate_model:
             return False
-        self_scaling = list(filter(lambda x: isinstance(x, ScalingFormula), self.coordinate_model.formulas.items()))
-        other_scaling = list(filter(lambda x: isinstance(x, ScalingFormula), other.coordinate_model.formulas.items()))
         return self.coords == other.coords
 
     def __str__(self):
@@ -31,3 +61,33 @@ class Point(object):
 
     def __repr__(self):
         return f"Point([{str(self)}] in {self.coordinate_model})"
+
+
+@public
+class InfinityPoint(Point):
+
+    def __init__(self, model: CoordinateModel):
+        self.coordinate_model = model
+        self.coords = {}
+
+    def to_affine(self):
+        return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
+
+    @staticmethod
+    def from_affine(affine_point):
+        raise NotImplementedError
+
+    def equals(self, other):
+        return self == other
+
+    def __eq__(self, other):
+        if type(other) is not InfinityPoint:
+            return False
+        else:
+            return self.coordinate_model == other.coordinate_model
+
+    def __str__(self):
+        return "Infinity"
+
+    def __repr__(self):
+        return f"InfinityPoint({self.coordinate_model})"
