@@ -1,5 +1,7 @@
 # ![](docs/_static/logo_black_small.png) pyecsca [pɪɛtska]
 
+[![Build Status](https://travis-ci.org/J08nY/pyecsca.svg?branch=master)](https://travis-ci.org/J08nY/pyecsca)
+
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
 ## Requirements
@@ -19,6 +21,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
 
  - [nose2](https://nose2.readthedocs.io)
  - [green](https://github.com/CleanCut/green)
+ - [mypy](http://mypy-lang.org/)
 
 ### Docs
 

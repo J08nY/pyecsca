@@ -29,9 +29,8 @@ setup(
             "matplotlib",
             "fastdtw"
         ],
-        tests_require=[
-            "nose2",
-            "parameterized",
-            "green"
-        ]
+        extras_require={
+            "typecheck": ["mypy"],
+            "test": ["nose2", "parameterized","green"]
+        }
 )
