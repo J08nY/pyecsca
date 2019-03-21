@@ -162,6 +162,8 @@ class CoronMultiplier(ScalarMultiplier):
         super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int, point: Optional[Point] = None):
+        if scalar == 0:
+            return copy(self.curve.neutral)
         q = self._init_multiply(point)
         p0 = copy(q)
         for i in range(scalar.bit_length() - 2, -1, -1):

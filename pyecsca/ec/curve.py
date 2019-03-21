@@ -1,7 +1,8 @@
 from public import public
-from typing import Mapping
+from typing import Mapping, Union
 
 from .coordinates import CoordinateModel
+from .mod import Mod
 from .model import CurveModel
 from .point import Point
 
@@ -10,11 +11,12 @@ from .point import Point
 class EllipticCurve(object):
     model: CurveModel
     coordinate_model: CoordinateModel
-    parameters: Mapping[str, int]
+    prime: int
+    parameters: Mapping[str, Mod]
     neutral: Point
 
     def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
-                 parameters: Mapping[str, int], neutral: Point):
+                 prime: int, parameters: Mapping[str, Union[Mod, int]], neutral: Point):
         # TODO: Add base_point arg, order arg, cofactor arg.
         if coordinate_model not in model.coordinates.values():
             raise ValueError
@@ -24,12 +26,22 @@ class EllipticCurve(object):
             raise ValueError
         self.model = model
         self.coordinate_model = coordinate_model
-        self.parameters = dict(parameters)
+        self.prime = prime
+        self.parameters = {}
+        for name, value in parameters.items():
+            if isinstance(value, Mod):
+                if value.n != prime:
+                    raise ValueError
+            else:
+                value = Mod(value, prime)
+            self.parameters[name] = value
         self.neutral = neutral
 
     def is_on_curve(self, point: Point) -> bool:
-        #TODO
-        pass
+        if point.coordinate_model != self.coordinate_model:
+            return False
+        loc = {**self.parameters, **point.to_affine().coords}
+        return eval(compile(self.model.equation, "", mode="eval"), loc)
 
     def is_neutral(self, point: Point) -> bool:
         return self.neutral == point

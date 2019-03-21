@@ -70,11 +70,11 @@ class InspectorTraceSet(TraceSet):
     title_space: int = 0
 
     global_title: str = "title"
-    description: str = None
+    description: Optional[str] = None
 
     x_offset: int = 0
-    x_label: str = None
-    y_label: str = None
+    x_label: Optional[str] = None
+    y_label: Optional[str] = None
     x_scale: float = 1
     y_scale: float = 1
 
@@ -85,7 +85,7 @@ class InspectorTraceSet(TraceSet):
     scope_coupling: int = 0
     scope_offset: float = 0
     scope_impedance: float = 0
-    scope_id: str = None
+    scope_id: Optional[str] = None
 
     filter_type: int = 0
     filter_frequency: float = 0
