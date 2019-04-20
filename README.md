@@ -1,6 +1,6 @@
 # ![](docs/_static/logo_black_small.png) pyecsca [pɪɛtska]
 
-[![Build Status](https://travis-ci.org/J08nY/pyecsca.svg?branch=master)](https://travis-ci.org/J08nY/pyecsca)
+[![Build Status](https://travis-ci.org/J08nY/pyecsca.svg?branch=master)](https://travis-ci.org/J08nY/pyecsca) ![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca.svg)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 

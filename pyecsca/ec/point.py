@@ -1,9 +1,10 @@
 from copy import copy
-from public import public
 from typing import Mapping
 
+from public import public
+
 from .coordinates import CoordinateModel, AffineCoordinateModel
-from .mod import Mod
+from .mod import Mod, Undefined
 from .op import CodeOp
 
 
@@ -28,18 +29,34 @@ class Point(object):
             except:
                 pass
         affine_model = AffineCoordinateModel(self.coordinate_model.curve_model)
-        # TODO: just fill in with undefined
-        if not set(map(lambda x: x.result, ops)).issuperset(affine_model.variables):
+        result_variables = set(map(lambda x: x.result, ops))
+        if not result_variables.issuperset(affine_model.variables):
             raise NotImplementedError
         result = {}
         for op in ops:
+            if op.result not in affine_model.variables:
+                continue
             result[op.result] = op(**self.coords)
         return Point(affine_model, **result)
 
     @staticmethod
-    def from_affine(affine_point):
-        # TODO
-        pass
+    def from_affine(coordinate_model, affine_point):
+        if not isinstance(affine_point.coordinate_model, AffineCoordinateModel):
+            return ValueError
+        result = {}
+        n = affine_point.coords["x"].n
+        for var in coordinate_model.variables:
+            if var == "X":
+                result[var] = affine_point.coords["x"]
+            elif var == "Y":
+                result[var] = affine_point.coords["y"]
+            elif var.startswith("Z"):
+                result[var] = Mod(1, n)
+            elif var == "T":
+                result[var] = Mod(affine_point.coords["x"] * affine_point.coords["y"], n)
+            else:
+                raise NotImplementedError
+        return Point(coordinate_model, **result)
 
     def equals(self, other):
         if not isinstance(other, Point):
@@ -67,14 +84,14 @@ class Point(object):
 class InfinityPoint(Point):
 
     def __init__(self, model: CoordinateModel):
-        self.coordinate_model = model
-        self.coords = {}
+        coords = {key: Undefined() for key in model.variables}
+        super().__init__(model, **coords)
 
     def to_affine(self):
         return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
 
     @staticmethod
-    def from_affine(affine_point):
+    def from_affine(coordinate_model, affine_point):
         raise NotImplementedError
 
     def equals(self, other):
