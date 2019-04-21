@@ -9,6 +9,16 @@ pyecsca [pɪɛtska]
 
 **Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 
+Functionality
+=============
+
+*pyecsca* aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
+black-box implementations of ECC and presents a way to extract implementation information
+about a black-box implementation of ECC through side-channels. It is in an alpha stage of development
+and thus currently only provides basic trace processing capabilities (in the *pyecsca.sca* package)
+and ECC simulation in the *pyecsca.ec* package.
+
+
 API
 ===
 
@@ -37,11 +47,14 @@ Testing
 
  - nose2_
  - green_
+ - mypy_
+ - coverage_
 
 Docs
 ----
 
  - sphinx_
+ - sphinx-autodoc-typehints_
 
 License
 =======
@@ -78,6 +91,9 @@ this support is very appreciated.
 .. _fastdtw: https://github.com/slaypni/fastdtw
 .. _nose2: https://nose2.readthedocs.io
 .. _green: https://github.com/CleanCut/green
+.. _mypy: http://mypy-lang.org/
+.. _coverage: https://coverage.readthedocs.io/
 .. _sphinx: https://www.sphinx-doc.org/
+.. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
 .. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
 .. _Riscure: https://www.riscure.com/
