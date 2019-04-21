@@ -1,5 +1,5 @@
 from public import public
-from typing import Mapping, Union
+from typing import MutableMapping, Union
 
 from .coordinates import CoordinateModel
 from .mod import Mod
@@ -12,11 +12,11 @@ class EllipticCurve(object):
     model: CurveModel
     coordinate_model: CoordinateModel
     prime: int
-    parameters: Mapping[str, Mod]
+    parameters: MutableMapping[str, Mod]
     neutral: Point
 
     def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
-                 prime: int, parameters: Mapping[str, Union[Mod, int]], neutral: Point):
+                 prime: int, parameters: MutableMapping[str, Union[Mod, int]], neutral: Point):
         # TODO: Add base_point arg, order arg, cofactor arg.
         if coordinate_model not in model.coordinates.values():
             raise ValueError

@@ -6,7 +6,11 @@ python:
 
 install:
   - pip install ".[test, typecheck]"
+  - pip install codecov
 
 script:
   - make -i typecheck
   - make test
+
+after_success:
+  - codecov

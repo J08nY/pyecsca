@@ -57,3 +57,4 @@ class PointTests(TestCase):
                       Y=Mod(0x3, self.secp128r1.prime),
                       Z=Mod(1, self.secp128r1.prime))
         assert pt.equals(other)
+        self.assertNotEquals(pt, other)

@@ -31,6 +31,6 @@ setup(
         ],
         extras_require={
             "typecheck": ["mypy"],
-            "test": ["nose2", "parameterized","green"]
+            "test": ["nose2", "parameterized","green", "coverage"]
         }
 )
