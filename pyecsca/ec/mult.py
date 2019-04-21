@@ -5,22 +5,23 @@ from typing import Mapping, Tuple, Optional, MutableMapping, Union
 from pyecsca.ec.naf import naf, wnaf
 from .context import Context
 from .curve import EllipticCurve
+from .group import AbelianGroup
 from .formula import (Formula, AdditionFormula, DoublingFormula, ScalingFormula, LadderFormula,
                       NegationFormula, DifferentialAdditionFormula)
 from .point import Point
 
 
 class ScalarMultiplier(object):
-    curve: EllipticCurve
+    group: AbelianGroup
     formulas: Mapping[str, Formula]
     context: Context
     _point: Point = None
 
-    def __init__(self, curve: EllipticCurve, ctx: Context = None, **formulas: Optional[Formula]):
+    def __init__(self, group: AbelianGroup, ctx: Context = None, **formulas: Optional[Formula]):
         for formula in formulas.values():
-            if formula is not None and formula.coordinate_model is not curve.coordinate_model:
+            if formula is not None and formula.coordinate_model is not group.curve.coordinate_model:
                 raise ValueError
-        self.curve = curve
+        self.group = group
         if ctx:
             self.context = ctx
         else:
@@ -30,44 +31,44 @@ class ScalarMultiplier(object):
     def _add(self, one: Point, other: Point) -> Point:
         if "add" not in self.formulas:
             raise NotImplementedError
-        if one == self.curve.neutral:
+        if one == self.group.neutral:
             return copy(other)
-        if other == self.curve.neutral:
+        if other == self.group.neutral:
             return copy(one)
-        return self.context.execute(self.formulas["add"], one, other, **self.curve.parameters)[0]
+        return self.context.execute(self.formulas["add"], one, other, **self.group.curve.parameters)[0]
 
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
             raise NotImplementedError
-        if point == self.curve.neutral:
+        if point == self.group.neutral:
             return copy(point)
-        return self.context.execute(self.formulas["dbl"], point, **self.curve.parameters)[0]
+        return self.context.execute(self.formulas["dbl"], point, **self.group.curve.parameters)[0]
 
     def _scl(self, point: Point) -> Point:
         if "scl" not in self.formulas:
             raise NotImplementedError
-        return self.context.execute(self.formulas["scl"], point, **self.curve.parameters)[0]
+        return self.context.execute(self.formulas["scl"], point, **self.group.curve.parameters)[0]
 
     def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, ...]:
         if "ladd" not in self.formulas:
             raise NotImplementedError
         return self.context.execute(self.formulas["ladd"], start, to_dbl, to_add,
-                                    **self.curve.parameters)
+                                    **self.group.curve.parameters)
 
     def _dadd(self, start: Point, one: Point, other: Point) -> Point:
         if "dadd" not in self.formulas:
             raise NotImplementedError
-        if one == self.curve.neutral:
+        if one == self.group.neutral:
             return copy(other)
-        if other == self.curve.neutral:
+        if other == self.group.neutral:
             return copy(one)
         return self.context.execute(self.formulas["dadd"], start, one, other,
-                                    **self.curve.parameters)[0]
+                                    **self.group.curve.parameters)[0]
 
     def _neg(self, point: Point) -> Point:
         if "neg" not in self.formulas:
             raise NotImplementedError
-        return self.context.execute(self.formulas["neg"], point, **self.curve.parameters)[0]
+        return self.context.execute(self.formulas["neg"], point, **self.group.curve.parameters)[0]
 
     def init(self, point: Point):
         self._point = point
@@ -94,17 +95,17 @@ class LTRMultiplier(ScalarMultiplier):
     """
     always: bool
 
-    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+    def __init__(self, group: AbelianGroup, add: AdditionFormula, dbl: DoublingFormula,
                  scl: ScalingFormula = None,
                  ctx: Context = None, always: bool = False):
-        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+        super().__init__(group, ctx, add=add, dbl=dbl, scl=scl)
         self.always = always
 
     def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         q = self._init_multiply(point)
-        r = copy(self.curve.neutral)
+        r = copy(self.group.neutral)
         for i in range(scalar.bit_length() - 1, -1, -1):
             r = self._dbl(r)
             if scalar & (1 << i) != 0:
@@ -125,17 +126,17 @@ class RTLMultiplier(ScalarMultiplier):
     """
     always: bool
 
-    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+    def __init__(self, group: AbelianGroup, add: AdditionFormula, dbl: DoublingFormula,
                  scl: ScalingFormula = None,
                  ctx: Context = None, always: bool = False):
-        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+        super().__init__(group, ctx, add=add, dbl=dbl, scl=scl)
         self.always = always
 
     def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         q = self._init_multiply(point)
-        r = copy(self.curve.neutral)
+        r = copy(self.group.neutral)
         while scalar > 0:
             if scalar & 1 != 0:
                 r = self._add(r, q)
@@ -157,13 +158,13 @@ class CoronMultiplier(ScalarMultiplier):
     https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
     """
 
-    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+    def __init__(self, group: AbelianGroup, add: AdditionFormula, dbl: DoublingFormula,
                  scl: ScalingFormula = None, ctx: Context = None):
-        super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+        super().__init__(group, ctx, add=add, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int, point: Optional[Point] = None):
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         q = self._init_multiply(point)
         p0 = copy(q)
         for i in range(scalar.bit_length() - 2, -1, -1):
@@ -182,13 +183,13 @@ class LadderMultiplier(ScalarMultiplier):
     Montgomery ladder multiplier, using a three input, two output ladder formula.
     """
 
-    def __init__(self, curve: EllipticCurve, ladd: LadderFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
+    def __init__(self, group: AbelianGroup, ladd: LadderFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
                  ctx: Context = None):
-        super().__init__(curve, ctx, ladd=ladd, dbl=dbl, scl=scl)
+        super().__init__(group, ctx, ladd=ladd, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         q = self._init_multiply(point)
         p0 = copy(q)
         p1 = self._dbl(q)
@@ -209,22 +210,22 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     """
     _differential: bool = False
 
-    def __init__(self, curve: EllipticCurve,
+    def __init__(self, group: AbelianGroup,
                  add: Union[AdditionFormula, DifferentialAdditionFormula], dbl: DoublingFormula,
                  scl: ScalingFormula = None, ctx: Context = None):
         if isinstance(add, AdditionFormula):
-            super().__init__(curve, ctx, add=add, dbl=dbl, scl=scl)
+            super().__init__(group, ctx, add=add, dbl=dbl, scl=scl)
         elif isinstance(add, DifferentialAdditionFormula):
-            super().__init__(curve, ctx, dadd=add, dbl=dbl, scl=scl)
+            super().__init__(group, ctx, dadd=add, dbl=dbl, scl=scl)
             self._differential = True
         else:
             raise ValueError
 
     def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         q = self._init_multiply(point)
-        p0 = copy(self.curve.neutral)
+        p0 = copy(self.group.neutral)
         p1 = copy(q)
         for i in range(scalar.bit_length() - 1, -1, -1):
             if scalar & (1 << i) == 0:
@@ -251,9 +252,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     """
     _point_neg: Point
 
-    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+    def __init__(self, group: AbelianGroup, add: AdditionFormula, dbl: DoublingFormula,
                  neg: NegationFormula, scl: ScalingFormula = None, ctx: Context = None):
-        super().__init__(curve, ctx, add=add, dbl=dbl, neg=neg, scl=scl)
+        super().__init__(group, ctx, add=add, dbl=dbl, neg=neg, scl=scl)
 
     def init(self, point: Point):
         super().init(point)
@@ -261,10 +262,10 @@ class BinaryNAFMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int, point: Optional[Point] = None) -> Point:
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         self._init_multiply(point)
         bnaf = naf(scalar)
-        q = copy(self.curve.neutral)
+        q = copy(self.group.neutral)
         for val in bnaf:
             q = self._dbl(q)
             if val == 1:
@@ -286,10 +287,10 @@ class WindowNAFMultiplier(ScalarMultiplier):
     _precompute_neg: bool = False
     _width: int
 
-    def __init__(self, curve: EllipticCurve, add: AdditionFormula, dbl: DoublingFormula,
+    def __init__(self, group: AbelianGroup, add: AdditionFormula, dbl: DoublingFormula,
                  neg: NegationFormula, width: int, scl: ScalingFormula = None, ctx: Context = None,
                  precompute_negation: bool = False):
-        super().__init__(curve, ctx, add=add, dbl=dbl, neg=neg, scl=scl)
+        super().__init__(group, ctx, add=add, dbl=dbl, neg=neg, scl=scl)
         self._width = width
         self._precompute_neg = precompute_negation
 
@@ -307,10 +308,10 @@ class WindowNAFMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int, point: Optional[Point] = None):
         if scalar == 0:
-            return copy(self.curve.neutral)
+            return copy(self.group.neutral)
         self._init_multiply(point)
         naf = wnaf(scalar, self._width)
-        q = copy(self.curve.neutral)
+        q = copy(self.group.neutral)
         for val in naf:
             q = self._dbl(q)
             if val > 0:

@@ -9,11 +9,13 @@ from test.ec.curves import get_secp128r1, get_curve25519
 class ScalarMultiplierTests(TestCase):
 
     def setUp(self):
-        self.secp128r1, self.base = get_secp128r1()
-        self.coords = self.secp128r1.coordinate_model
+        self.secp128r1 = get_secp128r1()
+        self.base = self.secp128r1.generator
+        self.coords = self.secp128r1.curve.coordinate_model
 
-        self.curve25519, self.base25519 = get_curve25519()
-        self.coords25519 = self.curve25519.coordinate_model
+        self.curve25519 = get_curve25519()
+        self.base25519 = self.curve25519.generator
+        self.coords25519 = self.curve25519.curve.coordinate_model
 
     def test_rtl(self):
         mult = RTLMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
