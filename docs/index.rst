@@ -36,6 +36,7 @@ Requirements
  - matplotlib_
  - atpublic_
  - fastdtw_
+ - asn1crypto
 
 *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
 

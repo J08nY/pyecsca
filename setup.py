@@ -27,7 +27,8 @@ setup(
             "scipy",
             "atpublic",
             "matplotlib",
-            "fastdtw"
+            "fastdtw",
+            "asn1crypto"
         ],
         extras_require={
             "typecheck": ["mypy"],

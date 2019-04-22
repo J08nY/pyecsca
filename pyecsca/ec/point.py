@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Mapping
+from typing import Mapping,Any
 
 from public import public
 
@@ -18,6 +18,13 @@ class Point(object):
             raise ValueError
         self.coordinate_model = model
         self.coords = coords
+
+    def __getattribute__(self, name: Any):
+        if "coords" in super().__getattribute__("__dict__"):
+            coords = super().__getattribute__("coords")
+            if name in coords:
+                return coords[name]
+        return super().__getattribute__(name)
 
     def to_affine(self):
         if isinstance(self.coordinate_model, AffineCoordinateModel):

@@ -25,6 +25,7 @@ class PointTests(TestCase):
         self.assertSetEqual(set(affine.coords.keys()), set(self.affine.variables))
         self.assertEqual(affine.coords["x"], pt.coords["X"])
         self.assertEqual(affine.coords["y"], pt.coords["Y"])
+        self.assertEqual(affine.to_affine(), affine)
 
         affine = InfinityPoint(self.coords).to_affine()
         self.assertIsInstance(affine, InfinityPoint)
@@ -40,6 +41,9 @@ class PointTests(TestCase):
         self.assertEqual(other.coords["X"], affine.coords["x"])
         self.assertEqual(other.coords["Y"], affine.coords["y"])
         self.assertEqual(other.coords["Z"], Mod(1, self.secp128r1.curve.prime))
+
+        with self.assertRaises(NotImplementedError):
+            InfinityPoint.from_affine(self.coords, affine)
 
     def test_to_from_affine(self):
         pt = Point(self.coords,
@@ -60,3 +64,19 @@ class PointTests(TestCase):
                       Z=Mod(1, self.secp128r1.curve.prime))
         assert pt.equals(other)
         self.assertNotEquals(pt, other)
+        assert not pt.equals(2)
+        self.assertNotEquals(pt, 2)
+
+        infty_one = InfinityPoint(self.coords)
+        infty_other = InfinityPoint(self.coords)
+        assert infty_one.equals(infty_other)
+        self.assertEquals(infty_one, infty_other)
+
+    def test_repr(self):
+        self.assertEqual(str(self.base),
+                         "[X=29408993404948928992877151431649155974, Y=275621562871047521857442314737465260675, Z=1]")
+        self.assertEqual(repr(self.base),
+                         "Point([[X=29408993404948928992877151431649155974, Y=275621562871047521857442314737465260675, Z=1]] in EFDCoordinateModel(\"projective\" on short Weierstrass curves))")
+        self.assertEqual(str(InfinityPoint(self.coords)), "Infinity")
+        self.assertEqual(repr(InfinityPoint(self.coords)),
+                         "InfinityPoint(EFDCoordinateModel(\"projective\" on short Weierstrass curves))")

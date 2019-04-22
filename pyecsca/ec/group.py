@@ -1,5 +1,3 @@
-from typing import Optional
-
 from public import public
 
 from .curve import EllipticCurve
@@ -11,11 +9,11 @@ class AbelianGroup(object):
     curve: EllipticCurve
     generator: Point
     neutral: Point
-    order: Optional[int]
-    cofactor: Optional[int]
+    order: int
+    cofactor: int
 
-    def __init__(self, curve: EllipticCurve, generator: Point, neutral: Point, order: int = None,
-                 cofactor: int = None):
+    def __init__(self, curve: EllipticCurve, generator: Point, neutral: Point, order: int,
+                 cofactor: int):
         self.curve = curve
         self.generator = generator
         self.neutral = neutral
