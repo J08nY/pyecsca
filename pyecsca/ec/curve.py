@@ -34,7 +34,7 @@ class EllipticCurve(object):
             self.parameters[name] = value
 
     def is_on_curve(self, point: Point) -> bool:
-        if point.coordinate_model != self.coordinate_model:
+        if point.coordinate_model.curve_model != self.model:
             return False
         loc = {**self.parameters, **point.to_affine().coords}
         return eval(compile(self.model.equation, "", mode="eval"), loc)
