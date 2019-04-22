@@ -18,6 +18,7 @@ matplotlib = "*"
 cython = "*"
 fastdtw = "*"
 parameterized = "*"
+asn1crypto = "*"
 
 [requires]
 python_version = "3.7"

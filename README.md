@@ -1,6 +1,6 @@
 # ![](docs/_static/logo_black_small.png) pyecsca [pɪɛtska]
 
-[![Build Status](https://travis-ci.org/J08nY/pyecsca.svg?branch=master)](https://travis-ci.org/J08nY/pyecsca) [![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/)  ![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca.svg) [![Codecov](https://img.shields.io/codecov/c/github/J08nY/pyecsca.svg)](https://codecov.io/gh/J08nY/pyecsca)
+[![Build Status](https://travis-ci.org/J08nY/pyecsca.svg?branch=master)](https://travis-ci.org/J08nY/pyecsca) [![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/)  ![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca.svg) [![codecov](https://codecov.io/gh/J08nY/pyecsca/branch/master/graph/badge.svg)](https://codecov.io/gh/J08nY/pyecsca)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
