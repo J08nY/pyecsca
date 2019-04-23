@@ -1,8 +1,21 @@
+import ast
 from unittest import TestCase
 
-from pyecsca.ec.context import local, DefaultContext
+from pyecsca.ec.context import local, DefaultContext, OpResult, NullContext, getcontext
+from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
-from test.ec.curves import get_secp128r1
+from pyecsca.ec.point import Point
+from .curves import get_secp128r1
+
+
+class OpResultTests(TestCase):
+
+    def test_repr(self):
+        for op, char in zip((ast.Add(), ast.Sub(), ast.Mult(), ast.Div()), "+-*/"):
+            res = OpResult("X1", Mod(0, 5), op, Mod(2, 5), Mod(3, 5))
+            self.assertEqual(str(res), "X1")
+            self.assertEqual(repr(res), "X1 = 2{}3".format(char))
 
 
 class ContextTests(TestCase):
@@ -15,9 +28,28 @@ class ContextTests(TestCase):
                                   self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
 
     def test_null(self):
-        self.mult.multiply(59, self.base)
+        with local() as ctx:
+            self.mult.multiply(59, self.base)
+        self.assertIsInstance(ctx, NullContext)
 
     def test_default(self):
         with local(DefaultContext()) as ctx:
             self.mult.multiply(59, self.base)
         self.assertEqual(len(ctx.actions), 10)
+
+    def test_execute(self):
+        with self.assertRaises(ValueError):
+            getcontext().execute(self.coords.formulas["z"], self.base, self.base)
+        with self.assertRaises(ValueError):
+            getcontext().execute(self.coords.formulas["z"],
+                                 Point(AffineCoordinateModel(self.secp128r1.curve.model),
+                                       x=Mod(1, 5), y=Mod(2, 5)))
+
+    def test_repr(self):
+        with local(DefaultContext()) as default:
+            self.mult.multiply(59, self.base)
+        str(default)
+        str(default.actions)
+        with local(NullContext()) as null:
+            self.mult.multiply(59, self.base)
+        str(null)

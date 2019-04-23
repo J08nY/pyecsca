@@ -72,6 +72,9 @@ class Action(object):
             self.roots[k] = self.intermediates[k]
         self.output_points.append(point)
 
+    def __repr__(self):
+        return f"Action({self.formula}, {self.input_points}) = {self.output_points}"
+
 
 @public
 class Context(object):
@@ -86,11 +89,11 @@ class Context(object):
 
     def _execute(self, formula: Formula, *points: Point, **params: Mod) -> Tuple[Point, ...]:
         if len(points) != formula.num_inputs:
-            raise ValueError
+            raise ValueError(f"Wrong number of inputs for {formula}.")
         coords = {}
         for i, point in enumerate(points):
             if point.coordinate_model != formula.coordinate_model:
-                raise ValueError
+                raise ValueError(f"Wrong coordinate model of point {point}.")
             for coord, value in point.coords.items():
                 coords[coord + str(i + 1)] = value
         locals = {**coords, **params}
@@ -106,8 +109,6 @@ class Context(object):
             full_resulting = {}
             for variable in formula.coordinate_model.variables:
                 full_variable = variable + ind
-                if full_variable not in locals:
-                    continue
                 resulting[variable] = locals[full_variable]
                 full_resulting[full_variable] = locals[full_variable]
             point = Point(formula.coordinate_model, **resulting)
