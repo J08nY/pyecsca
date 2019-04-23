@@ -1,7 +1,8 @@
 from ast import parse, Expression
+from typing import List, Any, ClassVar, MutableMapping
+
 from pkg_resources import resource_stream
 from public import public
-from typing import List, Any, ClassVar, MutableMapping
 
 from .op import Op, CodeOp
 
@@ -21,7 +22,7 @@ class Formula(object):
 
     @property
     def output_index(cls):
-        return max(cls.num_inputs + 1, 3)
+        raise NotImplementedError
 
 
 class EFDFormula(Formula):
@@ -55,6 +56,10 @@ class EFDFormula(Formula):
             for line in f.readlines():
                 code_module = parse(line.decode("ascii").replace("^", "**"), path, mode="exec")
                 self.code.append(CodeOp(code_module))
+
+    @property
+    def output_index(cls):
+        return max(cls.num_inputs + 1, 3)
 
 
 @public

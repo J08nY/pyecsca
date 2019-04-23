@@ -9,6 +9,7 @@ green = "*"
 mypy = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
+coverage = "*"
 
 [packages]
 numpy = "*"

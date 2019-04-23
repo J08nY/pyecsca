@@ -21,7 +21,7 @@ setup(
             "Intended Audience :: Science/Research"
         ],
         install_package_data=True,
-        python_requires='>=3',
+        python_requires='>=3.7',
         install_requires=[
             "numpy",
             "scipy",

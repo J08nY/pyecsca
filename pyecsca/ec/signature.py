@@ -5,6 +5,7 @@ from typing import Optional, Any
 from asn1crypto.core import Sequence, SequenceOf, Integer
 from public import public
 
+from .context import getcontext
 from .formula import AdditionFormula
 from .mod import Mod
 from .mult import ScalarMultiplier
@@ -113,7 +114,7 @@ class Signature(object):
         u2 = Mod(signature.r, self.mult.group.order) * c
         p1 = self.mult.multiply(int(u1), self.mult.group.generator)
         p2 = self.mult.multiply(int(u2), self.pubkey)
-        p = self.mult.context.execute(self.add, p1, p2, **self.mult.group.curve.parameters)[0]
+        p = getcontext().execute(self.add, p1, p2, **self.mult.group.curve.parameters)[0]
         affine = p.to_affine()  # TODO: add to context
         v = Mod(int(affine.x), self.mult.group.order)
         return signature.r == int(v)
