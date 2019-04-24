@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.mod import Mod
-from pyecsca.ec.model import ShortWeierstrassModel
+from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point, InfinityPoint
 from test.ec.curves import get_secp128r1
 
@@ -44,6 +44,8 @@ class PointTests(TestCase):
 
         with self.assertRaises(NotImplementedError):
             InfinityPoint.from_affine(self.coords, affine)
+        with self.assertRaises(ValueError):
+            Point.from_affine(self.coords, self.base)
 
     def test_to_from_affine(self):
         pt = Point(self.coords,
@@ -63,14 +65,22 @@ class PointTests(TestCase):
                       Y=Mod(0x3, self.secp128r1.curve.prime),
                       Z=Mod(1, self.secp128r1.curve.prime))
         assert pt.equals(other)
-        self.assertNotEquals(pt, other)
+        self.assertNotEqual(pt, other)
         assert not pt.equals(2)
-        self.assertNotEquals(pt, 2)
+        self.assertNotEqual(pt, 2)
 
         infty_one = InfinityPoint(self.coords)
         infty_other = InfinityPoint(self.coords)
         assert infty_one.equals(infty_other)
-        self.assertEquals(infty_one, infty_other)
+        self.assertEqual(infty_one, infty_other)
+
+        mont = MontgomeryModel()
+        different = Point(mont.coordinates["xz"],
+                          X=Mod(0x64daccd2656420216545e5f65221eb,
+                                0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa),
+                          Z=Mod(1, 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa))
+        assert not pt.equals(different)
+        self.assertNotEqual(pt, different)
 
     def test_repr(self):
         self.assertEqual(str(self.base),

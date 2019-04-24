@@ -1,8 +1,8 @@
+from hashlib import sha1
 from unittest import TestCase
 
-from hashlib import sha1
-from pyecsca.ec.signature import *
 from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.signature import *
 from .curves import get_secp128r1
 
 
@@ -32,6 +32,25 @@ class SignatureTests(TestCase):
         assert none.verify_hash(sig, digest)
         sig = none.sign_data(digest)
         assert none.verify_data(sig, digest)
+
+    def test_cannot(self):
+        ok = ECDSA_NONE(self.mult, add=self.add, pubkey=self.pub, privkey=self.priv)
+        data = b"aaaa"
+        sig = ok.sign_data(data)
+
+        no_priv = ECDSA_NONE(self.mult, pubkey=self.pub)
+        with self.assertRaises(RuntimeError):
+            no_priv.sign_data(data)
+        with self.assertRaises(RuntimeError):
+            no_priv.sign_hash(data)
+        no_pubadd = ECDSA_NONE(self.mult, privkey=self.priv)
+        with self.assertRaises(RuntimeError):
+            no_pubadd.verify_data(sig, data)
+        with self.assertRaises(RuntimeError):
+            no_pubadd.verify_hash(sig, data)
+
+        with self.assertRaises(ValueError):
+            Signature(self.mult)
 
     def test_fixed_nonce(self):
         for algo in self.algos:

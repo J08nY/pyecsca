@@ -1,9 +1,11 @@
 from functools import wraps
+
 from public import public
 
 
 @public
 def gcd(a, b):
+    """Euclid's greatest common denominator algorithm."""
     if abs(a) < abs(b):
         return gcd(b, a)
 
@@ -16,6 +18,7 @@ def gcd(a, b):
 
 @public
 def extgcd(a, b):
+    """Extended Euclid's greatest common denominator algorithm."""
     if abs(b) > abs(a):
         (x, y, d) = extgcd(b, a)
         return y, x, d
@@ -48,6 +51,7 @@ def check(func):
 
 @public
 class Mod(object):
+    """An element x of ℤₙ."""
 
     def __init__(self, x: int, n: int):
         self.x: int = x % n
@@ -150,7 +154,7 @@ class Mod(object):
 class Undefined(Mod):
 
     def __init__(self):
-        pass
+        object.__init__(self)
 
     def __add__(self, other):
         raise NotImplementedError

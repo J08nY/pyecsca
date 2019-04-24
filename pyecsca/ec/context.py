@@ -1,7 +1,7 @@
 import ast
 from contextvars import ContextVar, Token
 from copy import deepcopy
-from typing import List, Tuple, Optional, Union, MutableMapping, Any, Mapping
+from typing import List, Tuple, Optional, Union, MutableMapping, Any, ContextManager
 
 from public import public
 
@@ -13,6 +13,7 @@ from .point import Point
 
 @public
 class OpResult(object):
+    """A result of an operation."""
     parents: Tuple
     op: ast.operator
     name: str
@@ -43,6 +44,7 @@ class OpResult(object):
 
 @public
 class Action(object):
+    """An execution of a formula, on some input points and parameters, with some outputs."""
     formula: Formula
     input_points: List[Point]
     inputs: MutableMapping[str, Mod]
@@ -118,6 +120,14 @@ class Context(object):
         return tuple(result)
 
     def execute(self, formula: Formula, *points: Point, **params: Mod) -> Tuple[Point, ...]:
+        """
+        Execute a formula.
+
+        :param formula: Formula to execute.
+        :param points: Points to pass into the formula.
+        :param params: Parameters of the curve.
+        :return: The resulting point(s).
+        """
         return self._execute(formula, *points, **params)
 
     def __str__(self):
@@ -126,6 +136,7 @@ class Context(object):
 
 @public
 class NullContext(Context):
+    """A context that does not trace any operations."""
 
     def _log_action(self, formula: Formula, *points: Point, **inputs: Mod):
         pass
@@ -139,6 +150,7 @@ class NullContext(Context):
 
 @public
 class DefaultContext(Context):
+    """A context that traces executions of formulas."""
     actions: List[Action]
 
     def __init__(self):
@@ -157,31 +169,53 @@ class DefaultContext(Context):
 _actual_context: ContextVar[Context] = ContextVar("operational_context", default=NullContext())
 
 
-class ContextManager(object):
+class _ContextManager(object):
     def __init__(self, new_context):
         self.new_context = deepcopy(new_context)
 
     def __enter__(self) -> Context:
-        self.saved_context = getcontext()
-        setcontext(self.new_context)
+        self.token = setcontext(self.new_context)
         return self.new_context
 
     def __exit__(self, t, v, tb):
-        setcontext(self.saved_context)
+        resetcontext(self.token)
 
 
 @public
-def getcontext():
+def getcontext() -> Context:
+    """Get the current thread/task context."""
     return _actual_context.get()
 
 
 @public
 def setcontext(ctx: Context) -> Token:
+    """
+    Set the current thread/task context.
+
+    :param ctx: A context to set.
+    :return: A token to restore previous context.
+    """
     return _actual_context.set(ctx)
 
 
 @public
+def resetcontext(token: Token):
+    """
+    Reset the context to a previous value.
+
+    :param token: A token to restore.
+    """
+    _actual_context.reset(token)
+
+
+@public
 def local(ctx: Optional[Context] = None) -> ContextManager:
+    """
+    Use a local context.
+
+    :param ctx: If none, current context is copied.
+    :return: A context manager.
+    """
     if ctx is None:
         ctx = getcontext()
-    return ContextManager(ctx)
+    return _ContextManager(ctx)

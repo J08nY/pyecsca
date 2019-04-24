@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Mapping,Any
+from typing import Mapping, Any
 
 from public import public
 
@@ -10,6 +10,7 @@ from .op import CodeOp
 
 @public
 class Point(object):
+    """A point with coordinates in a coordinate model."""
     coordinate_model: CoordinateModel
     coords: Mapping[str, Mod]
 
@@ -19,14 +20,15 @@ class Point(object):
         self.coordinate_model = model
         self.coords = coords
 
-    def __getattribute__(self, name: Any):
+    def __getattribute__(self, name):
         if "coords" in super().__getattribute__("__dict__"):
             coords = super().__getattribute__("coords")
             if name in coords:
                 return coords[name]
         return super().__getattribute__(name)
 
-    def to_affine(self):
+    def to_affine(self) -> "Point":
+        """Convert this point into the affine coordinate model, if possible."""
         if isinstance(self.coordinate_model, AffineCoordinateModel):
             return copy(self)
         ops = set()
@@ -47,12 +49,13 @@ class Point(object):
         return Point(affine_model, **result)
 
     @staticmethod
-    def from_affine(coordinate_model, affine_point):
+    def from_affine(coordinate_model: CoordinateModel, affine_point: "Point") -> "Point":
+        """Convert an affine point into a given coordinate model, if possible."""
         if not isinstance(affine_point.coordinate_model, AffineCoordinateModel):
-            return ValueError
+            raise ValueError
         result = {}
         n = affine_point.coords["x"].n
-        for var in coordinate_model.variables:
+        for var in coordinate_model.variables:  #  XXX: This just works for the stuff currently in EFD.
             if var == "X":
                 result[var] = affine_point.coords["x"]
             elif var == "Y":
@@ -65,7 +68,8 @@ class Point(object):
                 raise NotImplementedError
         return Point(coordinate_model, **result)
 
-    def equals(self, other):
+    def equals(self, other: Any) -> bool:
+        """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""
         if not isinstance(other, Point):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
@@ -89,19 +93,20 @@ class Point(object):
 
 @public
 class InfinityPoint(Point):
+    """A point at infinity."""
 
     def __init__(self, model: CoordinateModel):
         coords = {key: Undefined() for key in model.variables}
         super().__init__(model, **coords)
 
-    def to_affine(self):
+    def to_affine(self) -> "InfinityPoint":
         return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
 
     @staticmethod
-    def from_affine(coordinate_model, affine_point):
+    def from_affine(coordinate_model: CoordinateModel, affine_point: "Point") -> "InfinityPoint":
         raise NotImplementedError
 
-    def equals(self, other):
+    def equals(self, other) -> bool:
         return self == other
 
     def __eq__(self, other):

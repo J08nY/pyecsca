@@ -8,6 +8,7 @@ from .op import Op, CodeOp
 
 
 class Formula(object):
+    """A formula operating on points."""
     name: str
     coordinate_model: Any
     meta: MutableMapping[str, Any]
@@ -22,6 +23,7 @@ class Formula(object):
 
     @property
     def output_index(cls):
+        """The starting index where this formula stores its outputs."""
         raise NotImplementedError
 
 
@@ -60,6 +62,11 @@ class EFDFormula(Formula):
     @property
     def output_index(cls):
         return max(cls.num_inputs + 1, 3)
+
+    def __eq__(self, other):
+        if not isinstance(other, EFDFormula):
+            return False
+        return self.name == other.name and self.coordinate_model == other.coordinate_model
 
 
 @public

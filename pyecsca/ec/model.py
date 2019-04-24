@@ -23,6 +23,8 @@ class CurveModel(object):
     #TODO: move the base_formulas into methods, operatin on affine points?
     #      Also to_weierstrass anf from_weierstrass.
 
+    # TODO: __eq__
+
 
 class EFDCurveModel(CurveModel):
     _efd_name: str

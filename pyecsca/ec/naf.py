@@ -7,9 +7,9 @@ def wnaf(k: int, w: int) -> List[int]:
     """
     Compute width `w` NAF (Non-Adjacent Form) of the scalar `k`.
 
-    :param k:
-    :param w:
-    :return:
+    :param k: The scalar.
+    :param w: The width.
+    :return: The NAF.
     """
     half_width = 2 ** (w - 1)
     full_width = half_width * 2
@@ -37,7 +37,7 @@ def naf(k: int) -> List[int]:
     """
     Compute the NAF (Non-Adjacent Form) of the scalar `k`.
 
-    :param k:
-    :return:
+    :param k: The scalar.
+    :return: The NAF.
     """
     return wnaf(k, 2)

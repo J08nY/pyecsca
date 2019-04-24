@@ -39,6 +39,11 @@ class EllipticCurve(object):
         loc = {**self.parameters, **point.to_affine().coords}
         return eval(compile(self.model.equation, "", mode="eval"), loc)
 
+    def __eq__(self, other):
+        if not isinstance(other, EllipticCurve):
+            return False
+        return self.model == other.model and self.coordinate_model == other.coordinate_model and self.prime == other.prime and self.parameters == other.parameters
+
     def __repr__(self):
         params = ", ".join((f"{key}={val}" for key, val in self.parameters.items()))
         return f"EllipticCurve([{params}] on {self.model} using {self.coordinate_model})"

@@ -14,6 +14,7 @@ from .point import Point
 
 @public
 class SignatureResult(object):
+    """An ECDSA signature result (r, s)."""
     r: int
     s: int
 
@@ -24,11 +25,13 @@ class SignatureResult(object):
         self.s = s
 
     @staticmethod
-    def from_DER(data: bytes):
+    def from_DER(data: bytes) -> "SignatureResult":
+        """Load an ECDSA signature from ASN.1 DER data."""
         r, s = Sequence.load(data).native.values()
         return SignatureResult(r, s)
 
     def to_DER(self) -> bytes:
+        """Output this signature into ASN.1 DER."""
         obj = SequenceOf(spec=Integer)
         obj.append(self.r)
         obj.append(self.s)
@@ -39,9 +42,6 @@ class SignatureResult(object):
             return False
         return self.r == other.r and self.s == other.s
 
-    def __ne__(self, other):
-        return not self == other
-
     def __str__(self):
         return f"(r={self.r}, s={self.s})"
 
@@ -51,6 +51,7 @@ class SignatureResult(object):
 
 @public
 class Signature(object):
+    """An EC based signature primitive. (ECDSA)"""
     mult: ScalarMultiplier
     add: Optional[AdditionFormula]
     pubkey: Optional[Point]
@@ -75,11 +76,13 @@ class Signature(object):
 
     @property
     def can_sign(self) -> bool:
+        """Whether this instance can sign (has a private key)."""
         return self.privkey is not None
 
     @property
     def can_verify(self) -> bool:
-        return self.pubkey is not None
+        """Whether this instance can verify (has a public key and add formula)."""
+        return self.pubkey is not None and self.add is not None
 
     def _get_nonce(self, nonce: Optional[int]) -> Mod:
         if nonce is None:
@@ -97,10 +100,16 @@ class Signature(object):
                                privkey=self.privkey)
 
     def sign_hash(self, digest: bytes, nonce: Optional[int] = None) -> SignatureResult:
+        """Sign already hashed data."""
+        if not self.can_sign:
+            raise RuntimeError("This instance cannot sign.")
         k = self._get_nonce(nonce)
         return self._do_sign(k, digest)
 
     def sign_data(self, data: bytes, nonce: Optional[int] = None) -> SignatureResult:
+        """Sign data."""
+        if not self.can_sign:
+            raise RuntimeError("This instance cannot sign.")
         k = self._get_nonce(nonce)
         if self.hash_algo is None:
             digest = data
@@ -108,9 +117,9 @@ class Signature(object):
             digest = self.hash_algo(data).digest()
         return self._do_sign(k, digest)
 
-    def _do_verify(self, signature: SignatureResult, e: int) -> bool:
+    def _do_verify(self, signature: SignatureResult, digest: bytes) -> bool:
         c = Mod(signature.s, self.mult.group.order).inverse()
-        u1 = Mod(e, self.mult.group.order) * c
+        u1 = Mod(int.from_bytes(digest, byteorder="big"), self.mult.group.order) * c
         u2 = Mod(signature.r, self.mult.group.order) * c
         p1 = self.mult.multiply(int(u1), self.mult.group.generator)
         p2 = self.mult.multiply(int(u2), self.pubkey)
@@ -120,18 +129,26 @@ class Signature(object):
         return signature.r == int(v)
 
     def verify_hash(self, signature: SignatureResult, digest: bytes) -> bool:
-        return self._do_verify(signature, int.from_bytes(digest, byteorder="big"))
+        """Verify already hashed data."""
+        if not self.can_verify:
+            raise RuntimeError("This instance cannot verify.")
+        return self._do_verify(signature, digest)
 
     def verify_data(self, signature: SignatureResult, data: bytes) -> bool:
+        """Verify data."""
+        if not self.can_verify:
+            raise RuntimeError("This instance cannot verify.")
         if self.hash_algo is None:
             digest = data
         else:
             digest = self.hash_algo(data).digest()
-        return self._do_verify(signature, int.from_bytes(digest, byteorder="big"))
+        return self._do_verify(signature, digest)
 
 
 @public
 class ECDSA_NONE(Signature):
+    """ECDSA with raw message input."""
+
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, add, pubkey, privkey)
@@ -139,6 +156,8 @@ class ECDSA_NONE(Signature):
 
 @public
 class ECDSA_SHA1(Signature):
+    """ECDSA with SHA1."""
+
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, add, pubkey, privkey, hashlib.sha1)
@@ -146,6 +165,8 @@ class ECDSA_SHA1(Signature):
 
 @public
 class ECDSA_SHA224(Signature):
+    """ECDSA with SHA224."""
+
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, add, pubkey, privkey, hashlib.sha224)
@@ -153,6 +174,8 @@ class ECDSA_SHA224(Signature):
 
 @public
 class ECDSA_SHA256(Signature):
+    """ECDSA with SHA256."""
+
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, add, pubkey, privkey, hashlib.sha256)
@@ -160,6 +183,8 @@ class ECDSA_SHA256(Signature):
 
 @public
 class ECDSA_SHA384(Signature):
+    """ECDSA with SHA384."""
+
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, add, pubkey, privkey, hashlib.sha384)
@@ -167,6 +192,8 @@ class ECDSA_SHA384(Signature):
 
 @public
 class ECDSA_SHA512(Signature):
+    """ECDSA with SHA512."""
+
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, add, pubkey, privkey, hashlib.sha512)

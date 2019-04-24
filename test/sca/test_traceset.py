@@ -1,6 +1,6 @@
-from unittest import TestCase
 import os.path
 import tempfile
+from unittest import TestCase
 
 from pyecsca.sca import TraceSet, InspectorTraceSet, ChipWhispererTraceSet
 
@@ -48,6 +48,9 @@ class InspectorTraceSetTests(TestCase):
             trace_set.save(path)
             self.assertTrue(os.path.exists(path))
             self.assertIsNotNone(InspectorTraceSet(path))
+
+        with self.assertRaises(ValueError):
+            trace_set.save(None)
 
 
 class ChipWhispererTraceSetTest(TestCase):

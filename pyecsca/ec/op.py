@@ -10,7 +10,8 @@ class Op(object):
     parameters: FrozenSet[str]
     variables: FrozenSet[str]
 
-    def __call__(self, *args, **kwargs) -> Mod:
+    def __call__(self, *args, **kwargs: Mod) -> Mod:
+        """Execute this operation with kwargs."""
         raise NotImplementedError
 
 
@@ -43,7 +44,7 @@ class CodeOp(Op):
     def __repr__(self):
         return f"CodeOp({self.result} = f(params={self.parameters}, vars={self.variables}))"
 
-    def __call__(self, *args, **kwargs) -> Mod:
+    def __call__(self, *args, **kwargs: Mod) -> Mod:
         loc = dict(kwargs)
         exec(self.compiled, {}, loc)
         return loc[self.result]

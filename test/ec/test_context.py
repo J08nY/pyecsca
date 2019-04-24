@@ -1,7 +1,9 @@
 import ast
 from unittest import TestCase
 
-from pyecsca.ec.context import local, DefaultContext, OpResult, NullContext, getcontext
+from pyecsca.ec.context import (local, DefaultContext, OpResult, NullContext, getcontext,
+                                setcontext,
+                                resetcontext)
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
@@ -33,9 +35,13 @@ class ContextTests(TestCase):
         self.assertIsInstance(ctx, NullContext)
 
     def test_default(self):
+        token = setcontext(DefaultContext())
+        self.addCleanup(resetcontext, token)
+
         with local(DefaultContext()) as ctx:
             self.mult.multiply(59, self.base)
         self.assertEqual(len(ctx.actions), 10)
+        self.assertEqual(len(getcontext().actions), 0)
 
     def test_execute(self):
         with self.assertRaises(ValueError):

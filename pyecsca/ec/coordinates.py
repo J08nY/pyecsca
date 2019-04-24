@@ -1,6 +1,7 @@
 from ast import parse, Expression, Module
-from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from typing import List, Any, MutableMapping, Union
+
+from pkg_resources import resource_listdir, resource_isdir, resource_stream
 
 from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormula,
                       TriplingEFDFormula,
@@ -94,3 +95,8 @@ class EFDCoordinateModel(CoordinateModel):
                     self.assumptions.append(
                             parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
                 line = f.readline().decode("ascii")
+
+    def __eq__(self, other):
+        if not isinstance(other, EFDCoordinateModel):
+            return False
+        return self.curve_model == other.curve_model and self.name == other.name
