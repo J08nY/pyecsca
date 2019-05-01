@@ -4,7 +4,7 @@ from .edit import *
 from .filter import *
 from .process import *
 from .sampling import *
-from .ttest import *
+from .test import *
 from .trace import *
 from .trace_set.base import *
 from .trace_set.inspector import *
