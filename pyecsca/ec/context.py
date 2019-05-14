@@ -44,20 +44,18 @@ class OpResult(object):
 
 @public
 class Action(object):
-    """An execution of a formula, on some input points and parameters, with some outputs."""
-    formula: Formula
-    input_points: List[Point]
+    """An execution of some operations with inputs and outputs."""
     inputs: MutableMapping[str, Mod]
+    input_points: List[Point]
     intermediates: MutableMapping[str, Union[Mod, OpResult]]
-    roots: MutableMapping[str, OpResult]
+    outputs: MutableMapping[str, OpResult]
     output_points: List[Point]
 
-    def __init__(self, formula: Formula, *points: Point, **inputs: Mod):
-        self.formula = formula
-        self.input_points = list(points)
+    def __init__(self, *points: Point, **inputs: Mod):
         self.inputs = inputs
         self.intermediates = {}
-        self.roots = {}
+        self.outputs = {}
+        self.input_points = list(points)
         self.output_points = []
 
     def add_operation(self, op: CodeOp, value: Mod):
@@ -71,16 +69,29 @@ class Action(object):
 
     def add_result(self, point: Point, **outputs: Mod):
         for k in outputs:
-            self.roots[k] = self.intermediates[k]
+            self.outputs[k] = self.intermediates[k]
         self.output_points.append(point)
 
     def __repr__(self):
-        return f"Action({self.formula}, {self.input_points}) = {self.output_points}"
+        return f"{self.__class__.__name__}({self.input_points}) = {self.output_points}"
+
+
+@public
+class FormulaAction(Action):
+    """An execution of a formula, on some input points and parameters, with some outputs."""
+    formula: Formula
+
+    def __init__(self, formula: Formula, *points: Point, **inputs: Mod):
+        super().__init__(*points, **inputs)
+        self.formula = formula
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.formula}, {self.input_points}) = {self.output_points}"
 
 
 @public
 class Context(object):
-    def _log_action(self, formula: Formula, *points: Point, **inputs: Mod):
+    def _log_formula(self, formula: Formula, *points: Point, **inputs: Mod):
         raise NotImplementedError
 
     def _log_operation(self, op: CodeOp, value: Mod):
@@ -99,7 +110,7 @@ class Context(object):
             for coord, value in point.coords.items():
                 coords[coord + str(i + 1)] = value
         locals = {**coords, **params}
-        self._log_action(formula, *points, **locals)
+        self._log_formula(formula, *points, **locals)
         for op in formula.code:
             op_result = op(**locals)
             self._log_operation(op, op_result)
@@ -138,7 +149,7 @@ class Context(object):
 class NullContext(Context):
     """A context that does not trace any operations."""
 
-    def _log_action(self, formula: Formula, *points: Point, **inputs: Mod):
+    def _log_formula(self, formula: Formula, *points: Point, **inputs: Mod):
         pass
 
     def _log_operation(self, op: CodeOp, value: Mod):
@@ -151,13 +162,13 @@ class NullContext(Context):
 @public
 class DefaultContext(Context):
     """A context that traces executions of formulas."""
-    actions: List[Action]
+    actions: List[FormulaAction]
 
     def __init__(self):
         self.actions = []
 
-    def _log_action(self, formula: Formula, *points: Point, **inputs: Mod):
-        self.actions.append(Action(formula, *points, **inputs))
+    def _log_formula(self, formula: Formula, *points: Point, **inputs: Mod):
+        self.actions.append(FormulaAction(formula, *points, **inputs))
 
     def _log_operation(self, op: CodeOp, value: Mod):
         self.actions[-1].add_operation(op, value)
