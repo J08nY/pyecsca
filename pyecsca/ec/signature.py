@@ -92,8 +92,8 @@ class Signature(object):
 
     def _do_sign(self, nonce: Mod, digest: bytes) -> SignatureResult:
         z = int.from_bytes(digest, byteorder="big")
-        if z.bit_length() > self.mult.group.order.bit_length():
-            z >>= z.bit_length() - self.mult.group.order.bit_length()
+        if len(digest) * 8 > self.mult.group.order.bit_length():
+            z >>= len(digest) * 8 - self.mult.group.order.bit_length()
         point = self.mult.multiply(int(nonce), self.mult.group.generator)
         affine_point = point.to_affine()  #  TODO: add to context
         r = Mod(int(affine_point.x), self.mult.group.order)
@@ -121,8 +121,8 @@ class Signature(object):
 
     def _do_verify(self, signature: SignatureResult, digest: bytes) -> bool:
         z = int.from_bytes(digest, byteorder="big")
-        if z.bit_length() > self.mult.group.order.bit_length():
-            z >>= z.bit_length() - self.mult.group.order.bit_length()
+        if len(digest) * 8 > self.mult.group.order.bit_length():
+            z >>= len(digest) * 8 - self.mult.group.order.bit_length()
         c = Mod(signature.s, self.mult.group.order).inverse()
         u1 = Mod(z, self.mult.group.order) * c
         u2 = Mod(signature.r, self.mult.group.order) * c
