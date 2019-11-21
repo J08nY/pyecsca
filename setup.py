@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 
 setup(
         name='pyecsca',
         author='Jan Jancar',
         author_email='johny@neuromancer.sk',
         version='0.1.0',
-        packages=['pyecsca'],
+        packages=find_namespace_packages(include=["pyecsca.*"]),
         license="MIT",
         description="Python Elliptic Curve cryptography Side Channel Analysis toolkit.",
         long_description=open("README.md").read(),
