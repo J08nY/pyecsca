@@ -27,7 +27,7 @@ class ChipWhispererTraceSet(TraceSet):
         for type in types.keys():
             type_path = join(path, name + "_" + type + ".npy")
             if exists(type_path) and isfile(type_path):
-                types[type] = np.load(type_path)
+                types[type] = np.load(type_path, allow_pickle=True)
         return types
 
     def __read_config(self, path, name):

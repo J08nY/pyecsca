@@ -1,4 +1,5 @@
 import ast
+from abc import ABCMeta, abstractmethod
 from contextvars import ContextVar, Token
 from copy import deepcopy
 from typing import List, Tuple, Optional, Union, MutableMapping, Any, ContextManager
@@ -91,14 +92,19 @@ class FormulaAction(Action):
 
 @public
 class Context(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
     def _log_formula(self, formula: Formula, *points: Point, **inputs: Mod):
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def _log_operation(self, op: CodeOp, value: Mod):
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def _log_result(self, point: Point, **outputs: Mod):
-        raise NotImplementedError
+        ...
 
     def _execute(self, formula: Formula, *points: Point, **params: Mod) -> Tuple[Point, ...]:
         if len(points) != formula.num_inputs:
