@@ -1,5 +1,6 @@
 from ast import parse, Expression
-from typing import List, Any, ClassVar, MutableMapping
+from typing import List, Set, Any, ClassVar, MutableMapping
+from itertools import product
 
 from pkg_resources import resource_stream
 from public import public
@@ -22,8 +23,20 @@ class Formula(object):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
 
     @property
-    def output_index(cls):
+    def input_index(self):
+        raise NotImplementedError
+
+    @property
+    def output_index(self) -> int:
         """The starting index where this formula stores its outputs."""
+        raise NotImplementedError
+
+    @property
+    def inputs(self) -> Set[str]:
+        raise NotImplementedError
+
+    @property
+    def outputs(self) -> Set[str]:
         raise NotImplementedError
 
 
@@ -60,8 +73,22 @@ class EFDFormula(Formula):
                 self.code.append(CodeOp(code_module))
 
     @property
-    def output_index(cls):
-        return max(cls.num_inputs + 1, 3)
+    def input_index(self):
+        return 1
+
+    @property
+    def output_index(self):
+        return max(self.num_inputs + 1, 3)
+
+    @property
+    def inputs(self):
+        return set(var + str(i) for var, i in product(self.coordinate_model.variables,
+                                                      range(1, 1 + self.num_inputs)))
+
+    @property
+    def outputs(self):
+        return set(var + str(i) for var, i in product(self.coordinate_model.variables,
+                                                      range(self.output_index, self.output_index + self.num_outputs)))
 
     def __eq__(self, other):
         if not isinstance(other, EFDFormula):

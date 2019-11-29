@@ -4,7 +4,7 @@ from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point, InfinityPoint
-from test.ec.curves import get_secp128r1
+from .curves import get_secp128r1
 
 
 class PointTests(TestCase):

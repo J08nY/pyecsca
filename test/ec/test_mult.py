@@ -3,7 +3,7 @@ from unittest import TestCase
 from pyecsca.ec.mult import (LTRMultiplier, RTLMultiplier, LadderMultiplier, BinaryNAFMultiplier,
                              WindowNAFMultiplier, SimpleLadderMultiplier, CoronMultiplier)
 from pyecsca.ec.point import InfinityPoint
-from test.ec.curves import get_secp128r1, get_curve25519
+from .curves import get_secp128r1, get_curve25519
 
 
 class ScalarMultiplierTests(TestCase):
