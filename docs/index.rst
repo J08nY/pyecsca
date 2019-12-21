@@ -1,16 +1,17 @@
-.. pyecsca documentation master file, created by
-   sphinx-quickstart on Sat Dec  8 15:12:50 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 =================
 pyecsca [pɪɛtska]
 =================
 
-**Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
+.. image:: https://img.shields.io/badge/-Github-brightgreen?style=flat&logo=github
+   :target: https://github.com/J08nY/pyecsca
+.. image:: https://img.shields.io/travis/J08nY/pyecsca
+   :target: https://travis-ci.org/J08nY/pyecsca
+.. image:: https://img.shields.io/github/license/J08nY/pyecsca.svg
+   :target: https://github.com/J08nY/pyecsca/blob/master/LICENSE
+.. image:: https://codecov.io/gh/J08nY/pyecsca/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/J08nY/pyecsca
 
-Functionality
-=============
+**Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 
 *pyecsca* aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
 black-box implementations of ECC and presents a way to extract implementation information
@@ -24,8 +25,9 @@ API
 
 .. toctree::
    :titlesonly:
+   :maxdepth: 3
 
-   api/pyecsca
+   api/modules
 
 
 Requirements

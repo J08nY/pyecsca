@@ -13,8 +13,12 @@ help:
 	@echo "  apidoc	to build api docs"
 
 apidoc:
-	mkdir -p api/
-	sphinx-apidoc ../pyecsca/ -f -e -o api/
+	mkdir -p api/codegen/
+	sphinx-apidoc ../pyecsca/ --ext-autodoc -f -e -o api/
+	sed -i "s/automodule:: /automodule:: pyecsca./g" api/*.rst
+	sphinx-apidoc ../../pyecsca-codegen/pyecsca/ --ext-autodoc -f -e -o api/codegen/
+	sed -i "s/automodule:: /automodule:: pyecsca./g" api/codegen/*.rst
+	echo "   codegen/codegen" >> api/modules.rst
 
 .PHONY: help apidoc Makefile
 

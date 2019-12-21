@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'pyecsca'
-copyright = '2018, Jan Jancar'
+copyright = '2018-2019, Jan Jancar'
 author = 'Jan Jancar'
 
 import sys; import os; sys.path.append(os.path.abspath('..'))
@@ -103,6 +103,11 @@ html_theme_options = {
 html_static_path = ['_static']
 
 html_favicon = "_static/logo_black.png"
+
+html_css_files = [
+    'custom.css',
+    'graphik.css'
+]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
