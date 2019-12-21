@@ -20,7 +20,10 @@ setup(
             "Intended Audience :: Developers",
             "Intended Audience :: Science/Research"
         ],
-        install_package_data=True,
+        package_data={
+            "pyecsca.ec" : ["efd/*/*", "efd/*/*/*", "efd/*/*/*/*"]
+        },
+        #install_package_data=True,
         python_requires='>=3.7',
         install_requires=[
             "numpy",
@@ -32,6 +35,6 @@ setup(
         ],
         extras_require={
             "typecheck": ["mypy"],
-            "test": ["nose2", "parameterized","green", "coverage"]
+            "test": ["nose2", "parameterized", "green", "coverage"]
         }
 )

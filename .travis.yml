@@ -2,10 +2,11 @@ language: python
 dist: xenial
 python:
   - "3.7"
+  - "3.8"
 
 install:
-  - pip install ".[test, typecheck]"
   - pip install codecov
+  - pip install -e ".[test, typecheck]"
 
 script:
   - make -i typecheck
