@@ -5,25 +5,24 @@ from pyecsca.ec.context import (local, DefaultContext, OpResult, NullContext, ge
                                 setcontext,
                                 resetcontext)
 from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.curves import get_curve
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.point import Point
-from .curves import get_secp128r1
 
 
 class OpResultTests(TestCase):
 
-    def test_repr(self):
+    def test_str(self):
         for op, char in zip((ast.Add(), ast.Sub(), ast.Mult(), ast.Div()), "+-*/"):
             res = OpResult("X1", Mod(0, 5), op, Mod(2, 5), Mod(3, 5))
             self.assertEqual(str(res), "X1")
-            self.assertEqual(repr(res), "X1 = 2{}3".format(char))
 
 
 class ContextTests(TestCase):
 
     def setUp(self):
-        self.secp128r1 = get_secp128r1()
+        self.secp128r1 = get_curve("secp128r1", "projective")
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
         self.mult = LTRMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
@@ -51,7 +50,7 @@ class ContextTests(TestCase):
                                  Point(AffineCoordinateModel(self.secp128r1.curve.model),
                                        x=Mod(1, 5), y=Mod(2, 5)))
 
-    def test_repr(self):
+    def test_str(self):
         with local(DefaultContext()) as default:
             self.mult.multiply(59, self.base)
         str(default)

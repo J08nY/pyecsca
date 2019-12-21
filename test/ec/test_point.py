@@ -1,15 +1,15 @@
 from unittest import TestCase
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.curves import get_curve
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point, InfinityPoint
-from .curves import get_secp128r1
 
 
 class PointTests(TestCase):
     def setUp(self):
-        self.secp128r1 = get_secp128r1()
+        self.secp128r1 = get_curve("secp128r1", "projective")
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
         self.affine = AffineCoordinateModel(ShortWeierstrassModel())
@@ -81,12 +81,3 @@ class PointTests(TestCase):
                           Z=Mod(1, 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa))
         assert not pt.equals(different)
         self.assertNotEqual(pt, different)
-
-    def test_repr(self):
-        self.assertEqual(str(self.base),
-                         "[X=29408993404948928992877151431649155974, Y=275621562871047521857442314737465260675, Z=1]")
-        self.assertEqual(repr(self.base),
-                         "Point([[X=29408993404948928992877151431649155974, Y=275621562871047521857442314737465260675, Z=1]] in EFDCoordinateModel(\"projective\" on short Weierstrass curves))")
-        self.assertEqual(str(InfinityPoint(self.coords)), "Infinity")
-        self.assertEqual(repr(InfinityPoint(self.coords)),
-                         "InfinityPoint(EFDCoordinateModel(\"projective\" on short Weierstrass curves))")

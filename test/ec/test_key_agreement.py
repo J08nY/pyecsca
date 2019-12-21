@@ -1,14 +1,14 @@
 from unittest import TestCase
 
+from pyecsca.ec.curves import get_curve
 from pyecsca.ec.key_agreement import *
 from pyecsca.ec.mult import LTRMultiplier
-from .curves import get_secp128r1
 
 
 class KeyAgreementTests(TestCase):
 
     def setUp(self):
-        self.secp128r1 = get_secp128r1()
+        self.secp128r1 = get_curve("secp128r1", "projective")
         self.add = self.secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
         self.dbl = self.secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
         self.mult = LTRMultiplier(self.secp128r1, self.add, self.dbl)

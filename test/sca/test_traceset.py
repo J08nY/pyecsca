@@ -20,6 +20,7 @@ class InspectorTraceSetTests(TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result.global_title, "Example trace set")
         self.assertEqual(len(result), 10)
+        self.assertEqual(len(list(result)), 10)
         self.assertIn("InspectorTraceSet", str(result))
         self.assertIs(result[0].trace_set, result)
         self.assertEqual(result.sampling_frequency, 12500000)
