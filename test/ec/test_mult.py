@@ -1,10 +1,11 @@
 from unittest import TestCase
 
 from parameterized import parameterized
-
 from pyecsca.ec.curves import get_curve
 from pyecsca.ec.mult import (LTRMultiplier, RTLMultiplier, LadderMultiplier, BinaryNAFMultiplier,
-                             WindowNAFMultiplier, SimpleLadderMultiplier, CoronMultiplier)
+                             WindowNAFMultiplier, SimpleLadderMultiplier,
+                             DifferentialLadderMultiplier,
+                             CoronMultiplier)
 from pyecsca.ec.point import InfinityPoint
 
 
@@ -84,7 +85,7 @@ class ScalarMultiplierTests(TestCase):
         ladder = LadderMultiplier(self.coords25519.formulas["ladd-1987-m"],
                                   self.coords25519.formulas["dbl-1987-m"],
                                   self.coords25519.formulas["scale"])
-        differential = SimpleLadderMultiplier(self.coords25519.formulas["dadd-1987-m"],
+        differential = DifferentialLadderMultiplier(self.coords25519.formulas["dadd-1987-m"],
                                               self.coords25519.formulas["dbl-1987-m"],
                                               self.coords25519.formulas["scale"])
         ladder.init(self.curve25519, self.base25519)
@@ -180,8 +181,8 @@ class ScalarMultiplierTests(TestCase):
         self.assertEqual(res_coron, res_ltr)
 
     def test_init_fail(self):
-        mult = SimpleLadderMultiplier(self.coords25519.formulas["dadd-1987-m"],
-                                      self.coords25519.formulas["dbl-1987-m"],
-                                      self.coords25519.formulas["scale"])
+        mult = DifferentialLadderMultiplier(self.coords25519.formulas["dadd-1987-m"],
+                                            self.coords25519.formulas["dbl-1987-m"],
+                                            self.coords25519.formulas["scale"])
         with self.assertRaises(ValueError):
             mult.init(self.secp128r1, self.base)

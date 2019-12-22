@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Mapping, Tuple, Optional, MutableMapping, Union
+from typing import Mapping, Tuple, Optional, MutableMapping, Union, ClassVar, Set, Type
 
 from public import public
 
@@ -19,10 +19,13 @@ class ScalarMultiplier(object):
                           of the point at infinity.
     :param formulas: Formulas this instance will use.
     """
+    requires: ClassVar[Set[Type[Formula]]]
+    optionals: ClassVar[Set[Type[Formula]]]
     short_circuit: bool
     formulas: Mapping[str, Formula]
     _group: AbelianGroup
-    _point: Point = None
+    _point: Point
+    _initialized: bool = False
 
     def __init__(self, short_circuit=True, **formulas: Optional[Formula]):
         if len(set(formula.coordinate_model for formula in formulas.values() if
@@ -40,7 +43,8 @@ class ScalarMultiplier(object):
             if other == self._group.neutral:
                 return copy(one)
         return \
-            getcontext().execute(self.formulas["add"], one, other, **self._group.curve.parameters)[0]
+            getcontext().execute(self.formulas["add"], one, other, **self._group.curve.parameters)[
+                0]
 
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
@@ -89,6 +93,7 @@ class ScalarMultiplier(object):
             raise ValueError
         self._group = group
         self._point = point
+        self._initialized = True
 
     def multiply(self, scalar: int) -> Point:
         """Multiply the point with the scalar."""
@@ -102,6 +107,8 @@ class LTRMultiplier(ScalarMultiplier):
 
     The `always` parameter determines whether the double and add always method is used.
     """
+    requires = {AdditionFormula, DoublingFormula}
+    optionals = {ScalingFormula}
     always: bool
     complete: bool
 
@@ -113,6 +120,8 @@ class LTRMultiplier(ScalarMultiplier):
         self.complete = complete
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         if self.complete:
@@ -141,6 +150,8 @@ class RTLMultiplier(ScalarMultiplier):
 
     The `always` parameter determines whether the double and add always method is used.
     """
+    requires = {AdditionFormula, DoublingFormula}
+    optionals = {ScalingFormula}
     always: bool
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
@@ -149,6 +160,8 @@ class RTLMultiplier(ScalarMultiplier):
         self.always = always
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         q = self._point
@@ -173,12 +186,16 @@ class CoronMultiplier(ScalarMultiplier):
 
     https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
     """
+    requires = {AdditionFormula, DoublingFormula}
+    optionals = {ScalingFormula}
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
                  short_circuit: bool = True):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         q = self._point
@@ -198,14 +215,20 @@ class LadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using a three input, two output ladder formula.
     """
+    requires = {LadderFormula}
+    optionals = {DoublingFormula, ScalingFormula}
     complete: bool
 
-    def __init__(self, ladd: LadderFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
+    def __init__(self, ladd: LadderFormula, dbl: DoublingFormula = None, scl: ScalingFormula = None,
                  complete: bool = True, short_circuit: bool = True):
-        super().__init__(short_circuit=short_circuit,ladd=ladd, dbl=dbl, scl=scl)
+        super().__init__(short_circuit=short_circuit, ladd=ladd, dbl=dbl, scl=scl)
         self.complete = complete
+        if not complete and dbl is None:
+            raise ValueError
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         q = self._point
@@ -232,21 +255,18 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using addition and doubling formulas.
     """
-    differential: bool = False
+    requires = {AdditionFormula, DoublingFormula}
+    optionals = {ScalingFormula}
     complete: bool
 
-    def __init__(self, add: Union[AdditionFormula, DifferentialAdditionFormula], dbl: DoublingFormula,
-                 scl: ScalingFormula = None, complete: bool = True, short_circuit: bool = True):
-        if isinstance(add, AdditionFormula):
-            super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
-        elif isinstance(add, DifferentialAdditionFormula):
-            super().__init__(short_circuit=short_circuit, dadd=add, dbl=dbl, scl=scl)
-            self.differential = True
-        else:
-            raise ValueError
+    def __init__(self, add: AdditionFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
+                 complete: bool = True, short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.complete = complete
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         if self.complete:
@@ -258,16 +278,48 @@ class SimpleLadderMultiplier(ScalarMultiplier):
         p1 = copy(q)
         for i in range(top, -1, -1):
             if scalar & (1 << i) == 0:
-                if self.differential:
-                    p1 = self._dadd(q, p0, p1)
-                else:
-                    p1 = self._add(p0, p1)
+                p1 = self._add(p0, p1)
                 p0 = self._dbl(p0)
             else:
-                if self.differential:
-                    p0 = self._dadd(q, p0, p1)
-                else:
-                    p0 = self._add(p0, p1)
+                p0 = self._add(p0, p1)
+                p1 = self._dbl(p1)
+        if "scl" in self.formulas:
+            p0 = self._scl(p0)
+        return p0
+
+
+@public
+class DifferentialLadderMultiplier(ScalarMultiplier):
+    """
+    Montgomery ladder multiplier, using differential addition and doubling formulas.
+    """
+    requires = {DifferentialAdditionFormula, DoublingFormula}
+    optionals = {ScalingFormula}
+    complete: bool
+
+    def __init__(self, dadd: DifferentialAdditionFormula, dbl: DoublingFormula,
+                 scl: ScalingFormula = None, complete: bool = True, short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, dadd=dadd, dbl=dbl, scl=scl)
+        self.complete = complete
+
+    def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
+        if scalar == 0:
+            return copy(self._group.neutral)
+        if self.complete:
+            top = self._group.order.bit_length() - 1
+        else:
+            top = scalar.bit_length() - 1
+        q = self._point
+        p0 = copy(self._group.neutral)
+        p1 = copy(q)
+        for i in range(top, -1, -1):
+            if scalar & (1 << i) == 0:
+                p1 = self._dadd(q, p0, p1)
+                p0 = self._dbl(p0)
+            else:
+                p0 = self._dadd(q, p0, p1)
                 p1 = self._dbl(p1)
         if "scl" in self.formulas:
             p0 = self._scl(p0)
@@ -290,6 +342,8 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         self._point_neg = self._neg(point)
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         bnaf = naf(scalar)
@@ -335,6 +389,8 @@ class WindowNAFMultiplier(ScalarMultiplier):
             current_point = self._add(current_point, double_point)
 
     def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalaMultiplier not initialized.")
         if scalar == 0:
             return copy(self._group.neutral)
         naf = wnaf(scalar, self.width)
