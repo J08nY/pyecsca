@@ -5,17 +5,10 @@ from typing import FrozenSet, Optional
 from .mod import Mod
 
 
-class Op(object):
+class CodeOp(object):
     result: str
     parameters: FrozenSet[str]
     variables: FrozenSet[str]
-
-    def __call__(self, *args, **kwargs: Mod) -> Mod:
-        """Execute this operation with kwargs."""
-        raise NotImplementedError
-
-
-class CodeOp(Op):
     code: Module
     operator: Optional[operator]
     compiled: CodeType
@@ -75,6 +68,7 @@ class CodeOp(Op):
         return f"CodeOp({self.result} = f(params={self.parameters}, vars={self.variables}, consts={self.constants}))"
 
     def __call__(self, *args, **kwargs: Mod) -> Mod:
+        """Execute this operation with kwargs."""
         loc = dict(kwargs)
         exec(self.compiled, {}, loc)
         return loc[self.result]

@@ -7,6 +7,7 @@ from public import public
 
 from .context import getcontext
 from .formula import AdditionFormula
+from .group import AbelianGroup
 from .mod import Mod
 from .mult import ScalarMultiplier
 from .point import Point
@@ -53,12 +54,13 @@ class SignatureResult(object):
 class Signature(object):
     """An EC based signature primitive. (ECDSA)"""
     mult: ScalarMultiplier
+    group: AbelianGroup
     add: Optional[AdditionFormula]
     pubkey: Optional[Point]
     privkey: Optional[int]
     hash_algo: Optional[Any]
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None,
                  hash_algo: Optional[Any] = None):
         if pubkey is None and privkey is None:
@@ -69,6 +71,7 @@ class Signature(object):
             else:
                 add = mult.formulas["add"]
         self.mult = mult
+        self.group = group
         self.add = add
         self.pubkey = pubkey
         self.privkey = privkey
@@ -86,18 +89,19 @@ class Signature(object):
 
     def _get_nonce(self, nonce: Optional[int]) -> Mod:
         if nonce is None:
-            return Mod(secrets.randbelow(self.mult.group.order), self.mult.group.order)
+            return Mod(secrets.randbelow(self.group.order), self.group.order)
         else:
-            return Mod(nonce, self.mult.group.order)
+            return Mod(nonce, self.group.order)
 
     def _do_sign(self, nonce: Mod, digest: bytes) -> SignatureResult:
         z = int.from_bytes(digest, byteorder="big")
-        if len(digest) * 8 > self.mult.group.order.bit_length():
-            z >>= len(digest) * 8 - self.mult.group.order.bit_length()
-        point = self.mult.multiply(int(nonce), self.mult.group.generator)
+        if len(digest) * 8 > self.group.order.bit_length():
+            z >>= len(digest) * 8 - self.group.order.bit_length()
+        self.mult.init(self.group, self.group.generator)
+        point = self.mult.multiply(int(nonce))
         affine_point = point.to_affine()  #  TODO: add to context
-        r = Mod(int(affine_point.x), self.mult.group.order)
-        s = nonce.inverse() * (Mod(z, self.mult.group.order) + r * self.privkey)
+        r = Mod(int(affine_point.x), self.group.order)
+        s = nonce.inverse() * (Mod(z, self.group.order) + r * self.privkey)
         return SignatureResult(int(r), int(s), digest=digest, nonce=int(nonce),
                                privkey=self.privkey)
 
@@ -121,16 +125,18 @@ class Signature(object):
 
     def _do_verify(self, signature: SignatureResult, digest: bytes) -> bool:
         z = int.from_bytes(digest, byteorder="big")
-        if len(digest) * 8 > self.mult.group.order.bit_length():
-            z >>= len(digest) * 8 - self.mult.group.order.bit_length()
-        c = Mod(signature.s, self.mult.group.order).inverse()
-        u1 = Mod(z, self.mult.group.order) * c
-        u2 = Mod(signature.r, self.mult.group.order) * c
-        p1 = self.mult.multiply(int(u1), self.mult.group.generator)
-        p2 = self.mult.multiply(int(u2), self.pubkey)
-        p = getcontext().execute(self.add, p1, p2, **self.mult.group.curve.parameters)[0]
+        if len(digest) * 8 > self.group.order.bit_length():
+            z >>= len(digest) * 8 - self.group.order.bit_length()
+        c = Mod(signature.s, self.group.order).inverse()
+        u1 = Mod(z, self.group.order) * c
+        u2 = Mod(signature.r, self.group.order) * c
+        self.mult.init(self.group, self.group.generator)
+        p1 = self.mult.multiply(int(u1))
+        self.mult.init(self.group, self.pubkey)
+        p2 = self.mult.multiply(int(u2))
+        p = getcontext().execute(self.add, p1, p2, **self.group.curve.parameters)[0]
         affine = p.to_affine()  # TODO: add to context
-        v = Mod(int(affine.x), self.mult.group.order)
+        v = Mod(int(affine.x), self.group.order)
         return signature.r == int(v)
 
     def verify_hash(self, signature: SignatureResult, digest: bytes) -> bool:
@@ -154,51 +160,51 @@ class Signature(object):
 class ECDSA_NONE(Signature):
     """ECDSA with raw message input."""
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
-        super().__init__(mult, add, pubkey, privkey)
+        super().__init__(mult, group, add, pubkey, privkey)
 
 
 @public
 class ECDSA_SHA1(Signature):
     """ECDSA with SHA1."""
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
-        super().__init__(mult, add, pubkey, privkey, hashlib.sha1)
+        super().__init__(mult, group, add, pubkey, privkey, hashlib.sha1)
 
 
 @public
 class ECDSA_SHA224(Signature):
     """ECDSA with SHA224."""
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
-        super().__init__(mult, add, pubkey, privkey, hashlib.sha224)
+        super().__init__(mult, group, add, pubkey, privkey, hashlib.sha224)
 
 
 @public
 class ECDSA_SHA256(Signature):
     """ECDSA with SHA256."""
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
-        super().__init__(mult, add, pubkey, privkey, hashlib.sha256)
+        super().__init__(mult, group, add, pubkey, privkey, hashlib.sha256)
 
 
 @public
 class ECDSA_SHA384(Signature):
     """ECDSA with SHA384."""
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
-        super().__init__(mult, add, pubkey, privkey, hashlib.sha384)
+        super().__init__(mult, group, add, pubkey, privkey, hashlib.sha384)
 
 
 @public
 class ECDSA_SHA512(Signature):
     """ECDSA with SHA512."""
 
-    def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
-        super().__init__(mult, add, pubkey, privkey, hashlib.sha512)
+        super().__init__(mult, group, add, pubkey, privkey, hashlib.sha512)

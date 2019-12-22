@@ -200,3 +200,10 @@ epub_exclude_files = ['search.html']
 # -- Extension configuration -------------------------------------------------
 
 todo_include_todos = True
+
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "inherited-members": True,
+    "show-inheritance": True
+}

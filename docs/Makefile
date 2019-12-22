@@ -14,11 +14,9 @@ help:
 
 apidoc:
 	mkdir -p api/codegen/
-	sphinx-apidoc ../pyecsca/ --ext-autodoc -f -e -o api/
-	sed -i "s/automodule:: /automodule:: pyecsca./g" api/*.rst
-	sphinx-apidoc ../../pyecsca-codegen/pyecsca/ --ext-autodoc -f -e -o api/codegen/
-	sed -i "s/automodule:: /automodule:: pyecsca./g" api/codegen/*.rst
-	echo "   codegen/codegen" >> api/modules.rst
+	sphinx-apidoc ../pyecsca/ --implicit-namespaces --ext-autodoc -f -e -o api/
+	sphinx-apidoc ../../pyecsca-codegen/pyecsca/ --implicit-namespaces --ext-autodoc --no-toc -f -e -o api/codegen/
+	echo "   codegen/pyecsca.codegen" >> api/modules.rst
 
 .PHONY: help apidoc Makefile
 

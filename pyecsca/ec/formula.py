@@ -5,7 +5,7 @@ from itertools import product
 from pkg_resources import resource_stream
 from public import public
 
-from .op import Op, CodeOp
+from .op import CodeOp
 
 
 class Formula(object):
@@ -15,7 +15,7 @@ class Formula(object):
     meta: MutableMapping[str, Any]
     parameters: List[str]
     assumptions: List[Expression]
-    code: List[Op]
+    code: List[CodeOp]
     num_inputs: ClassVar[int]
     num_outputs: ClassVar[int]
 
@@ -95,6 +95,8 @@ class EFDFormula(Formula):
             return False
         return self.name == other.name and self.coordinate_model == other.coordinate_model
 
+    def __hash__(self):
+        return hash(self.name) + hash(self.coordinate_model)
 
 @public
 class AdditionFormula(Formula):

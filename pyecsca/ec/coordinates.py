@@ -100,3 +100,6 @@ class EFDCoordinateModel(CoordinateModel):
         if not isinstance(other, EFDCoordinateModel):
             return False
         return self.curve_model == other.curve_model and self.name == other.name
+
+    def __hash__(self):
+        return hash(self.curve_model) + hash(self.name)

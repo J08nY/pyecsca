@@ -83,6 +83,9 @@ class Point(object):
             return False
         return self.coords == other.coords
 
+    def __hash__(self):
+        return hash(self.coords) + 1
+
     def __str__(self):
         args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])
         return f"[{args}]"

@@ -25,12 +25,13 @@ class ContextTests(TestCase):
         self.secp128r1 = get_curve("secp128r1", "projective")
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
-        self.mult = LTRMultiplier(self.secp128r1, self.coords.formulas["add-1998-cmo"],
+        self.mult = LTRMultiplier(self.coords.formulas["add-1998-cmo"],
                                   self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+        self.mult.init(self.secp128r1, self.base)
 
     def test_null(self):
         with local() as ctx:
-            self.mult.multiply(59, self.base)
+            self.mult.multiply(59)
         self.assertIsInstance(ctx, NullContext)
 
     def test_default(self):
@@ -38,7 +39,7 @@ class ContextTests(TestCase):
         self.addCleanup(resetcontext, token)
 
         with local(DefaultContext()) as ctx:
-            self.mult.multiply(59, self.base)
+            self.mult.multiply(59)
         self.assertEqual(len(ctx.actions), 10)
         self.assertEqual(len(getcontext().actions), 0)
 
@@ -52,9 +53,9 @@ class ContextTests(TestCase):
 
     def test_str(self):
         with local(DefaultContext()) as default:
-            self.mult.multiply(59, self.base)
+            self.mult.multiply(59)
         str(default)
         str(default.actions)
         with local(NullContext()) as null:
-            self.mult.multiply(59, self.base)
+            self.mult.multiply(59)
         str(null)
