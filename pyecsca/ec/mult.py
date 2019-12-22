@@ -58,6 +58,11 @@ class ScalarMultiplier(object):
     def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, ...]:
         if "ladd" not in self.formulas:
             raise NotImplementedError
+        if self.short_circuit:
+            if to_dbl == self._group.neutral:
+                return to_dbl, to_add
+            if to_add == self._group.neutral:
+                return self._dbl(to_dbl), to_dbl
         return getcontext().execute(self.formulas["ladd"], start, to_dbl, to_add,
                                     **self._group.curve.parameters)
 
@@ -78,6 +83,7 @@ class ScalarMultiplier(object):
         return getcontext().execute(self.formulas["neg"], point, **self._group.curve.parameters)[0]
 
     def init(self, group: AbelianGroup, point: Point):
+        """Initialize the scalar multiplier with a group and a point."""
         coord_model = set(self.formulas.values()).pop().coordinate_model
         if group.curve.coordinate_model != coord_model or point.coordinate_model != coord_model:
             raise ValueError
@@ -85,6 +91,7 @@ class ScalarMultiplier(object):
         self._point = point
 
     def multiply(self, scalar: int) -> Point:
+        """Multiply the point with the scalar."""
         raise NotImplementedError
 
 
@@ -96,18 +103,27 @@ class LTRMultiplier(ScalarMultiplier):
     The `always` parameter determines whether the double and add always method is used.
     """
     always: bool
+    complete: bool
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 scl: ScalingFormula = None, always: bool = False):
-        super().__init__(add=add, dbl=dbl, scl=scl)
+                 scl: ScalingFormula = None, always: bool = False, complete: bool = True,
+                 short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
+        self.complete = complete
 
     def multiply(self, scalar: int) -> Point:
         if scalar == 0:
             return copy(self._group.neutral)
-        q = self._point
-        r = copy(self._group.neutral)
-        for i in range(scalar.bit_length() - 1, -1, -1):
+        if self.complete:
+            q = self._point
+            r = copy(self._group.neutral)
+            top = self._group.order.bit_length() - 1
+        else:
+            q = self._dbl(self._point)
+            r = copy(self._point)
+            top = scalar.bit_length() - 2
+        for i in range(top, -1, -1):
             r = self._dbl(r)
             if scalar & (1 << i) != 0:
                 r = self._add(r, q)
@@ -128,8 +144,8 @@ class RTLMultiplier(ScalarMultiplier):
     always: bool
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 scl: ScalingFormula = None, always: bool = False):
-        super().__init__(add=add, dbl=dbl, scl=scl)
+                 scl: ScalingFormula = None, always: bool = False, short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
 
     def multiply(self, scalar: int) -> Point:
@@ -158,8 +174,9 @@ class CoronMultiplier(ScalarMultiplier):
     https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
     """
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula, scl: ScalingFormula = None):
-        super().__init__(add=add, dbl=dbl, scl=scl)
+    def __init__(self, add: AdditionFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
+                 short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int) -> Point:
         if scalar == 0:
@@ -181,17 +198,26 @@ class LadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using a three input, two output ladder formula.
     """
+    complete: bool
 
-    def __init__(self, ladd: LadderFormula, dbl: DoublingFormula, scl: ScalingFormula = None):
-        super().__init__(ladd=ladd, dbl=dbl, scl=scl)
+    def __init__(self, ladd: LadderFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
+                 complete: bool = True, short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit,ladd=ladd, dbl=dbl, scl=scl)
+        self.complete = complete
 
     def multiply(self, scalar: int) -> Point:
         if scalar == 0:
             return copy(self._group.neutral)
         q = self._point
-        p0 = copy(q)
-        p1 = self._dbl(q)
-        for i in range(scalar.bit_length() - 2, -1, -1):
+        if self.complete:
+            p0 = copy(self._group.neutral)
+            p1 = self._point
+            top = self._group.order.bit_length() - 1
+        else:
+            p0 = copy(q)
+            p1 = self._dbl(q)
+            top = scalar.bit_length() - 2
+        for i in range(top, -1, -1):
             if scalar & (1 << i) == 0:
                 p0, p1 = self._ladd(q, p0, p1)
             else:
@@ -206,33 +232,39 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using addition and doubling formulas.
     """
-    _differential: bool = False
+    differential: bool = False
+    complete: bool
 
     def __init__(self, add: Union[AdditionFormula, DifferentialAdditionFormula], dbl: DoublingFormula,
-                 scl: ScalingFormula = None):
+                 scl: ScalingFormula = None, complete: bool = True, short_circuit: bool = True):
         if isinstance(add, AdditionFormula):
-            super().__init__(add=add, dbl=dbl, scl=scl)
+            super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         elif isinstance(add, DifferentialAdditionFormula):
-            super().__init__(dadd=add, dbl=dbl, scl=scl)
-            self._differential = True
+            super().__init__(short_circuit=short_circuit, dadd=add, dbl=dbl, scl=scl)
+            self.differential = True
         else:
             raise ValueError
+        self.complete = complete
 
     def multiply(self, scalar: int) -> Point:
         if scalar == 0:
             return copy(self._group.neutral)
+        if self.complete:
+            top = self._group.order.bit_length() - 1
+        else:
+            top = scalar.bit_length() - 1
         q = self._point
         p0 = copy(self._group.neutral)
         p1 = copy(q)
-        for i in range(scalar.bit_length() - 1, -1, -1):
+        for i in range(top, -1, -1):
             if scalar & (1 << i) == 0:
-                if self._differential:
+                if self.differential:
                     p1 = self._dadd(q, p0, p1)
                 else:
                     p1 = self._add(p0, p1)
                 p0 = self._dbl(p0)
             else:
-                if self._differential:
+                if self.differential:
                     p0 = self._dadd(q, p0, p1)
                 else:
                     p0 = self._add(p0, p1)
@@ -250,8 +282,8 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     _point_neg: Point
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 neg: NegationFormula, scl: ScalingFormula = None):
-        super().__init__(add=add, dbl=dbl, neg=neg, scl=scl)
+                 neg: NegationFormula, scl: ScalingFormula = None, short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
 
     def init(self, group: AbelianGroup, point: Point):
         super().init(group, point)
@@ -280,15 +312,15 @@ class WindowNAFMultiplier(ScalarMultiplier):
     """
     _points: MutableMapping[int, Point]
     _points_neg: MutableMapping[int, Point]
-    _precompute_neg: bool = False
-    _width: int
+    precompute_negation: bool = False
+    width: int
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
                  neg: NegationFormula, width: int, scl: ScalingFormula = None,
-                 precompute_negation: bool = False):
-        super().__init__(add=add, dbl=dbl, neg=neg, scl=scl)
-        self._width = width
-        self._precompute_neg = precompute_negation
+                 precompute_negation: bool = False, short_circuit: bool = True):
+        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
+        self.width = width
+        self.precompute_negation = precompute_negation
 
     def init(self, group: AbelianGroup, point: Point):
         super().init(group, point)
@@ -296,23 +328,23 @@ class WindowNAFMultiplier(ScalarMultiplier):
         self._points_neg = {}
         current_point = point
         double_point = self._dbl(point)
-        for i in range(1, (self._width + 1) // 2 + 1):
+        for i in range(1, (self.width + 1) // 2 + 1):
             self._points[2 ** i - 1] = current_point
-            if self._precompute_neg:
+            if self.precompute_negation:
                 self._points_neg[2 ** i - 1] = self._neg(current_point)
             current_point = self._add(current_point, double_point)
 
     def multiply(self, scalar: int) -> Point:
         if scalar == 0:
             return copy(self._group.neutral)
-        naf = wnaf(scalar, self._width)
+        naf = wnaf(scalar, self.width)
         q = copy(self._group.neutral)
         for val in naf:
             q = self._dbl(q)
             if val > 0:
                 q = self._add(q, self._points[val])
             elif val < 0:
-                if self._precompute_neg:
+                if self.precompute_negation:
                     neg = self._points_neg[-val]
                 else:
                     neg = self._neg(self._points[-val])

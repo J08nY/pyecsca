@@ -28,8 +28,8 @@ class ScalarMultiplierTests(TestCase):
         else:
             assert one.equals(other)
 
-    def do_basic_test(self, mult_class, group, base, add, dbl, scale, neg=None):
-        mult = mult_class(*self.get_formulas(group.curve.coordinate_model, add, dbl, neg, scale))
+    def do_basic_test(self, mult_class, group, base, add, dbl, scale, neg=None, **kwargs):
+        mult = mult_class(*self.get_formulas(group.curve.coordinate_model, add, dbl, neg, scale), **kwargs)
         mult.init(group, base)
         res = mult.multiply(314)
         other = mult.multiply(157)
@@ -52,6 +52,9 @@ class ScalarMultiplierTests(TestCase):
     ])
     def test_ltr(self, name, add, dbl, scale):
         self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale)
+        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True)
+        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, complete=False)
+        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True, complete=False)
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
@@ -63,6 +66,8 @@ class ScalarMultiplierTests(TestCase):
     def test_ladder(self):
         self.do_basic_test(LadderMultiplier, self.curve25519, self.base25519, "ladd-1987-m",
                            "dbl-1987-m", "scale")
+        self.do_basic_test(LadderMultiplier, self.curve25519, self.base25519, "ladd-1987-m",
+                           "dbl-1987-m", "scale", complete=False)
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
