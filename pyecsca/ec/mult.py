@@ -273,9 +273,8 @@ class SimpleLadderMultiplier(ScalarMultiplier):
             top = self._group.order.bit_length() - 1
         else:
             top = scalar.bit_length() - 1
-        q = self._point
         p0 = copy(self._group.neutral)
-        p1 = copy(q)
+        p1 = copy(self._point)
         for i in range(top, -1, -1):
             if scalar & (1 << i) == 0:
                 p1 = self._add(p0, p1)

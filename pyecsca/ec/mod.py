@@ -124,6 +124,8 @@ class Mod(object):
         return self.x
 
     def __eq__(self, other):
+        if type(other) is int:
+            return self.x == (other % self.n)
         if type(other) is not Mod:
             return False
         return self.x == other.x and self.n == other.n

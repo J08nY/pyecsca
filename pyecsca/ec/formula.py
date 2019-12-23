@@ -16,6 +16,7 @@ class Formula(object):
     parameters: List[str]
     assumptions: List[Expression]
     code: List[CodeOp]
+    shortname: ClassVar[str]
     num_inputs: ClassVar[int]
     num_outputs: ClassVar[int]
 
@@ -100,6 +101,7 @@ class EFDFormula(Formula):
 
 @public
 class AdditionFormula(Formula):
+    shortname = "add"
     num_inputs = 2
     num_outputs = 1
 
@@ -111,6 +113,7 @@ class AdditionEFDFormula(AdditionFormula, EFDFormula):
 
 @public
 class DoublingFormula(Formula):
+    shortname = "dbl"
     num_inputs = 1
     num_outputs = 1
 
@@ -122,6 +125,7 @@ class DoublingEFDFormula(DoublingFormula, EFDFormula):
 
 @public
 class TriplingFormula(Formula):
+    shortname = "tpl"
     num_inputs = 1
     num_outputs = 1
 
@@ -133,6 +137,7 @@ class TriplingEFDFormula(TriplingFormula, EFDFormula):
 
 @public
 class NegationFormula(Formula):
+    shortname = "neg"
     num_inputs = 1
     num_outputs = 1
 
@@ -144,6 +149,7 @@ class NegationEFDFormula(NegationFormula, EFDFormula):
 
 @public
 class ScalingFormula(Formula):
+    shortname = "scl"
     num_inputs = 1
     num_outputs = 1
 
@@ -155,6 +161,7 @@ class ScalingEFDFormula(ScalingFormula, EFDFormula):
 
 @public
 class DifferentialAdditionFormula(Formula):
+    shortname = "dadd"
     num_inputs = 3
     num_outputs = 1
 
@@ -166,6 +173,7 @@ class DifferentialAdditionEFDFormula(DifferentialAdditionFormula, EFDFormula):
 
 @public
 class LadderFormula(Formula):
+    shortname = "ladd"
     num_inputs = 3
     num_outputs = 2
 

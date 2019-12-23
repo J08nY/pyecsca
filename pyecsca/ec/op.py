@@ -34,6 +34,9 @@ class CodeOp(object):
                 op = node.op
                 self.left = self.__to_name(node.left)
                 self.right = self.__to_name(node.right)
+        if op is None and len(constants) == 1:
+            self.left = next(iter(constants))
+            self.right = None
         self.operator = op
         self.parameters = frozenset(params)
         self.variables = frozenset(variables)
