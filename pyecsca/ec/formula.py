@@ -1,4 +1,4 @@
-from ast import parse, Expression
+from ast import parse, Expression, Mult, Add, Sub, Pow, Div
 from typing import List, Set, Any, ClassVar, MutableMapping
 from itertools import product
 
@@ -25,6 +25,7 @@ class Formula(object):
 
     @property
     def input_index(self):
+        """The starting index where this formula reads its inputs."""
         raise NotImplementedError
 
     @property
@@ -34,12 +35,38 @@ class Formula(object):
 
     @property
     def inputs(self) -> Set[str]:
+        """The input variables of the formula."""
         raise NotImplementedError
 
     @property
     def outputs(self) -> Set[str]:
+        """The output variables of the formula."""
         raise NotImplementedError
 
+    @property
+    def num_operations(self) -> int:
+        """Number of operations."""
+        return len(list(filter(lambda op: op.operator is not None, self.code)))
+
+    @property
+    def num_multiplications(self) -> int:
+        """Number of multiplications."""
+        return len(list(filter(lambda op: isinstance(op.operator, Mult), self.code)))
+
+    @property
+    def num_inversions(self) -> int:
+        """Number of inversions."""
+        return len(list(filter(lambda op: isinstance(op.operator, Div), self.code)))
+
+    @property
+    def num_squarings(self) -> int:
+        """Number of squarings."""
+        return len(list(filter(lambda op: isinstance(op.operator, Pow), self.code)))
+
+    @property
+    def num_addsubs(self) -> int:
+        """Number of additions and subtractions."""
+        return len(list(filter(lambda op: isinstance(op.operator, (Add, Sub)), self.code)))
 
 class EFDFormula(Formula):
 
