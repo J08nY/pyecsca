@@ -13,28 +13,29 @@ from public import public
 from .base import Scope
 
 
-class TriggerType(IntEnum):
+class TriggerType(IntEnum):  # pragma: no cover
     ABOVE = 1
     BELOW = 2
     RISING = 3
     FALLING = 4
 
 
-def adc2volt(adc: Union[np.ndarray, ctypes.c_int16], volt_range: float, adc_minmax: int) -> Union[
-    np.ndarray, float]:
+def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
+             volt_range: float, adc_minmax: int) -> Union[np.ndarray, float]:  # pragma: no cover
     if isinstance(adc, ctypes.c_int16):
         adc = adc.value
     return (adc / adc_minmax) * volt_range
 
 
-def volt2adc(volt: Union[np.ndarray, float], volt_range: float, adc_minmax: int) -> Union[
-    np.ndarray, ctypes.c_int16]:
+def volt2adc(volt: Union[np.ndarray, float],
+             volt_range: float, adc_minmax: int) -> Union[
+    np.ndarray, ctypes.c_int16]:  # pragma: no cover
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
     return (volt / volt_range) * adc_minmax
 
 
-class PicoScope(Scope):
+class PicoScope(Scope):  # pragma: no cover
     """A PicoScope based scope."""
     MODULE: Library
     PREFIX: str
@@ -47,7 +48,7 @@ class PicoScope(Scope):
 
     def __init__(self):
         self.handle: ctypes.c_int16 = ctypes.c_int16()
-        self.frequency: Optional[int] = None
+        self.frequency: Optional[float] = None
         self.samples: Optional[int] = None
         self.timebase: Optional[int] = None
         self.buffers: MutableMapping = {}
@@ -56,6 +57,13 @@ class PicoScope(Scope):
     def open(self):
         assert_pico_ok(self.__dispatch_call("OpenUnit", ctypes.byref(self.handle)))
 
+    def get_variant(self):
+        info = (ctypes.c_int8 * 6)()
+        size = ctypes.c_int16()
+        assert_pico_ok(self.__dispatch_call("GetUnitInfo", self.handle, ctypes.byref(info), 6,
+                                            ctypes.byref(size), 3))
+        return "".join(chr(i) for i in info[:size])
+
     # channel setup (ranges, coupling, which channel is scope vs trigger)
     def set_channel(self, channel: str, enabled: bool, coupling: str, range: float):
         assert_pico_ok(
@@ -63,27 +71,30 @@ class PicoScope(Scope):
                                      self.COUPLING[coupling], self.RANGES[range]))
         self.ranges[channel] = range
 
-    # frequency setup
-    def set_frequency(self, frequency: int, samples: int):
+    def _set_freq(self, frequency: int, samples: int, period_bound: float, timebase_bound: int,
+                  low_freq: int, high_freq: int, high_subtract: int):
         period = 1 / frequency
-        if period <= 3.2e-9:
-            tb = log2(5_000_000_000) - log2(frequency)
-            tb = floor(tb)
-            if tb > 4:
-                tb = 4
-            actual_frequency = 5_000_000_000 / 2 ** tb
+        if low_freq == 0 or period > period_bound:
+            tb = floor(high_freq / frequency + high_subtract)
+            actual_frequency = high_freq / (tb - high_subtract)
         else:
-            tb = floor(156_250_000 / frequency + 4)
-            actual_frequency = 156_250_000 / (tb - 4)
+            tb = floor(log2(low_freq) - log2(frequency))
+            if tb > timebase_bound:
+                tb = timebase_bound
+            actual_frequency = low_freq / 2 ** tb
         max_samples = ctypes.c_int32()
         assert_pico_ok(self.__dispatch_call("GetTimebase", self.handle, tb, samples, None, 0,
                                             ctypes.byref(max_samples), 0))
         if max_samples.value < samples:
-            samples = max_samples
+            samples = max_samples.value
         self.frequency = actual_frequency
         self.samples = samples
         self.timebase = tb
         return actual_frequency, samples
+
+    # frequency setup
+    def set_frequency(self, frequency: int, samples: int):
+        raise NotImplementedError
 
     # triggering setup
     def set_trigger(self, type: TriggerType, enabled: bool, value: float, channel: str,
@@ -117,7 +128,7 @@ class PicoScope(Scope):
             assert_pico_ok(self.__dispatch_call("IsReady", self.handle, ctypes.byref(ready)))
 
     # get the data
-    def retrieve(self, channel: str):
+    def retrieve(self, channel: str) -> np.ndarray:
         if self.samples is None:
             raise ValueError
         actual_samples = ctypes.c_int32(self.samples)
@@ -144,7 +155,7 @@ class PicoScope(Scope):
 
 
 @public
-class PS4000Scope(PicoScope):
+class PS4000Scope(PicoScope):  # pragma: no cover
     MODULE = ps4000
     PREFIX = "ps4000"
     CHANNELS = {
@@ -178,9 +189,18 @@ class PS4000Scope(PicoScope):
         "DC": ps4000.PICO_COUPLING["DC"]
     }
 
+    def set_frequency(self, frequency: int, samples: int):
+        variant = self.get_variant()
+        if variant in ("4223", "4224", "4423", "4424"):
+            return self._set_freq(frequency, samples, 50e-9, 2, 80_000_000, 20_000_000, 1)
+        elif variant in ("4226", "4227"):
+            return self._set_freq(frequency, samples, 32e-9, 3, 250_000_000, 31_250_000, 2)
+        elif variant == "4262":
+            return self._set_freq(frequency, samples, 0, 0, 0, 10_000_000, -1)
+
 
 @public
-class PS6000Scope(PicoScope):
+class PS6000Scope(PicoScope):  # pragma: no cover
     MODULE = ps6000
     PREFIX = "ps6000"
     CHANNELS = {
@@ -216,7 +236,7 @@ class PS6000Scope(PicoScope):
     def open(self):
         assert_pico_ok(ps6000.ps6000OpenUnit(ctypes.byref(self.handle), None))
 
-    def set_channel(self, channel: str, enabled: bool, coupling: str, range: str):
+    def set_channel(self, channel: str, enabled: bool, coupling: str, range: float):
         assert_pico_ok(ps6000.ps6000SetChannel(self.handle, self.CHANNELS[channel], enabled,
                                                self.COUPLING[coupling], self.RANGES[range], 0,
                                                ps6000.PS6000_BANDWIDTH_LIMITER["PS6000_BW_FULL"]))
@@ -230,3 +250,6 @@ class PS6000Scope(PicoScope):
                 ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
                                            ctypes.byref(buffer),
                                            self.samples, 0))
+
+    def set_frequency(self, frequency: int, samples: int):
+        return self._set_freq(frequency, samples, 3.2e-9, 4, 5_000_000_000, 156_250_000, 4)

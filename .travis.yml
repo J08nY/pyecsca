@@ -1,12 +1,28 @@
+os: linux
 language: python
 dist: xenial
 python:
   - "3.7"
   - "3.8"
 
+addons:
+  apt:
+    sources:
+      - sourceline: "deb https://labs.picotech.com/debian/ picoscope main"
+        key_url: "https://labs.picotech.com/debian/dists/picoscope/Release.gpg.key"
+    packages:
+      - libps4000
+      - libps6000
+
+before_install:
+  - git clone https://github.com/picotech/picosdk-python-wrappers
+  - cd picosdk-python-wrappers
+  - python setup.py install
+  - cd ..
+
 install:
   - pip install codecov
-  - pip install -e ".[test, typecheck]"
+  - pip install -e ".[picoscope, chipwhisperer, test, typecheck]"
 
 script:
   - make -i typecheck
