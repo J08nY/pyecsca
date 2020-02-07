@@ -49,6 +49,7 @@ def ks_test(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Optional
     """
     Perform the Kolmogorov-Smirnov two sample test on equality of distributions sample wise on
     two sets of traces `first_set` and `second_set`.
+
     :param first_set:
     :param second_set:
     :return: Kolmogorov-Smirnov test statistic values (samplewise)

@@ -34,7 +34,8 @@ setup(
             "asn1crypto"
         ],
         extras_require={
-            "picoscope": ["picosdk"],
+            "picoscope_sdk": ["picosdk"],
+            "picoscope_alt": ["picoscope"],
             "chipwhisperer": ["chipwhisperer"],
             "typecheck": ["mypy"],
             "test": ["nose2", "parameterized", "green", "coverage"]

@@ -138,7 +138,7 @@ class InspectorTraceSet(TraceSet):
     }
     _set_tags: set = set()
 
-    def __init__(self, input: Optional[Union[str, Path, bytes, BinaryIO]] = None,
+    def __init__(self, input: Optional[Union[str, Path, bytes, RawIOBase, BufferedIOBase]] = None,
                  keep_raw_traces: bool = True):
         """
         Read Inspector trace set from file path, bytes or file-like object.
@@ -151,8 +151,8 @@ class InspectorTraceSet(TraceSet):
             with BytesIO(input) as f:
                 traces = self.__read(f)
         elif isinstance(input, (Path, str)):
-            with open(input, "rb") as f:
-                traces = self.__read(f)
+            with open(input, "rb") as r:
+                traces = self.__read(r)
         elif isinstance(input, (RawIOBase, BufferedIOBase)):
             traces = self.__read(input)
         elif input is not None:

@@ -1,7 +1,7 @@
 import ctypes
-from enum import IntEnum
+from time import time_ns, sleep
 from math import log2, floor
-from typing import Mapping, Optional, MutableMapping, Union
+from typing import Mapping, Optional, MutableMapping, Union, Tuple
 
 import numpy as np
 from picosdk.functions import assert_pico_ok
@@ -11,13 +11,6 @@ from picosdk.ps6000 import ps6000
 from public import public
 
 from .base import Scope
-
-
-class TriggerType(IntEnum):  # pragma: no cover
-    ABOVE = 1
-    BELOW = 2
-    RISING = 3
-    FALLING = 4
 
 
 def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
@@ -35,7 +28,8 @@ def volt2adc(volt: Union[np.ndarray, float],
     return (volt / volt_range) * adc_minmax
 
 
-class PicoScope(Scope):  # pragma: no cover
+@public
+class PicoScopeSdk(Scope):  # pragma: no cover
     """A PicoScope based scope."""
     MODULE: Library
     PREFIX: str
@@ -45,17 +39,27 @@ class PicoScope(Scope):  # pragma: no cover
     MIN_ADC_VALUE: int
     COUPLING: Mapping
     TIME_UNITS: Mapping
+    TRIGGERS: Mapping = {
+        "above": 0,
+        "below": 1,
+        "rising": 2,
+        "falling": 3
+    }
 
     def __init__(self):
         self.handle: ctypes.c_int16 = ctypes.c_int16()
-        self.frequency: Optional[float] = None
+        self.frequency: Optional[int] = None
         self.samples: Optional[int] = None
         self.timebase: Optional[int] = None
         self.buffers: MutableMapping = {}
         self.ranges: MutableMapping = {}
 
-    def open(self):
+    def open(self) -> None:
         assert_pico_ok(self.__dispatch_call("OpenUnit", ctypes.byref(self.handle)))
+
+    @property
+    def channels(self):
+        return list(self.CHANNELS.keys())
 
     def get_variant(self):
         info = (ctypes.c_int8 * 6)()
@@ -64,6 +68,9 @@ class PicoScope(Scope):  # pragma: no cover
                                             ctypes.byref(size), 3))
         return "".join(chr(i) for i in info[:size])
 
+    def setup_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
+        return self.set_frequency(frequency, samples)
+
     # channel setup (ranges, coupling, which channel is scope vs trigger)
     def set_channel(self, channel: str, enabled: bool, coupling: str, range: float):
         assert_pico_ok(
@@ -71,17 +78,20 @@ class PicoScope(Scope):  # pragma: no cover
                                      self.COUPLING[coupling], self.RANGES[range]))
         self.ranges[channel] = range
 
+    def setup_channel(self, channel: str, coupling: str, range: float, enable: bool):
+        self.set_channel(channel, enable, coupling, range)
+
     def _set_freq(self, frequency: int, samples: int, period_bound: float, timebase_bound: int,
-                  low_freq: int, high_freq: int, high_subtract: int):
+                  low_freq: int, high_freq: int, high_subtract: int) -> Tuple[int, int]:
         period = 1 / frequency
         if low_freq == 0 or period > period_bound:
             tb = floor(high_freq / frequency + high_subtract)
-            actual_frequency = high_freq / (tb - high_subtract)
+            actual_frequency = high_freq // (tb - high_subtract)
         else:
             tb = floor(log2(low_freq) - log2(frequency))
             if tb > timebase_bound:
                 tb = timebase_bound
-            actual_frequency = low_freq / 2 ** tb
+            actual_frequency = low_freq // 2 ** tb
         max_samples = ctypes.c_int32()
         assert_pico_ok(self.__dispatch_call("GetTimebase", self.handle, tb, samples, None, 0,
                                             ctypes.byref(max_samples), 0))
@@ -93,44 +103,61 @@ class PicoScope(Scope):  # pragma: no cover
         return actual_frequency, samples
 
     # frequency setup
-    def set_frequency(self, frequency: int, samples: int):
+    def set_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
         raise NotImplementedError
 
+    def setup_trigger(self, channel: str, threshold: float, direction: str, delay: int,
+                      timeout: int, enable: bool):
+        self.set_trigger(direction, enable, threshold, channel, delay, timeout)
+
     # triggering setup
-    def set_trigger(self, type: TriggerType, enabled: bool, value: float, channel: str,
-                    range: float, delay: int, timeout: int):
+    def set_trigger(self, type: str, enabled: bool, value: float, channel: str,
+                    delay: int, timeout: int):
         assert_pico_ok(
                 self.__dispatch_call("SetSimpleTrigger", self.handle, enabled,
                                      self.CHANNELS[channel],
-                                     volt2adc(value, range, self.MAX_ADC_VALUE),
-                                     type.value, delay, timeout))
+                                     volt2adc(value, self.ranges[channel], self.MAX_ADC_VALUE),
+                                     self.TRIGGERS[type], delay, timeout))
+
+    def setup_capture(self, channel: str, enable: bool):
+        self.set_buffer(channel, enable)
 
     # buffer setup
-    def set_buffer(self, channel: str):
+    def set_buffer(self, channel: str, enable: bool):
         if self.samples is None:
             raise ValueError
-        buffer = (ctypes.c_int16 * self.samples)()
-        self.buffers[channel] = buffer
-        assert_pico_ok(self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
-                                            ctypes.byref(buffer), self.samples))
+        if enable:
+            if channel in self.buffers:
+                del self.buffers[channel]
+            buffer = (ctypes.c_int16 * self.samples)()
+            assert_pico_ok(self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
+                                                ctypes.byref(buffer), self.samples))
+            self.buffers[channel] = buffer
+        else:
+            assert_pico_ok(self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
+                                                None, self.samples))
+            del self.buffers[channel]
 
-    # collection
-    def collect(self):
+    def arm(self):
         if self.samples is None or self.timebase is None:
             raise ValueError
         assert_pico_ok(
                 self.__dispatch_call("RunBlock", self.handle, 0, self.samples, self.timebase, 0,
                                      None,
                                      0, None, None))
+
+    def capture(self, channel: str, timeout: Optional[int] = None) -> Optional[np.ndarray]:
+        start = time_ns()
+        if self.samples is None:
+            raise ValueError
         ready = ctypes.c_int16(0)
         check = ctypes.c_int16(0)
         while ready.value == check.value:
+            sleep(0.001)
             assert_pico_ok(self.__dispatch_call("IsReady", self.handle, ctypes.byref(ready)))
+            if timeout is not None and (time_ns() - start) / 1e6 >= timeout:
+                return None
 
-    # get the data
-    def retrieve(self, channel: str) -> np.ndarray:
-        if self.samples is None:
-            raise ValueError
         actual_samples = ctypes.c_int32(self.samples)
         overflow = ctypes.c_int16()
         assert_pico_ok(
@@ -155,7 +182,7 @@ class PicoScope(Scope):  # pragma: no cover
 
 
 @public
-class PS4000Scope(PicoScope):  # pragma: no cover
+class PS4000Scope(PicoScopeSdk):  # pragma: no cover
     MODULE = ps4000
     PREFIX = "ps4000"
     CHANNELS = {
@@ -200,7 +227,7 @@ class PS4000Scope(PicoScope):  # pragma: no cover
 
 
 @public
-class PS6000Scope(PicoScope):  # pragma: no cover
+class PS6000Scope(PicoScopeSdk):  # pragma: no cover
     MODULE = ps6000
     PREFIX = "ps6000"
     CHANNELS = {
@@ -241,15 +268,24 @@ class PS6000Scope(PicoScope):  # pragma: no cover
                                                self.COUPLING[coupling], self.RANGES[range], 0,
                                                ps6000.PS6000_BANDWIDTH_LIMITER["PS6000_BW_FULL"]))
 
-    def set_buffer(self, channel: str):
+    def set_buffer(self, channel: str, enable: bool):
         if self.samples is None:
             raise ValueError
-        buffer = (ctypes.c_int16 * self.samples)()
-        self.buffers[channel] = buffer
-        assert_pico_ok(
-                ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
-                                           ctypes.byref(buffer),
-                                           self.samples, 0))
+        if enable:
+            if channel in self.buffers:
+                del self.buffers[channel]
+            buffer = (ctypes.c_int16 * self.samples)()
+            assert_pico_ok(
+                    ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
+                                               ctypes.byref(buffer),
+                                               self.samples, 0))
+            self.buffers[channel] = buffer
+        else:
+            assert_pico_ok(
+                    ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
+                                               None,
+                                               self.samples, 0))
+            del self.buffers[channel]
 
     def set_frequency(self, frequency: int, samples: int):
         return self._set_freq(frequency, samples, 3.2e-9, 4, 5_000_000_000, 156_250_000, 4)
