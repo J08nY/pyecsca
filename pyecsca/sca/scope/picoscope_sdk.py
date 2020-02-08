@@ -1,6 +1,6 @@
 import ctypes
-from time import time_ns, sleep
 from math import log2, floor
+from time import time_ns, sleep
 from typing import Mapping, Optional, MutableMapping, Union, Tuple
 
 import numpy as np
@@ -22,7 +22,7 @@ def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
 
 def volt2adc(volt: Union[np.ndarray, float],
              volt_range: float, adc_minmax: int) -> Union[
-    np.ndarray, ctypes.c_int16]:  # pragma: no cover
+             np.ndarray, ctypes.c_int16]:  # pragma: no cover
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
     return (volt / volt_range) * adc_minmax
@@ -130,12 +130,14 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             if channel in self.buffers:
                 del self.buffers[channel]
             buffer = (ctypes.c_int16 * self.samples)()
-            assert_pico_ok(self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
-                                                ctypes.byref(buffer), self.samples))
+            assert_pico_ok(
+                self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
+                                     ctypes.byref(buffer), self.samples))
             self.buffers[channel] = buffer
         else:
-            assert_pico_ok(self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
-                                                None, self.samples))
+            assert_pico_ok(
+                self.__dispatch_call("SetDataBuffer", self.handle, self.CHANNELS[channel],
+                                     None, self.samples))
             del self.buffers[channel]
 
     def arm(self):

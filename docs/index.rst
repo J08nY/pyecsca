@@ -39,6 +39,11 @@ Requirements
  - atpublic_
  - fastdtw_
  - asn1crypto_
+ - **Optionally**:
+
+   - picosdk_
+   - picoscope_
+   - chipwhisperer_
 
 *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
 
@@ -51,6 +56,7 @@ Testing
  - nose2_
  - green_
  - mypy_
+ - flake8
  - coverage_
 
 Docs
@@ -64,7 +70,7 @@ License
 
     MIT License
 
-    Copyright (c) 2018-2019
+    Copyright (c) 2018-2020 Jan Jancar
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -93,9 +99,13 @@ this support is very appreciated.
 .. _atpublic: https://public.readthedocs.io/
 .. _fastdtw: https://github.com/slaypni/fastdtw
 .. _asn1crypto: https://github.com/wbond/asn1crypto
+.. _picosdk: https://github.com/picotech/picosdk-python-wrappers/
+.. _picoscope: https://github.com/colinoflynn/pico-python
+.. _chipwhisperer: https://github.com/newaetech/chipwhisperer
 .. _nose2: https://nose2.readthedocs.io
 .. _green: https://github.com/CleanCut/green
 .. _mypy: http://mypy-lang.org/
+.. _flake8: https://flake8.pycqa.org/
 .. _coverage: https://coverage.readthedocs.io/
 .. _sphinx: https://www.sphinx-doc.org/
 .. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/

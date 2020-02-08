@@ -1,3 +1,5 @@
+"""Package for manipulating traces."""
+
 from .align import *
 from .combine import *
 from .edit import *

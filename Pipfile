@@ -7,6 +7,7 @@ verify_ssl = true
 nose2 = "*"
 green = "*"
 mypy = "*"
+flake8 = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 coverage = "*"

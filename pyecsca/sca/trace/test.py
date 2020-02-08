@@ -32,7 +32,7 @@ def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Opti
 
 @public
 def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Optional[
-    CombinedTrace]:
+        CombinedTrace]:
     """
     Perform the Students's t-test sample wise on two sets of traces `first_set` and `second_set`.
     Useful for Test Vector Leakage Analysis (TVLA).

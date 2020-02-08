@@ -88,7 +88,7 @@ class EFDCoordinateModel(CoordinateModel):
                         code = parse(line[11:].replace("^", "**"), mode="exec")
                         self.satisfying.append(code)
                     except SyntaxError:
-                        #code = parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval")
+                        # code = parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval")
                         pass
                 elif line.startswith("parameter"):
                     self.parameters.append(line[10:])

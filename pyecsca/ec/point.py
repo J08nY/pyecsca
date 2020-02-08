@@ -35,7 +35,7 @@ class Point(object):
         for s in self.coordinate_model.satisfying:
             try:
                 ops.add(CodeOp(s))
-            except:
+            except Exception:
                 pass
         affine_model = AffineCoordinateModel(self.coordinate_model.curve_model)
         result_variables = set(map(lambda x: x.result, ops))

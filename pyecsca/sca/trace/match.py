@@ -32,6 +32,7 @@ def match_pattern(trace: Trace, pattern: Trace, threshold: float = 0.8) -> List[
                 filtered_peaks.append(peak - half)
     return filtered_peaks
 
+
 @public
 def match_part(trace: Trace, offset: int, length: int) -> List[int]:
     return match_pattern(trace, trim(trace, offset, offset + length))

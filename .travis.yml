@@ -26,10 +26,11 @@ before_install:
 
 install:
   - pip install codecov
-  - pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, test, typecheck]"
+  - pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, test, dev]"
 
 script:
   - make -i typecheck
+  - make -i codestyle
   - make test
 
 after_success:

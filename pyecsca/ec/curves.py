@@ -85,7 +85,7 @@ SHORT_WEIERSTRASS: Mapping[str, Mapping[str, Any]] = {
         "g": (0x7b6aa5d85e572983e6fb32a7cdebc140,
               0x27b6916a894d3aee7106fe805fc34b44),
         "n": 0x3fffffff7fffffffbe0024720613b5a3,
-        "h":0x4},
+        "h": 0x4},
     "secp160k1": {
         "p": 0xfffffffffffffffffffffffffffffffeffffac73,
         "a": 0x0000000000000000000000000000000000000000,

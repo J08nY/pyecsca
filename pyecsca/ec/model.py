@@ -20,8 +20,8 @@ class CurveModel(object):
     to_weierstrass: List[Module]
     from_weierstrass: List[Module]
 
-    #TODO: move the base_formulas into methods, operatin on affine points?
-    #      Also to_weierstrass anf from_weierstrass.
+    # TODO: move the base_formulas into methods, operatin on affine points?
+    #       Also to_weierstrass anf from_weierstrass.
 
     # TODO: __eq__
 

@@ -18,4 +18,11 @@ test-all:
 typecheck:
 	mypy pyecsca --ignore-missing-imports
 
-.PHONY: test test-plots test-all typecheck
+codestyle:
+	flake8 --ignore=E501,F405,F403,F401,E126 pyecsca
+
+docs:
+	$(MAKE) -C docs apidoc
+	$(MAKE) -C docs html
+
+.PHONY: test test-plots test-all typecheck codestyle docs

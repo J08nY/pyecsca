@@ -121,6 +121,7 @@ def align_offset(reference: Trace, *traces: Trace,
     :return:
     """
     reference_part = reference.samples[reference_offset: reference_offset + reference_length]
+
     def align_func(trace):
         length = len(trace.samples)
         best_distance = 0

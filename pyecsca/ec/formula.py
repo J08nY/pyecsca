@@ -1,6 +1,6 @@
 from ast import parse, Expression, Mult, Add, Sub, Pow, Div
-from typing import List, Set, Any, ClassVar, MutableMapping
 from itertools import product
+from typing import List, Set, Any, ClassVar, MutableMapping
 
 from pkg_resources import resource_stream
 from public import public
@@ -68,6 +68,7 @@ class Formula(object):
         """Number of additions and subtractions."""
         return len(list(filter(lambda op: isinstance(op.operator, (Add, Sub)), self.code)))
 
+
 class EFDFormula(Formula):
 
     def __init__(self, path: str, name: str, coordinate_model: Any):
@@ -116,7 +117,8 @@ class EFDFormula(Formula):
     @property
     def outputs(self):
         return set(var + str(i) for var, i in product(self.coordinate_model.variables,
-                                                      range(self.output_index, self.output_index + self.num_outputs)))
+                                                      range(self.output_index,
+                                                            self.output_index + self.num_outputs)))
 
     def __eq__(self, other):
         if not isinstance(other, EFDFormula):
@@ -125,6 +127,7 @@ class EFDFormula(Formula):
 
     def __hash__(self):
         return hash(self.name) + hash(self.coordinate_model)
+
 
 @public
 class AdditionFormula(Formula):

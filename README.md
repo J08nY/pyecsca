@@ -20,6 +20,10 @@ and ECC simulation in the [*pyecsca.ec*](pyecsca/ec) package.
  - [atpublic](https://public.readthedocs.io/)
  - [fastdtw](https://github.com/slaypni/fastdtw)
  - [asn1crypto](https://github.com/wbond/asn1crypto)
+ - **Optionally**:
+   - [picosdk](https://github.com/picotech/picosdk-python-wrappers/)
+   - [picoscope](https://github.com/colinoflynn/pico-python)
+   - [chipwhisperer](https://github.com/newaetech/chipwhisperer)
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
 The data was partially changed, to make working with it easier.
@@ -31,6 +35,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
  - [nose2](https://nose2.readthedocs.io)
  - [green](https://github.com/CleanCut/green)
  - [mypy](http://mypy-lang.org/)
+ - [flake8](https://flake8.pycqa.org/)
  - [coverage](https://coverage.readthedocs.io/)
 
 ### Docs
@@ -43,7 +48,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
 
     MIT License
 
-    Copyright (c) 2018-2019
+    Copyright (c) 2018-2020 Jan Jancar
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
