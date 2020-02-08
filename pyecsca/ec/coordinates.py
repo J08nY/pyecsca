@@ -14,7 +14,7 @@ class CoordinateModel(object):
     full_name: str
     curve_model: Any
     variables: List[str]
-    satisfying: List[Union[Module, Expression]]
+    satisfying: List[Module]
     parameters: List[str]
     assumptions: List[Expression]
     formulas: MutableMapping[str, Formula]
@@ -86,9 +86,10 @@ class EFDCoordinateModel(CoordinateModel):
                 elif line.startswith("satisfying"):
                     try:
                         code = parse(line[11:].replace("^", "**"), mode="exec")
+                        self.satisfying.append(code)
                     except SyntaxError:
-                        code = parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval")
-                    self.satisfying.append(code)
+                        #code = parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval")
+                        pass
                 elif line.startswith("parameter"):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):

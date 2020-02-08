@@ -10,7 +10,7 @@ from .base import Scope
 
 
 @public
-class PicoScopeAlt(Scope):
+class PicoScopeAlt(Scope):  # pragma: no cover
 
     def __init__(self, ps: Union[PS4000, PS6000]):
         self.ps = ps

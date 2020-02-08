@@ -32,7 +32,7 @@ class ScalarMultiplier(object):
                    formula is not None)) != 1:
             raise ValueError
         self.short_circuit = short_circuit
-        self.formulas = dict(filter(lambda pair: pair[1] is not None, formulas.items()))
+        self.formulas = {k:v for k, v in formulas.items() if v is not None}
 
     def _add(self, one: Point, other: Point) -> Point:
         if "add" not in self.formulas:

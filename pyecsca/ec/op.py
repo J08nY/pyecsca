@@ -1,6 +1,6 @@
-from ast import Module, walk, Name, BinOp, Constant, operator, Mult, Div, Add, Sub, Pow
+from ast import Module, walk, Name, BinOp, Constant, operator, Mult, Div, Add, Sub, Pow, Assign
 from types import CodeType
-from typing import FrozenSet, Optional
+from typing import FrozenSet, Optional, cast
 
 from .mod import Mod
 
@@ -15,8 +15,8 @@ class CodeOp(object):
 
     def __init__(self, code: Module):
         self.code = code
-        assign = code.body[0]
-        self.result = assign.targets[0].id
+        assign = cast(Assign, code.body[0])
+        self.result = cast(Name, assign.targets[0]).id
         params = set()
         variables = set()
         constants = set()

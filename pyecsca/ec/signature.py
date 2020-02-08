@@ -68,7 +68,7 @@ class Signature(object):
         if add is None:
             if "add" not in mult.formulas:
                 raise ValueError
-            else:
+            elif isinstance(mult.formulas["add"], AdditionFormula):
                 add = mult.formulas["add"]
         self.mult = mult
         self.group = group
@@ -124,6 +124,8 @@ class Signature(object):
         return self._do_sign(k, digest)
 
     def _do_verify(self, signature: SignatureResult, digest: bytes) -> bool:
+        if self.pubkey is None:
+            return False
         z = int.from_bytes(digest, byteorder="big")
         if len(digest) * 8 > self.group.order.bit_length():
             z >>= len(digest) * 8 - self.group.order.bit_length()

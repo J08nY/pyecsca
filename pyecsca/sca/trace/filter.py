@@ -10,10 +10,9 @@ def filter_any(trace: Trace, sampling_frequency: int,
                cutoff: Union[int, Tuple[int, int]], band_type: str) -> Trace:
     nyq = 0.5 * sampling_frequency
     if not isinstance(cutoff, int):
-        normal_cutoff = tuple(map(lambda x: x / nyq, cutoff))
+        b, a = butter(6, tuple(map(lambda x: x / nyq, cutoff)), btype=band_type, analog=False, output='ba')
     else:
-        normal_cutoff = cutoff / nyq
-    b, a = butter(6, normal_cutoff, btype=band_type, analog=False)
+        b, a = butter(6, cutoff / nyq, btype=band_type, analog=False, output='ba')
     result_samples = lfilter(b, a, trace.samples)
     return Trace(copy(trace.title), copy(trace.data), result_samples)
 

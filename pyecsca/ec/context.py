@@ -16,11 +16,11 @@ from .point import Point
 class OpResult(object):
     """A result of an operation."""
     parents: Tuple
-    op: ast.operator
+    op: Optional[ast.operator]
     name: str
     value: Mod
 
-    def __init__(self, name: str, value: Mod, op: ast.operator, *parents: Any):
+    def __init__(self, name: str, value: Mod, op: Optional[ast.operator], *parents: Any):
         self.parents = tuple(parents)
         self.name = name
         self.value = value
@@ -48,7 +48,7 @@ class Action(object):
     """An execution of some operations with inputs and outputs."""
     inputs: MutableMapping[str, Mod]
     input_points: List[Point]
-    intermediates: MutableMapping[str, Union[Mod, OpResult]]
+    intermediates: MutableMapping[str, OpResult]
     outputs: MutableMapping[str, OpResult]
     output_points: List[Point]
 
@@ -60,7 +60,7 @@ class Action(object):
         self.output_points = []
 
     def add_operation(self, op: CodeOp, value: Mod):
-        parents = []
+        parents: List[Union[Mod, OpResult]] = []
         for parent in {*op.variables, *op.parameters}:
             if parent in self.intermediates:
                 parents.append(self.intermediates[parent])
