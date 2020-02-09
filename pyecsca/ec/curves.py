@@ -1,13 +1,13 @@
 from public import public
 from typing import Mapping, Any
 
-from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.curve import EllipticCurve
-from pyecsca.ec.group import AbelianGroup
-from pyecsca.ec.mod import Mod
-from pyecsca.ec.model import (ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel,
+from .coordinates import AffineCoordinateModel
+from .curve import EllipticCurve
+from .params import DomainParameters
+from .mod import Mod
+from .model import (ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel,
                               EdwardsModel)
-from pyecsca.ec.point import Point, InfinityPoint
+from .point import Point, InfinityPoint
 
 
 SHORT_WEIERSTRASS: Mapping[str, Mapping[str, Any]] = {
@@ -191,7 +191,7 @@ TWISTED_EDWARDS: Mapping[str, Mapping[str, Any]] = {
 
 
 @public
-def get_curve(name: str, coords: str) -> AbelianGroup:
+def get_curve(name: str, coords: str) -> DomainParameters:
     """
     Retrieve a curve from a set of stored parameters.
 
@@ -207,7 +207,7 @@ def get_curve(name: str, coords: str) -> AbelianGroup:
         affine = Point(AffineCoordinateModel(model), x=Mod(params["g"][0], params["p"]),
                        y=Mod(params["g"][1], params["p"]))
         generator = Point.from_affine(coord_model, affine)
-        return AbelianGroup(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
+        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
     elif name in MONTGOMERY:
         params = MONTGOMERY[name]
         model = MontgomeryModel()
@@ -215,7 +215,7 @@ def get_curve(name: str, coords: str) -> AbelianGroup:
         curve = EllipticCurve(model, coord_model, params["p"], dict(a=params["a"], b=params["b"]))
         generator = Point(coord_model, X=Mod(params["x"], params["p"]),
                           Z=Mod(params["z"], params["p"]))
-        return AbelianGroup(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
+        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
     elif name in TWISTED_EDWARDS:
         params = TWISTED_EDWARDS[name]
         model = TwistedEdwardsModel()
@@ -224,7 +224,7 @@ def get_curve(name: str, coords: str) -> AbelianGroup:
         affine = Point(AffineCoordinateModel(model), x=Mod(params["g"][0], params["p"]),
                        y=Mod(params["g"][1], params["p"]))
         generator = Point.from_affine(coord_model, affine)
-        return AbelianGroup(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
+        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
     elif name in EDWARDS:
         params = EDWARDS[name]
         model = EdwardsModel()
@@ -233,6 +233,6 @@ def get_curve(name: str, coords: str) -> AbelianGroup:
         affine = Point(AffineCoordinateModel(model), x=Mod(params["g"][0], params["p"]),
                        y=Mod(params["g"][1], params["p"]))
         generator = Point.from_affine(coord_model, affine)
-        return AbelianGroup(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
+        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
     else:
         raise ValueError("Unknown curve: {}".format(name))

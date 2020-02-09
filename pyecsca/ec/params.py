@@ -5,7 +5,7 @@ from .point import Point
 
 
 @public
-class AbelianGroup(object):
+class DomainParameters(object):
     """A (sub)group of an elliptic curve."""
     curve: EllipticCurve
     generator: Point
@@ -25,6 +25,6 @@ class AbelianGroup(object):
         return self.neutral == point
 
     def __eq__(self, other):
-        if not isinstance(other, AbelianGroup):
+        if not isinstance(other, DomainParameters):
             return False
         return self.curve == other.curve and self.generator == other.generator and self.neutral == other.neutral and self.order == other.order and self.cofactor == other.cofactor

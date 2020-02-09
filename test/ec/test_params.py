@@ -4,7 +4,7 @@ from pyecsca.ec.curves import get_curve
 from pyecsca.ec.point import InfinityPoint
 
 
-class AbelianGroupTests(TestCase):
+class DomainParameterTests(TestCase):
 
     def setUp(self):
         self.secp128r1 = get_curve("secp128r1", "projective")

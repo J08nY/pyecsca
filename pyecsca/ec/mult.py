@@ -6,7 +6,7 @@ from public import public
 from .context import getcontext
 from .formula import (Formula, AdditionFormula, DoublingFormula, DifferentialAdditionFormula,
                       ScalingFormula, LadderFormula, NegationFormula)
-from .group import AbelianGroup
+from .params import DomainParameters
 from .naf import naf, wnaf
 from .point import Point
 
@@ -23,7 +23,7 @@ class ScalarMultiplier(object):
     optionals: ClassVar[Set[Type[Formula]]]
     short_circuit: bool
     formulas: Mapping[str, Formula]
-    _group: AbelianGroup
+    _group: DomainParameters
     _point: Point
     _initialized: bool = False
 
@@ -86,7 +86,7 @@ class ScalarMultiplier(object):
             raise NotImplementedError
         return getcontext().execute(self.formulas["neg"], point, **self._group.curve.parameters)[0]
 
-    def init(self, group: AbelianGroup, point: Point):
+    def init(self, group: DomainParameters, point: Point):
         """Initialize the scalar multiplier with a group and a point."""
         coord_model = set(self.formulas.values()).pop().coordinate_model
         if group.curve.coordinate_model != coord_model or point.coordinate_model != coord_model:
@@ -336,7 +336,7 @@ class BinaryNAFMultiplier(ScalarMultiplier):
                  neg: NegationFormula, scl: ScalingFormula = None, short_circuit: bool = True):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
 
-    def init(self, group: AbelianGroup, point: Point):
+    def init(self, group: DomainParameters, point: Point):
         super().init(group, point)
         self._point_neg = self._neg(point)
 
@@ -375,7 +375,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
         self.width = width
         self.precompute_negation = precompute_negation
 
-    def init(self, group: AbelianGroup, point: Point):
+    def init(self, group: DomainParameters, point: Point):
         super().init(group, point)
         self._points = {}
         self._points_neg = {}

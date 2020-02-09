@@ -7,7 +7,7 @@ from public import public
 
 from .context import getcontext
 from .formula import AdditionFormula
-from .group import AbelianGroup
+from .params import DomainParameters
 from .mod import Mod
 from .mult import ScalarMultiplier
 from .point import Point
@@ -54,13 +54,13 @@ class SignatureResult(object):
 class Signature(object):
     """An EC based signature primitive. (ECDSA)"""
     mult: ScalarMultiplier
-    group: AbelianGroup
+    group: DomainParameters
     add: Optional[AdditionFormula]
     pubkey: Optional[Point]
     privkey: Optional[int]
     hash_algo: Optional[Any]
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None,
                  hash_algo: Optional[Any] = None):
         if pubkey is None and privkey is None:
@@ -162,7 +162,7 @@ class Signature(object):
 class ECDSA_NONE(Signature):
     """ECDSA with raw message input."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, group, add, pubkey, privkey)
 
@@ -171,7 +171,7 @@ class ECDSA_NONE(Signature):
 class ECDSA_SHA1(Signature):
     """ECDSA with SHA1."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, group, add, pubkey, privkey, hashlib.sha1)
 
@@ -180,7 +180,7 @@ class ECDSA_SHA1(Signature):
 class ECDSA_SHA224(Signature):
     """ECDSA with SHA224."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, group, add, pubkey, privkey, hashlib.sha224)
 
@@ -189,7 +189,7 @@ class ECDSA_SHA224(Signature):
 class ECDSA_SHA256(Signature):
     """ECDSA with SHA256."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, group, add, pubkey, privkey, hashlib.sha256)
 
@@ -198,7 +198,7 @@ class ECDSA_SHA256(Signature):
 class ECDSA_SHA384(Signature):
     """ECDSA with SHA384."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, group, add, pubkey, privkey, hashlib.sha384)
 
@@ -207,6 +207,6 @@ class ECDSA_SHA384(Signature):
 class ECDSA_SHA512(Signature):
     """ECDSA with SHA512."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, add: Optional[AdditionFormula] = None,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, add: Optional[AdditionFormula] = None,
                  pubkey: Optional[Point] = None, privkey: Optional[int] = None):
         super().__init__(mult, group, add, pubkey, privkey, hashlib.sha512)

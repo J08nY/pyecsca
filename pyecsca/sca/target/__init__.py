@@ -10,14 +10,14 @@ try:
     import chipwhisperer
 
     has_chipwhisperer = True
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 try:
     import pyscard
 
     has_pyscard = True
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 if has_pyscard:

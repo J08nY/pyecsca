@@ -12,21 +12,21 @@ try:
     import picoscope
 
     has_picoscope = True
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 try:
     import picosdk
 
     has_picosdk = True
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 try:
     import chipwhisperer
 
     has_chipwhisperer = True
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 PicoScope: Type[Scope]

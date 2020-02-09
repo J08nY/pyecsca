@@ -3,7 +3,7 @@ from typing import Optional, Any
 
 from public import public
 
-from .group import AbelianGroup
+from .params import DomainParameters
 from .mult import ScalarMultiplier
 from .point import Point
 
@@ -12,12 +12,12 @@ from .point import Point
 class KeyAgreement(object):
     """An EC based key agreement primitive. (ECDH)"""
     mult: ScalarMultiplier
-    group: AbelianGroup
+    group: DomainParameters
     pubkey: Point
     privkey: int
     hash_algo: Optional[Any]
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int,
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int,
                  hash_algo: Optional[Any] = None):
         self.mult = mult
         self.group = group
@@ -55,7 +55,7 @@ class KeyAgreement(object):
 class ECDH_NONE(KeyAgreement):
     """Raw x-coordinate ECDH."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int):
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int):
         super().__init__(mult, group, pubkey, privkey)
 
 
@@ -63,7 +63,7 @@ class ECDH_NONE(KeyAgreement):
 class ECDH_SHA1(KeyAgreement):
     """ECDH with SHA1 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int):
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int):
         super().__init__(mult, group, pubkey, privkey, hashlib.sha1)
 
 
@@ -71,7 +71,7 @@ class ECDH_SHA1(KeyAgreement):
 class ECDH_SHA224(KeyAgreement):
     """ECDH with SHA224 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int):
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int):
         super().__init__(mult, group, pubkey, privkey, hashlib.sha224)
 
 
@@ -79,7 +79,7 @@ class ECDH_SHA224(KeyAgreement):
 class ECDH_SHA256(KeyAgreement):
     """ECDH with SHA256 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int):
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int):
         super().__init__(mult, group, pubkey, privkey, hashlib.sha256)
 
 
@@ -87,7 +87,7 @@ class ECDH_SHA256(KeyAgreement):
 class ECDH_SHA384(KeyAgreement):
     """ECDH with SHA384 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int):
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int):
         super().__init__(mult, group, pubkey, privkey, hashlib.sha384)
 
 
@@ -95,5 +95,5 @@ class ECDH_SHA384(KeyAgreement):
 class ECDH_SHA512(KeyAgreement):
     """ECDH with SHA512 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, group: AbelianGroup, pubkey: Point, privkey: int):
+    def __init__(self, mult: ScalarMultiplier, group: DomainParameters, pubkey: Point, privkey: int):
         super().__init__(mult, group, pubkey, privkey, hashlib.sha512)
