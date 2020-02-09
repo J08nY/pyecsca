@@ -13,6 +13,7 @@ from .base import Scope
 class PicoScopeAlt(Scope):  # pragma: no cover
 
     def __init__(self, ps: Union[PS4000, PS6000]):
+        super().__init__()
         self.ps = ps
 
     def open(self) -> None:

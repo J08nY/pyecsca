@@ -12,6 +12,7 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     """A ChipWhisperer based scope."""
 
     def __init__(self, scope: OpenADC):
+        super().__init__()
         self.scope = scope
         self.triggers: Set[str] = set()
 

@@ -47,6 +47,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
     }
 
     def __init__(self):
+        super().__init__()
         self.handle: ctypes.c_int16 = ctypes.c_int16()
         self.frequency: Optional[int] = None
         self.samples: Optional[int] = None

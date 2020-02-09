@@ -37,6 +37,7 @@ setup(
             "picoscope_sdk": ["picosdk"],
             "picoscope_alt": ["picoscope"],
             "chipwhisperer": ["chipwhisperer"],
+            "smartcard": ["pyscard"],
             "dev": ["mypy", "flake8"],
             "test": ["nose2", "parameterized", "green", "coverage"]
         }
