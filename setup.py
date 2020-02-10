@@ -24,7 +24,7 @@ setup(
             "pyecsca.ec" : ["efd/*/*", "efd/*/*/*", "efd/*/*/*/*"]
         },
         #install_package_data=True,
-        python_requires='>=3.7',
+        python_requires='>=3.8',
         install_requires=[
             "numpy",
             "scipy",
