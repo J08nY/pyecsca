@@ -5,7 +5,7 @@ from pyecsca.ec.context import (local, DefaultContext, OpResult, NullContext, ge
                                 setcontext,
                                 resetcontext)
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.curves import get_curve
+from pyecsca.ec.curves import get_params
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.point import Point
@@ -22,7 +22,7 @@ class OpResultTests(TestCase):
 class ContextTests(TestCase):
 
     def setUp(self):
-        self.secp128r1 = get_curve("secp128r1", "projective")
+        self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
         self.mult = LTRMultiplier(self.coords.formulas["add-1998-cmo"],

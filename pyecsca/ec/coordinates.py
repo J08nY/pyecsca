@@ -1,5 +1,6 @@
 from ast import parse, Expression, Module
-from typing import List, Any, MutableMapping, Union
+from typing import List, Any, MutableMapping
+from os.path import join
 
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 
@@ -52,7 +53,7 @@ class EFDCoordinateModel(CoordinateModel):
         self.assumptions = []
         self.formulas = {}
         for fname in resource_listdir(__name__, dir_path):
-            file_path = dir_path + "/" + fname
+            file_path = join(dir_path, fname)
             if resource_isdir(__name__, file_path):
                 self.__read_formula_dir(file_path, fname)
             else:
@@ -72,7 +73,7 @@ class EFDCoordinateModel(CoordinateModel):
                 "negation": NegationEFDFormula
             }
             cls = formula_types.get(formula_type, EFDFormula)
-            self.formulas[fname] = cls(dir_path + "/" + fname, fname, self)
+            self.formulas[fname] = cls(join(dir_path, fname), fname, self)
 
     def __read_coordinates_file(self, file_path):
         with resource_stream(__name__, file_path) as f:

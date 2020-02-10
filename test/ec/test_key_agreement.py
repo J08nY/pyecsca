@@ -1,14 +1,16 @@
 from unittest import TestCase
 
-from pyecsca.ec.curves import get_curve
+from parameterized import parameterized
+
+from pyecsca.ec.curves import get_params
 from pyecsca.ec.key_agreement import *
 from pyecsca.ec.mult import LTRMultiplier
-from parameterized import parameterized
+
 
 class KeyAgreementTests(TestCase):
 
     def setUp(self):
-        self.secp128r1 = get_curve("secp128r1", "projective")
+        self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.add = self.secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
         self.dbl = self.secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
         self.mult = LTRMultiplier(self.add, self.dbl)
@@ -30,3 +32,5 @@ class KeyAgreementTests(TestCase):
         result_ab = algo(self.mult, self.secp128r1, self.pub_a, self.priv_b).perform()
         result_ba = algo(self.mult, self.secp128r1, self.pub_b, self.priv_a).perform()
         self.assertEqual(result_ab, result_ba)
+
+    # TODO: Add KAT-based tests here.

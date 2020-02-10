@@ -1,14 +1,17 @@
-from public import public
+import json
+from os.path import join
 from typing import Mapping, Any
+
+from pkg_resources import resource_listdir, resource_isdir, resource_stream
+from public import public
 
 from .coordinates import AffineCoordinateModel
 from .curve import EllipticCurve
-from .params import DomainParameters
 from .mod import Mod
 from .model import (ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel,
                     EdwardsModel, CurveModel)
+from .params import DomainParameters
 from .point import Point, InfinityPoint
-
 
 SHORT_WEIERSTRASS: Mapping[str, Mapping[str, Any]] = {
     "brainpoolP160r1": {
@@ -167,11 +170,12 @@ MONTGOMERY: Mapping[str, Mapping[str, Any]] = {
 
 EDWARDS: Mapping[str, Mapping[str, Any]] = {
     "ed448": {
-        "p": 2**448 - 2**224 - 1,
+        "p": 2 ** 448 - 2 ** 224 - 1,
         "c": 1,
         "d": 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffff6756,
-        "g": (0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa955555555555555555555555555555555555555555555555555555555,
-              0xae05e9634ad7048db359d6205086c2b0036ed7a035884dd7b7e36d728ad8c4b80d6565833a2a3098bbbcb2bed1cda06bdaeafbcdea9386ed),
+        "g": (
+            0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa955555555555555555555555555555555555555555555555555555555,
+            0xae05e9634ad7048db359d6205086c2b0036ed7a035884dd7b7e36d728ad8c4b80d6565833a2a3098bbbcb2bed1cda06bdaeafbcdea9386ed),
         "n": 0x3fffffffffffffffffffffffffffffffffffffffffffffffffffffff7cca23e9c44edb49aed63690216cc2728dc58f552378c292ab5844f3,
         "h": 4
     }
@@ -191,49 +195,55 @@ TWISTED_EDWARDS: Mapping[str, Mapping[str, Any]] = {
 
 
 @public
-def get_curve(name: str, coords: str) -> DomainParameters:
+def get_params(category: str, name: str, coords: str) -> DomainParameters:
     """
-    Retrieve a curve from a set of stored parameters.
+    Retrieve a curve from a set of stored parameters. Uses the std-curves database at
+    https://github.com/J08nY/std-curves.
 
+    :param category: The category of the curve.
     :param name: The name of the curve.
     :param coords: The name of the coordinate system to use.
     :return: The curve.
     """
-    model: CurveModel
-    if name in SHORT_WEIERSTRASS:
-        params = SHORT_WEIERSTRASS[name]
-        model = ShortWeierstrassModel()
-        coord_model = model.coordinates[coords]
-        curve = EllipticCurve(model, coord_model, params["p"], dict(a=params["a"], b=params["b"]))
-        affine = Point(AffineCoordinateModel(model), x=Mod(params["g"][0], params["p"]),
-                       y=Mod(params["g"][1], params["p"]))
-        generator = Point.from_affine(coord_model, affine)
-        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
-    elif name in MONTGOMERY:
-        params = MONTGOMERY[name]
-        model = MontgomeryModel()
-        coord_model = model.coordinates[coords]
-        curve = EllipticCurve(model, coord_model, params["p"], dict(a=params["a"], b=params["b"]))
-        generator = Point(coord_model, X=Mod(params["x"], params["p"]),
-                          Z=Mod(params["z"], params["p"]))
-        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
-    elif name in TWISTED_EDWARDS:
-        params = TWISTED_EDWARDS[name]
-        model = TwistedEdwardsModel()
-        coord_model = model.coordinates[coords]
-        curve = EllipticCurve(model, coord_model, params["p"], dict(a=params["a"], d=params["d"]))
-        affine = Point(AffineCoordinateModel(model), x=Mod(params["g"][0], params["p"]),
-                       y=Mod(params["g"][1], params["p"]))
-        generator = Point.from_affine(coord_model, affine)
-        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
-    elif name in EDWARDS:
-        params = EDWARDS[name]
-        model = EdwardsModel()
-        coord_model = model.coordinates[coords]
-        curve = EllipticCurve(model, coord_model, params["p"], dict(c=params["c"], d=params["d"]))
-        affine = Point(AffineCoordinateModel(model), x=Mod(params["g"][0], params["p"]),
-                       y=Mod(params["g"][1], params["p"]))
-        generator = Point.from_affine(coord_model, affine)
-        return DomainParameters(curve, generator, InfinityPoint(coord_model), params["n"], params["h"])
+    listing = resource_listdir(__name__, "std")
+    categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
+    if category not in categories:
+        raise ValueError("Category {} not found.".format(category))
+    json_path = join("std", category, "curves.json")
+    with resource_stream(__name__, json_path) as f:
+        category_json = json.load(f)
+    for curve in category_json["curves"]:
+        if curve["name"] == name:
+            break
     else:
-        raise ValueError("Unknown curve: {}".format(name))
+        raise ValueError("Curve {} not found in category {}.".format(name, category))
+    if curve["field"]["type"] == "Binary":
+        raise ValueError("Binary field curves are currently not supported.")
+
+    model: CurveModel
+    field = int(curve["field"]["p"], 16)
+    order = int(curve["order"], 16)
+    cofactor = int(curve["cofactor"], 16)
+    if curve["form"] == "Weierstrass":
+        model = ShortWeierstrassModel()
+        param_names = ["a", "b"]
+    elif curve["form"] == "Montgomery":
+        model = MontgomeryModel()
+        param_names = ["a", "b"]
+    elif curve["form"] == "Edwards":
+        model = EdwardsModel()
+        param_names = ["c", "d"]
+    elif curve["form"] == "TwistedEdwards":
+        model = TwistedEdwardsModel()
+        param_names = ["a", "d"]
+    else:
+        raise ValueError("Unknown curve model.")
+    if coords not in model.coordinates:
+        raise ValueError("Coordinate model not supported for curve.")
+    coord_model = model.coordinates[coords]
+    params = {name: int(curve["params"][name], 16) for name in param_names}
+    elliptic_curve = EllipticCurve(model, coord_model, field, params)
+    affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
+                   y=Mod(int(curve["generator"]["y"], 16), field))
+    generator = Point.from_affine(coord_model, affine)
+    return DomainParameters(elliptic_curve, generator, InfinityPoint(coord_model), order, cofactor)

@@ -1,9 +1,7 @@
 from unittest import TestCase
 
-from parameterized import parameterized
-
 from pyecsca.ec.curve import EllipticCurve
-from pyecsca.ec.curves import get_curve
+from pyecsca.ec.curves import get_params
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import MontgomeryModel
 from pyecsca.ec.point import Point
@@ -11,9 +9,9 @@ from pyecsca.ec.point import Point
 
 class CurveTests(TestCase):
     def setUp(self):
-        self.secp128r1 = get_curve("secp128r1", "projective")
+        self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.base = self.secp128r1.generator
-        self.curve25519 = get_curve("curve25519", "xz")
+        self.curve25519 = get_params("other", "Curve25519", "xz")
 
     def test_init(self):
         with self.assertRaises(ValueError):
@@ -40,21 +38,6 @@ class CurveTests(TestCase):
                       Y=Mod(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, self.secp128r1.curve.prime),
                       Z=Mod(1, self.secp128r1.curve.prime))
         assert not self.secp128r1.curve.is_on_curve(other)
-
-    @parameterized.expand([
-        ("secp128r1","projective"),
-        ("secp256r1", "projective"),
-        ("secp521r1", "projective"),
-        ("curve25519", "xz"),
-        ("ed25519", "projective"),
-        ("ed448", "projective")
-    ])
-    def test_curve_utils(self, name, coords):
-        group = get_curve(name, coords)
-        try:
-            assert group.curve.is_on_curve(group.generator)
-        except NotImplementedError:
-            pass
 
     def test_eq(self):
         self.assertEqual(self.secp128r1.curve, self.secp128r1.curve)

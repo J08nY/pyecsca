@@ -21,7 +21,7 @@ setup(
             "Intended Audience :: Science/Research"
         ],
         package_data={
-            "pyecsca.ec" : ["efd/*/*", "efd/*/*/*", "efd/*/*/*/*"]
+            "pyecsca.ec" : ["efd/*/*", "efd/*/*/*", "efd/*/*/*/*", "std/*", "std/*/*"]
         },
         #install_package_data=True,
         python_requires='>=3.8',

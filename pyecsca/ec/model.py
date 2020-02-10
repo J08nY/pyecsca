@@ -1,4 +1,5 @@
 from ast import parse, Expression, Module
+from os.path import join
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 from typing import List, MutableMapping
@@ -46,9 +47,9 @@ class EFDCurveModel(CurveModel):
         self.__class__.to_weierstrass = []
         self.__class__.from_weierstrass = []
 
-        files = resource_listdir(__name__, "efd/" + efd_name)
+        files = resource_listdir(__name__, join("efd", efd_name))
         for fname in files:
-            file_path = "efd/" + efd_name + "/" + fname
+            file_path = join("efd", efd_name, fname)
             if resource_isdir(__name__, file_path):
                 self.__read_coordinate_dir(self.__class__, file_path, fname)
             else:

@@ -1,14 +1,14 @@
 from unittest import TestCase
 
-from pyecsca.ec.curves import get_curve
+from pyecsca.ec.curves import get_params
 from pyecsca.ec.point import InfinityPoint
 
 
 class DomainParameterTests(TestCase):
 
     def setUp(self):
-        self.secp128r1 = get_curve("secp128r1", "projective")
-        self.curve25519 = get_curve("curve25519", "xz")
+        self.secp128r1 = get_params("secg", "secp128r1", "projective")
+        self.curve25519 = get_params("other", "Curve25519", "xz")
 
     def test_is_neutral(self):
         assert self.secp128r1.is_neutral(InfinityPoint(self.secp128r1.curve.coordinate_model))

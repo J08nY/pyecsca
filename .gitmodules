@@ -1,0 +1,4 @@
+[submodule "pyecsca/ec/std"]
+	path = pyecsca/ec/std
+	url = https://github.com/J08nY/std-curves
+	branch = data

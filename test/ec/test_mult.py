@@ -1,7 +1,8 @@
 from unittest import TestCase
 
 from parameterized import parameterized
-from pyecsca.ec.curves import get_curve
+
+from pyecsca.ec.curves import get_params
 from pyecsca.ec.mult import (LTRMultiplier, RTLMultiplier, LadderMultiplier, BinaryNAFMultiplier,
                              WindowNAFMultiplier, SimpleLadderMultiplier,
                              DifferentialLadderMultiplier,
@@ -12,11 +13,11 @@ from pyecsca.ec.point import InfinityPoint
 class ScalarMultiplierTests(TestCase):
 
     def setUp(self):
-        self.secp128r1 = get_curve("secp128r1", "projective")
+        self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
 
-        self.curve25519 = get_curve("curve25519", "xz")
+        self.curve25519 = get_params("other", "Curve25519", "xz")
         self.base25519 = self.curve25519.generator
         self.coords25519 = self.curve25519.curve.coordinate_model
 
@@ -30,7 +31,8 @@ class ScalarMultiplierTests(TestCase):
             assert one.equals(other)
 
     def do_basic_test(self, mult_class, group, base, add, dbl, scale, neg=None, **kwargs):
-        mult = mult_class(*self.get_formulas(group.curve.coordinate_model, add, dbl, neg, scale), **kwargs)
+        mult = mult_class(*self.get_formulas(group.curve.coordinate_model, add, dbl, neg, scale),
+                          **kwargs)
         mult.init(group, base)
         res = mult.multiply(314)
         other = mult.multiply(157)
@@ -54,8 +56,10 @@ class ScalarMultiplierTests(TestCase):
     def test_ltr(self, name, add, dbl, scale):
         self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale)
         self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True)
-        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, complete=False)
-        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True, complete=False)
+        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale,
+                           complete=False)
+        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True,
+                           complete=False)
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
@@ -86,8 +90,8 @@ class ScalarMultiplierTests(TestCase):
                                   self.coords25519.formulas["dbl-1987-m"],
                                   self.coords25519.formulas["scale"])
         differential = DifferentialLadderMultiplier(self.coords25519.formulas["dadd-1987-m"],
-                                              self.coords25519.formulas["dbl-1987-m"],
-                                              self.coords25519.formulas["scale"])
+                                                    self.coords25519.formulas["dbl-1987-m"],
+                                                    self.coords25519.formulas["scale"])
         ladder.init(self.curve25519, self.base25519)
         res_ladder = ladder.multiply(num)
         differential.init(self.curve25519, self.base25519)
