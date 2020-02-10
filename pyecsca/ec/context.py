@@ -8,7 +8,7 @@ from public import public
 
 from .formula import Formula
 from .mod import Mod
-from .op import CodeOp
+from .op import CodeOp, OpType
 from .point import Point
 
 
@@ -16,11 +16,11 @@ from .point import Point
 class OpResult(object):
     """A result of an operation."""
     parents: Tuple
-    op: Optional[ast.operator]
+    op: OpType
     name: str
     value: Mod
 
-    def __init__(self, name: str, value: Mod, op: Optional[ast.operator], *parents: Any):
+    def __init__(self, name: str, value: Mod, op: OpType, *parents: Any):
         self.parents = tuple(parents)
         self.name = name
         self.value = value
@@ -30,15 +30,7 @@ class OpResult(object):
         return self.name
 
     def __repr__(self):
-        char = ""
-        if isinstance(self.op, ast.Mult):
-            char = "*"
-        elif isinstance(self.op, ast.Add):
-            char = "+"
-        elif isinstance(self.op, ast.Sub):
-            char = "-"
-        elif isinstance(self.op, ast.Div):
-            char = "/"
+        char = self.op.op_str
         parents = char.join(str(parent) for parent in self.parents)
         return f"{self.name} = {parents}"
 

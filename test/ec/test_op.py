@@ -4,22 +4,27 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from pyecsca.ec.mod import Mod
-from pyecsca.ec.op import CodeOp
+from pyecsca.ec.op import CodeOp, OpType
 
 
 class OpTests(TestCase):
 
     @parameterized.expand([
-        ("add", "x = a+b", "x = a+b"),
-        ("sub", "x = a-b", "x = a-b"),
-        ("mul", "y = a*b", "y = a*b"),
-        ("div", "z = a/b", "z = a/b"),
-        ("pow", "b = a**d", "b = a^d")
+        ("add", "x = a+b", "x = a+b", OpType.Add),
+        ("sub", "x = a-b", "x = a-b", OpType.Sub),
+        ("mul", "y = a*b", "y = a*b", OpType.Mult),
+        ("div", "z = a/b", "z = a/b", OpType.Div),
+        ("inv", "z = 1/b", "z = 1/b", OpType.Inv),
+        ("pow", "b = a**d", "b = a^d", OpType.Pow),
+        ("sqr", "b = a**2", "b = a^2", OpType.Sqr),
+        ("id1", "b = 7", "b = 7", OpType.Id),
+        ("id2", "b = a", "b = a", OpType.Id),
     ])
-    def test_str(self, name, module, result):
+    def test_str(self, name, module, result, op_type):
         code = parse(module, mode="exec")
         op = CodeOp(code)
         self.assertEqual(str(op), result)
+        self.assertEqual(op.operator, op_type)
 
     @parameterized.expand([
         ("add", "x = a+b", {"a": Mod(5, 21), "b": Mod(7, 21)}, Mod(12, 21)),

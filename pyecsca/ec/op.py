@@ -1,16 +1,37 @@
-from ast import Module, walk, Name, BinOp, Constant, operator, Mult, Div, Add, Sub, Pow, Assign
+from ast import (Module, walk, Name, BinOp, Constant, Mult, Div, Add, Sub, Pow, Assign,
+                 operator as ast_operator)
+from enum import Enum
 from types import CodeType
-from typing import FrozenSet, Optional, cast
+from typing import FrozenSet, cast, Any, Optional
+
+from public import public
 
 from .mod import Mod
 
 
+@public
+class OpType(Enum):
+    Add = (2, "+")
+    Sub = (2, "-")
+    Mult = (2, "*")
+    Div = (2, "/")
+    Inv = (1, "/")
+    Sqr = (1, "^")
+    Pow = (2, "^")
+    Id = (1, "")
+
+    def __init__(self, num_inputs: int, op_str: str):
+        self.num_inputs = num_inputs
+        self.op_str = op_str
+
+
+@public
 class CodeOp(object):
     result: str
     parameters: FrozenSet[str]
     variables: FrozenSet[str]
     code: Module
-    operator: Optional[operator]
+    operator: OpType
     compiled: CodeType
 
     def __init__(self, code: Module):
@@ -21,6 +42,8 @@ class CodeOp(object):
         variables = set()
         constants = set()
         op = None
+        self.left = None
+        self.right = None
         for node in walk(assign.value):
             if isinstance(node, Name):
                 name = node.id
@@ -34,10 +57,11 @@ class CodeOp(object):
                 op = node.op
                 self.left = self.__to_name(node.left)
                 self.right = self.__to_name(node.right)
-        if op is None and len(constants) == 1:
-            self.left = next(iter(constants))
-            self.right = None
-        self.operator = op
+        if isinstance(assign.value, Name):
+            self.left = assign.value.id
+        elif isinstance(assign.value, Constant):
+            self.left = assign.value.value
+        self.operator = self.__to_op(op, self.left, self.right)
         self.parameters = frozenset(params)
         self.variables = frozenset(variables)
         self.constants = frozenset(constants)
@@ -51,21 +75,25 @@ class CodeOp(object):
         else:
             return None
 
-    def __to_opsymbol(self, op):
+    def __to_op(self, op: Optional[ast_operator], left: Any, right: Any) -> OpType:
         if isinstance(op, Mult):
-            return "*"
+            return OpType.Mult
         elif isinstance(op, Div):
-            return "/"
+            if left == 1:
+                return OpType.Inv
+            return OpType.Div
         elif isinstance(op, Add):
-            return "+"
+            return OpType.Add
         elif isinstance(op, Sub):
-            return "-"
+            return OpType.Sub
         elif isinstance(op, Pow):
-            return "^"
-        return ""
+            if right == 2:
+                return OpType.Sqr
+            return OpType.Pow
+        return OpType.Id
 
     def __str__(self):
-        return f"{self.result} = {self.left}{self.__to_opsymbol(self.operator)}{self.right}"
+        return f"{self.result} = {self.left if self.left is not None else ''}{self.operator.op_str}{self.right if self.right is not None else ''}"
 
     def __repr__(self):
         return f"CodeOp({self.result} = f(params={self.parameters}, vars={self.variables}, consts={self.constants}))"

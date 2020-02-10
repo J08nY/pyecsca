@@ -13,6 +13,7 @@ addons:
     packages:
       - libps4000
       - libps6000
+      - swig
 
 before_install:
   - git clone https://github.com/colinoflynn/pico-python

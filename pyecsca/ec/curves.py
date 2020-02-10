@@ -6,7 +6,7 @@ from .curve import EllipticCurve
 from .params import DomainParameters
 from .mod import Mod
 from .model import (ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel,
-                              EdwardsModel)
+                    EdwardsModel, CurveModel)
 from .point import Point, InfinityPoint
 
 
@@ -199,6 +199,7 @@ def get_curve(name: str, coords: str) -> DomainParameters:
     :param coords: The name of the coordinate system to use.
     :return: The curve.
     """
+    model: CurveModel
     if name in SHORT_WEIERSTRASS:
         params = SHORT_WEIERSTRASS[name]
         model = ShortWeierstrassModel()
