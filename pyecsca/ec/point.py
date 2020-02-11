@@ -3,9 +3,27 @@ from typing import Mapping, Any
 
 from public import public
 
-from .coordinates import CoordinateModel, AffineCoordinateModel
+from .context import Action
+from .coordinates import AffineCoordinateModel, CoordinateModel
 from .mod import Mod, Undefined
 from .op import CodeOp
+
+
+@public
+class CoordinateMappingAction(Action):
+    """A mapping of a point from one coordinate system to another one, usually one is an affine one."""
+    model_from: CoordinateModel
+    model_to: CoordinateModel
+    point: "Point"
+
+    def __init__(self, model_from: CoordinateModel, model_to: CoordinateModel, point: "Point"):
+        super().__init__()
+        self.model_from = model_from
+        self.model_to = model_to
+        self.point = point
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(from={self.model_from}, to={self.model_to}, {self.point})"
 
 
 @public
@@ -29,44 +47,46 @@ class Point(object):
 
     def to_affine(self) -> "Point":
         """Convert this point into the affine coordinate model, if possible."""
-        if isinstance(self.coordinate_model, AffineCoordinateModel):
-            return copy(self)
-        ops = set()
-        for s in self.coordinate_model.satisfying:
-            try:
-                ops.add(CodeOp(s))
-            except Exception:
-                pass
         affine_model = AffineCoordinateModel(self.coordinate_model.curve_model)
-        result_variables = set(map(lambda x: x.result, ops))
-        if not result_variables.issuperset(affine_model.variables):
-            raise NotImplementedError
-        result = {}
-        for op in ops:
-            if op.result not in affine_model.variables:
-                continue
-            result[op.result] = op(**self.coords)
-        return Point(affine_model, **result)
+        with CoordinateMappingAction(self.coordinate_model, affine_model, self):
+            if isinstance(self.coordinate_model, AffineCoordinateModel):
+                return copy(self)
+            ops = set()
+            for s in self.coordinate_model.satisfying:
+                try:
+                    ops.add(CodeOp(s))
+                except Exception:
+                    pass
+            result_variables = set(map(lambda x: x.result, ops))
+            if not result_variables.issuperset(affine_model.variables):
+                raise NotImplementedError
+            result = {}
+            for op in ops:
+                if op.result not in affine_model.variables:
+                    continue
+                result[op.result] = op(**self.coords)
+            return Point(affine_model, **result)
 
     @staticmethod
     def from_affine(coordinate_model: CoordinateModel, affine_point: "Point") -> "Point":
         """Convert an affine point into a given coordinate model, if possible."""
-        if not isinstance(affine_point.coordinate_model, AffineCoordinateModel):
-            raise ValueError
-        result = {}
-        n = affine_point.coords["x"].n
-        for var in coordinate_model.variables:  #  XXX: This just works for the stuff currently in EFD.
-            if var == "X":
-                result[var] = affine_point.coords["x"]
-            elif var == "Y":
-                result[var] = affine_point.coords["y"]
-            elif var.startswith("Z"):
-                result[var] = Mod(1, n)
-            elif var == "T":
-                result[var] = Mod(affine_point.coords["x"] * affine_point.coords["y"], n)
-            else:
-                raise NotImplementedError
-        return Point(coordinate_model, **result)
+        with CoordinateMappingAction(affine_point.coordinate_model, coordinate_model, affine_point):
+            if not isinstance(affine_point.coordinate_model, AffineCoordinateModel):
+                raise ValueError
+            result = {}
+            n = affine_point.coords["x"].n
+            for var in coordinate_model.variables:  #  XXX: This just works for the stuff currently in EFD.
+                if var == "X":
+                    result[var] = affine_point.coords["x"]
+                elif var == "Y":
+                    result[var] = affine_point.coords["y"]
+                elif var.startswith("Z"):
+                    result[var] = Mod(1, n)
+                elif var == "T":
+                    result[var] = Mod(affine_point.coords["x"] * affine_point.coords["y"], n)
+                else:
+                    raise NotImplementedError
+            return Point(coordinate_model, **result)
 
     def equals(self, other: Any) -> bool:
         """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""

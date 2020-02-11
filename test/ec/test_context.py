@@ -1,22 +1,9 @@
-import ast
 from unittest import TestCase
 
-from pyecsca.ec.context import (local, DefaultContext, OpResult, NullContext, getcontext,
-                                setcontext,
-                                resetcontext)
-from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.context import (local, DefaultContext, NullContext, getcontext,
+                                setcontext, resetcontext)
 from pyecsca.ec.curves import get_params
-from pyecsca.ec.mod import Mod
-from pyecsca.ec.mult import LTRMultiplier
-from pyecsca.ec.point import Point
-
-
-class OpResultTests(TestCase):
-
-    def test_str(self):
-        for op, char in zip((ast.Add(), ast.Sub(), ast.Mult(), ast.Div()), "+-*/"):
-            res = OpResult("X1", Mod(0, 5), op, Mod(2, 5), Mod(3, 5))
-            self.assertEqual(str(res), "X1")
+from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
 
 
 class ContextTests(TestCase):
@@ -40,16 +27,9 @@ class ContextTests(TestCase):
 
         with local(DefaultContext()) as ctx:
             self.mult.multiply(59)
-        self.assertEqual(len(ctx.actions), 10)
+        self.assertEqual(len(ctx.actions), 1)
+        self.assertIsInstance(next(iter(ctx.actions.keys())), ScalarMultiplicationAction)
         self.assertEqual(len(getcontext().actions), 0)
-
-    def test_execute(self):
-        with self.assertRaises(ValueError):
-            getcontext().execute(self.coords.formulas["z"], self.base, self.base)
-        with self.assertRaises(ValueError):
-            getcontext().execute(self.coords.formulas["z"],
-                                 Point(AffineCoordinateModel(self.secp128r1.curve.model),
-                                       x=Mod(1, 5), y=Mod(2, 5)))
 
     def test_str(self):
         with local(DefaultContext()) as default:

@@ -1,8 +1,10 @@
+import ast
 from ast import parse
 from unittest import TestCase
 
 from parameterized import parameterized
 
+from pyecsca.ec.formula import OpResult
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.op import CodeOp, OpType
 
@@ -35,3 +37,10 @@ class OpTests(TestCase):
         op = CodeOp(code)
         res = op(**locals)
         self.assertEqual(res, result)
+
+class OpResultTests(TestCase):
+
+    def test_str(self):
+        for op, char in zip((ast.Add(), ast.Sub(), ast.Mult(), ast.Div()), "+-*/"):
+            res = OpResult("X1", Mod(0, 5), op, Mod(2, 5), Mod(3, 5))
+            self.assertEqual(str(res), "X1")

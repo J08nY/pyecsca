@@ -1,11 +1,74 @@
 from ast import parse, Expression, Mult, Add, Sub, Pow, Div
 from itertools import product
-from typing import List, Set, Any, ClassVar, MutableMapping
+from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union
 
 from pkg_resources import resource_stream
 from public import public
 
-from .op import CodeOp
+from .context import Action
+from .mod import Mod
+from .op import CodeOp, OpType
+
+
+@public
+class OpResult(object):
+    """A result of an operation."""
+    parents: Tuple
+    op: OpType
+    name: str
+    value: Mod
+
+    def __init__(self, name: str, value: Mod, op: OpType, *parents: Any):
+        self.parents = tuple(parents)
+        self.name = name
+        self.value = value
+        self.op = op
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        char = self.op.op_str
+        parents = char.join(str(parent) for parent in self.parents)
+        return f"{self.name} = {parents}"
+
+
+@public
+class FormulaAction(Action):
+    """An execution of a formula, on some input points and parameters, with some outputs."""
+    formula: "Formula"
+    inputs: MutableMapping[str, Mod]
+    input_points: List[Any]
+    intermediates: MutableMapping[str, OpResult]
+    outputs: MutableMapping[str, OpResult]
+    output_points: List[Any]
+
+    def __init__(self, formula: "Formula", *points: Any,
+                 **inputs: Mod):
+        super().__init__()
+        self.formula = formula
+        self.inputs = inputs
+        self.intermediates = {}
+        self.outputs = {}
+        self.input_points = list(points)
+        self.output_points = []
+
+    def add_operation(self, op: CodeOp, value: Mod):
+        parents: List[Union[Mod, OpResult]] = []
+        for parent in {*op.variables, *op.parameters}:
+            if parent in self.intermediates:
+                parents.append(self.intermediates[parent])
+            elif parent in self.inputs:
+                parents.append(self.inputs[parent])
+        self.intermediates[op.result] = OpResult(op.result, value, op.operator, *parents)
+
+    def add_result(self, point: Any, **outputs: Mod):
+        for k in outputs:
+            self.outputs[k] = self.intermediates[k]
+        self.output_points.append(point)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.formula}, {self.input_points}) = {self.output_points}"
 
 
 class Formula(object):
@@ -19,6 +82,44 @@ class Formula(object):
     shortname: ClassVar[str]
     num_inputs: ClassVar[int]
     num_outputs: ClassVar[int]
+
+    def __call__(self, *points: Any, **params: Mod) -> Tuple[Any, ...]:
+        """
+        Execute a formula.
+
+        :param points: Points to pass into the formula.
+        :param params: Parameters of the curve.
+        :return: The resulting point(s).
+        """
+        from .point import Point
+        if len(points) != self.num_inputs:
+            raise ValueError(f"Wrong number of inputs for {self}.")
+        coords = {}
+        for i, point in enumerate(points):
+            if point.coordinate_model != self.coordinate_model:
+                raise ValueError(f"Wrong coordinate model of point {point}.")
+            for coord, value in point.coords.items():
+                coords[coord + str(i + 1)] = value
+        locals = {**coords, **params}
+        with FormulaAction(self, *points, **locals) as action:
+            for op in self.code:
+                op_result = op(**locals)
+                action.add_operation(op, op_result)
+                locals[op.result] = op_result
+            result = []
+            for i in range(self.num_outputs):
+                ind = str(i + self.output_index)
+                resulting = {}
+                full_resulting = {}
+                for variable in self.coordinate_model.variables:
+                    full_variable = variable + ind
+                    resulting[variable] = locals[full_variable]
+                    full_resulting[full_variable] = locals[full_variable]
+                point = Point(self.coordinate_model, **resulting)
+
+                action.add_result(point, **full_resulting)
+                result.append(point)
+            return tuple(result)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
@@ -51,22 +152,32 @@ class Formula(object):
     @property
     def num_multiplications(self) -> int:
         """Number of multiplications."""
-        return len(list(filter(lambda op: isinstance(op.operator, Mult), self.code)))
+        return len(list(filter(lambda op: op.operator == OpType.Mult, self.code)))
+
+    @property
+    def num_divisions(self) -> int:
+        """Number of divisions."""
+        return len(list(filter(lambda op: op.operator == OpType.Div, self.code)))
 
     @property
     def num_inversions(self) -> int:
         """Number of inversions."""
-        return len(list(filter(lambda op: isinstance(op.operator, Div), self.code)))
+        return len(list(filter(lambda op: op.operator == OpType.Inv, self.code)))
+
+    @property
+    def num_powers(self) -> int:
+        """Number of powers."""
+        return len(list(filter(lambda op: op.operator == OpType.Pow, self.code)))
 
     @property
     def num_squarings(self) -> int:
         """Number of squarings."""
-        return len(list(filter(lambda op: isinstance(op.operator, Pow), self.code)))
+        return len(list(filter(lambda op: op.operator == OpType.Sqr, self.code)))
 
     @property
     def num_addsubs(self) -> int:
         """Number of additions and subtractions."""
-        return len(list(filter(lambda op: isinstance(op.operator, (Add, Sub)), self.code)))
+        return len(list(filter(lambda op: op.operator == OpType.Add or op.operator == OpType.Sub, self.code)))
 
 
 class EFDFormula(Formula):

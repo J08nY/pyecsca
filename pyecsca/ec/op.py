@@ -6,6 +6,7 @@ from typing import FrozenSet, cast, Any, Optional
 
 from public import public
 
+from .context import Action
 from .mod import Mod
 
 
@@ -103,3 +104,13 @@ class CodeOp(object):
         loc = dict(kwargs)
         exec(self.compiled, {}, loc)
         return loc[self.result]
+
+
+@public
+class OperationAction(Action):
+    """An operation."""
+    operation: CodeOp
+
+    def __init__(self, operation: CodeOp):
+        super().__init__()
+        self.operation = operation

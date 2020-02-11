@@ -3,7 +3,9 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from pyecsca.ec.curves import get_params
-from pyecsca.ec.key_agreement import *
+from pyecsca.ec.key_agreement import (ECDH_NONE, ECDH_SHA1, ECDH_SHA224, ECDH_SHA256, ECDH_SHA384,
+                                      ECDH_SHA512)
+from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
 
 
@@ -14,11 +16,11 @@ class KeyAgreementTests(TestCase):
         self.add = self.secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
         self.dbl = self.secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
         self.mult = LTRMultiplier(self.add, self.dbl)
-        self.priv_a = 0xdeadbeef
+        self.priv_a = Mod(0xdeadbeef, self.secp128r1.order)
         self.mult.init(self.secp128r1, self.secp128r1.generator)
-        self.pub_a = self.mult.multiply(self.priv_a)
-        self.priv_b = 0xcafebabe
-        self.pub_b = self.mult.multiply(self.priv_b)
+        self.pub_a = self.mult.multiply(int(self.priv_a))
+        self.priv_b = Mod(0xcafebabe, self.secp128r1.order)
+        self.pub_b = self.mult.multiply(int(self.priv_b))
 
     @parameterized.expand([
         ("NONE", ECDH_NONE),

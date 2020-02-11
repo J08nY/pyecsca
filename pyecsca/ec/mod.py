@@ -1,6 +1,9 @@
+import secrets
 from functools import wraps
 
 from public import public
+
+from .context import Action
 
 
 @public
@@ -47,6 +50,18 @@ def check(func):
         return func(self, other)
 
     return method
+
+@public
+class RandomModAction(Action):
+    """A random sampling from Z_n."""
+    order: int
+
+    def __init__(self, order: int):
+        super().__init__()
+        self.order = order
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.order:x})"
 
 
 @public
@@ -119,6 +134,11 @@ class Mod(object):
     def __divmod__(self, divisor):
         q, r = divmod(self.x, divisor.x)
         return Mod(q, self.n), Mod(r, self.n)
+
+    @staticmethod
+    def random(n: int):
+        with RandomModAction(n):
+            return Mod(secrets.randbelow(n), n)
 
     def __int__(self):
         return self.x

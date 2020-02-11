@@ -1,10 +1,13 @@
-from hashlib import sha1
 from unittest import TestCase
 
-from pyecsca.ec.curves import get_params
-from pyecsca.ec.mult import LTRMultiplier
-from pyecsca.ec.signature import *
 from parameterized import parameterized
+
+from pyecsca.ec.curves import get_params
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.signature import (Signature, SignatureResult, ECDSA_NONE, ECDSA_SHA1, ECDSA_SHA224,
+                                  ECDSA_SHA256, ECDSA_SHA384, ECDSA_SHA512)
+
 
 class SignatureTests(TestCase):
 
@@ -14,9 +17,9 @@ class SignatureTests(TestCase):
         self.dbl = self.secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
         self.mult = LTRMultiplier(self.add, self.dbl)
         self.msg = 0xcafebabe.to_bytes(4, byteorder="big")
-        self.priv = 0xdeadbeef
+        self.priv = Mod(0xdeadbeef, self.secp128r1.order)
         self.mult.init(self.secp128r1, self.secp128r1.generator)
-        self.pub = self.mult.multiply(self.priv)
+        self.pub = self.mult.multiply(self.priv.x)
 
     @parameterized.expand([
         ("SHA1", ECDSA_SHA1),
