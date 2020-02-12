@@ -1,8 +1,6 @@
 from unittest import TestCase
 
 from pyecsca.ec.curves import get_params
-from pyecsca.ec.key_generation import KeyGeneration
-from pyecsca.ec.mult import LTRMultiplier
 
 
 class FormulaTests(TestCase):

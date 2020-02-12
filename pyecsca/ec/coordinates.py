@@ -1,8 +1,9 @@
 from ast import parse, Expression, Module
-from typing import List, Any, MutableMapping
 from os.path import join
+from typing import List, Any, MutableMapping
 
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
+from public import public
 
 from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormula,
                       TriplingEFDFormula,
@@ -10,6 +11,7 @@ from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormul
                       NegationEFDFormula)
 
 
+@public
 class CoordinateModel(object):
     name: str
     full_name: str
@@ -24,6 +26,7 @@ class CoordinateModel(object):
         return f"{self.__class__.__name__}(\"{self.name}\" on {self.curve_model.name})"
 
 
+@public
 class AffineCoordinateModel(CoordinateModel):
     name = "affine"
     full_name = "Affine coordinates"

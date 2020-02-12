@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from ast import parse, Expression, Mult, Add, Sub, Pow, Div
 from itertools import product
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union
@@ -71,7 +72,7 @@ class FormulaAction(Action):
         return f"{self.__class__.__name__}({self.formula}, {self.input_points}) = {self.output_points}"
 
 
-class Formula(object):
+class Formula(ABC):
     """A formula operating on points."""
     name: str
     coordinate_model: Any
@@ -125,24 +126,28 @@ class Formula(object):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
 
     @property
+    @abstractmethod
     def input_index(self):
         """The starting index where this formula reads its inputs."""
-        raise NotImplementedError
+        ...
 
     @property
+    @abstractmethod
     def output_index(self) -> int:
         """The starting index where this formula stores its outputs."""
-        raise NotImplementedError
+        ...
 
     @property
+    @abstractmethod
     def inputs(self) -> Set[str]:
         """The input variables of the formula."""
-        raise NotImplementedError
+        ...
 
     @property
+    @abstractmethod
     def outputs(self) -> Set[str]:
         """The output variables of the formula."""
-        raise NotImplementedError
+        ...
 
     @property
     def num_operations(self) -> int:

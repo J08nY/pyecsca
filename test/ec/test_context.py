@@ -1,9 +1,46 @@
 from unittest import TestCase
 
 from pyecsca.ec.context import (local, DefaultContext, NullContext, getcontext,
-                                setcontext, resetcontext)
+                                setcontext, resetcontext, Tree)
 from pyecsca.ec.curves import get_params
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
+
+
+class TreeTests(TestCase):
+
+    def test_walk_by_key(self):
+        tree = Tree()
+        tree["a"] = Tree()
+        tree["a"]["1"] = Tree()
+        tree["a"]["2"] = Tree()
+        self.assertIn("a", tree)
+        self.assertIsInstance(tree.get_by_key([]), Tree)
+        self.assertIsInstance(tree.get_by_key(["a"]), Tree)
+        self.assertIsInstance(tree.get_by_key(["a", "1"]), Tree)
+
+    def test_walk_by_index(self):
+        tree = Tree()
+        a = Tree()
+        tree["a"] = a
+        d = Tree()
+        b = Tree()
+        tree["a"]["d"] = d
+        tree["a"]["b"] = b
+        self.assertIn("a", tree)
+        with self.assertRaises(ValueError):
+            tree.get_by_index([])
+
+        self.assertEqual(tree.get_by_index([0]), ("a", a))
+        self.assertEqual(tree.get_by_index([0, 0]), ("d", d))
+
+    def test_repr(self):
+        tree = Tree()
+        tree["a"] = Tree()
+        tree["a"]["1"] = Tree()
+        tree["a"]["2"] = Tree()
+        txt = tree.repr()
+        self.assertEqual(txt.count("\t"), 2)
+        self.assertEqual(txt.count("\n"), 3)
 
 
 class ContextTests(TestCase):

@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from copy import copy
 from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
 
@@ -26,7 +27,7 @@ class ScalarMultiplicationAction(Action):
         return f"{self.__class__.__name__}({self.point}, {self.scalar})"
 
 
-class ScalarMultiplier(object):
+class ScalarMultiplier(ABC):
     """
     A scalar multiplication algorithm.
 
@@ -106,9 +107,10 @@ class ScalarMultiplier(object):
         self._point = point
         self._initialized = True
 
+    @abstractmethod
     def multiply(self, scalar: int) -> Point:
         """Multiply the point with the scalar."""
-        raise NotImplementedError
+        ...
 
 
 @public

@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional
 
@@ -36,14 +37,16 @@ class ResponseAPDU(object):
 
 
 @public
-class ISO7816Target(Target):
+class ISO7816Target(Target, ABC):
     """An ISO7816-4 target."""
 
     @property
+    @abstractmethod
     def atr(self) -> bytes:
         """The ATR (Answer To Reset) of the target."""
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def select(self, aid: bytes) -> bool:
         """
         Select an applet with `aid`.
@@ -51,8 +54,9 @@ class ISO7816Target(Target):
         :param aid: The AID of the applet to select.
         :return: Whether the selection was successful.
         """
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def send_apdu(self, apdu: CommandAPDU) -> ResponseAPDU:
         """
         Send an APDU to the selected applet.
@@ -60,4 +64,4 @@ class ISO7816Target(Target):
         :param apdu: The APDU to send.
         :return: The response.
         """
-        raise NotImplementedError
+        ...
