@@ -2,3 +2,6 @@
 	path = pyecsca/ec/std
 	url = https://github.com/J08nY/std-curves
 	branch = data
+[submodule "notebook"]
+	path = notebook
+	url = https://github.com/J08nY/pyecsca-notebook
