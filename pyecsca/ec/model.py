@@ -8,6 +8,7 @@ from .coordinates import EFDCoordinateModel, CoordinateModel
 
 
 class CurveModel(object):
+    """A model(form) of an elliptic curve."""
     name: str
     coordinates: MutableMapping[str, CoordinateModel]
     parameter_names: List[str]

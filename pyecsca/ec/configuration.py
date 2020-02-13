@@ -23,6 +23,10 @@ class EnumDefine(Enum):
     def names(cls):
         return list(e.name for e in cls)
 
+    @classmethod
+    def values(cls):
+        return list(e.value for e in cls)
+
 
 @public
 class Multiplication(EnumDefine):
@@ -71,7 +75,7 @@ class RandomMod(EnumDefine):
 @public
 @dataclass(frozen=True)
 class Configuration(object):
-    """An ECC implementation."""
+    """An ECC implementation configuration."""
     model: CurveModel
     coords: CoordinateModel
     formulas: Set[Formula]
@@ -85,6 +89,24 @@ class Configuration(object):
 
 @public
 def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None]:
+    """
+    Get all implementation configurations that match the given `kwargs`.
+    The keys in `kwargs` should be some of the attributes in the :py:class:`Configuration`,
+    and the values limit the returned configurations to configuration matching them.
+
+    .. note::
+        The `formulas` attribute is unsupported and formulas should be provided using the `scalarmult`
+        attribute, which is either a subclass of the :py:class:`ScalarMultiplier` class or an instance
+        of it or a dictionary giving arguments to a constructor of some :py:class:`ScalarMultiplier`
+        subclass.
+
+    .. warning::
+        The returned number of configurations might be quite large and take up significant
+        memory space.
+
+    :param kwargs: The configuration parameters to match.
+    :return: A generator of the configurations
+    """
     def is_optional(arg_type):
         return get_origin(arg_type) == Union and len(get_args(arg_type)) == 2 and \
                get_args(arg_type)[1] == type(None)
@@ -163,6 +185,8 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
             if "scalarmult" in kwargs:
                 if isinstance(kwargs["scalarmult"], ScalarMultiplier):
                     mults = [kwargs["scalarmult"]]
+                    if not set(kwargs["scalarmult"].formulas.values()).issubset(coords_formulas):
+                        continue
                 elif isinstance(kwargs["scalarmult"], type) and issubclass(kwargs["scalarmult"],
                                                                            ScalarMultiplier):
                     mult_classes = list(

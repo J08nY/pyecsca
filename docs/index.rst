@@ -5,7 +5,7 @@ pyecsca [pɪɛtska]
 .. image:: https://img.shields.io/badge/-Github-brightgreen?style=flat&logo=github
    :target: https://github.com/J08nY/pyecsca
 .. image:: https://img.shields.io/travis/J08nY/pyecsca
-   :target: https://travis-ci.org/J08nY/pyecsca
+   :target: https://travis-ci.com/J08nY/pyecsca
 .. image:: https://img.shields.io/github/license/J08nY/pyecsca.svg
    :target: https://github.com/J08nY/pyecsca/blob/master/LICENSE
 .. image:: https://codecov.io/gh/J08nY/pyecsca/branch/master/graph/badge.svg
@@ -28,6 +28,15 @@ API
    :maxdepth: 3
 
    api/modules
+
+Notebooks
+=========
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   notebook/configuration_space
 
 
 Requirements
@@ -56,7 +65,7 @@ Testing
  - nose2_
  - green_
  - mypy_
- - flake8
+ - flake8_
  - coverage_
 
 Docs
@@ -64,6 +73,7 @@ Docs
 
  - sphinx_
  - sphinx-autodoc-typehints_
+ - nbsphinx_
 
 License
 =======
@@ -109,5 +119,6 @@ this support is very appreciated.
 .. _coverage: https://coverage.readthedocs.io/
 .. _sphinx: https://www.sphinx-doc.org/
 .. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
+.. _nbsphinx: https://nbsphinx.readthedocs.io/
 .. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
 .. _Riscure: https://www.riscure.com/

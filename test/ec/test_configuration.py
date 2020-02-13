@@ -4,10 +4,19 @@ from pyecsca.ec.configuration import (all_configurations, HashType, RandomMod, M
                                       Squaring, Reduction)
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.mult import LTRMultiplier
-from test.sca.utils import slow
+from .utils import slow
 
 
 class ConfigurationTests(TestCase):
+
+    def base_independents(self):
+        return {
+            "hash_type": HashType.SHA1,
+            "mod_rand": RandomMod.SAMPLE,
+            "mult": Multiplication.BASE,
+            "sqr": Squaring.BASE,
+            "red": Reduction.BASE
+        }
 
     @slow
     def test_all(self):
@@ -16,18 +25,18 @@ class ConfigurationTests(TestCase):
             j += 1
         print(j)
 
+    def test_weierstrass_projective(self):
+        model = ShortWeierstrassModel()
+        coords = model.coordinates["projective"]
+        configs = list(all_configurations(model=model, coords=coords, **self.base_independents()))
+        self.assertEqual(len(configs), 1344)
+
     def test_mult_class(self):
         model = ShortWeierstrassModel()
         coords = model.coordinates["projective"]
         scalarmult = LTRMultiplier
-        hash_type = HashType.SHA1
-        mod_rand = RandomMod.SAMPLE
-        mult = Multiplication.BASE
-        sqr = Squaring.BASE
-        red = Reduction.BASE
         configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult,
-                                          hash_type=hash_type, mod_rand=mod_rand, mult=mult,
-                                          sqr=sqr, red=red))
+                                          **self.base_independents()))
         self.assertEqual(len(configs), 384)
 
     def test_one(self):
@@ -42,12 +51,14 @@ class ConfigurationTests(TestCase):
             "complete": False,
             "short_circuit": True
         }
-        hash_type = HashType.SHA1
-        mod_rand = RandomMod.SAMPLE
-        mult = Multiplication.BASE
-        sqr = Squaring.BASE
-        red = Reduction.BASE
         configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult,
-                                          hash_type=hash_type, mod_rand=mod_rand, mult=mult,
-                                          sqr=sqr, red=red))
+                                          **self.base_independents()))
+        self.assertEqual(len(configs), 1)
+        scalarmult = LTRMultiplier(coords.formulas["add-1998-cmo"], coords.formulas["dbl-1998-cmo"],
+                                   None, True, False, True)
+        configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult,
+                                          **self.base_independents()))
+        self.assertEqual(len(configs), 1)
+        configs = list(all_configurations(model=model, scalarmult=scalarmult,
+                                          **self.base_independents()))
         self.assertEqual(len(configs), 1)

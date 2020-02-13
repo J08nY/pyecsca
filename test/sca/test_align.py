@@ -3,7 +3,7 @@ from unittest import TestCase
 import numpy as np
 from pyecsca.sca import align_correlation, align_peaks, align_sad, align_dtw_scale,\
     align_dtw, Trace, InspectorTraceSet
-from .utils import slow, plot
+from .utils import plot, slow
 
 
 class AlignTests(TestCase):

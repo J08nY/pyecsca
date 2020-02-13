@@ -13,6 +13,7 @@ from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormul
 
 @public
 class CoordinateModel(object):
+    """A coordinate system for a particular model(form) of an elliptic curve."""
     name: str
     full_name: str
     curve_model: Any
