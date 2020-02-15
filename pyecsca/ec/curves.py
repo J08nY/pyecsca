@@ -1,6 +1,5 @@
 import json
 from os.path import join
-from typing import Mapping, Any
 
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
@@ -12,6 +11,7 @@ from .model import (ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel,
                     EdwardsModel, CurveModel)
 from .params import DomainParameters
 from .point import Point, InfinityPoint
+
 
 @public
 def get_params(category: str, name: str, coords: str) -> DomainParameters:
@@ -65,4 +65,5 @@ def get_params(category: str, name: str, coords: str) -> DomainParameters:
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
     generator = Point.from_affine(coord_model, affine)
-    return DomainParameters(elliptic_curve, generator, InfinityPoint(coord_model), order, cofactor)
+    return DomainParameters(elliptic_curve, generator, InfinityPoint(coord_model), order, cofactor,
+                            name, category)

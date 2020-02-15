@@ -44,6 +44,9 @@ class EllipticCurve(object):
             return False
         return self.model == other.model and self.coordinate_model == other.coordinate_model and self.prime == other.prime and self.parameters == other.parameters
 
+    def __str__(self):
+        return "EllipticCurve"
+
     def __repr__(self):
         params = ", ".join((f"{key}={val}" for key, val in self.parameters.items()))
-        return f"EllipticCurve([{params}] on {self.model} using {self.coordinate_model})"
+        return f"{self.__class__.__name__}([{params}] on {self.model} using {self.coordinate_model})"

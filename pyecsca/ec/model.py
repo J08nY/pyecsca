@@ -99,6 +99,9 @@ class EFDCurveModel(CurveModel):
     def __hash__(self):
         return hash(self._efd_name) + 1
 
+    def __str__(self):
+        return f"{self.__class__.__name__.replace('Model', '')}"
+
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 

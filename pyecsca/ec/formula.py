@@ -68,6 +68,9 @@ class FormulaAction(Action):
             self.outputs[k] = self.intermediates[k]
         self.output_points.append(point)
 
+    def __str__(self):
+        return f"{self.__class__.__name__}({self.formula})"
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.formula}, {self.input_points}) = {self.output_points}"
 
@@ -121,6 +124,9 @@ class Formula(ABC):
                 action.add_result(point, **full_resulting)
                 result.append(point)
             return tuple(result)
+
+    def __str__(self):
+        return f"{self.shortname}[{self.name}]"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"

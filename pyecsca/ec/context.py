@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, ABC
+from abc import abstractmethod, ABC
 from collections import OrderedDict
 from contextvars import ContextVar, Token
 from copy import deepcopy
@@ -143,7 +143,7 @@ class DefaultContext(Context):
         self.current = []
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.actions}, current={self.current})"
+        return f"{self.__class__.__name__}({self.actions!r}, current={self.current!r})"
 
 
 _actual_context: ContextVar[Context] = ContextVar("operational_context", default=NullContext())
