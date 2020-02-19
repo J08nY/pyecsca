@@ -8,7 +8,7 @@ from .point import Point
 
 @public
 class DomainParameters(object):
-    """A (sub)group of an elliptic curve."""
+    """Domain parameters which specify a subgroup on an elliptic curve."""
     curve: EllipticCurve
     generator: Point
     neutral: Point

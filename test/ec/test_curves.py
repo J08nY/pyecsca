@@ -17,9 +17,9 @@ class CurvesTests(TestCase):
         ("other/E-222", "projective")
     ])
     def test_get_params(self, name, coords):
-        group = get_params(*name.split("/"), coords)
+        params = get_params(*name.split("/"), coords)
         try:
-            assert group.curve.is_on_curve(group.generator)
+            assert params.curve.is_on_curve(params.generator)
         except NotImplementedError:
             pass
 

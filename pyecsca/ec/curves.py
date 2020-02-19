@@ -60,7 +60,14 @@ def get_params(category: str, name: str, coords: str) -> DomainParameters:
     if coords not in model.coordinates:
         raise ValueError("Coordinate model not supported for curve.")
     coord_model = model.coordinates[coords]
-    params = {name: int(curve["params"][name], 16) for name in param_names}
+    params = {name: Mod(int(curve["params"][name], 16), field) for name in param_names}
+    for assumption in coord_model.assumptions:
+        locals = {}
+        compiled = compile(assumption, "", mode="exec")
+        exec(compiled, None, locals)
+        for param, value in locals.items():
+            if params[param] != value:
+                raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
     elliptic_curve = EllipticCurve(model, coord_model, field, params)
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))

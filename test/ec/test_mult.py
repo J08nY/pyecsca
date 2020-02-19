@@ -30,17 +30,17 @@ class ScalarMultiplierTests(TestCase):
         else:
             assert one.equals(other)
 
-    def do_basic_test(self, mult_class, group, base, add, dbl, scale, neg=None, **kwargs):
-        mult = mult_class(*self.get_formulas(group.curve.coordinate_model, add, dbl, neg, scale),
+    def do_basic_test(self, mult_class, params, base, add, dbl, scale, neg=None, **kwargs):
+        mult = mult_class(*self.get_formulas(params.curve.coordinate_model, add, dbl, neg, scale),
                           **kwargs)
-        mult.init(group, base)
+        mult.init(params, base)
         res = mult.multiply(314)
         other = mult.multiply(157)
-        mult.init(group, other)
+        mult.init(params, other)
         other = mult.multiply(2)
         self.assertPointEquality(res, other, scale)
-        mult.init(group, base)
-        self.assertEqual(InfinityPoint(group.curve.coordinate_model), mult.multiply(0))
+        mult.init(params, base)
+        self.assertEqual(InfinityPoint(params.curve.coordinate_model), mult.multiply(0))
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),

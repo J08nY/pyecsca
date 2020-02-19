@@ -39,7 +39,7 @@ class ScalarMultiplier(ABC):
     optionals: ClassVar[Set[Type[Formula]]]
     short_circuit: bool
     formulas: Mapping[str, Formula]
-    _group: DomainParameters
+    _params: DomainParameters
     _point: Point
     _initialized: bool = False
 
@@ -54,56 +54,56 @@ class ScalarMultiplier(ABC):
         if "add" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if one == self._group.neutral:
+            if one == self._params.neutral:
                 return copy(other)
-            if other == self._group.neutral:
+            if other == self._params.neutral:
                 return copy(one)
-        return self.formulas["add"](one, other, **self._group.curve.parameters)[0]
+        return self.formulas["add"](one, other, **self._params.curve.parameters)[0]
 
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if point == self._group.neutral:
+            if point == self._params.neutral:
                 return copy(point)
-        return self.formulas["dbl"](point, **self._group.curve.parameters)[0]
+        return self.formulas["dbl"](point, **self._params.curve.parameters)[0]
 
     def _scl(self, point: Point) -> Point:
         if "scl" not in self.formulas:
             raise NotImplementedError
-        return self.formulas["scl"](point, **self._group.curve.parameters)[0]
+        return self.formulas["scl"](point, **self._params.curve.parameters)[0]
 
     def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, ...]:
         if "ladd" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if to_dbl == self._group.neutral:
+            if to_dbl == self._params.neutral:
                 return to_dbl, to_add
-            if to_add == self._group.neutral:
+            if to_add == self._params.neutral:
                 return self._dbl(to_dbl), to_dbl
-        return self.formulas["ladd"](start, to_dbl, to_add, **self._group.curve.parameters)
+        return self.formulas["ladd"](start, to_dbl, to_add, **self._params.curve.parameters)
 
     def _dadd(self, start: Point, one: Point, other: Point) -> Point:
         if "dadd" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if one == self._group.neutral:
+            if one == self._params.neutral:
                 return copy(other)
-            if other == self._group.neutral:
+            if other == self._params.neutral:
                 return copy(one)
-        return self.formulas["dadd"](start, one, other, **self._group.curve.parameters)[0]
+        return self.formulas["dadd"](start, one, other, **self._params.curve.parameters)[0]
 
     def _neg(self, point: Point) -> Point:
         if "neg" not in self.formulas:
             raise NotImplementedError
-        return self.formulas["neg"](point, **self._group.curve.parameters)[0]
+        return self.formulas["neg"](point, **self._params.curve.parameters)[0]
 
-    def init(self, group: DomainParameters, point: Point):
-        """Initialize the scalar multiplier with a group and a point."""
+    def init(self, params: DomainParameters, point: Point):
+        """Initialize the scalar multiplier with params and a point."""
         coord_model = set(self.formulas.values()).pop().coordinate_model
-        if group.curve.coordinate_model != coord_model or point.coordinate_model != coord_model:
+        if params.curve.coordinate_model != coord_model or point.coordinate_model != coord_model:
             raise ValueError
-        self._group = group
+        self._params = params
         self._point = point
         self._initialized = True
 
@@ -137,11 +137,11 @@ class LTRMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             if self.complete:
                 q = self._point
-                r = copy(self._group.neutral)
-                top = self._group.order.bit_length() - 1
+                r = copy(self._params.neutral)
+                top = self._params.order.bit_length() - 1
             else:
                 q = self._dbl(self._point)
                 r = copy(self._point)
@@ -178,9 +178,9 @@ class RTLMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             q = self._point
-            r = copy(self._group.neutral)
+            r = copy(self._params.neutral)
             while scalar > 0:
                 if scalar & 1 != 0:
                     r = self._add(r, q)
@@ -213,7 +213,7 @@ class CoronMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             q = self._point
             p0 = copy(q)
             for i in range(scalar.bit_length() - 2, -1, -1):
@@ -247,12 +247,12 @@ class LadderMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             q = self._point
             if self.complete:
-                p0 = copy(self._group.neutral)
+                p0 = copy(self._params.neutral)
                 p1 = self._point
-                top = self._group.order.bit_length() - 1
+                top = self._params.order.bit_length() - 1
             else:
                 p0 = copy(q)
                 p1 = self._dbl(q)
@@ -286,12 +286,12 @@ class SimpleLadderMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             if self.complete:
-                top = self._group.order.bit_length() - 1
+                top = self._params.order.bit_length() - 1
             else:
                 top = scalar.bit_length() - 1
-            p0 = copy(self._group.neutral)
+            p0 = copy(self._params.neutral)
             p1 = copy(self._point)
             for i in range(top, -1, -1):
                 if scalar & (1 << i) == 0:
@@ -324,13 +324,13 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             if self.complete:
-                top = self._group.order.bit_length() - 1
+                top = self._params.order.bit_length() - 1
             else:
                 top = scalar.bit_length() - 1
             q = self._point
-            p0 = copy(self._group.neutral)
+            p0 = copy(self._params.neutral)
             p1 = copy(q)
             for i in range(top, -1, -1):
                 if scalar & (1 << i) == 0:
@@ -355,8 +355,8 @@ class BinaryNAFMultiplier(ScalarMultiplier):
                  neg: NegationFormula, scl: ScalingFormula = None, short_circuit: bool = True):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
 
-    def init(self, group: DomainParameters, point: Point):
-        super().init(group, point)
+    def init(self, params: DomainParameters, point: Point):
+        super().init(params, point)
         self._point_neg = self._neg(point)
 
     def multiply(self, scalar: int) -> Point:
@@ -364,9 +364,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             bnaf = naf(scalar)
-            q = copy(self._group.neutral)
+            q = copy(self._params.neutral)
             for val in bnaf:
                 q = self._dbl(q)
                 if val == 1:
@@ -395,8 +395,8 @@ class WindowNAFMultiplier(ScalarMultiplier):
         self.width = width
         self.precompute_negation = precompute_negation
 
-    def init(self, group: DomainParameters, point: Point):
-        super().init(group, point)
+    def init(self, params: DomainParameters, point: Point):
+        super().init(params, point)
         self._points = {}
         self._points_neg = {}
         current_point = point
@@ -412,9 +412,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._group.neutral)
+                return copy(self._params.neutral)
             naf = wnaf(scalar, self.width)
-            q = copy(self._group.neutral)
+            q = copy(self._params.neutral)
             for val in naf:
                 q = self._dbl(q)
                 if val > 0:

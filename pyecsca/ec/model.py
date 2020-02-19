@@ -10,6 +10,7 @@ from .coordinates import EFDCoordinateModel, CoordinateModel
 class CurveModel(object):
     """A model(form) of an elliptic curve."""
     name: str
+    shortname: str
     coordinates: MutableMapping[str, CoordinateModel]
     parameter_names: List[str]
     coordinate_names: List[str]
@@ -34,6 +35,7 @@ class EFDCurveModel(CurveModel):
 
     def __init__(self, efd_name: str):
         self._efd_name = efd_name
+        self.shortname = efd_name
         if self._loaded:
             return
         self.__class__._loaded = True
@@ -90,6 +92,10 @@ class EFDCurveModel(CurveModel):
 
     def __read_coordinate_dir(self, cls, dir_path, name):
         cls.coordinates[name] = EFDCoordinateModel(dir_path, name, self)
+
+    @classmethod
+    def add(cls, one, other):
+        pass
 
     def __eq__(self, other):
         if not isinstance(other, EFDCurveModel):

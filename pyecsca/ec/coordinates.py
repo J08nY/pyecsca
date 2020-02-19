@@ -20,7 +20,7 @@ class CoordinateModel(object):
     variables: List[str]
     satisfying: List[Module]
     parameters: List[str]
-    assumptions: List[Expression]
+    assumptions: List[Module]
     formulas: MutableMapping[str, Formula]
 
     def __repr__(self):
@@ -99,7 +99,7 @@ class EFDCoordinateModel(CoordinateModel):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
                     self.assumptions.append(
-                            parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
+                            parse(line[7:].replace("^", "**"), mode="exec"))
                 line = f.readline().decode("ascii")
 
     def __eq__(self, other):
