@@ -38,10 +38,10 @@ class Tree(OrderedDict):
         if len(path) == 0:
             return self
         value = self[path[0]]
-        if isinstance(value, Tree):
-            return value.get_by_key(path[1:])
-        elif len(path) == 1:
+        if len(path) == 1:
             return value
+        elif isinstance(value, Tree):
+            return value.get_by_key(path[1:])
         else:
             raise ValueError
 
@@ -134,7 +134,7 @@ class DefaultContext(Context):
         self.current.append(action)
 
     def exit_action(self, action: Action) -> None:
-        if self.current[-1] != action:
+        if len(self.current) < 1 or self.current[-1] != action:
             raise ValueError
         self.current.pop()
 

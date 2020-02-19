@@ -17,3 +17,6 @@ class DomainParameterTests(TestCase):
         self.assertEqual(self.secp128r1, self.secp128r1)
         self.assertNotEqual(self.secp128r1, self.curve25519)
         self.assertNotEqual(self.secp128r1, None)
+
+    def test_str(self):
+        self.assertEqual(str(self.secp128r1), "DomainParameters(secg/secp128r1)")

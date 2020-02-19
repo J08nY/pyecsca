@@ -3,6 +3,7 @@ from unittest import TestCase
 from pyecsca.ec.context import (local, DefaultContext, NullContext, getcontext,
                                 setcontext, resetcontext, Tree)
 from pyecsca.ec.curves import get_params
+from pyecsca.ec.mod import RandomModAction
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
 
 
@@ -67,6 +68,11 @@ class ContextTests(TestCase):
         self.assertEqual(len(ctx.actions), 1)
         self.assertIsInstance(next(iter(ctx.actions.keys())), ScalarMultiplicationAction)
         self.assertEqual(len(getcontext().actions), 0)
+
+    def test_default_no_enter(self):
+        with local(DefaultContext()) as default:
+            with self.assertRaises(ValueError):
+                default.exit_action(RandomModAction(7))
 
     def test_str(self):
         with local(DefaultContext()) as default:

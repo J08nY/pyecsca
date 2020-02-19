@@ -1,8 +1,9 @@
 from ast import parse, Expression, Module
 from os.path import join
+from typing import List, MutableMapping
+
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
-from typing import List, MutableMapping
 
 from .coordinates import EFDCoordinateModel, CoordinateModel
 
@@ -22,11 +23,6 @@ class CurveModel(object):
     full_weierstrass: List[Module]
     to_weierstrass: List[Module]
     from_weierstrass: List[Module]
-
-    # TODO: move the base_formulas into methods, operatin on affine points?
-    #       Also to_weierstrass anf from_weierstrass.
-
-    # TODO: __eq__
 
 
 class EFDCurveModel(CurveModel):
@@ -92,10 +88,6 @@ class EFDCurveModel(CurveModel):
 
     def __read_coordinate_dir(self, cls, dir_path, name):
         cls.coordinates[name] = EFDCoordinateModel(dir_path, name, self)
-
-    @classmethod
-    def add(cls, one, other):
-        pass
 
     def __eq__(self, other):
         if not isinstance(other, EFDCurveModel):

@@ -31,3 +31,12 @@ class CurvesTests(TestCase):
     def test_unknown(self, name, coords):
         with self.assertRaises(ValueError):
             get_params(*name.split("/"), coords)
+
+    def test_assumption(self):
+        with self.assertRaises(ValueError):
+            get_params("secg", "secp128r1", "projective-1")
+        self.assertIsNotNone(get_params("secg", "secp128r1", "projective-3"))
+
+    def test_no_binary(self):
+        with self.assertRaises(ValueError):
+            get_params("secg", "sect163r1", "something")

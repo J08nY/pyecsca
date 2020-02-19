@@ -143,7 +143,7 @@ class LTRMultiplier(ScalarMultiplier):
                 r = copy(self._params.neutral)
                 top = self._params.order.bit_length() - 1
             else:
-                q = self._dbl(self._point)
+                q = copy(self._point) # self._dbl(self._point)
                 r = copy(self._point)
                 top = scalar.bit_length() - 2
             for i in range(top, -1, -1):

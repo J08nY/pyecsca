@@ -41,6 +41,7 @@ class ScalarMultiplierTests(TestCase):
         self.assertPointEquality(res, other, scale)
         mult.init(params, base)
         self.assertEqual(InfinityPoint(params.curve.coordinate_model), mult.multiply(0))
+        return res
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
@@ -54,12 +55,17 @@ class ScalarMultiplierTests(TestCase):
         ("none", "add-1998-cmo", "dbl-1998-cmo", None)
     ])
     def test_ltr(self, name, add, dbl, scale):
-        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale)
-        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True)
-        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale,
-                           complete=False)
-        self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale, always=True,
-                           complete=False)
+        a = self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale)
+        b = self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale,
+                               always=True)
+        c = self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale,
+                               complete=False)
+        d = self.do_basic_test(LTRMultiplier, self.secp128r1, self.base, add, dbl, scale,
+                               always=True,
+                               complete=False)
+        self.assertPointEquality(a, b, scale)
+        self.assertPointEquality(b, c, scale)
+        self.assertPointEquality(c, d, scale)
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
@@ -69,10 +75,11 @@ class ScalarMultiplierTests(TestCase):
         self.do_basic_test(CoronMultiplier, self.secp128r1, self.base, add, dbl, scale)
 
     def test_ladder(self):
-        self.do_basic_test(LadderMultiplier, self.curve25519, self.base25519, "ladd-1987-m",
-                           "dbl-1987-m", "scale")
-        self.do_basic_test(LadderMultiplier, self.curve25519, self.base25519, "ladd-1987-m",
-                           "dbl-1987-m", "scale", complete=False)
+        a = self.do_basic_test(LadderMultiplier, self.curve25519, self.base25519, "ladd-1987-m",
+                               "dbl-1987-m", "scale")
+        b = self.do_basic_test(LadderMultiplier, self.curve25519, self.base25519, "ladd-1987-m",
+                               "dbl-1987-m", "scale", complete=False)
+        self.assertPointEquality(a, b, True)
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
@@ -82,16 +89,21 @@ class ScalarMultiplierTests(TestCase):
         self.do_basic_test(SimpleLadderMultiplier, self.secp128r1, self.base, add, dbl, scale)
 
     @parameterized.expand([
-        ("10", 15),
-        ("2355498743", 2355498743,)
+        ("10", 15, True),
+        ("10", 15, False),
+        ("2355498743", 2355498743, True),
+        ("2355498743", 2355498743, False),
+        ("325385790209017329644351321912443757746", 325385790209017329644351321912443757746, True),
+        ("325385790209017329644351321912443757746", 325385790209017329644351321912443757746, False)
     ])
-    def test_ladder_differential(self, name, num):
+    def test_ladder_differential(self, name, num, complete):
         ladder = LadderMultiplier(self.coords25519.formulas["ladd-1987-m"],
                                   self.coords25519.formulas["dbl-1987-m"],
-                                  self.coords25519.formulas["scale"])
+                                  self.coords25519.formulas["scale"], complete=complete)
         differential = DifferentialLadderMultiplier(self.coords25519.formulas["dadd-1987-m"],
                                                     self.coords25519.formulas["dbl-1987-m"],
-                                                    self.coords25519.formulas["scale"])
+                                                    self.coords25519.formulas["scale"],
+                                                    complete=complete)
         ladder.init(self.curve25519, self.base25519)
         res_ladder = ladder.multiply(num)
         differential.init(self.curve25519, self.base25519)
@@ -130,15 +142,20 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("10", 10),
-        ("2355498743", 2355498743,)
+        ("2355498743", 2355498743),
+        ("325385790209017329644351321912443757746", 325385790209017329644351321912443757746)
     ])
     def test_basic_multipliers(self, name, num):
         ltr = LTRMultiplier(self.coords.formulas["add-1998-cmo"],
                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+        with self.assertRaises(ValueError):
+            ltr.multiply(1)
         ltr.init(self.secp128r1, self.base)
         res_ltr = ltr.multiply(num)
         rtl = RTLMultiplier(self.coords.formulas["add-1998-cmo"],
                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+        with self.assertRaises(ValueError):
+            rtl.multiply(1)
         rtl.init(self.secp128r1, self.base)
         res_rtl = rtl.multiply(num)
         self.assertEqual(res_ltr, res_rtl)
@@ -159,6 +176,8 @@ class ScalarMultiplierTests(TestCase):
         bnaf = BinaryNAFMultiplier(self.coords.formulas["add-1998-cmo"],
                                    self.coords.formulas["dbl-1998-cmo"],
                                    self.coords.formulas["neg"], self.coords.formulas["z"])
+        with self.assertRaises(ValueError):
+            bnaf.multiply(1)
         bnaf.init(self.secp128r1, self.base)
         res_bnaf = bnaf.multiply(num)
         self.assertEqual(res_bnaf, res_ltr)
@@ -166,6 +185,8 @@ class ScalarMultiplierTests(TestCase):
         wnaf = WindowNAFMultiplier(self.coords.formulas["add-1998-cmo"],
                                    self.coords.formulas["dbl-1998-cmo"],
                                    self.coords.formulas["neg"], 3, self.coords.formulas["z"])
+        with self.assertRaises(ValueError):
+            wnaf.multiply(1)
         wnaf.init(self.secp128r1, self.base)
         res_wnaf = wnaf.multiply(num)
         self.assertEqual(res_wnaf, res_ltr)
@@ -173,6 +194,8 @@ class ScalarMultiplierTests(TestCase):
         ladder = SimpleLadderMultiplier(self.coords.formulas["add-1998-cmo"],
                                         self.coords.formulas["dbl-1998-cmo"],
                                         self.coords.formulas["z"])
+        with self.assertRaises(ValueError):
+            ladder.multiply(1)
         ladder.init(self.secp128r1, self.base)
         res_ladder = ladder.multiply(num)
         self.assertEqual(res_ladder, res_ltr)
@@ -180,6 +203,8 @@ class ScalarMultiplierTests(TestCase):
         coron = CoronMultiplier(self.coords.formulas["add-1998-cmo"],
                                 self.coords.formulas["dbl-1998-cmo"],
                                 self.coords.formulas["z"])
+        with self.assertRaises(ValueError):
+            coron.multiply(1)
         coron.init(self.secp128r1, self.base)
         res_coron = coron.multiply(num)
         self.assertEqual(res_coron, res_ltr)
@@ -190,3 +215,7 @@ class ScalarMultiplierTests(TestCase):
                                             self.coords25519.formulas["scale"])
         with self.assertRaises(ValueError):
             mult.init(self.secp128r1, self.base)
+
+        with self.assertRaises(ValueError):
+            LadderMultiplier(self.coords25519.formulas["ladd-1987-m"],
+                             scl=self.coords25519.formulas["scale"], complete=False)
