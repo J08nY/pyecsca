@@ -349,6 +349,8 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     """
     Binary NAF (Non Adjacent Form) multiplier, left-to-right.
     """
+    requires = {AdditionFormula, DoublingFormula, NegationFormula}
+    optionals = {ScalingFormula}
     _point_neg: Point
 
     def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
@@ -383,6 +385,8 @@ class WindowNAFMultiplier(ScalarMultiplier):
     """
     Window NAF (Non Adjacent Form) multiplier, left-to-right.
     """
+    requires = {AdditionFormula, DoublingFormula, NegationFormula}
+    optionals = {ScalingFormula}
     _points: MutableMapping[int, Point]
     _points_neg: MutableMapping[int, Point]
     precompute_negation: bool = False

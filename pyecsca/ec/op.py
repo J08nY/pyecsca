@@ -1,5 +1,5 @@
-from ast import (Module, walk, Name, BinOp, Constant, Mult, Div, Add, Sub, Pow, Assign,
-                 operator as ast_operator)
+from ast import (Module, walk, Name, BinOp, UnaryOp, Constant, Mult, Div, Add, Sub, Pow, Assign,
+                 operator as ast_operator, USub)
 from enum import Enum
 from types import CodeType
 from typing import FrozenSet, cast, Any, Optional
@@ -14,6 +14,7 @@ from .mod import Mod
 class OpType(Enum):
     Add = (2, "+")
     Sub = (2, "-")
+    Neg = (1, "-")
     Mult = (2, "*")
     Div = (2, "/")
     Inv = (1, "/")
@@ -54,11 +55,14 @@ class CodeOp(object):
                     params.add(name)
             elif isinstance(node, Constant):
                 constants.add(node.value)
-            elif isinstance(node, BinOp):
-                op = node.op
-                self.left = self.__to_name(node.left)
-                self.right = self.__to_name(node.right)
-        if isinstance(assign.value, Name):
+        if isinstance(assign.value, BinOp):
+            op = assign.value.op
+            self.left = self.__to_name(assign.value.left)
+            self.right = self.__to_name(assign.value.right)
+        elif isinstance(assign.value, UnaryOp):
+            op = assign.value.op
+            self.right = self.__to_name(assign.value.operand)
+        elif isinstance(assign.value, Name):
             self.left = assign.value.id
         elif isinstance(assign.value, Constant):
             self.left = assign.value.value
@@ -87,6 +91,8 @@ class CodeOp(object):
             return OpType.Add
         elif isinstance(op, Sub):
             return OpType.Sub
+        elif isinstance(op, USub):
+            return OpType.Neg
         elif isinstance(op, Pow):
             if right == 2:
                 return OpType.Sqr
