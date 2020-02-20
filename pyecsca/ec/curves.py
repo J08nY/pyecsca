@@ -68,9 +68,8 @@ def get_params(category: str, name: str, coords: str) -> DomainParameters:
         for param, value in locals.items():
             if params[param] != value:
                 raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
-    elliptic_curve = EllipticCurve(model, coord_model, field, params)
+    elliptic_curve = EllipticCurve(model, coord_model, field, InfinityPoint(coord_model), params)
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
     generator = Point.from_affine(coord_model, affine)
-    return DomainParameters(elliptic_curve, generator, InfinityPoint(coord_model), order, cofactor,
-                            name, category)
+    return DomainParameters(elliptic_curve, generator, order, cofactor, name, category)

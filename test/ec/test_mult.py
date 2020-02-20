@@ -89,8 +89,8 @@ class ScalarMultiplierTests(TestCase):
         self.do_basic_test(SimpleLadderMultiplier, self.secp128r1, self.base, add, dbl, scale)
 
     @parameterized.expand([
-        ("10", 15, True),
-        ("10", 15, False),
+        ("15", 15, True),
+        ("15", 15, False),
         ("2355498743", 2355498743, True),
         ("2355498743", 2355498743, False),
         ("325385790209017329644351321912443757746", 325385790209017329644351321912443757746, True),

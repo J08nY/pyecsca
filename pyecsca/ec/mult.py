@@ -54,9 +54,9 @@ class ScalarMultiplier(ABC):
         if "add" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if one == self._params.neutral:
+            if one == self._params.curve.neutral:
                 return copy(other)
-            if other == self._params.neutral:
+            if other == self._params.curve.neutral:
                 return copy(one)
         return self.formulas["add"](one, other, **self._params.curve.parameters)[0]
 
@@ -64,7 +64,7 @@ class ScalarMultiplier(ABC):
         if "dbl" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if point == self._params.neutral:
+            if point == self._params.curve.neutral:
                 return copy(point)
         return self.formulas["dbl"](point, **self._params.curve.parameters)[0]
 
@@ -77,9 +77,9 @@ class ScalarMultiplier(ABC):
         if "ladd" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if to_dbl == self._params.neutral:
+            if to_dbl == self._params.curve.neutral:
                 return to_dbl, to_add
-            if to_add == self._params.neutral:
+            if to_add == self._params.curve.neutral:
                 return self._dbl(to_dbl), to_dbl
         return self.formulas["ladd"](start, to_dbl, to_add, **self._params.curve.parameters)
 
@@ -87,9 +87,9 @@ class ScalarMultiplier(ABC):
         if "dadd" not in self.formulas:
             raise NotImplementedError
         if self.short_circuit:
-            if one == self._params.neutral:
+            if one == self._params.curve.neutral:
                 return copy(other)
-            if other == self._params.neutral:
+            if other == self._params.curve.neutral:
                 return copy(one)
         return self.formulas["dadd"](start, one, other, **self._params.curve.parameters)[0]
 
@@ -137,18 +137,19 @@ class LTRMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             if self.complete:
                 q = self._point
-                r = copy(self._params.neutral)
+                r = copy(self._params.curve.neutral)
                 top = self._params.order.bit_length() - 1
             else:
-                q = copy(self._point) # self._dbl(self._point)
+                q = copy(self._point)
                 r = copy(self._point)
                 top = scalar.bit_length() - 2
             for i in range(top, -1, -1):
                 r = self._dbl(r)
                 if scalar & (1 << i) != 0:
+                    # TODO: This order makes a difference in projective coordinates
                     r = self._add(r, q)
                 elif self.always:
                     self._add(r, q)
@@ -178,11 +179,12 @@ class RTLMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             q = self._point
-            r = copy(self._params.neutral)
+            r = copy(self._params.curve.neutral)
             while scalar > 0:
                 if scalar & 1 != 0:
+                    # TODO: This order makes a difference in projective coordinates
                     r = self._add(r, q)
                 elif self.always:
                     self._add(r, q)
@@ -213,7 +215,7 @@ class CoronMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             q = self._point
             p0 = copy(q)
             for i in range(scalar.bit_length() - 2, -1, -1):
@@ -247,10 +249,10 @@ class LadderMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             q = self._point
             if self.complete:
-                p0 = copy(self._params.neutral)
+                p0 = copy(self._params.curve.neutral)
                 p1 = self._point
                 top = self._params.order.bit_length() - 1
             else:
@@ -286,12 +288,12 @@ class SimpleLadderMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             if self.complete:
                 top = self._params.order.bit_length() - 1
             else:
                 top = scalar.bit_length() - 1
-            p0 = copy(self._params.neutral)
+            p0 = copy(self._params.curve.neutral)
             p1 = copy(self._point)
             for i in range(top, -1, -1):
                 if scalar & (1 << i) == 0:
@@ -324,13 +326,13 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             if self.complete:
                 top = self._params.order.bit_length() - 1
             else:
                 top = scalar.bit_length() - 1
             q = self._point
-            p0 = copy(self._params.neutral)
+            p0 = copy(self._params.curve.neutral)
             p1 = copy(q)
             for i in range(top, -1, -1):
                 if scalar & (1 << i) == 0:
@@ -366,9 +368,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             bnaf = naf(scalar)
-            q = copy(self._params.neutral)
+            q = copy(self._params.curve.neutral)
             for val in bnaf:
                 q = self._dbl(q)
                 if val == 1:
@@ -416,9 +418,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
             raise ValueError("ScalaMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar):
             if scalar == 0:
-                return copy(self._params.neutral)
+                return copy(self._params.curve.neutral)
             naf = wnaf(scalar, self.width)
-            q = copy(self._params.neutral)
+            q = copy(self._params.curve.neutral)
             for val in naf:
                 q = self._dbl(q)
                 if val > 0:

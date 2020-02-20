@@ -1,4 +1,5 @@
 from ast import Module
+from copy import copy
 from typing import MutableMapping, Union, List
 
 from public import public
@@ -11,13 +12,15 @@ from .point import Point
 
 @public
 class EllipticCurve(object):
+    """An elliptic curve."""
     model: CurveModel
     coordinate_model: CoordinateModel
     prime: int
     parameters: MutableMapping[str, Mod]
+    neutral: Point
 
     def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
-                 prime: int, parameters: MutableMapping[str, Union[Mod, int]]):
+                 prime: int, neutral: Point, parameters: MutableMapping[str, Union[Mod, int]]):
         if coordinate_model not in model.coordinates.values():
             raise ValueError
         if set(model.parameter_names).symmetric_difference(parameters.keys()):
@@ -33,6 +36,7 @@ class EllipticCurve(object):
             else:
                 value = Mod(value, prime)
             self.parameters[name] = value
+        self.neutral = neutral
 
     def _execute_base_formulas(self, formulas: List[Module], *points: Point) -> Point:
         for point in points:
@@ -45,7 +49,7 @@ class EllipticCurve(object):
         locals.update(self.parameters)
         for line in formulas:
             exec(compile(line, "", mode="exec"), None, locals)
-        return Point(AffineCoordinateModel(self), x=locals["x"], y=locals["y"])
+        return Point(AffineCoordinateModel(self.model), x=locals["x"], y=locals["y"])
 
     def affine_add(self, one: Point, other: Point) -> Point:
         return self._execute_base_formulas(self.model.base_addition, one, other)
@@ -56,9 +60,26 @@ class EllipticCurve(object):
     def affine_negate(self, one: Point) -> Point:
         return self._execute_base_formulas(self.model.base_negation, one)
 
+    def affine_multiply(self, point: Point, scalar: int) -> Point:
+        if point.coordinate_model.curve_model != self.model:
+            raise ValueError
+        if not isinstance(point.coordinate_model, AffineCoordinateModel):
+            raise ValueError
+        q = copy(point)
+        r = copy(point)
+
+        for i in range(scalar.bit_length() - 2, -1, -1):
+            r = self.affine_double(r)
+            if scalar & (1 << i) != 0:
+                r = self.affine_add(r, q)
+        return r
+
     @property
     def neutral_is_affine(self):
         return bool(self.model.base_neutral)
+
+    def is_neutral(self, point: Point) -> bool:
+        return self.neutral == point
 
     def is_on_curve(self, point: Point) -> bool:
         if point.coordinate_model.curve_model != self.model:

@@ -4,7 +4,7 @@ from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.curves import get_params
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import MontgomeryModel
-from pyecsca.ec.point import Point
+from pyecsca.ec.point import Point, InfinityPoint
 
 
 class CurveTests(TestCase):
@@ -18,15 +18,19 @@ class CurveTests(TestCase):
     def test_init(self):
         with self.assertRaises(ValueError):
             EllipticCurve(MontgomeryModel(), self.secp128r1.curve.coordinate_model, 1,
-                          parameters={})
+                          InfinityPoint(self.secp128r1.curve.coordinate_model), parameters={})
 
         with self.assertRaises(ValueError):
             EllipticCurve(self.secp128r1.curve.model, self.secp128r1.curve.coordinate_model, 15,
-                          parameters={"c": 0})
+                          InfinityPoint(self.secp128r1.curve.coordinate_model), parameters={"c": 0})
 
         with self.assertRaises(ValueError):
             EllipticCurve(self.secp128r1.curve.model, self.secp128r1.curve.coordinate_model, 15,
+                          InfinityPoint(self.secp128r1.curve.coordinate_model),
                           parameters={"a": Mod(1, 5), "b": Mod(2, 5)})
+
+    def test_is_neutral(self):
+        self.assertTrue(self.secp128r1.curve.is_neutral(InfinityPoint(self.secp128r1.curve.coordinate_model)))
 
     def test_is_on_curve(self):
         pt = Point(self.secp128r1.curve.coordinate_model,
@@ -49,6 +53,14 @@ class CurveTests(TestCase):
 
     def test_affine_negate(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_negate(self.affine_base))
+
+    def test_affine_multiply(self):
+        expected = self.affine_base
+        expected = self.secp128r1.curve.affine_double(expected)
+        expected = self.secp128r1.curve.affine_double(expected)
+        expected = self.secp128r1.curve.affine_add(expected, self.affine_base)
+        expected = self.secp128r1.curve.affine_double(expected)
+        self.assertEqual(self.secp128r1.curve.affine_multiply(self.affine_base, 10), expected)
 
     def test_neutral_is_affine(self):
         self.assertFalse(self.secp128r1.curve.neutral_is_affine)
