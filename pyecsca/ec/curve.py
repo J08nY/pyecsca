@@ -1,6 +1,6 @@
 from ast import Module
 from copy import copy
-from typing import MutableMapping, Union, List
+from typing import MutableMapping, Union, List, Optional
 
 from public import public
 
@@ -49,6 +49,10 @@ class EllipticCurve(object):
         locals.update(self.parameters)
         for line in formulas:
             exec(compile(line, "", mode="exec"), None, locals)
+        if not isinstance(locals["x"], Mod):
+            locals["x"] = Mod(locals["x"], self.prime)
+        if not isinstance(locals["y"], Mod):
+            locals["y"] = Mod(locals["y"], self.prime)
         return Point(AffineCoordinateModel(self.model), x=locals["x"], y=locals["y"])
 
     def affine_add(self, one: Point, other: Point) -> Point:
@@ -73,6 +77,19 @@ class EllipticCurve(object):
             if scalar & (1 << i) != 0:
                 r = self.affine_add(r, q)
         return r
+
+    @property
+    def affine_neutral(self) -> Optional[Point]:
+        if not self.neutral_is_affine:
+            return None
+        locals = {**self.parameters}
+        for line in self.model.base_neutral:
+            exec(compile(line, "", mode="exec"), None, locals)
+        if not isinstance(locals["x"], Mod):
+            locals["x"] = Mod(locals["x"], self.prime)
+        if not isinstance(locals["y"], Mod):
+            locals["y"] = Mod(locals["y"], self.prime)
+        return Point(AffineCoordinateModel(self.model), x=locals["x"], y=locals["y"])
 
     @property
     def neutral_is_affine(self):

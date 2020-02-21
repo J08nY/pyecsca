@@ -1,4 +1,5 @@
 source 2007 Bernstein--Lange
+unified
 compute U1 = X1 Z2
 compute U2 = X2 Z1
 compute S1 = Y1 Z2

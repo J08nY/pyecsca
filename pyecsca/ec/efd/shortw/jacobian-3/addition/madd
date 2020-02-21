@@ -1,4 +1,5 @@
 assume Z2=1
+unified
 compute Z1Z1 = Z1^2
 compute U2 = X2 Z1Z1
 compute S2 = Y2 Z1 Z1Z1

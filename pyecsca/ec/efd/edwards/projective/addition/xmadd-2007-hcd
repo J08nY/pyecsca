@@ -1,4 +1,5 @@
 source 2007 Hisil--Carter--Dawson
+unified
 assume X2 = 1
 compute T0 = X1 Y2
 compute T0 = T0+Y1

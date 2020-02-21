@@ -1,4 +1,5 @@
 source 2001 Bernstein http://cr.yp.to/nistp224.html opt-idea53.c ecadd
+unified
 compute ZZ1 = Z1^2
 compute ZZZ1 = Z1 ZZ1
 compute ZZ2 = Z2^2

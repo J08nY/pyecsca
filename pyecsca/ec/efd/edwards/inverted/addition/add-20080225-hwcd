@@ -1,4 +1,5 @@
 source 2008.02.25 Hisil--Wong--Carter--Dawson, page 8
+unified
 compute A = X1 Z2
 compute B = Y1 Z2
 compute C = Z1 X2

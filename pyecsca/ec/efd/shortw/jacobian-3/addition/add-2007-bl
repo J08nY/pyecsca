@@ -1,4 +1,5 @@
 source 2007 Bernstein--Lange; note that the improvement from 12M+4S to 11M+5S was already mentioned in 2001 Bernstein http://cr.yp.to/talks.html#2001.10.29
+unified
 compute Z1Z1 = Z1^2
 compute Z2Z2 = Z2^2
 compute U1 = X1 Z2Z2

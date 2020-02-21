@@ -1,4 +1,5 @@
 source 2007 Bernstein--Lange
+unified
 compute A = Z1 Z2
 compute B = d A^2
 compute C = X1 X2

@@ -1,4 +1,5 @@
 source 2008 Bernstein--Birkner--Joye--Lange--Peters http://eprint.iacr.org/2008/013 Section 6
+unified
 compute A = Z1 Z2
 compute B = A^2
 compute C = X1 X2

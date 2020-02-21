@@ -1,4 +1,5 @@
 source 2002 Brier--Joye "Weierstrass elliptic curves and side-channel attacks", page 340
+unified
 appliesto projective-1
 compute U1 = X1 Z2
 compute U2 = X2 Z1

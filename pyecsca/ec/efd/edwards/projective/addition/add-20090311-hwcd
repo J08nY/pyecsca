@@ -1,4 +1,5 @@
 source 2009.03.11 Hisil--Wong--Carter--Dawson, after formula (17), plus denominator elimination
+unified
 parameter k
 assume k*c = 1
 compute R1 = X2 Y2

@@ -1,4 +1,5 @@
 source 2010 Costello--Lange--Naehrig
+unified
 compute A = Z1^2
 compute B = Z2^2
 compute C = (Z1 + Z2)^2-A-B

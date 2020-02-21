@@ -1,4 +1,5 @@
 source 2007 Bernstein--Lange
+unified
 compute R1 = X1
 compute R2 = Y1
 compute R3 = Z1

@@ -62,6 +62,11 @@ class CurveTests(TestCase):
         expected = self.secp128r1.curve.affine_double(expected)
         self.assertEqual(self.secp128r1.curve.affine_multiply(self.affine_base, 10), expected)
 
+    def test_affine_neutral(self):
+        self.assertIsNone(self.secp128r1.curve.affine_neutral)
+        self.assertIsNone(self.curve25519.curve.affine_neutral)
+        self.assertIsNotNone(self.ed25519.curve.affine_neutral)
+
     def test_neutral_is_affine(self):
         self.assertFalse(self.secp128r1.curve.neutral_is_affine)
         self.assertFalse(self.curve25519.curve.neutral_is_affine)

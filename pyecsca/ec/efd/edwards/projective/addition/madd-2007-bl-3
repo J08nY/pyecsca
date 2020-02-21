@@ -1,4 +1,5 @@
 source 2007 Bernstein--Lange
+unified
 parameter c2
 assume c2 = 2*c
 assume Z2 = 1

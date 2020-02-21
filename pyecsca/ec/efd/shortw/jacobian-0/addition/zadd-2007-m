@@ -1,4 +1,5 @@
 source 2007 Meloni "New point addition formulae for ECC applications", page 192
+unified
 assume Z1 = Z2
 compute A = (X2-X1)^2
 compute B = X1 A

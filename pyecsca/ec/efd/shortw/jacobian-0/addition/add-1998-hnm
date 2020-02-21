@@ -1,4 +1,5 @@
 source 1998 Hasegawa--Nakajima--Matsui, page 188
+unified
 parameter half
 assume half*2=1
 compute R1 = X1

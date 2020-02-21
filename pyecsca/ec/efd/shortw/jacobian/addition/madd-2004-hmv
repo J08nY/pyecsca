@@ -1,4 +1,5 @@
 source 2004 Hankerson--Menezes--Vanstone, page 91
+unified
 assume Z2=1
 compute T1 = Z1^2
 compute T2 = T1 Z1

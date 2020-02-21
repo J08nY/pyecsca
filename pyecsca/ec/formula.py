@@ -86,6 +86,7 @@ class Formula(ABC):
     shortname: ClassVar[str]
     num_inputs: ClassVar[int]
     num_outputs: ClassVar[int]
+    unified: bool
 
     def __call__(self, *points: Any, **params: Mod) -> Tuple[Any, ...]:
         """
@@ -200,6 +201,7 @@ class EFDFormula(Formula):
         self.parameters = []
         self.assumptions = []
         self.code = []
+        self.unified = False
         self.__read_meta_file(path)
         self.__read_op3_file(path + ".op3")
 
@@ -215,6 +217,8 @@ class EFDFormula(Formula):
                 elif line.startswith("assume"):
                     self.assumptions.append(
                             parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
+                elif line.startswith("unified"):
+                    self.unified = True
                 line = f.readline().decode("ascii")
 
     def __read_op3_file(self, path):

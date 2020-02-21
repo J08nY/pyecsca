@@ -1,4 +1,5 @@
 source 1998 Cohen--Miyaji--Ono "Efficient elliptic curve exponentiation using mixed coordinates", plus Z1=1, plus Z2=1, plus common-subexpression elimination
+unified
 assume Z1 = 1
 assume Z2 = 1
 compute u = Y2-Y1
