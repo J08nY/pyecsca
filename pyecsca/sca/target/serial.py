@@ -1,3 +1,6 @@
+from abc import abstractmethod
+from typing import Optional
+
 from public import public
 
 from .base import Target
@@ -6,8 +9,10 @@ from .base import Target
 @public
 class SerialTarget(Target):
 
+    @abstractmethod
     def write(self, data: bytes):
-        raise NotImplementedError
+        ...
 
-    def read(self, timeout: int) -> bytes:
-        raise NotImplementedError
+    @abstractmethod
+    def read(self, num: Optional[int] = 0, timeout: Optional[int] = 0) -> bytes:
+        ...

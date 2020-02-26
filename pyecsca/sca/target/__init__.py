@@ -3,6 +3,9 @@
 from .ISO7816 import *
 from .base import *
 from .serial import *
+from .simpleserial import *
+from .binary import *
+from .flash import *
 
 has_chipwhisperer = False
 has_pyscard = False

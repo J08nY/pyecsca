@@ -1,33 +1,44 @@
-from typing import Union
+from binascii import unhexlify
+from typing import Optional
+from time import sleep
 
-from chipwhisperer.capture.scopes import OpenADC
-from chipwhisperer.capture.targets.simpleserial_readers.cw import SimpleSerial_ChipWhisperer
-from chipwhisperer.capture.targets.simpleserial_readers.cwlite import SimpleSerial_ChipWhispererLite
-from chipwhisperer.capture.targets.simpleserial_readers.sys_serial import SimpleSerial_serial
+import chipwhisperer as cw
+from chipwhisperer.capture.scopes.base import ScopeTemplate
+from chipwhisperer.capture.targets import SimpleSerial
 from public import public
 
-from .serial import SerialTarget
+from .flash import Flashable
+from .simpleserial import SimpleSerialTarget
 
 
 @public
-class SimpleSerialTarget(SerialTarget):  # pragma: no cover
+class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
 
-    def __init__(self, ser: Union[
-        SimpleSerial_ChipWhisperer, SimpleSerial_ChipWhispererLite, SimpleSerial_serial],
-                 scope: OpenADC):
+    def __init__(self, target: SimpleSerial, scope: ScopeTemplate, programmer, **kwargs):
         super().__init__()
-        self.ser = ser
+        self.target = target
         self.scope = scope
+        self.programmer = programmer
 
     def connect(self):
-        self.ser.con(self.scope)
+        self.target.con(self.scope)
+        self.target.baud = 115200
+        sleep(0.5)
+
+    def flash(self, fw_path: str) -> bool:
+        try:
+            cw.program_target(self.scope, self.programmer, fw_path)
+        except Exception as e:
+            print(e)
+            return False
+        return True
 
     def write(self, data: bytes):
-        self.ser.write(data)
-        self.ser.flush()
+        self.target.flush()
+        self.target.write(data.decode())
 
-    def read(self, timeout: int) -> bytes:
-        return self.ser.read(0, timeout)
+    def read(self, num: Optional[int] = 0, timeout: Optional[int] = 0) -> bytes:
+        return self.target.read(num, timeout).encode()
 
     def disconnect(self):
-        self.ser.dis()
+        self.target.dis()
