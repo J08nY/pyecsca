@@ -3,6 +3,7 @@ from typing import Optional, Tuple, Sequence, Union
 
 import numpy as np
 from picoscope.ps4000 import PS4000
+from picoscope.ps5000 import PS5000
 from picoscope.ps6000 import PS6000
 from public import public
 
@@ -12,7 +13,7 @@ from .base import Scope
 @public
 class PicoScopeAlt(Scope):  # pragma: no cover
 
-    def __init__(self, ps: Union[PS4000, PS6000]):
+    def __init__(self, ps: Union[PS4000, PS5000, PS6000]):
         super().__init__()
         self.ps = ps
 

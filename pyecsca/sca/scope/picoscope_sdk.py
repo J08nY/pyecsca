@@ -7,6 +7,7 @@ import numpy as np
 from picosdk.functions import assert_pico_ok
 from picosdk.library import Library
 from picosdk.ps4000 import ps4000
+from picosdk.ps5000 import ps5000
 from picosdk.ps6000 import ps6000
 from public import public
 
@@ -67,7 +68,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         size = ctypes.c_int16()
         assert_pico_ok(self.__dispatch_call("GetUnitInfo", self.handle, ctypes.byref(info), 6,
                                             ctypes.byref(size), 3))
-        return "".join(chr(i) for i in info[:size])
+        return "".join(chr(i) for i in info[:size.value])
 
     def setup_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
         return self.set_frequency(frequency, samples)
@@ -182,6 +183,42 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         if method is None:
             raise ValueError
         return method(*args, **kwargs)
+
+@public
+class PS5000Scope(PicoScopeSdk):  # pragma: no cover
+    MODULE = ps5000
+    PREFIX = "ps5000"
+    CHANNELS = {
+        "A": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_A"],
+        "B": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_B"],
+        "C": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_C"],
+        "D": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_D"]
+    }
+
+    RANGES = {
+        0.01: ps5000.PS5000_RANGE["PS5000_10MV"],
+        0.02: ps5000.PS5000_RANGE["PS5000_20MV"],
+        0.05: ps5000.PS5000_RANGE["PS5000_50MV"],
+        0.10: ps5000.PS5000_RANGE["PS5000_100MV"],
+        0.20: ps5000.PS5000_RANGE["PS5000_200MV"],
+        1.00: ps5000.PS5000_RANGE["PS5000_1V"],
+        2.00: ps5000.PS5000_RANGE["PS5000_2V"],
+        5.00: ps5000.PS5000_RANGE["PS5000_5V"],
+        10.0: ps5000.PS5000_RANGE["PS5000_10V"],
+        20.0: ps5000.PS5000_RANGE["PS5000_20V"],
+        50.0: ps5000.PS5000_RANGE["PS5000_50V"]
+    }
+
+    MAX_ADC_VALUE = 32512
+    MIN_ADC_VALUE = -32512
+
+    COUPLING = {
+        "AC": 0,
+        "DC": 1
+    }
+
+    def set_frequency(self, frequency: int, samples: int):
+        return self._set_freq(frequency, samples, 4e-9, 2, 1_000_000_000, 125_000_000, 2)
 
 
 @public

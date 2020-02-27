@@ -68,4 +68,3 @@ class SimpleSerialTarget(SerialTarget):
             self.write(chunk)
         self.write(b"\n")
         return self.recv_msgs(timeout)
-

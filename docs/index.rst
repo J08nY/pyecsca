@@ -41,6 +41,7 @@ are the best source of documentation on how to use *pyecsca*.
    notebook/configuration_space
    notebook/simulation
    notebook/codegen
+   notebook/measurement
 
 
 Requirements

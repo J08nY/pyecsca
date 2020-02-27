@@ -10,6 +10,7 @@ addons:
         key_url: "https://labs.picotech.com/debian/dists/picoscope/Release.gpg.key"
     packages:
       - libps4000
+      - libps5000
       - libps6000
       - swig
       - gcc
