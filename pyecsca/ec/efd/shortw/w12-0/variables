@@ -3,5 +3,6 @@ assume b = 0
 variable X
 variable Y
 variable Z
+satisfying ZZ = Z^2
 satisfying x = X/Z
-satisfying y = Y/Z^2
+satisfying y = Y/ZZ

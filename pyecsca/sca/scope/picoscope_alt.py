@@ -43,13 +43,15 @@ class PicoScopeAlt(Scope):  # pragma: no cover
     def arm(self) -> None:
         self.ps.runBlock()
 
-    def capture(self, channel: str, timeout: Optional[int] = None) -> Optional[np.ndarray]:
+    def capture(self, timeout: Optional[int] = None) -> bool:
         start = time_ns()
         while not self.ps.isReady():
             sleep(0.001)
             if timeout is not None and (time_ns() - start) / 1e6 >= timeout:
-                return None
+                return False
+        return True
 
+    def retrieve(self, channel: str) -> Optional[np.ndarray]:
         return self.ps.getDataV(channel)
 
     def stop(self) -> None:

@@ -39,5 +39,11 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
     def read(self, num: Optional[int] = 0, timeout: Optional[int] = 0) -> bytes:
         return self.target.read(num, timeout).encode()
 
+    def reset(self):
+        self.scope.io.nrst = "low"
+        sleep(0.05)
+        self.scope.io.nrst = "high"
+        sleep(0.05)
+
     def disconnect(self):
         self.target.dis()

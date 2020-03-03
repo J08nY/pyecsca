@@ -46,8 +46,10 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     def arm(self) -> None:
         self.scope.arm()
 
-    def capture(self, channel: str, timeout: Optional[int] = None) -> Optional[np.ndarray]:
-        self.scope.capture()
+    def capture(self, timeout: Optional[int] = None) -> bool:
+        return not self.scope.capture()
+
+    def retrieve(self, channel: str) -> Optional[np.ndarray]:
         return self.scope.get_last_trace()
 
     def stop(self) -> None:

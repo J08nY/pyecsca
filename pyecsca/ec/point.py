@@ -51,20 +51,21 @@ class Point(object):
         with CoordinateMappingAction(self.coordinate_model, affine_model, self):
             if isinstance(self.coordinate_model, AffineCoordinateModel):
                 return copy(self)
-            ops = set()
+            ops = list()
             for s in self.coordinate_model.satisfying:
                 try:
-                    ops.add(CodeOp(s))
+                    ops.append(CodeOp(s))
                 except Exception:
                     pass
             result_variables = set(map(lambda x: x.result, ops))
             if not result_variables.issuperset(affine_model.variables):
                 raise NotImplementedError
             result = {}
+            locals = {**self.coords}
             for op in ops:
-                if op.result not in affine_model.variables:
-                    continue
-                result[op.result] = op(**self.coords)
+                locals[op.result] = op(**locals)
+                if op.result in affine_model.variables:
+                    result[op.result] = locals[op.result]
             return Point(affine_model, **result)
 
     @staticmethod

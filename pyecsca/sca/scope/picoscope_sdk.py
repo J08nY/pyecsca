@@ -73,7 +73,6 @@ class PicoScopeSdk(Scope):  # pragma: no cover
     def setup_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
         return self.set_frequency(frequency, samples)
 
-    # channel setup (ranges, coupling, which channel is scope vs trigger)
     def set_channel(self, channel: str, enabled: bool, coupling: str, range: float):
         assert_pico_ok(
                 self.__dispatch_call("SetChannel", self.handle, self.CHANNELS[channel], enabled,
@@ -104,7 +103,6 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         self.timebase = tb
         return actual_frequency, samples
 
-    # frequency setup
     def set_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
         raise NotImplementedError
 
@@ -112,7 +110,6 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                       timeout: int, enable: bool):
         self.set_trigger(direction, enable, threshold, channel, delay, timeout)
 
-    # triggering setup
     def set_trigger(self, type: str, enabled: bool, value: float, channel: str,
                     delay: int, timeout: int):
         assert_pico_ok(
@@ -124,7 +121,6 @@ class PicoScopeSdk(Scope):  # pragma: no cover
     def setup_capture(self, channel: str, enable: bool):
         self.set_buffer(channel, enable)
 
-    # buffer setup
     def set_buffer(self, channel: str, enable: bool):
         if self.samples is None:
             raise ValueError
@@ -147,10 +143,9 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             raise ValueError
         assert_pico_ok(
                 self.__dispatch_call("RunBlock", self.handle, 0, self.samples, self.timebase, 0,
-                                     None,
-                                     0, None, None))
+                                     None, 0, None, None))
 
-    def capture(self, channel: str, timeout: Optional[int] = None) -> Optional[np.ndarray]:
+    def capture(self, timeout: Optional[int] = None) -> bool:
         start = time_ns()
         if self.samples is None:
             raise ValueError
@@ -160,18 +155,18 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             sleep(0.001)
             assert_pico_ok(self.__dispatch_call("IsReady", self.handle, ctypes.byref(ready)))
             if timeout is not None and (time_ns() - start) / 1e6 >= timeout:
-                return None
+                return False
+        return True
 
+    def retrieve(self, channel: str) -> Optional[np.ndarray]:
         actual_samples = ctypes.c_int32(self.samples)
         overflow = ctypes.c_int16()
         assert_pico_ok(
                 self.__dispatch_call("GetValues", self.handle, 0, ctypes.byref(actual_samples), 1,
-                                     0, 0,
-                                     ctypes.byref(overflow)))
+                                     0, 0, ctypes.byref(overflow)))
         arr = np.array(self.buffers[channel], dtype=np.int16)
         return adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE)
 
-    # stop
     def stop(self):
         assert_pico_ok(self.__dispatch_call("Stop"))
 
@@ -196,17 +191,18 @@ class PS5000Scope(PicoScopeSdk):  # pragma: no cover
     }
 
     RANGES = {
-        0.01: ps5000.PS5000_RANGE["PS5000_10MV"],
-        0.02: ps5000.PS5000_RANGE["PS5000_20MV"],
-        0.05: ps5000.PS5000_RANGE["PS5000_50MV"],
-        0.10: ps5000.PS5000_RANGE["PS5000_100MV"],
-        0.20: ps5000.PS5000_RANGE["PS5000_200MV"],
-        1.00: ps5000.PS5000_RANGE["PS5000_1V"],
-        2.00: ps5000.PS5000_RANGE["PS5000_2V"],
-        5.00: ps5000.PS5000_RANGE["PS5000_5V"],
-        10.0: ps5000.PS5000_RANGE["PS5000_10V"],
-        20.0: ps5000.PS5000_RANGE["PS5000_20V"],
-        50.0: ps5000.PS5000_RANGE["PS5000_50V"]
+        0.01: 0,
+        0.02: 1,
+        0.05: 2,
+        0.10: 3,
+        0.20: 4,
+        0.50: 5,
+        1.00: 6,
+        2.00: 7,
+        5.00: 8,
+        10.0: 9,
+        20.0: 10,
+        50.0: 11
     }
 
     MAX_ADC_VALUE = 32512

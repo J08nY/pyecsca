@@ -70,13 +70,21 @@ class Scope(object):
         """Arm the scope, it will listen for the trigger after this point."""
         raise NotImplementedError
 
-    def capture(self, channel: str, timeout: Optional[int] = None) -> Optional[np.ndarray]:
+    def capture(self, timeout: Optional[int] = None) -> bool:
         """
         Wait for the trace to capture, this will block until the scope has a trace.
 
-        :param channel: The channel to retrieve the trace from.
         :param timeout: A time in milliseconds to wait for the trace, returns `None` if it runs out.
-        :return: The trace, or if timed out, None.
+        :return: Whether capture was successful (or it timed out).
+        """
+        raise NotImplementedError
+
+    def retrieve(self, channel: str) -> Optional[np.ndarray]:
+        """
+        Retrieve a captured trace of a channel.
+
+        :param channel: The channel to retrieve the trace from.
+        :return: The captured trace (if any).
         """
         raise NotImplementedError
 
