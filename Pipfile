@@ -10,6 +10,7 @@ mypy = "*"
 flake8 = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
+parameterized = "*"
 coverage = "*"
 
 [packages]
@@ -19,8 +20,9 @@ atpublic = "*"
 matplotlib = "*"
 cython = "*"
 fastdtw = "*"
-parameterized = "*"
 asn1crypto = "*"
+h5py = "*"
+bokeh = "*"
 
 [requires]
 python_version = "3.8"

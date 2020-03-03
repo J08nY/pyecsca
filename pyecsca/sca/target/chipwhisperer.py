@@ -36,7 +36,7 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
         self.target.flush()
         self.target.write(data.decode())
 
-    def read(self, num: Optional[int] = 0, timeout: Optional[int] = 0) -> bytes:
+    def read(self, num: int = 0, timeout: int = 0) -> bytes:
         return self.target.read(num, timeout).encode()
 
     def reset(self):

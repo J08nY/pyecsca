@@ -14,7 +14,7 @@ def filter_any(trace: Trace, sampling_frequency: int,
     else:
         b, a = butter(6, cutoff / nyq, btype=band_type, analog=False, output='ba')
     result_samples = lfilter(b, a, trace.samples)
-    return Trace(copy(trace.title), copy(trace.data), result_samples)
+    return Trace(result_samples, copy(trace.title), copy(trace.data))
 
 
 @public

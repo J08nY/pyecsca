@@ -14,7 +14,7 @@ class BinaryTarget(SerialTarget):
     debug_output: bool
 
     def __init__(self, binary: Union[str, List[str]], debug_output: bool = False, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__()
         if not isinstance(binary, (str, list)):
             raise TypeError
         if isinstance(binary, str):
@@ -34,7 +34,7 @@ class BinaryTarget(SerialTarget):
         self.process.stdin.write(data.decode())
         self.process.stdin.flush()
 
-    def read(self, num: Optional[int] = 0, timeout: Optional[int] = 0) -> bytes:
+    def read(self, num: int = 0, timeout: int = 0) -> bytes:
         if self.process is None:
             raise ValueError
         if num != 0:

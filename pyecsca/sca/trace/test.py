@@ -14,7 +14,7 @@ def ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
     first_stack = np.stack([first.samples for first in first_set])
     second_stack = np.stack([second.samples for second in second_set])
     result = ttest_ind(first_stack, second_stack, axis=0, equal_var=equal_var)
-    return CombinedTrace(None, None, result[0], parents=[*first_set, *second_set])
+    return CombinedTrace(result[0], None, None)
 
 
 @public
@@ -61,4 +61,4 @@ def ks_test(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Optional
     results = np.empty(len(first_set[0].samples), dtype=first_set[0].samples.dtype)
     for i in range(len(first_set[0].samples)):
         results[i] = ks_2samp(first_stack[..., i], second_stack[..., i])[0]
-    return CombinedTrace(None, None, results, parents=[*first_set, *second_set])
+    return CombinedTrace(results, None, None)

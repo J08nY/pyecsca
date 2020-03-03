@@ -159,6 +159,8 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         return True
 
     def retrieve(self, channel: str) -> Optional[np.ndarray]:
+        if self.samples is None:
+            raise ValueError
         actual_samples = ctypes.c_int32(self.samples)
         overflow = ctypes.c_int16()
         assert_pico_ok(
@@ -178,6 +180,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         if method is None:
             raise ValueError
         return method(*args, **kwargs)
+
 
 @public
 class PS5000Scope(PicoScopeSdk):  # pragma: no cover

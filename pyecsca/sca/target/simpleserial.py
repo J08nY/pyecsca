@@ -63,7 +63,7 @@ class SimpleSerialTarget(SerialTarget):
         """
         data = bytes(cmd)
         for i in range(0, len(data), 64):
-            chunk = data[i:i+64]
+            chunk = data[i:i + 64]
             sleep(0.010)
             self.write(chunk)
         self.write(b"\n")

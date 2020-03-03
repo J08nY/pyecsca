@@ -30,8 +30,11 @@ setup(
             "scipy",
             "atpublic",
             "matplotlib",
+            "cython",
             "fastdtw",
-            "asn1crypto"
+            "asn1crypto",
+            "h5py",
+            "bokeh"
         ],
         extras_require={
             "picoscope_sdk": ["picosdk"],

@@ -17,7 +17,7 @@ class ChipWhispererTraceSet(TraceSet):
         else:
             data = self.__read_data(path, name)
             trace_data = data["traces"]
-            traces = [Trace(None, None, trace_samples, trace_set=self) for trace_samples in trace_data]
+            traces = [Trace(trace_samples, None, None, trace_set=self) for trace_samples in trace_data]
             del data["traces"]
             config = self.__read_config(path, name)
             super().__init__(*traces, **data, **config)

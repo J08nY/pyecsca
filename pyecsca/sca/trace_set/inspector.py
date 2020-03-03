@@ -197,7 +197,7 @@ class InspectorTraceSet(TraceSet):
                 samples = np.frombuffer(
                         file.read(dtype.itemsize * self.num_samples), dtype,
                         self.num_samples)
-            result.append(Trace(title, data, samples, trace_set=self))
+            result.append(Trace(samples, title, data, trace_set=self))
         return result
 
     def __write(self, file):
@@ -229,9 +229,8 @@ class InspectorTraceSet(TraceSet):
                 file.write(trace.samples.tobytes())
 
     def __scale(self, traces):
-        return list(map(lambda trace: Trace(trace.title, trace.data,
-                                            trace.samples.astype("f4") * self.y_scale,
-                                            trace_set=self),
+        return list(map(lambda trace: Trace(trace.samples.astype("f4") * self.y_scale, trace.title,
+                                            trace.data, trace_set=self),
                         traces))
 
     def save(self, output: Union[Path, str, BinaryIO]):

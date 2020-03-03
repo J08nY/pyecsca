@@ -14,5 +14,5 @@ class SerialTarget(Target):
         ...
 
     @abstractmethod
-    def read(self, num: Optional[int] = 0, timeout: Optional[int] = 0) -> bytes:
+    def read(self, num: int = 0, timeout: int = 0) -> bytes:
         ...

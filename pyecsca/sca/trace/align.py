@@ -27,7 +27,7 @@ def align_reference(reference: Trace, *traces: Trace,
                 result_samples[:length - offset] = trace.samples[offset:]
             else:
                 result_samples[-offset:] = trace.samples[:length + offset]
-        result.append(Trace(copy(trace.title), copy(trace.data), result_samples))
+        result.append(Trace(result_samples, copy(trace.title), copy(trace.data)))
     return result
 
 
@@ -198,7 +198,7 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
             scale[x] += 1
         result_samples //= scale
         del scale
-        result.append(Trace(copy(trace.title), copy(trace.data), result_samples))
+        result.append(Trace(result_samples, copy(trace.title), copy(trace.data)))
     return result
 
 
@@ -233,5 +233,5 @@ def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = Tr
         # or manually:
         # for x, y in path:
         #    result_samples[x] = trace.samples[y]
-        result.append(Trace(copy(trace.title), copy(trace.data), result_samples))
+        result.append(Trace(result_samples, copy(trace.title), copy(trace.data)))
     return result

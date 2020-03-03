@@ -11,8 +11,8 @@ class Trace(object):
     data: Optional[bytes]
     samples: ndarray
 
-    def __init__(self, title: Optional[str], data: Optional[bytes],
-                 samples: ndarray, trace_set: Any = None):
+    def __init__(self, samples: ndarray, title: Optional[str], data: Optional[bytes],
+                 trace_set: Any = None):
         self.title = title
         self.data = data
         self.samples = samples
@@ -39,9 +39,9 @@ class Trace(object):
 class CombinedTrace(Trace):
     """A power trace that was combined from other traces, `parents`."""
 
-    def __init__(self, title: Optional[str], data: Optional[bytes],
-                 samples: ndarray, trace_set=None, parents: Sequence[Trace] = None):
-        super().__init__(title, data, samples, trace_set=trace_set)
+    def __init__(self, samples: ndarray, title: Optional[str], data: Optional[bytes],
+                 trace_set=None, parents: Sequence[Trace] = None):
+        super().__init__(samples, title, data, trace_set=trace_set)
         self.parents = None
         if parents is not None:
             self.parents = weakref.WeakSet(parents)

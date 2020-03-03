@@ -8,7 +8,7 @@ from .utils import plot
 class SamplingTests(TestCase):
 
     def setUp(self):
-        self._trace = Trace(None, None, np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")))
+        self._trace = Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")), None, None)
 
     def test_downsample_average(self):
         result = downsample_average(self._trace, 2)
@@ -27,9 +27,9 @@ class SamplingTests(TestCase):
         self.assertEqual(result.samples[1], 50)
 
     def test_downsample_decimate(self):
-        trace = Trace(None, None, np.array([20, 30, 55, 18, 15, 10, 35, 24, 21, 15, 10, 8, -10, -5,
-                                            -8, -12, -15, -18, -34, -21, -17, -10, -5, -12, -6, -2,
-                                            4, 8, 21, 28], dtype=np.dtype("i1")))
+        trace = Trace(np.array([20, 30, 55, 18, 15, 10, 35, 24, 21, 15, 10, 8, -10, -5,
+                                -8, -12, -15, -18, -34, -21, -17, -10, -5, -12, -6, -2,
+                                4, 8, 21, 28], dtype=np.dtype("i1")), None, None)
         result = downsample_decimate(trace, 2)
         self.assertIsNotNone(result)
         self.assertIsInstance(result, Trace)

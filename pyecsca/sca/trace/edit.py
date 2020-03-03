@@ -22,7 +22,7 @@ def trim(trace: Trace, start: int = None, end: int = None) -> Trace:
         end = len(trace.samples)
     if start > end:
         raise ValueError("Invalid trim arguments.")
-    return Trace(copy(trace.title), copy(trace.data), trace.samples[start:end].copy())
+    return Trace(trace.samples[start:end].copy(), copy(trace.title), copy(trace.data))
 
 
 @public
@@ -33,7 +33,7 @@ def reverse(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    return Trace(copy(trace.title), copy(trace.data), np.flipud(trace.samples))
+    return Trace(np.flipud(trace.samples), copy(trace.title), copy(trace.data))
 
 
 @public
@@ -51,5 +51,5 @@ def pad(trace: Trace, lengths: Union[Tuple[int, int], int],
         lengths = (lengths, lengths)
     if not isinstance(values, tuple):
         values = (values, values)
-    return Trace(copy(trace.title), copy(trace.data),
-                 np.pad(trace.samples, lengths, "constant", constant_values=values))
+    return Trace(np.pad(trace.samples, lengths, "constant", constant_values=values),
+                 copy(trace.title), copy(trace.data))

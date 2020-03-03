@@ -51,6 +51,7 @@ def check(func):
 
     return method
 
+
 @public
 class RandomModAction(Action):
     """A random sampling from Z_n."""

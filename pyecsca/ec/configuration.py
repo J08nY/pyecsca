@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from itertools import product
-from typing import Set, get_type_hints, Union, get_origin, get_args, Generator
+from typing import get_type_hints, Union, get_origin, get_args, Generator, FrozenSet
 
 from public import public
 
@@ -78,7 +78,7 @@ class Configuration(object):
     """An ECC implementation configuration."""
     model: CurveModel
     coords: CoordinateModel
-    formulas: Set[Formula]
+    formulas: FrozenSet[Formula]
     scalarmult: ScalarMultiplier
     hash_type: HashType
     mod_rand: RandomMod
@@ -107,9 +107,10 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
     :param kwargs: The configuration parameters to match.
     :return: A generator of the configurations
     """
+
     def is_optional(arg_type):
         return get_origin(arg_type) == Union and len(get_args(arg_type)) == 2 and \
-               get_args(arg_type)[1] == type(None)
+               get_args(arg_type)[1] == type(None)  # noqa
 
     def leaf_subclasses(cls):
         subs = cls.__subclasses__()
@@ -151,12 +152,12 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
                                    isinstance(formula, opt_type)] + [None]
                     else:
                         options = [None]  # TODO: anything here?
-                elif get_origin(required_type) == None and issubclass(required_type, Formula):
+                elif get_origin(required_type) is None and issubclass(required_type, Formula):
                     options = [formula for formula in coords_formulas if
                                isinstance(formula, required_type)]
-                elif get_origin(required_type) == None and issubclass(required_type, bool):
+                elif get_origin(required_type) is None and issubclass(required_type, bool):
                     options = [True, False]
-                elif get_origin(required_type) == None and issubclass(required_type,
+                elif get_origin(required_type) is None and issubclass(required_type,
                                                                       int) and name == "width":
                     options = [3, 5]
                 else:

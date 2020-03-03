@@ -7,7 +7,7 @@ from pyecsca.sca import Trace, absolute, invert, threshold, rolling_mean, offset
 class ProcessTests(TestCase):
 
     def setUp(self):
-        self._trace = Trace(None, None, np.array([30, -60, 145, 247], dtype=np.dtype("i2")))
+        self._trace = Trace(np.array([30, -60, 145, 247], dtype=np.dtype("i2")), None, None)
 
     def test_absolute(self):
         result = absolute(self._trace)
