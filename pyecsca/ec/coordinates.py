@@ -21,6 +21,7 @@ class CoordinateModel(object):
     satisfying: List[Module]
     parameters: List[str]
     assumptions: List[Module]
+    neutral: List[Module]
     formulas: MutableMapping[str, Formula]
 
     def __repr__(self):
@@ -38,6 +39,7 @@ class AffineCoordinateModel(CoordinateModel):
         self.satisfying = []
         self.parameters = []
         self.assumptions = []
+        self.neutral = []
         self.formulas = {}
 
     def __eq__(self, other):
@@ -55,6 +57,7 @@ class EFDCoordinateModel(CoordinateModel):
         self.satisfying = []
         self.parameters = []
         self.assumptions = []
+        self.neutral = []
         self.formulas = {}
         for fname in resource_listdir(__name__, dir_path):
             file_path = join(dir_path, fname)
@@ -88,12 +91,17 @@ class EFDCoordinateModel(CoordinateModel):
                     self.full_name = line[5:]
                 elif line.startswith("variable"):
                     self.variables.append(line[9:])
+                elif line.startswith("neutral"):
+                    try:
+                        code = parse(line[8:].replace("^", "**"), mode="exec")
+                        self.neutral.append(code)
+                    except SyntaxError:
+                        pass
                 elif line.startswith("satisfying"):
                     try:
                         code = parse(line[11:].replace("^", "**"), mode="exec")
                         self.satisfying.append(code)
                     except SyntaxError:
-                        # code = parse(line[11:].replace("=", "==").replace("^", "**"), mode="eval")
                         pass
                 elif line.startswith("parameter"):
                     self.parameters.append(line[10:])

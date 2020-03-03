@@ -1,4 +1,3 @@
-from binascii import unhexlify
 from typing import Optional
 from time import sleep
 

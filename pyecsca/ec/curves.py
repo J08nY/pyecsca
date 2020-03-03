@@ -14,7 +14,7 @@ from .point import Point, InfinityPoint
 
 
 @public
-def get_params(category: str, name: str, coords: str) -> DomainParameters:
+def get_params(category: str, name: str, coords: str, infty: bool = True) -> DomainParameters:
     """
     Retrieve a curve from a set of stored parameters. Uses the std-curves database at
     https://github.com/J08nY/std-curves.
@@ -22,6 +22,8 @@ def get_params(category: str, name: str, coords: str) -> DomainParameters:
     :param category: The category of the curve.
     :param name: The name of the curve.
     :param coords: The name of the coordinate system to use.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system.
     :return: The curve.
     """
     listing = resource_listdir(__name__, "std")
@@ -68,7 +70,20 @@ def get_params(category: str, name: str, coords: str) -> DomainParameters:
         for param, value in locals.items():
             if params[param] != value:
                 raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
-    elliptic_curve = EllipticCurve(model, coord_model, field, InfinityPoint(coord_model), params)
+    if infty:
+        infinity = InfinityPoint(coord_model)
+    else:
+        locals = {**params}
+        for line in coord_model.neutral:
+            compiled = compile(line, "", mode="exec")
+            exec(compiled, None, locals)
+        infinity_coords = {}
+        for coordinate in coord_model.variables:
+            if coordinate not in locals:
+                raise ValueError(f"Coordinate model {coord_model} requires infty option.")
+            infinity_coords[coordinate] = Mod(locals[coordinate], field)
+        infinity = Point(coord_model, **infinity_coords)
+    elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
     generator = Point.from_affine(coord_model, affine)

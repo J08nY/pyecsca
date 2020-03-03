@@ -1,6 +1,6 @@
 import subprocess
 from subprocess import Popen
-from typing import Optional
+from typing import Optional, Union, List
 
 from public import public
 
@@ -9,17 +9,21 @@ from .serial import SerialTarget
 
 @public
 class BinaryTarget(SerialTarget):
-    binary: str
+    binary: List[str]
     process: Optional[Popen]
     debug_output: bool
 
-    def __init__(self, binary: str, debug_output: bool = False, **kwargs):
+    def __init__(self, binary: Union[str, List[str]], debug_output: bool = False, **kwargs):
         super().__init__(**kwargs)
+        if not isinstance(binary, (str, list)):
+            raise TypeError
+        if isinstance(binary, str):
+            binary = [binary]
         self.binary = binary
         self.debug_output = debug_output
 
     def connect(self):
-        self.process = Popen([self.binary], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        self.process = Popen(self.binary, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              text=True, bufsize=1)
 
     def write(self, data: bytes):
