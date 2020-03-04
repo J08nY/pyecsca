@@ -2,10 +2,10 @@ from unittest import TestCase
 
 import numpy as np
 from pyecsca.sca import Trace, downsample_average, downsample_pick, downsample_decimate
-from .utils import plot
+from .utils import Plottable
 
 
-class SamplingTests(TestCase):
+class SamplingTests(Plottable):
 
     def setUp(self):
         self._trace = Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")), None, None)
@@ -34,4 +34,4 @@ class SamplingTests(TestCase):
         self.assertIsNotNone(result)
         self.assertIsInstance(result, Trace)
         self.assertEqual(len(result.samples), 15)
-        plot(self, trace, result)
+        self.plot(trace, result)

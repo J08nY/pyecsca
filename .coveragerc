@@ -3,6 +3,7 @@ branch = True
 omit =
     test/*
     setup.py
+    fakesource
 
 [report]
 exclude_lines =

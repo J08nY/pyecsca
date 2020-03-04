@@ -3,10 +3,10 @@ from unittest import TestCase
 import numpy as np
 
 from pyecsca.sca import Trace, match_pattern, match_part, pad
-from .utils import plot
+from .utils import Plottable
 
 
-class MatchingTests(TestCase):
+class MatchingTests(Plottable):
 
     def test_simple_match(self):
         pattern = Trace(np.array([1, 15, 12, -10, 0, 13, 17, -1, 0], dtype=np.dtype("i1")), None,
@@ -16,7 +16,7 @@ class MatchingTests(TestCase):
                 dtype=np.dtype("i1")), None, None, None)
         filtered = match_part(base, 7, 9)
         self.assertListEqual(filtered, [7])
-        plot(self, base=base, pattern=pad(pattern, (filtered[0], 0)))
+        self.plot(base=base, pattern=pad(pattern, (filtered[0], 0)))
 
     def test_multiple_match(self):
         pattern = Trace(np.array([1, 15, 12, -10, 0, 13, 17, -1, 0], dtype=np.dtype("i1")), None,
@@ -27,4 +27,4 @@ class MatchingTests(TestCase):
                 dtype=np.dtype("i1")), None, None, None)
         filtered = match_pattern(base, pattern, 0.9)
         self.assertListEqual(filtered, [7, 19])
-        plot(self, base=base, pattern1=pad(pattern, (filtered[0], 0)), pattern2=pad(pattern, (filtered[1], 0)))
+        self.plot(base=base, pattern1=pad(pattern, (filtered[0], 0)), pattern2=pad(pattern, (filtered[1], 0)))

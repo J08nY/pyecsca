@@ -3,10 +3,10 @@ from unittest import TestCase
 import numpy as np
 from pyecsca.sca import align_correlation, align_peaks, align_sad, align_dtw_scale,\
     align_dtw, Trace, InspectorTraceSet
-from .utils import plot, slow
+from .utils import Plottable, slow
 
 
-class AlignTests(TestCase):
+class AlignTests(Plottable):
 
     def test_align(self):
         first_arr = np.array([10, 64, 120, 64, 10, 10, 10, 10, 10], dtype=np.dtype("i1"))
@@ -60,7 +60,7 @@ class AlignTests(TestCase):
 
         self.assertEqual(np.argmax(result[0].samples), np.argmax(result[1].samples))
         self.assertEqual(np.argmax(result[1].samples), np.argmax(result[2].samples))
-        plot(self, *result)
+        self.plot(*result)
 
     def test_dtw_align(self):
         first_arr = np.array([10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10, 8, 10, 12, 10, 13, 9], dtype=np.dtype("i1"))
@@ -73,4 +73,4 @@ class AlignTests(TestCase):
 
         self.assertEqual(np.argmax(result[0].samples), np.argmax(result[1].samples))
         self.assertEqual(np.argmax(result[1].samples), np.argmax(result[2].samples))
-        plot(self, *result)
+        self.plot(*result)
