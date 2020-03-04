@@ -29,7 +29,7 @@ class SamplingTests(TestCase):
     def test_downsample_decimate(self):
         trace = Trace(np.array([20, 30, 55, 18, 15, 10, 35, 24, 21, 15, 10, 8, -10, -5,
                                 -8, -12, -15, -18, -34, -21, -17, -10, -5, -12, -6, -2,
-                                4, 8, 21, 28], dtype=np.dtype("i1")), None, None)
+                                4, 8, 21, 28], dtype=np.dtype("i1")), None, None, None)
         result = downsample_decimate(trace, 2)
         self.assertIsNotNone(result)
         self.assertIsInstance(result, Trace)

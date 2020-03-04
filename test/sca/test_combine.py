@@ -7,9 +7,9 @@ from pyecsca.sca import Trace, CombinedTrace, average, conditional_average, stan
 class CombineTests(TestCase):
 
     def setUp(self):
-        self.a = Trace(np.array([20, 80], dtype=np.dtype("i1")), None, b"\xff")
-        self.b = Trace(np.array([30, 42], dtype=np.dtype("i1")), None, b"\xff")
-        self.c = Trace(np.array([78, 56], dtype=np.dtype("i1")), None, b"\x00")
+        self.a = Trace(np.array([20, 80], dtype=np.dtype("i1")), None, b"\xff", None)
+        self.b = Trace(np.array([30, 42], dtype=np.dtype("i1")), None, b"\xff", None)
+        self.c = Trace(np.array([78, 56], dtype=np.dtype("i1")), None, b"\x00", None)
 
     def test_average(self):
         self.assertIsNone(average())

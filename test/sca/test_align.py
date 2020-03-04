@@ -23,13 +23,13 @@ class AlignTests(TestCase):
 
     @slow
     def test_large_align(self):
-        example = InspectorTraceSet("test/data/example.trs")
+        example = InspectorTraceSet.read("test/data/example.trs")
         result = align_correlation(*example, reference_offset=100000, reference_length=20000, max_offset=15000)
         self.assertIsNotNone(result)
 
     @slow
     def test_large_dtw_align(self):
-        example = InspectorTraceSet("test/data/example.trs")
+        example = InspectorTraceSet.read("test/data/example.trs")
         result = align_dtw(*example[:5])
         self.assertIsNotNone(result)
 

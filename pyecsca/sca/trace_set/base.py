@@ -1,16 +1,21 @@
+from io import RawIOBase, BufferedIOBase
+from pathlib import Path
+from typing import List, Union
+
 from public import public
-from typing import List
 
 from ..trace import Trace
 
 
 @public
 class TraceSet(object):
-    _traces: List = []
-    _keys: List = []
+    _traces: List[Trace]
+    _keys: List
 
     def __init__(self, *traces: Trace, **kwargs):
         self._traces = list(traces)
+        for trace in self._traces:
+            trace.trace_set = self
         self.__dict__.update(kwargs)
         self._keys = list(kwargs.keys())
 
@@ -22,9 +27,26 @@ class TraceSet(object):
         """Get the trace at `index`."""
         return self._traces[index]
 
+    def __setitem__(self, key, value):
+        if not isinstance(value, Trace):
+            raise TypeError
+        self._traces[key] = value
+        value.trace_set = self
+
     def __iter__(self):
         """Iterate over the traces."""
         yield from self._traces
+
+    @classmethod
+    def read(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
+        raise NotImplementedError
+
+    @classmethod
+    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
+        raise NotImplementedError
+
+    def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
+        raise NotImplementedError
 
     def __repr__(self):
         args = ", ".join(["{}={!r}".format(key, getattr(self, key)) for key in

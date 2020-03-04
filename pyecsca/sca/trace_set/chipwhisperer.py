@@ -1,9 +1,14 @@
-import numpy as np
-from .base import TraceSet
-from os.path import exists, isfile, join
 from configparser import ConfigParser
+from io import RawIOBase, BufferedIOBase
+from itertools import zip_longest
+from os.path import exists, isfile, join, basename, dirname
+from pathlib import Path
+from typing import Union
+
+import numpy as np
 from public import public
 
+from .base import TraceSet
 from ..trace import Trace
 
 
@@ -11,27 +16,54 @@ from ..trace import Trace
 class ChipWhispererTraceSet(TraceSet):
     """ChipWhisperer trace set (native) format."""
 
-    def __init__(self, path: str = None, name: str = None):
-        if path is None and name is None:
-            super().__init__()
+    @classmethod
+    def read(cls,
+             input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "ChipWhispererTraceSet":
+        if isinstance(input, (str, Path)):
+            traces, kwargs = ChipWhispererTraceSet.__read(input)
+            return ChipWhispererTraceSet(*traces, **kwargs)
         else:
-            data = self.__read_data(path, name)
-            trace_data = data["traces"]
-            traces = [Trace(trace_samples, None, None, trace_set=self) for trace_samples in trace_data]
-            del data["traces"]
-            config = self.__read_config(path, name)
-            super().__init__(*traces, **data, **config)
+            raise ValueError
 
-    def __read_data(self, path, name):
+    @classmethod
+    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "ChipWhispererTraceSet":
+        raise NotImplementedError
+
+    def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
+        raise NotImplementedError
+
+    @classmethod
+    def __read(cls, full_path):
+        file_name = basename(full_path)
+        if not file_name.startswith("config_") or not file_name.endswith(".cfg"):
+            raise ValueError
+        path = dirname(full_path)
+        name = file_name[7:-4]
+        data = ChipWhispererTraceSet.__read_data(path, name)
+        traces = []
+        for samples, key, textin, textout in zip_longest(data["traces"], data["keylist"],
+                                                         data["textin"], data["textout"]):
+            traces.append(
+                    Trace(samples, None, None, {"key": key, "textin": textin, "textout": textout}))
+        del data["traces"]
+        del data["keylist"]
+        del data["textin"]
+        del data["textout"]
+        config = ChipWhispererTraceSet.__read_config(path, name)
+        return traces, {**data, **config}
+
+    @classmethod
+    def __read_data(cls, path, name):
         types = {"keylist": None, "knownkey": None, "textin": None, "textout": None, "traces": None}
         for type in types.keys():
-            type_path = join(path, name + "_" + type + ".npy")
+            type_path = join(path, name + type + ".npy")
             if exists(type_path) and isfile(type_path):
                 types[type] = np.load(type_path, allow_pickle=True)
         return types
 
-    def __read_config(self, path, name):
-        config_path = join(path, "config_" + name + "_.cfg")
+    @classmethod
+    def __read_config(cls, path, name):
+        config_path = join(path, "config_" + name + ".cfg")
         if exists(config_path) and isfile(config_path):
             config = ConfigParser()
             config.read(config_path)

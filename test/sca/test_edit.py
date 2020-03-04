@@ -8,7 +8,7 @@ from pyecsca.sca import Trace, trim, reverse, pad
 class EditTests(TestCase):
 
     def setUp(self):
-        self._trace = Trace(np.array([10, 20, 30, 40, 50], dtype=np.dtype("i1")), None, None)
+        self._trace = Trace(np.array([10, 20, 30, 40, 50], dtype=np.dtype("i1")), None, None, None)
 
     def test_trim(self):
         result = trim(self._trace, 2)
