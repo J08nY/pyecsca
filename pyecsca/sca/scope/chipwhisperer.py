@@ -23,9 +23,11 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     def channels(self) -> Sequence[str]:
         return []
 
-    def setup_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
+    def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
+        if pretrig != 0:
+            raise ValueError("ChipWhisperer does not support pretrig samples.")
         self.scope.clock.clkgen_freq = frequency
-        self.scope.samples = samples
+        self.scope.samples = posttrig
         return self.scope.clock.freq_ctr, self.scope.samples
 
     def setup_channel(self, channel: str, coupling: str, range: float, enable: bool) -> None:

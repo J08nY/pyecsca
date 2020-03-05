@@ -54,10 +54,22 @@ class HDF5TraceSet(TraceSet):
             if str(key) in self._file:
                 del self._file[str(key)]
             self._file[str(key)] = value.samples
+            value.samples = self._file[str(key)]
             if value.meta:
                 for k, v in value.meta.items():
                     self._file[str(key)].attrs[k] = v
         super().__setitem__(key, value)
+
+    def append(self, value: Trace):
+        if self._file is not None:
+            last = sorted(list(map(int, self._file.keys())))[-1]
+            key = last + 1
+            self._file[str(key)] = value.samples
+            value.samples = self._file[str(key)]
+            if value.meta:
+                for k, v in value.meta.items():
+                    self._file[str(key)].attrs[k] = v
+        self._traces.append(value)
 
     def save(self):
         if self._file is not None:

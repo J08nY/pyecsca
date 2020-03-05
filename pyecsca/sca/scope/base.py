@@ -17,14 +17,15 @@ class Scope(object):
         """A list of channels available on this scope."""
         raise NotImplementedError
 
-    def setup_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
+    def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
         """
         Setup the frequency and sample count for the measurement. The scope might not support
         the requested values and will adjust them to get the next best frequency and the largest
         supported number of samples (or the number of samples requested).
 
         :param frequency: The requested frequency in Hz.
-        :param samples: The requested number of samples to measure.
+        :param pretrig: The requested number of samples to measure before the trigger.
+        :param posttrig: The requested number of samples to measure after the trigger.
         :return: A tuple of the actual set frequency and the actual number of samples.
         """
         raise NotImplementedError

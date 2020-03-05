@@ -16,6 +16,7 @@ class PicoScopeAlt(Scope):  # pragma: no cover
     def __init__(self, ps: Union[PS4000, PS5000, PS6000]):
         super().__init__()
         self.ps = ps
+        self.trig_ratio: float = 0.0
 
     def open(self) -> None:
         self.ps.open()
@@ -24,9 +25,11 @@ class PicoScopeAlt(Scope):  # pragma: no cover
     def channels(self) -> Sequence[str]:
         return list(self.ps.CHANNELS.keys())
 
-    def setup_frequency(self, frequency: int, samples: int) -> Tuple[int, int]:
+    def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
+        samples = pretrig + posttrig
         actual_frequency, max_samples = self.ps.setSamplingFrequency(frequency, samples)
         if max_samples < samples:
+            self.trig_ratio = (pretrig / samples)
             samples = max_samples
         return actual_frequency, samples
 

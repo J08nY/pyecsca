@@ -1,6 +1,7 @@
 import os.path
 import shutil
 import tempfile
+from copy import deepcopy
 from unittest import TestCase
 
 import numpy as np
@@ -97,7 +98,7 @@ class HDF5TraceSetTests(TestCase):
             trace_set = HDF5TraceSet.inplace(path)
             self.assertIsNotNone(trace_set)
             test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), None, None, meta={"thing": "ring"})
-            trace_set[0] = test_trace
+            trace_set[0] = deepcopy(test_trace)
             trace_set.save()
             trace_set.close()
 
