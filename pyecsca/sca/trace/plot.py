@@ -1,42 +1,49 @@
 """
 This module provides functions for plotting traces.
 """
-from bokeh.io import show, save, export_png, export_svgs
-from bokeh.layouts import column
-from bokeh.plotting import Figure
-from bokeh.resources import CDN
+from functools import  reduce
+
+import holoviews as hv
+from holoviews.operation.datashader import datashade
 from public import public
 
 from .trace import Trace
 
 
 @public
-def new_figure():
-    return Figure()
+def save_figure(figure, fname: str):
+    hv.save(figure, fname + ".html", fmt="html")
 
 
 @public
-def show_figure(figure: Figure):
-    show(figure)
+def save_figure_png(figure, fname: str):
+    hv.save(figure, fname + ".png", fmt="png")
 
 
 @public
-def save_figure(figure: Figure, fname: str, title: str):
-    lay = column(figure, sizing_mode='stretch_both')
-    save(lay, fname, resources=CDN, title=title)
+def save_figure_svg(figure, fname: str):
+    hv.save(figure, fname + ".svg", fmt="svg")
 
 
 @public
-def save_figure_png(figure: Figure, fname: str, width: int, height: int):
-    export_png(figure, fname, height, width)
+def plot_trace(trace: Trace, **kwargs):
+    line = hv.Curve((range(len(trace)), trace.samples), kdims="x", vdims="y", **kwargs)
+    return datashade(line, normalization="log")
 
 
 @public
-def save_figure_svg(figure: Figure, fname: str):
-    lay = column(figure, sizing_mode='stretch_both')
-    export_svgs(lay, fname)
-
-
-@public
-def plot_trace(figure: Figure, trace: Trace, **kwargs):
-    figure.line(range(len(trace)), trace.samples, **kwargs)
+def plot_traces(*traces: Trace, **kwargs):
+    _cmaps = [
+        ["lightblue", "darkblue"],
+        ["lightcoral", "red"],
+        ["lime", "green"],
+        ["orange", "darkorange"],
+        ["plum", "deeppink"],
+        ["peru", "chocolate"],
+        ["cyan", "darkcyan"]
+    ]
+    dss = []
+    for i, trace in enumerate(traces):
+        line = hv.Curve((range(len(trace)), trace.samples), kdims="x", vdims="y", **kwargs)
+        dss.append(datashade(line, normalization="log", cmap=_cmaps[i % len(_cmaps)]))
+    return reduce(lambda x, y: x * y, dss)

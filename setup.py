@@ -29,12 +29,15 @@ setup(
             "numpy",
             "scipy",
             "atpublic",
-            "matplotlib",
             "cython",
             "fastdtw",
             "asn1crypto",
             "h5py",
-            "bokeh"
+            "holoviews",
+            "bokeh",
+            "matplotlib",
+            "datashader",
+            "xarray"
         ],
         extras_require={
             "picoscope_sdk": ["picosdk"],

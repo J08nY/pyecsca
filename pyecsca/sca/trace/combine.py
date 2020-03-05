@@ -1,6 +1,7 @@
+from typing import Callable, Optional
+
 import numpy as np
 from public import public
-from typing import Callable, Optional
 
 from .trace import Trace, CombinedTrace
 
@@ -23,7 +24,8 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
 
 
 @public
-def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> Optional[CombinedTrace]:
+def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> Optional[
+    CombinedTrace]:
     """
     Average `traces` for which the `condition` is True, sample-wise.
 
@@ -46,4 +48,17 @@ def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
         return None
     dtype = traces[0].samples.dtype
     result_samples = np.std(np.array([trace.samples for trace in traces]), axis=0).astype(dtype)
+    return CombinedTrace(result_samples, None, None)
+
+
+@public
+def subtract(one: Trace, other: Trace) -> CombinedTrace:
+    """
+    Subtract `other` from `one`, sample-wise.
+
+    :param one:
+    :param other:
+    :return:
+    """
+    result_samples = one.samples - other.samples
     return CombinedTrace(result_samples, None, None)
