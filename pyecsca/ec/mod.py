@@ -136,6 +136,9 @@ class Mod(object):
         q, r = divmod(self.x, divisor.x)
         return Mod(q, self.n), Mod(r, self.n)
 
+    def __bytes__(self):
+        return self.x.to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")
+
     @staticmethod
     def random(n: int):
         with RandomModAction(n):
@@ -222,6 +225,9 @@ class Undefined(Mod):
         raise NotImplementedError
 
     def __divmod__(self, divisor):
+        raise NotImplementedError
+
+    def __bytes__(self):
         raise NotImplementedError
 
     def __int__(self):

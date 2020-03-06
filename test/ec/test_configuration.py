@@ -29,7 +29,7 @@ class ConfigurationTests(TestCase):
         model = ShortWeierstrassModel()
         coords = model.coordinates["projective"]
         configs = list(all_configurations(model=model, coords=coords, **self.base_independents()))
-        self.assertEqual(len(configs), 1344)
+        self.assertEqual(len(configs), 1960)
 
     def test_mult_class(self):
         model = ShortWeierstrassModel()
@@ -37,7 +37,7 @@ class ConfigurationTests(TestCase):
         scalarmult = LTRMultiplier
         configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult,
                                           **self.base_independents()))
-        self.assertEqual(len(configs), 384)
+        self.assertEqual(len(configs), 560)
 
     def test_one(self):
         model = ShortWeierstrassModel()

@@ -8,6 +8,7 @@ from pyecsca.ec.mult import (LTRMultiplier, RTLMultiplier, LadderMultiplier, Bin
                              DifferentialLadderMultiplier,
                              CoronMultiplier)
 from pyecsca.ec.point import InfinityPoint
+from .utils import cartesian
 
 
 class ScalarMultiplierTests(TestCase):
@@ -45,6 +46,7 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
+        ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
         ("none", "add-1998-cmo", "dbl-1998-cmo", None)
     ])
     def test_rtl(self, name, add, dbl, scale):
@@ -52,6 +54,7 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
+        ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
         ("none", "add-1998-cmo", "dbl-1998-cmo", None)
     ])
     def test_ltr(self, name, add, dbl, scale):
@@ -69,6 +72,7 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
+        ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
         ("none", "add-1998-cmo", "dbl-1998-cmo", None)
     ])
     def test_coron(self, name, add, dbl, scale):
@@ -83,6 +87,7 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
+        ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
         ("none", "add-1998-cmo", "dbl-1998-cmo", None)
     ])
     def test_simple_ladder(self, name, add, dbl, scale):
@@ -113,6 +118,7 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("scaled", "add-1998-cmo", "dbl-1998-cmo", "neg", "z"),
+        ("complete", "add-2016-rcb", "dbl-2016-rcb", "neg", None),
         ("none", "add-1998-cmo", "dbl-1998-cmo", "neg", None)
     ])
     def test_binary_naf(self, name, add, dbl, neg, scale):
@@ -120,16 +126,20 @@ class ScalarMultiplierTests(TestCase):
 
     @parameterized.expand([
         ("scaled3", "add-1998-cmo", "dbl-1998-cmo", "neg", 3, "z"),
-        ("none3", "add-1998-cmo", "dbl-1998-cmo", "neg", 3, None)
+        ("none3", "add-1998-cmo", "dbl-1998-cmo", "neg", 3, None),
+        ("complete3", "add-2016-rcb", "dbl-2016-rcb", "neg", 3, None),
+        ("scaled5", "add-1998-cmo", "dbl-1998-cmo", "neg", 5, "z"),
+        ("none5", "add-1998-cmo", "dbl-1998-cmo", "neg", 5, None),
+        ("complete5", "add-2016-rcb", "dbl-2016-rcb", "neg", 5, None),
     ])
     def test_window_naf(self, name, add, dbl, neg, width, scale):
         formulas = self.get_formulas(self.coords, add, dbl, neg, scale)
         mult = WindowNAFMultiplier(*formulas[:3], width, *formulas[3:])
         mult.init(self.secp128r1, self.base)
-        res = mult.multiply(10)
-        other = mult.multiply(5)
+        res = mult.multiply(157*789)
+        other = mult.multiply(157)
         mult.init(self.secp128r1, other)
-        other = mult.multiply(2)
+        other = mult.multiply(789)
         self.assertPointEquality(res, other, scale)
         mult.init(self.secp128r1, self.base)
         self.assertEqual(InfinityPoint(self.coords), mult.multiply(0))
@@ -137,22 +147,25 @@ class ScalarMultiplierTests(TestCase):
         mult = WindowNAFMultiplier(*formulas[:3], width, *formulas[3:],
                                    precompute_negation=True)
         mult.init(self.secp128r1, self.base)
-        res_precompute = mult.multiply(10)
+        res_precompute = mult.multiply(157*789)
         self.assertPointEquality(res_precompute, res, scale)
 
-    @parameterized.expand([
+    @parameterized.expand(cartesian([
         ("10", 10),
         ("2355498743", 2355498743),
         ("325385790209017329644351321912443757746", 325385790209017329644351321912443757746)
-    ])
-    def test_basic_multipliers(self, name, num):
-        ltr = LTRMultiplier(self.coords.formulas["add-1998-cmo"],
-                            self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+    ],[
+        ("add-1998-cmo", "dbl-1998-cmo"),
+        ("add-2016-rcb", "dbl-2016-rcb")
+    ]))
+    def test_basic_multipliers(self, name, num, add, dbl):
+        ltr = LTRMultiplier(self.coords.formulas[add],
+                            self.coords.formulas[dbl], self.coords.formulas["z"])
         with self.assertRaises(ValueError):
             ltr.multiply(1)
         ltr.init(self.secp128r1, self.base)
         res_ltr = ltr.multiply(num)
-        rtl = RTLMultiplier(self.coords.formulas["add-1998-cmo"],
+        rtl = RTLMultiplier(self.coords.formulas[add],
                             self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
         with self.assertRaises(ValueError):
             rtl.multiply(1)
@@ -160,11 +173,11 @@ class ScalarMultiplierTests(TestCase):
         res_rtl = rtl.multiply(num)
         self.assertEqual(res_ltr, res_rtl)
 
-        ltr_always = LTRMultiplier(self.coords.formulas["add-1998-cmo"],
-                                   self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"],
+        ltr_always = LTRMultiplier(self.coords.formulas[add],
+                                   self.coords.formulas[dbl], self.coords.formulas["z"],
                                    always=True)
-        rtl_always = RTLMultiplier(self.coords.formulas["add-1998-cmo"],
-                                   self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"],
+        rtl_always = RTLMultiplier(self.coords.formulas[add],
+                                   self.coords.formulas[dbl], self.coords.formulas["z"],
                                    always=True)
         ltr_always.init(self.secp128r1, self.base)
         rtl_always.init(self.secp128r1, self.base)
@@ -173,8 +186,8 @@ class ScalarMultiplierTests(TestCase):
         self.assertEqual(res_ltr, res_ltr_always)
         self.assertEqual(res_rtl, res_rtl_always)
 
-        bnaf = BinaryNAFMultiplier(self.coords.formulas["add-1998-cmo"],
-                                   self.coords.formulas["dbl-1998-cmo"],
+        bnaf = BinaryNAFMultiplier(self.coords.formulas[add],
+                                   self.coords.formulas[dbl],
                                    self.coords.formulas["neg"], self.coords.formulas["z"])
         with self.assertRaises(ValueError):
             bnaf.multiply(1)
@@ -182,8 +195,8 @@ class ScalarMultiplierTests(TestCase):
         res_bnaf = bnaf.multiply(num)
         self.assertEqual(res_bnaf, res_ltr)
 
-        wnaf = WindowNAFMultiplier(self.coords.formulas["add-1998-cmo"],
-                                   self.coords.formulas["dbl-1998-cmo"],
+        wnaf = WindowNAFMultiplier(self.coords.formulas[add],
+                                   self.coords.formulas[dbl],
                                    self.coords.formulas["neg"], 3, self.coords.formulas["z"])
         with self.assertRaises(ValueError):
             wnaf.multiply(1)
@@ -191,8 +204,8 @@ class ScalarMultiplierTests(TestCase):
         res_wnaf = wnaf.multiply(num)
         self.assertEqual(res_wnaf, res_ltr)
 
-        ladder = SimpleLadderMultiplier(self.coords.formulas["add-1998-cmo"],
-                                        self.coords.formulas["dbl-1998-cmo"],
+        ladder = SimpleLadderMultiplier(self.coords.formulas[add],
+                                        self.coords.formulas[dbl],
                                         self.coords.formulas["z"])
         with self.assertRaises(ValueError):
             ladder.multiply(1)
@@ -200,8 +213,8 @@ class ScalarMultiplierTests(TestCase):
         res_ladder = ladder.multiply(num)
         self.assertEqual(res_ladder, res_ltr)
 
-        coron = CoronMultiplier(self.coords.formulas["add-1998-cmo"],
-                                self.coords.formulas["dbl-1998-cmo"],
+        coron = CoronMultiplier(self.coords.formulas[add],
+                                self.coords.formulas[dbl],
                                 self.coords.formulas["z"])
         with self.assertRaises(ValueError):
             coron.multiply(1)

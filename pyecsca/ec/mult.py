@@ -407,10 +407,10 @@ class WindowNAFMultiplier(ScalarMultiplier):
         self._points_neg = {}
         current_point = point
         double_point = self._dbl(point)
-        for i in range(1, (self.width + 1) // 2 + 1):
-            self._points[2 ** i - 1] = current_point
+        for i in range(0, 2**(self.width - 2)):
+            self._points[2*i + 1] = current_point
             if self.precompute_negation:
-                self._points_neg[2 ** i - 1] = self._neg(current_point)
+                self._points_neg[2*i + 1] = self._neg(current_point)
             current_point = self._add(current_point, double_point)
 
     def multiply(self, scalar: int) -> Point:

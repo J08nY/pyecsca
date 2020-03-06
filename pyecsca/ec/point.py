@@ -97,6 +97,12 @@ class Point(object):
             return False
         return self.to_affine() == other.to_affine()
 
+    def __bytes__(self):
+        res = b"\x04"
+        for k in sorted(self.coords.keys()):
+            res += bytes(self.coords[k])
+        return res
+
     def __eq__(self, other):
         if not isinstance(other, Point):
             return False
@@ -132,6 +138,9 @@ class InfinityPoint(Point):
 
     def equals(self, other) -> bool:
         return self == other
+
+    def __bytes__(self):
+        return b"\x00"
 
     def __eq__(self, other):
         if type(other) is not InfinityPoint:

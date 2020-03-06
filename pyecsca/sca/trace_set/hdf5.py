@@ -62,8 +62,7 @@ class HDF5TraceSet(TraceSet):
 
     def append(self, value: Trace):
         if self._file is not None:
-            last = sorted(list(map(int, self._file.keys())))[-1]
-            key = last + 1
+            key = sorted(list(map(int, self._file.keys())))[-1] + 1 if self._file.keys() else 0
             self._file[str(key)] = value.samples
             value.samples = self._file[str(key)]
             if value.meta:
