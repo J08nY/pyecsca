@@ -1,5 +1,4 @@
 import numpy as np
-from copy import copy
 from public import public
 
 from .trace import Trace
@@ -13,7 +12,7 @@ def absolute(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    return Trace(np.absolute(trace.samples), copy(trace.title), copy(trace.data))
+    return trace.with_samples(np.absolute(trace.samples))
 
 
 @public
@@ -24,7 +23,7 @@ def invert(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    return Trace(np.negative(trace.samples), copy(trace.title), copy(trace.data))
+    return trace.with_samples(np.negative(trace.samples))
 
 
 @public
@@ -39,7 +38,7 @@ def threshold(trace: Trace, value) -> Trace:
     result_samples = trace.samples.copy()
     result_samples[result_samples <= value] = 0
     result_samples[np.nonzero(result_samples)] = 1
-    return Trace(result_samples, copy(trace.title), copy(trace.data))
+    return trace.with_samples(result_samples)
 
 
 def rolling_window(samples: np.ndarray, window: int) -> np.ndarray:
@@ -57,8 +56,8 @@ def rolling_mean(trace: Trace, window: int) -> Trace:
     :param window:
     :return:
     """
-    return Trace(np.mean(rolling_window(trace.samples, window), -1).astype(
-            dtype=trace.samples.dtype), copy(trace.title), copy(trace.data))
+    return trace.with_samples(np.mean(rolling_window(trace.samples, window), -1).astype(
+            dtype=trace.samples.dtype))
 
 
 @public
@@ -70,7 +69,7 @@ def offset(trace: Trace, offset) -> Trace:
     :param offset:
     :return:
     """
-    return Trace(trace.samples + offset, copy(trace.title), copy(trace.data))
+    return trace.with_samples(trace.samples + offset)
 
 
 def root_mean_square(trace: Trace):
@@ -91,11 +90,10 @@ def recenter(trace: Trace) -> Trace:
 
 @public
 def normalize(trace: Trace) -> Trace:
-    return Trace((trace.samples - np.mean(trace.samples)) / np.std(trace.samples),
-                 copy(trace.title), copy(trace.data))
+    return trace.with_samples((trace.samples - np.mean(trace.samples)) / np.std(trace.samples))
 
 
 @public
 def normalize_wl(trace: Trace) -> Trace:
-    return Trace((trace.samples - np.mean(trace.samples)) / (
-            np.std(trace.samples) * len(trace.samples)), copy(trace.title), copy(trace.data))
+    return trace.with_samples((trace.samples - np.mean(trace.samples)) / (
+            np.std(trace.samples) * len(trace.samples)))

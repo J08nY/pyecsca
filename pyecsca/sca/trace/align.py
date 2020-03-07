@@ -2,7 +2,7 @@
 This module provides functions for aligning traces in a trace set to a reference trace within it.
 """
 import numpy as np
-from copy import copy, deepcopy
+from copy import deepcopy
 from fastdtw import fastdtw, dtw
 from public import public
 from typing import List, Callable, Tuple
@@ -27,7 +27,7 @@ def align_reference(reference: Trace, *traces: Trace,
                 result_samples[:length - offset] = trace.samples[offset:]
             else:
                 result_samples[-offset:] = trace.samples[:length + offset]
-        result.append(Trace(result_samples, copy(trace.title), copy(trace.data)))
+        result.append(trace.with_samples(result_samples))
     return result
 
 
@@ -198,7 +198,7 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
             scale[x] += 1
         result_samples //= scale
         del scale
-        result.append(Trace(result_samples, copy(trace.title), copy(trace.data)))
+        result.append(trace.with_samples(result_samples))
     return result
 
 
@@ -233,5 +233,5 @@ def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = Tr
         # or manually:
         # for x, y in path:
         #    result_samples[x] = trace.samples[y]
-        result.append(Trace(result_samples, copy(trace.title), copy(trace.data)))
+        result.append(trace.with_samples(result_samples))
     return result

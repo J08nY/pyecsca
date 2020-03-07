@@ -9,9 +9,9 @@ import numpy as np
 from pyecsca.sca import (TraceSet, InspectorTraceSet, ChipWhispererTraceSet, PickleTraceSet,
                          HDF5TraceSet, Trace)
 
-EXAMPLE_TRACES = [Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")), None, None),
-                  Trace(np.array([1, 2, 3, 4, 5], dtype=np.dtype("i1")), None, None),
-                  Trace(np.array([6, 7, 8, 9, 10], dtype=np.dtype("i1")), None, None)]
+EXAMPLE_TRACES = [Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1"))),
+                  Trace(np.array([1, 2, 3, 4, 5], dtype=np.dtype("i1"))),
+                  Trace(np.array([6, 7, 8, 9, 10], dtype=np.dtype("i1")))]
 EXAMPLE_KWARGS = {"num_traces": 3, "thingy": "abc"}
 
 
@@ -97,7 +97,7 @@ class HDF5TraceSetTests(TestCase):
             shutil.copy("test/data/test.h5", path)
             trace_set = HDF5TraceSet.inplace(path)
             self.assertIsNotNone(trace_set)
-            test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), None, None, meta={"thing": "ring"})
+            test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
             trace_set[0] = deepcopy(test_trace)
             trace_set.save()
             trace_set.close()

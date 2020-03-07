@@ -6,7 +6,7 @@ from pyecsca.sca import Trace
 class TraceTests(TestCase):
 
     def test_basic(self):
-        trace = Trace(np.array([10, 15, 24], dtype=np.dtype("i1")), "Name", b"\xff\xaa", None)
+        trace = Trace(np.array([10, 15, 24], dtype=np.dtype("i1")))
         self.assertIsNotNone(trace)
         self.assertIn("Trace", str(trace))
         self.assertIsNone(trace.trace_set)

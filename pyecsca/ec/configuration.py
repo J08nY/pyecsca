@@ -55,6 +55,13 @@ class Reduction(EnumDefine):
 
 
 @public
+class Inversion(EnumDefine):
+    """Inversion algorithm used."""
+    GCD = "INV_GCD"
+    EULER = "INV_EULER"
+
+
+@public
 class HashType(EnumDefine):
     """Hash algorithm used in ECDH and ECDSA."""
     NONE = "HASH_NONE"
@@ -85,6 +92,7 @@ class Configuration(object):
     mult: Multiplication
     sqr: Squaring
     red: Reduction
+    inv: Inversion
 
 
 @public
@@ -128,7 +136,8 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
             "mod_rand": RandomMod,
             "mult": Multiplication,
             "sqr": Squaring,
-            "red": Reduction
+            "red": Reduction,
+            "inv": Inversion
         }
         keys = list(filter(lambda key: key not in kwargs, options.keys()))
         values = [options[key] for key in keys]

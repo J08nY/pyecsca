@@ -1,5 +1,4 @@
 import numpy as np
-from copy import copy
 from public import public
 from typing import Union, Tuple, Any
 
@@ -22,7 +21,7 @@ def trim(trace: Trace, start: int = None, end: int = None) -> Trace:
         end = len(trace.samples)
     if start > end:
         raise ValueError("Invalid trim arguments.")
-    return Trace(trace.samples[start:end].copy(), copy(trace.title), copy(trace.data))
+    return trace.with_samples(trace.samples[start:end].copy())
 
 
 @public
@@ -33,7 +32,7 @@ def reverse(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    return Trace(np.flipud(trace.samples), copy(trace.title), copy(trace.data))
+    return trace.with_samples(np.flipud(trace.samples))
 
 
 @public
@@ -51,5 +50,4 @@ def pad(trace: Trace, lengths: Union[Tuple[int, int], int],
         lengths = (lengths, lengths)
     if not isinstance(values, tuple):
         values = (values, values)
-    return Trace(np.pad(trace.samples, lengths, "constant", constant_values=values),
-                 copy(trace.title), copy(trace.data))
+    return trace.with_samples(np.pad(trace.samples, lengths, "constant", constant_values=values))

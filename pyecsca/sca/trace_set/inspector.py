@@ -190,11 +190,11 @@ class InspectorTraceSet(TraceSet):
                 samples = np.frombuffer(
                         file.read(dtype.itemsize * tags["num_samples"]), dtype,
                         tags["num_samples"])
-            result.append(Trace(samples, title, data))
+            result.append(Trace(samples, {"title": title, "data": data}))
         return result, tags
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "PickleTraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
@@ -231,10 +231,10 @@ class InspectorTraceSet(TraceSet):
         file.write(b"\x5f\x00")
 
         for trace in self._traces:
-            if self.title_space != 0 and trace.title is not None:
-                file.write(Parsers.write_str(trace.title))
-            if self.data_space != 0 and trace.data is not None:
-                file.write(trace.data)
+            if self.title_space != 0 and trace.meta["title"] is not None:
+                file.write(Parsers.write_str(trace.meta["title"]))
+            if self.data_space != 0 and trace.meta["data"] is not None:
+                file.write(trace.meta["data"])
             unscaled = InspectorTraceSet.__unscale(trace.samples, self.y_scale, self.sample_coding)
             try:
                 unscaled.tofile(file)

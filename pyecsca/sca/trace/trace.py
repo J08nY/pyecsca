@@ -1,5 +1,5 @@
 import weakref
-from typing import Optional, Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 from copy import copy, deepcopy
 
 from numpy import ndarray
@@ -10,15 +10,10 @@ from public import public
 @public
 class Trace(object):
     """A trace, which has an optional title, optional data bytes and mandatory samples."""
-    title: Optional[str]
-    data: Optional[bytes]
     meta: Mapping[str, Any]
     samples: ndarray
 
-    def __init__(self, samples: ndarray, title: Optional[str], data: Optional[bytes],
-                 meta: Mapping[str, Any] = None, trace_set: Any = None):
-        self.title = title
-        self.data = data
+    def __init__(self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None):
         self.meta = meta
         self.samples = samples
         self.trace_set = trace_set
@@ -60,32 +55,32 @@ class Trace(object):
     def __eq__(self, other):
         if not isinstance(other, Trace):
             return False
-        return np.array_equal(self.samples, other.samples) and self.title == other.title and self.data == other.data and self.meta == other.meta
+        return np.array_equal(self.samples, other.samples) and self.meta == other.meta
 
     def with_samples(self, samples: ndarray) -> "Trace":
-        return Trace(samples, deepcopy(self.title), deepcopy(self.data), deepcopy(self.meta), deepcopy(self.trace_set))
+        return Trace(samples, deepcopy(self.meta), deepcopy(self.trace_set))
 
     def __copy__(self):
-        return Trace(copy(self.samples), copy(self.title), copy(self.data), copy(self.meta), copy(self.trace_set))
+        return Trace(copy(self.samples), copy(self.meta), copy(self.trace_set))
 
     def __deepcopy__(self, memodict={}):
-        return Trace(deepcopy(self.samples, memo=memodict), deepcopy(self.title, memo=memodict), deepcopy(self.data, memo=memodict), deepcopy(self.meta, memo=memodict), deepcopy(self.trace_set, memo=memodict))
+        return Trace(deepcopy(self.samples, memo=memodict), deepcopy(self.meta, memo=memodict),
+                     deepcopy(self.trace_set, memo=memodict))
 
     def __repr__(self):
-        return f"Trace(title={self.title!r}, data={self.data!r}, samples={self.samples!r}, trace_set={self.trace_set!r})"
+        return f"Trace(samples={self.samples!r}, trace_set={self.trace_set!r})"
 
 
 @public
 class CombinedTrace(Trace):
     """A trace that was combined from other traces, `parents`."""
 
-    def __init__(self, samples: ndarray, title: Optional[str], data: Optional[bytes],
-                 meta: Mapping[str, Any] = None, trace_set: Any = None,
+    def __init__(self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None,
                  parents: Sequence[Trace] = None):
-        super().__init__(samples, title, data, meta, trace_set=trace_set)
+        super().__init__(samples, meta, trace_set=trace_set)
         self.parents = None
         if parents is not None:
             self.parents = weakref.WeakSet(parents)
 
     def __repr__(self):
-        return f"CombinedTrace(title={self.title!r}, data={self.data!r}, samples={self.samples!r}, trace_set={self.trace_set!r}, parents={self.parents})"
+        return f"CombinedTrace(samples={self.samples!r}, trace_set={self.trace_set!r}, parents={self.parents})"

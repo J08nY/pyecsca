@@ -27,7 +27,7 @@ class HDF5TraceSet(TraceSet):
         for k, v in hdf5.items():
             meta = dict(hdf5[k].attrs) if hdf5[k].attrs else None
             samples = hdf5[k]
-            traces.append(Trace(np.array(samples, dtype=samples.dtype), None, None, meta))
+            traces.append(Trace(np.array(samples, dtype=samples.dtype), meta))
         hdf5.close()
         return HDF5TraceSet(*traces, **kwargs)
 
@@ -44,7 +44,7 @@ class HDF5TraceSet(TraceSet):
         for k, v in hdf5.items():
             meta = dict(hdf5[k].attrs) if hdf5[k].attrs else None
             samples = hdf5[k]
-            traces.append(Trace(samples, k, None, meta))
+            traces.append(Trace(samples, meta))
         return HDF5TraceSet(*traces, **kwargs, _file=hdf5)
 
     def __setitem__(self, key, value):

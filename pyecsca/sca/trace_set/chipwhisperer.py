@@ -44,7 +44,7 @@ class ChipWhispererTraceSet(TraceSet):
         for samples, key, textin, textout in zip_longest(data["traces"], data["keylist"],
                                                          data["textin"], data["textout"]):
             traces.append(
-                    Trace(samples, None, None, {"key": key, "textin": textin, "textout": textout}))
+                    Trace(samples, {"key": key, "textin": textin, "textout": textout}))
         del data["traces"]
         del data["keylist"]
         del data["textin"]

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pyecsca.ec.configuration import (all_configurations, HashType, RandomMod, Multiplication,
-                                      Squaring, Reduction)
+                                      Squaring, Reduction, Inversion)
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.mult import LTRMultiplier
 from .utils import slow
@@ -15,7 +15,8 @@ class ConfigurationTests(TestCase):
             "mod_rand": RandomMod.SAMPLE,
             "mult": Multiplication.BASE,
             "sqr": Squaring.BASE,
-            "red": Reduction.BASE
+            "red": Reduction.BASE,
+            "inv": Inversion.GCD
         }
 
     @slow

@@ -11,8 +11,8 @@ from .utils import Plottable
 class PlotTests(Plottable):
 
     def setUp(self) -> None:
-        self.trace1 = Trace(np.array([6, 7, 3, -2, 5, 1], dtype=np.dtype("i1")), None, None)
-        self.trace2 = Trace(np.array([2, 3, 7, 0, -1, 0], dtype=np.dtype("i1")), None, None)
+        self.trace1 = Trace(np.array([6, 7, 3, -2, 5, 1], dtype=np.dtype("i1")))
+        self.trace2 = Trace(np.array([2, 3, 7, 0, -1, 0], dtype=np.dtype("i1")))
 
     def test_html(self):
         if getenv("PYECSCA_TEST_PLOTS") is None:

@@ -1,4 +1,3 @@
-from copy import copy
 from public import public
 from scipy.signal import butter, lfilter
 from typing import Union, Tuple
@@ -13,8 +12,7 @@ def filter_any(trace: Trace, sampling_frequency: int,
         b, a = butter(6, tuple(map(lambda x: x / nyq, cutoff)), btype=band_type, analog=False, output='ba')
     else:
         b, a = butter(6, cutoff / nyq, btype=band_type, analog=False, output='ba')
-    result_samples = lfilter(b, a, trace.samples)
-    return Trace(result_samples, copy(trace.title), copy(trace.data))
+    return trace.with_samples(lfilter(b, a, trace.samples))
 
 
 @public
