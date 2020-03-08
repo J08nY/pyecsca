@@ -4,7 +4,8 @@ import numpy as np
 from chipwhisperer.capture.scopes.OpenADC import OpenADC
 from public import public
 
-from .base import Scope
+from .base import Scope, SampleType
+from ..trace import Trace
 
 
 @public
@@ -30,7 +31,7 @@ class ChipWhispererScope(Scope):  # pragma: no cover
         self.scope.samples = posttrig
         return self.scope.clock.freq_ctr, self.scope.samples
 
-    def setup_channel(self, channel: str, coupling: str, range: float, enable: bool) -> None:
+    def setup_channel(self, channel: str, coupling: str, range: float, offset: float, enable: bool) -> None:
         pass
 
     def setup_trigger(self, channel: str, threshold: float, direction: str, delay: int,
@@ -51,8 +52,11 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     def capture(self, timeout: Optional[int] = None) -> bool:
         return not self.scope.capture()
 
-    def retrieve(self, channel: str) -> Optional[np.ndarray]:
-        return self.scope.get_last_trace()
+    def retrieve(self, channel: str, type: SampleType) -> Optional[Trace]:
+        data = self.scope.get_last_trace()
+        if data is None:
+            return None
+        return Trace(data, {"sampling_frequency": self.scope.clock.clkgen_freq, "channel": channel})
 
     def stop(self) -> None:
         pass

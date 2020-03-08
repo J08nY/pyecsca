@@ -11,7 +11,8 @@ from picosdk.ps5000 import ps5000
 from picosdk.ps6000 import ps6000
 from public import public
 
-from .base import Scope
+from .base import Scope, SampleType
+from ..trace import Trace
 
 
 def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
@@ -75,14 +76,16 @@ class PicoScopeSdk(Scope):  # pragma: no cover
     def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
         return self.set_frequency(frequency, pretrig, posttrig)
 
-    def set_channel(self, channel: str, enabled: bool, coupling: str, range: float):
+    def set_channel(self, channel: str, enabled: bool, coupling: str, range: float, offset: float):
+        if offset != 0.0:
+            raise ValueError("Offset not supported.")
         assert_pico_ok(
                 self.__dispatch_call("SetChannel", self.handle, self.CHANNELS[channel], enabled,
                                      self.COUPLING[coupling], self.RANGES[range]))
         self.ranges[channel] = range
 
-    def setup_channel(self, channel: str, coupling: str, range: float, enable: bool):
-        self.set_channel(channel, enable, coupling, range)
+    def setup_channel(self, channel: str, coupling: str, range: float,  offset: float, enable: bool):
+        self.set_channel(channel, enable, coupling, range, offset)
 
     def _set_freq(self, frequency: int, pretrig: int, posttrig: int, period_bound: float,
                   timebase_bound: int,
@@ -167,7 +170,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str) -> Optional[np.ndarray]:
+    def retrieve(self, channel: str, type: SampleType) -> Optional[Trace]:
         if self.samples is None:
             raise ValueError
         actual_samples = ctypes.c_int32(self.samples)
@@ -176,7 +179,11 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                 self.__dispatch_call("GetValues", self.handle, 0, ctypes.byref(actual_samples), 1,
                                      0, 0, ctypes.byref(overflow)))
         arr = np.array(self.buffers[channel], dtype=np.int16)
-        return adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE)
+        if type == SampleType.Raw:
+            data = arr
+        else:
+            data = adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE)
+        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel})
 
     def stop(self):
         assert_pico_ok(self.__dispatch_call("Stop"))
@@ -306,15 +313,16 @@ class PS6000Scope(PicoScopeSdk):  # pragma: no cover
 
     COUPLING = {
         "AC": ps6000.PS6000_COUPLING["PS6000_AC"],
-        "DC": ps6000.PS6000_COUPLING["PS6000_DC_1M"]
+        "DC": ps6000.PS6000_COUPLING["PS6000_DC_1M"],
+        "DC_50": ps6000.PS6000_COUPLING["PS6000_DC_50R"]
     }
 
     def open(self):
         assert_pico_ok(ps6000.ps6000OpenUnit(ctypes.byref(self.handle), None))
 
-    def set_channel(self, channel: str, enabled: bool, coupling: str, range: float):
+    def set_channel(self, channel: str, enabled: bool, coupling: str, range: float, offset: float):
         assert_pico_ok(ps6000.ps6000SetChannel(self.handle, self.CHANNELS[channel], enabled,
-                                               self.COUPLING[coupling], self.RANGES[range], 0,
+                                               self.COUPLING[coupling], self.RANGES[range], offset,
                                                ps6000.PS6000_BANDWIDTH_LIMITER["PS6000_BW_FULL"]))
 
     def set_buffer(self, channel: str, enable: bool):

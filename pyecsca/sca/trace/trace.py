@@ -9,11 +9,13 @@ from public import public
 
 @public
 class Trace(object):
-    """A trace, which has an optional title, optional data bytes and mandatory samples."""
+    """A trace, which has some samples and metadata."""
     meta: Mapping[str, Any]
     samples: ndarray
 
     def __init__(self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None):
+        if meta is None:
+            meta = {}
         self.meta = meta
         self.samples = samples
         self.trace_set = trace_set

@@ -1,13 +1,13 @@
 from time import time_ns, sleep
 from typing import Optional, Tuple, Sequence, Union
 
-import numpy as np
 from picoscope.ps4000 import PS4000
 from picoscope.ps5000 import PS5000
 from picoscope.ps6000 import PS6000
 from public import public
 
-from .base import Scope
+from .base import Scope, SampleType
+from ..trace import Trace
 
 
 @public
@@ -17,6 +17,7 @@ class PicoScopeAlt(Scope):  # pragma: no cover
         super().__init__()
         self.ps = ps
         self.trig_ratio: float = 0.0
+        self.frequency: Optional[float] = None
 
     def open(self) -> None:
         self.ps.open()
@@ -31,10 +32,11 @@ class PicoScopeAlt(Scope):  # pragma: no cover
         if max_samples < samples:
             self.trig_ratio = (pretrig / samples)
             samples = max_samples
+        self.frequency = actual_frequency
         return actual_frequency, samples
 
-    def setup_channel(self, channel: str, coupling: str, range: float, enable: bool) -> None:
-        self.ps.setChannel(channel, coupling, range, 0.0, enable)
+    def setup_channel(self, channel: str, coupling: str, range: float, offset: float, enable: bool) -> None:
+        self.ps.setChannel(channel, coupling, range, offset, enable)
 
     def setup_trigger(self, channel: str, threshold: float, direction: str, delay: int,
                       timeout: int, enable: bool) -> None:
@@ -54,8 +56,14 @@ class PicoScopeAlt(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str) -> Optional[np.ndarray]:
-        return self.ps.getDataV(channel)
+    def retrieve(self, channel: str, type: SampleType) -> Optional[Trace]:
+        if type == SampleType.Raw:
+            data = self.ps.getDataRaw(channel)
+        else:
+            data = self.ps.getDataV(channel)
+        if data is None:
+            return None
+        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel})
 
     def stop(self) -> None:
         self.ps.stop()

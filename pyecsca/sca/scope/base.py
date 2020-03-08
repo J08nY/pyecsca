@@ -1,7 +1,15 @@
+from enum import Enum, auto
 from typing import Tuple, Sequence, Optional
 
-import numpy as np
 from public import public
+
+from ..trace import Trace
+
+
+@public
+class SampleType(Enum):
+    Raw = auto()
+    Volt = auto()
 
 
 @public
@@ -30,13 +38,15 @@ class Scope(object):
         """
         raise NotImplementedError
 
-    def setup_channel(self, channel: str, coupling: str, range: float, enable: bool) -> None:
+    def setup_channel(self, channel: str, coupling: str, range: float, offset: float,
+                      enable: bool) -> None:
         """
         Setup a channel to use the coupling method and measure the given voltage range.
 
         :param channel: The channel to measure.
         :param coupling: The coupling method ("AC" or "DC).
         :param range: The voltage range to measure.
+        :param offset: The analog voltage offset added to the input. Not supported on many scopes.
         :param enable: Whether to enable or disable the channel.
         """
         raise NotImplementedError
@@ -80,11 +90,12 @@ class Scope(object):
         """
         raise NotImplementedError
 
-    def retrieve(self, channel: str) -> Optional[np.ndarray]:
+    def retrieve(self, channel: str, type: SampleType) -> Optional[Trace]:
         """
         Retrieve a captured trace of a channel.
 
         :param channel: The channel to retrieve the trace from.
+        :param type: The type of returned samples.
         :return: The captured trace (if any).
         """
         raise NotImplementedError

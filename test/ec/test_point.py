@@ -64,14 +64,14 @@ class PointTests(TestCase):
                       X=Mod(0x2, self.secp128r1.curve.prime),
                       Y=Mod(0x3, self.secp128r1.curve.prime),
                       Z=Mod(1, self.secp128r1.curve.prime))
-        assert pt.equals(other)
+        self.assertTrue(pt.equals(other))
         self.assertNotEqual(pt, other)
-        assert not pt.equals(2)
+        self.assertFalse(pt.equals(2))
         self.assertNotEqual(pt, 2)
 
         infty_one = InfinityPoint(self.coords)
         infty_other = InfinityPoint(self.coords)
-        assert infty_one.equals(infty_other)
+        self.assertTrue(infty_one.equals(infty_other))
         self.assertEqual(infty_one, infty_other)
 
         mont = MontgomeryModel()
@@ -79,5 +79,13 @@ class PointTests(TestCase):
                           X=Mod(0x64daccd2656420216545e5f65221eb,
                                 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa),
                           Z=Mod(1, 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa))
-        assert not pt.equals(different)
+        self.assertFalse(pt.equals(different))
         self.assertNotEqual(pt, different)
+
+    def test_bytes(self):
+        pt = Point(self.coords,
+                   X=Mod(0x4, self.secp128r1.curve.prime),
+                   Y=Mod(0x6, self.secp128r1.curve.prime),
+                   Z=Mod(2, self.secp128r1.curve.prime))
+        self.assertEqual(bytes(pt), b"\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02")
+        self.assertEqual(bytes(InfinityPoint(self.coords)), b"\x00")
