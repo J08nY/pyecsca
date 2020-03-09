@@ -191,8 +191,8 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
             dist, path = fastdtw(reference_samples, trace.samples, radius=radius)
         else:
             dist, path = dtw(reference_samples, trace.samples)
-        result_samples = np.zeros(len(trace.samples), dtype=trace.samples.dtype)
-        scale = np.ones(len(trace.samples), dtype=trace.samples.dtype)
+        result_samples = np.zeros(max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype)
+        scale = np.ones(max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype)
         for x, y in path:
             result_samples[x] = trace.samples[y]
             scale[x] += 1
@@ -225,7 +225,7 @@ def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = Tr
             dist, path = fastdtw(reference_samples, trace.samples, radius=radius)
         else:
             dist, path = dtw(reference_samples, trace.samples)
-        result_samples = np.zeros(len(trace.samples), dtype=trace.samples.dtype)
+        result_samples = np.zeros(max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype)
         pairs = np.array(np.array(path, dtype=np.dtype("int,int")),
                          dtype=np.dtype([("x", "int"), ("y", "int")]))
         result_samples[pairs["x"]] = trace.samples[pairs["y"]]

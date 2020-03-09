@@ -64,7 +64,7 @@ class Trace(object):
         return np.array_equal(self.samples, other.samples) and self.meta == other.meta
 
     def with_samples(self, samples: ndarray) -> "Trace":
-        return Trace(samples, deepcopy(self.meta), deepcopy(self.trace_set))
+        return Trace(samples, deepcopy(self.meta))
 
     def __copy__(self):
         return Trace(copy(self.samples), copy(self.meta), copy(self.trace_set))

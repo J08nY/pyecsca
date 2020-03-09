@@ -8,6 +8,7 @@ from typing import Union, Optional, Dict, Any, List
 import h5py
 import numpy as np
 from public import public
+from copy import deepcopy
 
 from .base import TraceSet
 from .. import Trace
@@ -16,27 +17,27 @@ from .. import Trace
 @public
 class HDF5Meta(MutableMapping):
     _dataset: h5py.AttributeManager
-    _cache: Dict[str, Any]
 
     def __init__(self, attrs: h5py.AttributeManager):
         self._attrs = attrs
-        self._cache = {}
         super().__init__()
 
     def __getitem__(self, item):
         if item not in self._attrs:
             raise KeyError
-        if item not in self._cache:
-            self._cache[item] = pickle.loads(self._attrs[item])
-        return self._cache[item]
+        return pickle.loads(self._attrs[item])
 
     def __setitem__(self, key, value):
         self._attrs[key] = np.void(pickle.dumps(value))
 
     def __delitem__(self, key):
         del self._attrs[key]
-        if key in self._cache:
-            del self._cache[key]
+
+    def __copy__(self):
+        return deepcopy(self)
+
+    def __deepcopy__(self, memodict={}):
+        return dict(self)
 
     def __iter__(self):
         yield from self._attrs
@@ -69,7 +70,7 @@ class HDF5TraceSet(TraceSet):
         else:
             raise ValueError
         kwargs = dict(hdf5.attrs)
-        kwargs["_ordering"] = list(kwargs["_ordering"])
+        kwargs["_ordering"] = list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
         traces = []
         for k in kwargs["_ordering"]:
             meta = dict(HDF5Meta(hdf5[k].attrs))
@@ -87,7 +88,7 @@ class HDF5TraceSet(TraceSet):
         else:
             raise ValueError
         kwargs = dict(hdf5.attrs)
-        kwargs["_ordering"] = list(kwargs["_ordering"])
+        kwargs["_ordering"] = list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
         traces = []
         for k in kwargs["_ordering"]:
             meta = HDF5Meta(hdf5[k].attrs)
