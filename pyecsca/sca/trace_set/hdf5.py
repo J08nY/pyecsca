@@ -1,9 +1,12 @@
-from copy import copy
+import pickle
+import uuid
+from collections import MutableMapping
 from io import RawIOBase, BufferedIOBase, IOBase
 from pathlib import Path
-from typing import Union, Optional
-import numpy as np
+from typing import Union, Optional, Dict, Any, List
+
 import h5py
+import numpy as np
 from public import public
 
 from .base import TraceSet
@@ -11,8 +14,51 @@ from .. import Trace
 
 
 @public
+class HDF5Meta(MutableMapping):
+    _dataset: h5py.AttributeManager
+    _cache: Dict[str, Any]
+
+    def __init__(self, attrs: h5py.AttributeManager):
+        self._attrs = attrs
+        self._cache = {}
+        super().__init__()
+
+    def __getitem__(self, item):
+        if item not in self._attrs:
+            raise KeyError
+        if item not in self._cache:
+            self._cache[item] = pickle.loads(self._attrs[item])
+        return self._cache[item]
+
+    def __setitem__(self, key, value):
+        self._attrs[key] = np.void(pickle.dumps(value))
+
+    def __delitem__(self, key):
+        del self._attrs[key]
+        if key in self._cache:
+            del self._cache[key]
+
+    def __iter__(self):
+        yield from self._attrs
+
+    def __len__(self):
+        return len(self._attrs)
+
+
+@public
 class HDF5TraceSet(TraceSet):
     _file: Optional[h5py.File]
+    _ordering: Optional[List[str]]
+    #_meta: Optional[HDF5Meta]
+
+    def __init__(self, *traces: Trace, _file: Optional[h5py.File] = None,
+                 _ordering: Optional[List[str]] = None, **kwargs):
+        #self._meta = HDF5Meta(_file.attrs) if _file is not None else None
+        self._file = _file
+        if _ordering is None:
+            _ordering = [str(uuid.uuid4()) for _ in traces]
+        super().__init__(*traces, **kwargs, _ordering=_ordering)
+
 
     @classmethod
     def read(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "HDF5TraceSet":
@@ -23,9 +69,10 @@ class HDF5TraceSet(TraceSet):
         else:
             raise ValueError
         kwargs = dict(hdf5.attrs)
+        kwargs["_ordering"] = list(kwargs["_ordering"])
         traces = []
-        for k, v in hdf5.items():
-            meta = dict(hdf5[k].attrs) if hdf5[k].attrs else None
+        for k in kwargs["_ordering"]:
+            meta = dict(HDF5Meta(hdf5[k].attrs))
             samples = hdf5[k]
             traces.append(Trace(np.array(samples, dtype=samples.dtype), meta))
         hdf5.close()
@@ -40,35 +87,45 @@ class HDF5TraceSet(TraceSet):
         else:
             raise ValueError
         kwargs = dict(hdf5.attrs)
+        kwargs["_ordering"] = list(kwargs["_ordering"])
         traces = []
-        for k, v in hdf5.items():
-            meta = dict(hdf5[k].attrs) if hdf5[k].attrs else None
+        for k in kwargs["_ordering"]:
+            meta = HDF5Meta(hdf5[k].attrs)
             samples = hdf5[k]
             traces.append(Trace(samples, meta))
         return HDF5TraceSet(*traces, **kwargs, _file=hdf5)
 
-    def __setitem__(self, key, value):
-        if not isinstance(value, Trace):
-            raise TypeError
+    def insert(self, index: int, value: Trace) -> Trace:
+        key = str(uuid.uuid4())
+        self._ordering.insert(index, key)
         if self._file is not None:
-            if str(key) in self._file:
-                del self._file[str(key)]
-            self._file[str(key)] = value.samples
-            value.samples = self._file[str(key)]
+            new_samples = self._file.create_dataset(key, data=value.samples)
+            new_meta = HDF5Meta(new_samples.attrs)
             if value.meta:
                 for k, v in value.meta.items():
-                    self._file[str(key)].attrs[k] = v
-        super().__setitem__(key, value)
+                    new_meta[k] = v
+            value = Trace(new_samples, new_meta)
+            self._file.attrs["_ordering"] = self._ordering
 
-    def append(self, value: Trace):
-        if self._file is not None:
-            key = sorted(list(map(int, self._file.keys())))[-1] + 1 if self._file.keys() else 0
-            self._file[str(key)] = value.samples
-            value.samples = self._file[str(key)]
-            if value.meta:
-                for k, v in value.meta.items():
-                    self._file[str(key)].attrs[k] = v
-        self._traces.append(value)
+        self._traces.insert(index, value)
+        return value
+
+    def get(self, index: int) -> Trace:
+        return self[index]
+
+    def append(self, value: Trace) -> Trace:
+        return self.insert(len(self), value)
+
+    def remove(self, value: Trace):
+        if value in self._traces:
+            index = self._traces.index(value)
+            key = self._ordering[index]
+            self._ordering.remove(key)
+            if self._file:
+                self._file.pop(key)
+                self._file.attrs["_ordering"] = self._ordering
+        else:
+            raise KeyError
 
     def save(self):
         if self._file is not None:
@@ -78,6 +135,17 @@ class HDF5TraceSet(TraceSet):
         if self._file is not None:
             self._file.close()
 
+    # def __getattribute__(self, item):
+    #     if super().__getattribute__("_meta") and item in super().__getattribute__("_meta"):
+    #         return super().__getattribute__("_meta")[item]
+    #     return super().__getattribute__(item)
+    #
+    # def __setattr__(self, key, value):
+    #     if key in self._keys and self._meta is not None:
+    #         self._meta[key] = value
+    #     else:
+    #         super().__setattr__(key, value)
+
     def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
         if isinstance(output, (str, Path)):
             hdf5 = h5py.File(str(output), "w")
@@ -86,10 +154,13 @@ class HDF5TraceSet(TraceSet):
         else:
             raise ValueError
         for k in self._keys:
-            hdf5[k] = getattr(self, k)
-        for i, trace in enumerate(self._traces):
-            dset = hdf5.create_dataset(str(i), trace.samples)
+            hdf5.attrs[k] = getattr(self, k)
+        hdf5.attrs["_ordering"] = self._ordering
+        for i, k in enumerate(self._ordering):
+            trace = self[i]
+            dset = hdf5.create_dataset(k, trace.samples)
             if trace.meta:
+                meta = HDF5Meta(dset.attrs)
                 for k, v in trace.meta.items():
-                    dset.attrs[k] = v
+                    meta[k] = v
         hdf5.close()

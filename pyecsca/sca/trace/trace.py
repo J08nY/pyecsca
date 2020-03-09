@@ -51,8 +51,12 @@ class Trace(object):
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state["_trace_set"]
+        state["_trace_set"] = None
         return state
+
+    def __setstate__(self, state):
+        self._trace_set = None
+        self.__dict__.update(state)
 
     def __eq__(self, other):
         if not isinstance(other, Trace):

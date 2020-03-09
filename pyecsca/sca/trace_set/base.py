@@ -27,12 +27,6 @@ class TraceSet(object):
         """Get the trace at `index`."""
         return self._traces[index]
 
-    def __setitem__(self, key, value):
-        if not isinstance(value, Trace):
-            raise TypeError
-        self._traces[key] = value
-        value.trace_set = self
-
     def __iter__(self):
         """Iterate over the traces."""
         yield from self._traces

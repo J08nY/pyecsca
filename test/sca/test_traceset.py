@@ -98,12 +98,14 @@ class HDF5TraceSetTests(TestCase):
             trace_set = HDF5TraceSet.inplace(path)
             self.assertIsNotNone(trace_set)
             test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
-            trace_set[0] = deepcopy(test_trace)
+            trace_set.append(test_trace)
             trace_set.save()
             trace_set.close()
 
             test_set = HDF5TraceSet.read(path)
-            self.assertEquals(test_set[0], test_trace)
+            self.assertTrue(np.array_equal(test_set[3].samples, test_trace.samples))
+            self.assertEqual(test_set[3].meta["thing"], test_trace.meta["thing"])
+            self.assertEqual(test_set[3], test_trace)
 
     def test_save(self):
         trace_set = HDF5TraceSet(*EXAMPLE_TRACES, **EXAMPLE_KWARGS)

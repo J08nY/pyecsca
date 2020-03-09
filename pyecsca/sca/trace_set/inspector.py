@@ -242,13 +242,6 @@ class InspectorTraceSet(TraceSet):
                 file.write(unscaled.tobytes())
             del unscaled
 
-    def __setitem__(self, key, value):
-        if not isinstance(value, Trace):
-            raise TypeError
-        if len(value) != self.num_samples or value.samples.dtype != self.sample_coding.dtype():
-            raise ValueError
-        super().__setitem__(key, value)
-
     @staticmethod
     def __scale(samples: np.ndarray, factor: float):
         return samples.astype("f4") * factor
