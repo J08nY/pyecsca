@@ -103,19 +103,23 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
         param_names = ["a", "d"]
     else:
         raise ValueError("Unknown curve model.")
+    params = {name: Mod(int(curve["params"][name], 16), field) for name in param_names}
 
     # Check coordinate model name and assumptions
-    if coords not in model.coordinates:
-        raise ValueError("Coordinate model not supported for curve.")
-    coord_model = model.coordinates[coords]
-    params = {name: Mod(int(curve["params"][name], 16), field) for name in param_names}
-    for assumption in coord_model.assumptions:
-        alocals: Dict[str, Union[Mod, int]] = {}
-        compiled = compile(assumption, "", mode="exec")
-        exec(compiled, None, alocals)
-        for param, value in alocals.items():
-            if params[param] != value:
-                raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+    if coords == "affine":
+        coord_model = AffineCoordinateModel(model)
+    else:
+        if coords not in model.coordinates:
+            raise ValueError("Coordinate model not supported for curve.")
+        coord_model = model.coordinates[coords]
+        for assumption in coord_model.assumptions:
+            alocals: Dict[str, Union[Mod, int]] = {}
+            compiled = compile(assumption, "", mode="exec")
+            exec(compiled, None, alocals)
+            for param, value in alocals.items():
+                if params[param] != value:
+                    raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+
     # Construct the point at infinity
     infinity: Point
     if infty:
@@ -137,5 +141,8 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
-    generator = Point.from_affine(coord_model, affine)
+    if not isinstance(coord_model, AffineCoordinateModel):
+        generator = Point.from_affine(coord_model, affine)
+    else:
+        generator = affine
     return DomainParameters(elliptic_curve, generator, order, cofactor, name, category)
