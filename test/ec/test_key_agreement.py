@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-from pyecsca.ec.curves import get_params
+from pyecsca.ec.params import get_params
 from pyecsca.ec.key_agreement import (ECDH_NONE, ECDH_SHA1, ECDH_SHA224, ECDH_SHA256, ECDH_SHA384,
                                       ECDH_SHA512)
 from pyecsca.ec.mod import Mod

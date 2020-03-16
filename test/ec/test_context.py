@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from pyecsca.ec.context import (local, DefaultContext, NullContext, getcontext,
                                 setcontext, resetcontext, Tree)
-from pyecsca.ec.curves import get_params
+from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import RandomModAction
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
 

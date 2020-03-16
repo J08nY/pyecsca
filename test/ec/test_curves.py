@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-from pyecsca.ec.curves import get_params
+from pyecsca.ec.params import get_params
 
 
 class CurvesTests(TestCase):

@@ -19,6 +19,8 @@ def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
              volt_range: float, adc_minmax: int) -> Union[np.ndarray, float]:  # pragma: no cover
     if isinstance(adc, ctypes.c_int16):
         adc = adc.value
+    if isinstance(adc, np.ndarray):
+        adc = adc.astype(np.dtype("f2"))
     return (adc / adc_minmax) * volt_range
 
 
