@@ -6,7 +6,7 @@ from smartcard.System import readers
 from smartcard.pcsc.PCSCCardConnection import PCSCCardConnection
 from smartcard.pcsc.PCSCReader import PCSCReader
 
-from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU
+from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816
 
 
 @public
@@ -36,10 +36,10 @@ class PCSCTarget(ISO7816Target):  # pragma: no cover
     def select(self, aid: bytes) -> bool:
         apdu = CommandAPDU(0x00, 0xa4, 0x04, 0x00, aid)
         resp = self.send_apdu(apdu)
-        return resp.sw == 0x9000
+        return resp.sw == ISO7816.SW_NO_ERROR
 
     def send_apdu(self, apdu: CommandAPDU) -> ResponseAPDU:
-        resp, sw1, sw2 = self.connection.transmit(bytes(apdu))
+        resp, sw1, sw2 = self.connection.transmit(list(bytes(apdu)))
         return ResponseAPDU(bytes(resp), sw1 << 8 | sw2)
 
     def disconnect(self):

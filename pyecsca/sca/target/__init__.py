@@ -26,6 +26,7 @@ except ImportError:  # pragma: no cover
 
 if has_pyscard:
     from .PCSC import *
+    from .ectester import ECTesterTarget
 
 if has_chipwhisperer:
     from .chipwhisperer import *
