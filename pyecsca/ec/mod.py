@@ -1,5 +1,6 @@
+import random
 import secrets
-from functools import wraps
+from functools import wraps, lru_cache
 
 from public import public
 
@@ -37,6 +38,34 @@ def extgcd(a, b):
         a, b, x2, x1, y2, y1 = b, r, x1, x, y1, y
 
     return x2, y2, a
+
+
+@public
+@lru_cache
+def miller_rabin(n: int, rounds: int = 50) -> bool:
+    """Miller-Rabin probabilistic primality test."""
+    if n == 2 or n == 3:
+        return True
+
+    if n % 2 == 0:
+        return False
+
+    r, s = 0, n - 1
+    while s % 2 == 0:
+        r += 1
+        s //= 2
+    for _ in range(rounds):
+        a = random.randrange(2, n - 1)
+        x = pow(a, s, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
 
 
 def check(func):
@@ -98,6 +127,53 @@ class Mod(object):
 
     def __invert__(self):
         return self.inverse()
+
+    def is_residue(self):
+        """Whether this element is a quadratic residue (only implemented for prime modulus)."""
+        if not miller_rabin(self.n):
+            raise NotImplementedError
+        if self.x == 0:
+            return True
+        if self.n == 2:
+            return self.x in (0, 1)
+        legendre = self ** ((self.n - 1) // 2)
+        return legendre == 1
+
+    def sqrt(self):
+        """
+        The modular square root of this element (only implemented for prime modulus).
+
+        Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
+        """
+        if not miller_rabin(self.n):
+            raise NotImplementedError
+        q = self.n - 1
+        s = 0
+        while q % 2 == 0:
+            q //= 2
+            s += 1
+
+        z = 2
+        while Mod(z, self.n).is_residue():
+            z += 1
+
+        m = s
+        c = Mod(z, self.n) ** q
+        t = self ** q
+        r_exp = (q + 1) // 2
+        r = self ** r_exp
+
+        while t != 1:
+            i = 1
+            while not (t ** (2**i)) == 1:
+                i += 1
+            two_exp = m - (i + 1)
+            b = c ** int(Mod(2, self.n)**two_exp)
+            m = int(Mod(i, self.n))
+            c = b ** 2
+            t *= c
+            r *= b
+        return r
 
     @check
     def __mul__(self, other):

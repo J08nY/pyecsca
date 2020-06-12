@@ -48,7 +48,7 @@ class CommandAPDU(object):  # pragma: no cover
 @dataclass
 class ResponseAPDU(object):
     """A response APDU that can be received from an ISO7816-4 target."""
-    data: Optional[bytes]
+    data: bytes
     sw: int
 
 

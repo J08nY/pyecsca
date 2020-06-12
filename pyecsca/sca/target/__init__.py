@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover
     pass
 
 try:
-    import pyscard
+    import smartcard
 
     has_pyscard = True
 except ImportError:  # pragma: no cover

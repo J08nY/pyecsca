@@ -1,5 +1,7 @@
+from binascii import unhexlify
 from unittest import TestCase
 
+from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import Mod
@@ -76,3 +78,14 @@ class CurveTests(TestCase):
         self.assertEqual(self.secp128r1.curve, self.secp128r1.curve)
         self.assertNotEqual(self.secp128r1.curve, self.curve25519.curve)
         self.assertNotEqual(self.secp128r1.curve, None)
+
+    def test_decode(self):
+        affine_curve = self.secp128r1.curve.to_affine()
+        affine_point = self.secp128r1.generator.to_affine()
+        decoded = affine_curve.decode_point(bytes(affine_point))
+        self.assertEqual(decoded, affine_point)
+
+        affine_compressed_bytes = unhexlify("03161ff7528b899b2d0c28607ca52c5b86")
+        decoded_compressed = affine_curve.decode_point(affine_compressed_bytes)
+        self.assertEqual(decoded_compressed, affine_point)
+

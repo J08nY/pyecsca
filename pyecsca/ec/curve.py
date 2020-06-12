@@ -6,8 +6,8 @@ from public import public
 
 from .coordinates import CoordinateModel, AffineCoordinateModel
 from .mod import Mod
-from .model import CurveModel
-from .point import Point
+from .model import CurveModel, ShortWeierstrassModel
+from .point import Point, InfinityPoint
 
 
 @public
@@ -93,16 +93,61 @@ class EllipticCurve(object):
 
     @property
     def neutral_is_affine(self):
+        """Whether the neurtal point is an affine point."""
         return bool(self.model.base_neutral)
 
     def is_neutral(self, point: Point) -> bool:
+        """Check whether the point is the neutral point."""
         return self.neutral == point
 
     def is_on_curve(self, point: Point) -> bool:
+        """Check whether the point is on the curve."""
         if point.coordinate_model.curve_model != self.model:
             return False
+        if self.is_neutral(point):
+            return True
         loc = {**self.parameters, **point.to_affine().coords}
         return eval(compile(self.model.equation, "", mode="eval"), loc)
+
+    def to_affine(self) -> "EllipticCurve":
+        """Convert this curve into the affine coordinate model, if possible."""
+        coord_model = AffineCoordinateModel(self.model)
+        return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(), self.parameters)
+
+    def decode_point(self, encoded: bytes) -> Point:
+        """Decode a point encoded as a sequence of bytes (ANSI X9.62)."""
+        if encoded[0] == 0x00 and len(encoded) == 1:
+            return InfinityPoint(self.coordinate_model)
+        coord_len = (self.prime.bit_length() + 7) // 8
+        if encoded[0] in (0x04, 0x06):
+            data = encoded[1:]
+            if len(data) != coord_len * len(self.coordinate_model.variables):
+                raise ValueError("Encoded point has bad length")
+            coords = {}
+            for var in sorted(self.coordinate_model.variables):
+                coords[var] = Mod(int.from_bytes(data[:coord_len], "big"), self.prime)
+                data = data[coord_len:]
+            return Point(self.coordinate_model, **coords)
+        elif encoded[0] in (0x02, 0x03):
+            if isinstance(self.coordinate_model, AffineCoordinateModel) and isinstance(self.model, ShortWeierstrassModel):
+                data = encoded[1:]
+                if len(data) != coord_len:
+                    raise ValueError("Encoded point has bad length")
+                x = Mod(int.from_bytes(data, "big"), self.prime)
+                rhs = x**3 + self.parameters["a"] * x + self.parameters["b"]
+                if not rhs.is_residue():
+                    raise ValueError("Point not on curve")
+                sqrt = rhs.sqrt()
+                yp = encoded[0] & 0x01
+                if int(sqrt) & 0x01 == yp:
+                    y = sqrt
+                else:
+                    y = -sqrt
+                return Point(self.coordinate_model, x=x, y=y)
+            else:
+                raise NotImplementedError
+        else:
+            raise ValueError(f"Wrong encoding type: {hex(encoded[0])}, should be one of 0x04, 0x06, 0x02, 0x03 or 0x00")
 
     def __eq__(self, other):
         if not isinstance(other, EllipticCurve):

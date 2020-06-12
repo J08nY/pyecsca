@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined
+from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin
 
 
 class ModTests(TestCase):
@@ -9,6 +9,22 @@ class ModTests(TestCase):
         self.assertEqual(gcd(15, 20), 5)
         self.assertEqual(extgcd(15, 0), (1, 0, 15))
         self.assertEqual(extgcd(15, 20), (-1, 1, 5))
+
+    def test_miller_rabin(self):
+        self.assertTrue(miller_rabin(2))
+        self.assertTrue(miller_rabin(3))
+        self.assertTrue(miller_rabin(5))
+        self.assertFalse(miller_rabin(8))
+        self.assertTrue(miller_rabin(0xe807561107ccf8fa82af74fd492543a918ca2e9c13750233a9))
+        self.assertFalse(miller_rabin(0x6f6889deb08da211927370810f026eb4c17b17755f72ea005))
+
+    def test_is_residue(self):
+        self.assertTrue(Mod(4, 11).is_residue())
+        self.assertFalse(Mod(11, 31).is_residue())
+
+    def test_sqrt(self):
+        p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
+        self.assertIn(Mod(0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc, p).sqrt(), (0x9add512515b70d9ec471151c1dec46625cd18b37bde7ca7fb2c8b31d7033599d, 0x6522aed9ea48f2623b8eeae3e213b99da32e74c9421835804d374ce28fcca662))
 
     def test_wrong_mod(self):
         a = Mod(5, 7)
