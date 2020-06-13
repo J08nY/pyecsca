@@ -4,7 +4,7 @@ from functools import wraps, lru_cache
 
 from public import public
 
-from .context import Action
+from .context import ResultAction
 
 
 @public
@@ -82,7 +82,7 @@ def check(func):
 
 
 @public
-class RandomModAction(Action):
+class RandomModAction(ResultAction):
     """A random sampling from Z_n."""
     order: int
 
@@ -217,8 +217,8 @@ class Mod(object):
 
     @staticmethod
     def random(n: int):
-        with RandomModAction(n):
-            return Mod(secrets.randbelow(n), n)
+        with RandomModAction(n) as action:
+            return action.exit(Mod(secrets.randbelow(n), n))
 
     def __int__(self):
         return self.x

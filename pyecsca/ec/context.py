@@ -26,6 +26,33 @@ class Action(object):
 
 
 @public
+class ResultAction(Action):
+    """An action that has a result."""
+    _result: Any = None
+    _has_result: bool = False
+
+    @property
+    def result(self) -> Any:
+        if not self._has_result:
+            raise AttributeError("No result set")
+        return self._result
+
+    def exit(self, result: Any):
+        if not self.inside:
+            raise RuntimeError("Result set outside of action scope")
+        if self._has_result:
+            return
+        self._has_result = True
+        self._result = result
+        return result
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if not self._has_result and exc_type is None and exc_val is None and exc_tb is None:
+            raise RuntimeError("Result unset on action exit")
+        super().__exit__(exc_type, exc_val, exc_tb)
+
+
+@public
 class Tree(OrderedDict):
 
     def get_by_key(self, path: List) -> Any:

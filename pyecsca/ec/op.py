@@ -6,7 +6,7 @@ from typing import FrozenSet, cast, Any, Optional
 
 from public import public
 
-from .context import Action
+from .context import ResultAction
 from .mod import Mod
 
 
@@ -113,7 +113,7 @@ class CodeOp(object):
 
 
 @public
-class OperationAction(Action):
+class OperationAction(ResultAction):
     """An operation."""
     operation: CodeOp
 

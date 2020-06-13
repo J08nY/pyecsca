@@ -3,7 +3,7 @@ from typing import Optional, Any
 
 from public import public
 
-from .context import Action
+from .context import ResultAction
 from .mod import Mod
 from .mult import ScalarMultiplier
 from .params import DomainParameters
@@ -11,7 +11,7 @@ from .point import Point
 
 
 @public
-class ECDHAction(Action):
+class ECDHAction(ResultAction):
     """An ECDH key exchange."""
     params: DomainParameters
     hash_algo: Optional[Any]
@@ -64,7 +64,7 @@ class KeyAgreement(object):
 
         :return: The shared secret.
         """
-        with ECDHAction(self.params, self.hash_algo, self.privkey, self.pubkey):
+        with ECDHAction(self.params, self.hash_algo, self.privkey, self.pubkey) as action:
             affine_point = self.perform_raw()
             x = int(affine_point.x)
             p = self.params.curve.prime
@@ -72,7 +72,7 @@ class KeyAgreement(object):
             result = x.to_bytes(n, byteorder="big")
             if self.hash_algo is not None:
                 result = self.hash_algo(result).digest()
-            return result
+            return action.exit(result)
 
 
 @public

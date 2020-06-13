@@ -3,14 +3,14 @@ from typing import Mapping, Any
 
 from public import public
 
-from .context import Action
+from .context import ResultAction
 from .coordinates import AffineCoordinateModel, CoordinateModel
 from .mod import Mod, Undefined
 from .op import CodeOp
 
 
 @public
-class CoordinateMappingAction(Action):
+class CoordinateMappingAction(ResultAction):
     """A mapping of a point from one coordinate system to another one, usually one is an affine one."""
     model_from: CoordinateModel
     model_to: CoordinateModel
@@ -48,9 +48,9 @@ class Point(object):
     def to_affine(self) -> "Point":
         """Convert this point into the affine coordinate model, if possible."""
         affine_model = AffineCoordinateModel(self.coordinate_model.curve_model)
-        with CoordinateMappingAction(self.coordinate_model, affine_model, self):
+        with CoordinateMappingAction(self.coordinate_model, affine_model, self) as action:
             if isinstance(self.coordinate_model, AffineCoordinateModel):
-                return copy(self)
+                return action.exit(copy(self))
             ops = list()
             for s in self.coordinate_model.satisfying:
                 try:
@@ -66,12 +66,12 @@ class Point(object):
                 locals[op.result] = op(**locals)
                 if op.result in affine_model.variables:
                     result[op.result] = locals[op.result]
-            return Point(affine_model, **result)
+            return action.exit(Point(affine_model, **result))
 
     @staticmethod
     def from_affine(coordinate_model: CoordinateModel, affine_point: "Point") -> "Point":
         """Convert an affine point into a given coordinate model, if possible."""
-        with CoordinateMappingAction(affine_point.coordinate_model, coordinate_model, affine_point):
+        with CoordinateMappingAction(affine_point.coordinate_model, coordinate_model, affine_point) as action:
             if not isinstance(affine_point.coordinate_model, AffineCoordinateModel):
                 raise ValueError
             result = {}
@@ -87,7 +87,7 @@ class Point(object):
                     result[var] = Mod(affine_point.coords["x"] * affine_point.coords["y"], n)
                 else:
                     raise NotImplementedError
-            return Point(coordinate_model, **result)
+            return action.exit(Point(coordinate_model, **result))
 
     def equals(self, other: Any) -> bool:
         """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""

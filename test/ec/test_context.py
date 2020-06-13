@@ -64,10 +64,12 @@ class ContextTests(TestCase):
         self.addCleanup(resetcontext, token)
 
         with local(DefaultContext()) as ctx:
-            self.mult.multiply(59)
+            result = self.mult.multiply(59)
         self.assertEqual(len(ctx.actions), 1)
-        self.assertIsInstance(next(iter(ctx.actions.keys())), ScalarMultiplicationAction)
+        action = next(iter(ctx.actions.keys()))
+        self.assertIsInstance(action, ScalarMultiplicationAction)
         self.assertEqual(len(getcontext().actions), 0)
+        self.assertEqual(result, action.result)
 
     def test_default_no_enter(self):
         with local(DefaultContext()) as default:

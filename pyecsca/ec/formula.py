@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from ast import parse, Expression, Mult, Add, Sub, Pow, Div
+from ast import parse, Expression
 from itertools import product
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union
 
 from pkg_resources import resource_stream
 from public import public
 
-from .context import Action
+from .context import ResultAction
 from .mod import Mod
 from .op import CodeOp, OpType
 
@@ -35,7 +35,7 @@ class OpResult(object):
 
 
 @public
-class FormulaAction(Action):
+class FormulaAction(ResultAction):
     """An execution of a formula, on some input points and parameters, with some outputs."""
     formula: "Formula"
     inputs: MutableMapping[str, Mod]
@@ -124,7 +124,7 @@ class Formula(ABC):
 
                 action.add_result(point, **full_resulting)
                 result.append(point)
-            return tuple(result)
+            return action.exit(tuple(result))
 
     def __str__(self):
         return f"{self.shortname}[{self.name}]"
@@ -189,7 +189,8 @@ class Formula(ABC):
     @property
     def num_addsubs(self) -> int:
         """Number of additions and subtractions."""
-        return len(list(filter(lambda op: op.operator == OpType.Add or op.operator == OpType.Sub, self.code)))
+        return len(list(
+            filter(lambda op: op.operator == OpType.Add or op.operator == OpType.Sub, self.code)))
 
 
 class EFDFormula(Formula):

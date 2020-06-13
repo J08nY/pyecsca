@@ -4,7 +4,7 @@ from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
 
 from public import public
 
-from .context import Action
+from .context import ResultAction
 from .formula import (Formula, AdditionFormula, DoublingFormula, DifferentialAdditionFormula,
                       ScalingFormula, LadderFormula, NegationFormula)
 from .naf import naf, wnaf
@@ -13,7 +13,7 @@ from .point import Point
 
 
 @public
-class ScalarMultiplicationAction(Action):
+class ScalarMultiplicationAction(ResultAction):
     """A scalar multiplication of a point on a curve by a scalar."""
     point: Point
     scalar: int
@@ -135,9 +135,9 @@ class LTRMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             if self.complete:
                 q = self._point
                 r = copy(self._params.curve.neutral)
@@ -155,7 +155,7 @@ class LTRMultiplier(ScalarMultiplier):
                     self._add(r, q)
             if "scl" in self.formulas:
                 r = self._scl(r)
-            return r
+            return action.exit(r)
 
 
 @public
@@ -177,9 +177,9 @@ class RTLMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             q = self._point
             r = copy(self._params.curve.neutral)
             while scalar > 0:
@@ -192,7 +192,7 @@ class RTLMultiplier(ScalarMultiplier):
                 scalar >>= 1
             if "scl" in self.formulas:
                 r = self._scl(r)
-            return r
+            return action.exit(r)
 
 
 class CoronMultiplier(ScalarMultiplier):
@@ -213,9 +213,9 @@ class CoronMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             q = self._point
             p0 = copy(q)
             for i in range(scalar.bit_length() - 2, -1, -1):
@@ -225,7 +225,7 @@ class CoronMultiplier(ScalarMultiplier):
                     p0 = p1
             if "scl" in self.formulas:
                 p0 = self._scl(p0)
-            return p0
+            return action.exit(p0)
 
 
 @public
@@ -247,9 +247,9 @@ class LadderMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             q = self._point
             if self.complete:
                 p0 = copy(self._params.curve.neutral)
@@ -266,7 +266,7 @@ class LadderMultiplier(ScalarMultiplier):
                     p1, p0 = self._ladd(q, p1, p0)
             if "scl" in self.formulas:
                 p0 = self._scl(p0)
-            return p0
+            return action.exit(p0)
 
 
 @public
@@ -286,9 +286,9 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             if self.complete:
                 top = self._params.order.bit_length() - 1
             else:
@@ -304,7 +304,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
                     p1 = self._dbl(p1)
             if "scl" in self.formulas:
                 p0 = self._scl(p0)
-            return p0
+            return action.exit(p0)
 
 
 @public
@@ -324,9 +324,9 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             if self.complete:
                 top = self._params.order.bit_length() - 1
             else:
@@ -343,7 +343,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
                     p1 = self._dbl(p1)
             if "scl" in self.formulas:
                 p0 = self._scl(p0)
-            return p0
+            return action.exit(p0)
 
 
 @public
@@ -366,9 +366,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             bnaf = naf(scalar)
             q = copy(self._params.curve.neutral)
             for val in bnaf:
@@ -379,7 +379,7 @@ class BinaryNAFMultiplier(ScalarMultiplier):
                     q = self._add(q, self._point_neg)
             if "scl" in self.formulas:
                 q = self._scl(q)
-            return q
+            return action.exit(q)
 
 
 @public
@@ -416,9 +416,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalaMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar):
+        with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
-                return copy(self._params.curve.neutral)
+                return action.exit(copy(self._params.curve.neutral))
             naf = wnaf(scalar, self.width)
             q = copy(self._params.curve.neutral)
             for val in naf:
@@ -433,4 +433,4 @@ class WindowNAFMultiplier(ScalarMultiplier):
                     q = self._add(q, neg)
             if "scl" in self.formulas:
                 q = self._scl(q)
-            return q
+            return action.exit(q)

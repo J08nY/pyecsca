@@ -17,7 +17,7 @@ from ...ec.params import DomainParameters
 from ...ec.point import Point
 
 
-class ShiftableFlag(IntFlag):
+class ShiftableFlag(IntFlag): # pragma: no cover
     def __lshift__(self, other):
         val = int(self) << other
         for e in self.__class__:
@@ -44,14 +44,14 @@ class ShiftableFlag(IntFlag):
 
 
 @public
-class KeypairEnum(ShiftableFlag):
+class KeypairEnum(ShiftableFlag): # pragma: no cover
     KEYPAIR_LOCAL = 0x01
     KEYPAIR_REMOTE = 0x02
     KEYPAIR_BOTH = KEYPAIR_LOCAL | KEYPAIR_REMOTE
 
 
 @public
-class InstructionEnum(IntEnum):
+class InstructionEnum(IntEnum): # pragma: no cover
     INS_ALLOCATE = 0x5a
     INS_CLEAR = 0x5b
     INS_SET = 0x5c
@@ -73,13 +73,13 @@ class InstructionEnum(IntEnum):
 
 
 @public
-class KeyBuildEnum(IntEnum):
+class KeyBuildEnum(IntEnum): # pragma: no cover
     BUILD_KEYPAIR = 0x01
     BUILD_KEYBUILDER = 0x02
 
 
 @public
-class ExportEnum(IntEnum):
+class ExportEnum(IntEnum): # pragma: no cover
     EXPORT_TRUE = 0xff
     EXPORT_FALSE = 0x00
 
@@ -89,32 +89,32 @@ class ExportEnum(IntEnum):
 
 
 @public
-class RunModeEnum(IntEnum):
+class RunModeEnum(IntEnum): # pragma: no cover
     MODE_NORMAL = 0xaa
     MODE_DRY_RUN = 0xbb
 
 
 @public
-class KeyEnum(ShiftableFlag):
+class KeyEnum(ShiftableFlag): # pragma: no cover
     PUBLIC = 0x01
     PRIVATE = 0x02
     BOTH = PRIVATE | PUBLIC
 
 
 @public
-class AppletBaseEnum(IntEnum):
+class AppletBaseEnum(IntEnum): # pragma: no cover
     BASE_221 = 0x0221
     BASE_222 = 0x0222
 
 
 @public
-class KeyClassEnum(IntEnum):
+class KeyClassEnum(IntEnum): # pragma: no cover
     ALG_EC_F2M = 4
     ALG_EC_FP = 5
 
 
 @public
-class KeyAgreementEnum(IntEnum):
+class KeyAgreementEnum(IntEnum): # pragma: no cover
     ALG_EC_SVDP_DH = 1
     ALG_EC_SVDP_DH_KDF = 1
     ALG_EC_SVDP_DHC = 2
@@ -126,7 +126,7 @@ class KeyAgreementEnum(IntEnum):
 
 
 @public
-class SignatureEnum(IntEnum):
+class SignatureEnum(IntEnum): # pragma: no cover
     ALG_ECDSA_SHA = 17
     ALG_ECDSA_SHA_224 = 37
     ALG_ECDSA_SHA_256 = 33
@@ -135,7 +135,7 @@ class SignatureEnum(IntEnum):
 
 
 @public
-class TransformationEnum(ShiftableFlag):
+class TransformationEnum(ShiftableFlag): # pragma: no cover
     NONE = 0x00
     FIXED = 0x01
     FULLRANDOM = 0x02
@@ -151,14 +151,14 @@ class TransformationEnum(ShiftableFlag):
 
 
 @public
-class FormatEnum(IntEnum):
+class FormatEnum(IntEnum): # pragma: no cover
     UNCOMPRESSED = 0
     COMPRESSED = 1
     HYBRID = 2
 
 
 @public
-class CurveEnum(IntEnum):
+class CurveEnum(IntEnum): # pragma: no cover
     default = 0x00
     external = 0xff
     secp112r1 = 0x01
@@ -177,7 +177,7 @@ class CurveEnum(IntEnum):
 
 
 @public
-class ParameterEnum(ShiftableFlag):
+class ParameterEnum(ShiftableFlag): # pragma: no cover
     NONE = 0x00
     FP = 0x01
     F2M = 0x02
@@ -195,11 +195,11 @@ class ParameterEnum(ShiftableFlag):
 
 
 @public
-class ChunkingException(Exception):
+class ChunkingException(Exception): # pragma: no cover
     pass
 
 
-class Response(ABC):
+class Response(ABC): # pragma: no cover
     resp: ResponseAPDU
     sws: List[int]
     params: List[bytes]
@@ -245,7 +245,7 @@ class Response(ABC):
 
 
 @public
-class AllocateKaResponse(Response):
+class AllocateKaResponse(Response): # pragma: no cover
     """A response to the KeyAgreement allocation command."""
 
     def __init__(self, resp: ResponseAPDU):
@@ -253,7 +253,7 @@ class AllocateKaResponse(Response):
 
 
 @public
-class AllocateSigResponse(Response):
+class AllocateSigResponse(Response): # pragma: no cover
     """A response to the Signature allocation command."""
 
     def __init__(self, resp: ResponseAPDU):
@@ -261,7 +261,7 @@ class AllocateSigResponse(Response):
 
 
 @public
-class AllocateResponse(Response):
+class AllocateResponse(Response): # pragma: no cover
     """A response to the KeyPair allocation command."""
 
     def __init__(self, resp: ResponseAPDU, keypair: KeypairEnum):
@@ -269,7 +269,7 @@ class AllocateResponse(Response):
 
 
 @public
-class ClearResponse(Response):
+class ClearResponse(Response): # pragma: no cover
     """A response to the Clear key command."""
 
     def __init__(self, resp: ResponseAPDU, keypair: KeypairEnum):
@@ -277,7 +277,7 @@ class ClearResponse(Response):
 
 
 @public
-class SetResponse(Response):
+class SetResponse(Response): # pragma: no cover
     """A response to the Set command."""
 
     def __init__(self, resp: ResponseAPDU, keypair: KeypairEnum):
@@ -285,7 +285,7 @@ class SetResponse(Response):
 
 
 @public
-class TransformResponse(Response):
+class TransformResponse(Response): # pragma: no cover
     """A response to the Transform command."""
 
     def __init__(self, resp: ResponseAPDU, keypair: KeypairEnum):
@@ -293,7 +293,7 @@ class TransformResponse(Response):
 
 
 @public
-class GenerateResponse(Response):
+class GenerateResponse(Response): # pragma: no cover
     """A response to the Generate command."""
 
     def __init__(self, resp: ResponseAPDU, keypair: KeypairEnum):
@@ -301,7 +301,7 @@ class GenerateResponse(Response):
 
 
 @public
-class ExportResponse(Response):
+class ExportResponse(Response): # pragma: no cover
     """A response to the Export command, contains the exported parameters/values."""
     keypair: KeypairEnum
     key: KeyEnum
@@ -364,7 +364,7 @@ class ExportResponse(Response):
 
 
 @public
-class ECDHResponse(Response):
+class ECDHResponse(Response): # pragma: no cover
     """A response to the ECDH and ECDH_direct KeyAgreement commands."""
 
     def __init__(self, resp: ResponseAPDU, export: bool):
@@ -381,7 +381,7 @@ class ECDHResponse(Response):
 
 
 @public
-class ECDSAResponse(Response):
+class ECDSAResponse(Response): # pragma: no cover
     """A response to the ECDSA and ECDSA sign and ECDSA verify commands."""
 
     def __init__(self, resp: ResponseAPDU, export: bool):
@@ -398,7 +398,7 @@ class ECDSAResponse(Response):
 
 
 @public
-class CleanupResponse(Response):
+class CleanupResponse(Response): # pragma: no cover
     """A response to the Cleanup command."""
 
     def __init__(self, resp: ResponseAPDU):
@@ -406,14 +406,14 @@ class CleanupResponse(Response):
 
 
 @public
-class RunModeResponse(Response):
+class RunModeResponse(Response): # pragma: no cover
     """A response to the Set run mode command."""
 
     def __init__(self, resp: ResponseAPDU):
         super().__init__(resp, 1, 0)
 
 
-class InfoResponse(Response):
+class InfoResponse(Response): # pragma: no cover
     """A response to the Info command, contains all information about the applet version/environment."""
     version: str
     base: AppletBaseEnum
@@ -458,7 +458,7 @@ class InfoResponse(Response):
 
 
 @public
-class ECTesterTarget(PCSCTarget):
+class ECTesterTarget(PCSCTarget): # pragma: no cover
     """
     A smartcard target which communicates with the `ECTester <https://github.com/crocs-muni/ECTester>`_
     applet on smartcards of the JavaCard platform using PCSC.

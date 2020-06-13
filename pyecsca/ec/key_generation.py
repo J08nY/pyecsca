@@ -2,7 +2,7 @@ from typing import Tuple
 
 from public import public
 
-from .context import Action
+from .context import ResultAction
 from .mod import Mod
 from .mult import ScalarMultiplier
 from .params import DomainParameters
@@ -10,7 +10,7 @@ from .point import Point
 
 
 @public
-class KeygenAction(Action):
+class KeygenAction(ResultAction):
     """A key generation."""
     params: DomainParameters
 
@@ -36,9 +36,9 @@ class KeyGeneration(object):
         self.affine = affine
 
     def generate(self) -> Tuple[Mod, Point]:
-        with KeygenAction(self.params):
+        with KeygenAction(self.params) as action:
             privkey = Mod.random(self.params.order)
             pubkey = self.mult.multiply(privkey.x)
             if self.affine:
                 pubkey = pubkey.to_affine()
-            return privkey, pubkey
+            return action.exit((privkey, pubkey))
