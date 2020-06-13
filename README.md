@@ -18,14 +18,23 @@ and ECC simulation in the [*pyecsca.ec*](pyecsca/ec) package.
 
  - [Numpy](https://www.numpy.org/)
  - [Scipy](https://www.scipy.org/)
- - [matplotlib](https://matplotlib.org/)
  - [atpublic](https://public.readthedocs.io/)
  - [fastdtw](https://github.com/slaypni/fastdtw)
  - [asn1crypto](https://github.com/wbond/asn1crypto)
+ - [h5py](https://www.h5py.org/)
+ - [holoviews](https://holoviews.org)
+ - [bokeh](https://bokeh.org)
+ - [datashader](https://datashader.org)
+ - [matplotlib](https://matplotlib.org/)
+ - [xarray](https://xarray.pydata.org/en/stable/)
  - **Optionally**:
-   - [picosdk](https://github.com/picotech/picosdk-python-wrappers/)
-   - [picoscope](https://github.com/colinoflynn/pico-python)
-   - [chipwhisperer](https://github.com/newaetech/chipwhisperer)
+   - **Oscilloscope support:**
+     - [picosdk](https://github.com/picotech/picosdk-python-wrappers/)
+     - [picoscope](https://github.com/colinoflynn/pico-python)
+     - [chipwhisperer](https://github.com/newaetech/chipwhisperer)
+   - **Smartcard support:**
+     - [pyscard](https://pyscard.sourceforge.io/)
+
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
 The data was partially changed, to make working with it easier.
@@ -37,6 +46,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
  - [nose2](https://nose2.readthedocs.io)
  - [green](https://github.com/CleanCut/green)
  - [mypy](http://mypy-lang.org/)
+ - [parameterized](https://github.com/wolever/parameterized)
  - [flake8](https://flake8.pycqa.org/)
  - [coverage](https://coverage.readthedocs.io/)
 
