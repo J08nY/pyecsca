@@ -3,6 +3,8 @@ from os.path import realpath, dirname, join
 from typing import Optional
 from unittest import TestCase, SkipTest
 
+from smartcard.pcsc.PCSCExceptions import BaseSCardException
+
 from pyecsca.ec.key_agreement import ECDH_SHA1
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import Mod
@@ -49,7 +51,10 @@ class ECTesterTargetTests(TestCase):
         if not has_pyscard:
             return
         from smartcard.System import readers
-        rs = readers()
+        try:
+            rs = readers()
+        except BaseSCardException:
+            return
         if not rs:
             return
         cls.reader = rs[0]
