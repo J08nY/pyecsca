@@ -8,6 +8,7 @@ omit =
 [report]
 exclude_lines =
     __repr__
+    __str__
     pragma: no cover
     raise AssertionError
     raise NotImplementedError

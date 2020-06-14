@@ -1,7 +1,6 @@
 from binascii import unhexlify
 from unittest import TestCase
 
-from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import Mod
@@ -35,6 +34,7 @@ class CurveTests(TestCase):
         self.assertTrue(self.secp128r1.curve.is_neutral(InfinityPoint(self.secp128r1.curve.coordinate_model)))
 
     def test_is_on_curve(self):
+        self.assertTrue(self.secp128r1.curve.is_on_curve(self.secp128r1.curve.neutral))
         pt = Point(self.secp128r1.curve.coordinate_model,
                    X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, self.secp128r1.curve.prime),
                    Y=Mod(0xcf5ac8395bafeb13c02da292dded7a83, self.secp128r1.curve.prime),
@@ -46,6 +46,7 @@ class CurveTests(TestCase):
                       Y=Mod(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, self.secp128r1.curve.prime),
                       Z=Mod(1, self.secp128r1.curve.prime))
         self.assertFalse(self.secp128r1.curve.is_on_curve(other))
+        self.assertFalse(self.secp128r1.curve.is_on_curve(self.curve25519.generator))
 
     def test_affine_add(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_add(self.affine_base, self.affine_base))
@@ -88,4 +89,21 @@ class CurveTests(TestCase):
         affine_compressed_bytes = unhexlify("03161ff7528b899b2d0c28607ca52c5b86")
         decoded_compressed = affine_curve.decode_point(affine_compressed_bytes)
         self.assertEqual(decoded_compressed, affine_point)
+        affine_compressed_bytes = unhexlify("02161ff7528b899b2d0c28607ca52c5b86")
+        decoded_compressed = affine_curve.decode_point(affine_compressed_bytes)
+        decoded_compressed = self.secp128r1.curve.affine_negate(decoded_compressed)
+        self.assertEqual(decoded_compressed, affine_point)
+
+        infinity_bytes = unhexlify("00")
+        decoded_infinity = affine_curve.decode_point(infinity_bytes)
+        self.assertEqual(affine_curve.neutral, decoded_infinity)
+
+        with self.assertRaises(ValueError):
+            affine_curve.decode_point(unhexlify("03161ff7528b899b2d0c28607ca52c5b"))
+        with self.assertRaises(ValueError):
+            affine_curve.decode_point(unhexlify("04161ff7528b899b2d0c28607ca52c5b2c5b2c5b2c5b"))
+        with self.assertRaises(ValueError):
+            affine_curve.decode_point(unhexlify("7a161ff7528b899b2d0c28607ca52c5b86"))
+        with self.assertRaises(ValueError):
+            affine_curve.decode_point(unhexlify("03161ff7528b899b2d0c28607ca52c5b88"))
 

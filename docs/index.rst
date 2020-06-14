@@ -4,12 +4,13 @@ pyecsca [pɪɛtska]
 
 .. image:: https://img.shields.io/badge/-Github-brightgreen?style=flat&logo=github
    :target: https://github.com/J08nY/pyecsca
+.. image:: https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen
+   :target: https://github.com/J08nY/pyecsca/blob/master/LICENSE
 .. image:: https://img.shields.io/travis/J08nY/pyecsca
    :target: https://travis-ci.com/J08nY/pyecsca
-.. image:: https://img.shields.io/github/license/J08nY/pyecsca.svg
-   :target: https://github.com/J08nY/pyecsca/blob/master/LICENSE
-.. image:: https://codecov.io/gh/J08nY/pyecsca/branch/master/graph/badge.svg
+.. image:: https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov
    :target: https://codecov.io/gh/J08nY/pyecsca
+.. image:: https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen
 
 **Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 

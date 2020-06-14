@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca.sca import Trace, CombinedTrace, average, conditional_average, standard_deviation
+from pyecsca.sca import Trace, CombinedTrace, average, conditional_average, standard_deviation, add, subtract
 
 
 class CombineTests(TestCase):
@@ -33,3 +33,18 @@ class CombineTests(TestCase):
         result = standard_deviation(self.a, self.b)
         self.assertIsInstance(result, CombinedTrace)
         self.assertEqual(len(result.samples), 2)
+
+    def test_add(self):
+        self.assertIsNone(add())
+        result = add(self.a, self.b)
+        self.assertIsInstance(result, CombinedTrace)
+        self.assertEqual(result.samples[0], 50)
+        self.assertEqual(result.samples[1], 122)
+        np.testing.assert_equal(self.a.samples, add(self.a).samples)
+
+    def test_subtract(self):
+        result = subtract(self.a, self.b)
+        self.assertIsInstance(result, CombinedTrace)
+        self.assertEqual(result.samples[0], -10)
+        self.assertEqual(result.samples[1], 38)
+

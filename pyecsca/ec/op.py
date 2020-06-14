@@ -1,8 +1,8 @@
 from ast import (Module, walk, Name, BinOp, UnaryOp, Constant, Mult, Div, Add, Sub, Pow, Assign,
-                 operator as ast_operator, USub)
+                 operator as ast_operator, unaryop as ast_unaryop, USub)
 from enum import Enum
 from types import CodeType
-from typing import FrozenSet, cast, Any, Optional
+from typing import FrozenSet, cast, Any, Optional, Union
 
 from public import public
 
@@ -43,7 +43,7 @@ class CodeOp(object):
         params = set()
         variables = set()
         constants = set()
-        op = None
+        op: Optional[Union[ast_operator, ast_unaryop]] = None
         self.left = None
         self.right = None
         for node in walk(assign.value):
@@ -80,7 +80,7 @@ class CodeOp(object):
         else:
             return None
 
-    def __to_op(self, op: Optional[ast_operator], left: Any, right: Any) -> OpType:
+    def __to_op(self, op: Optional[Union[ast_operator, ast_unaryop]], left: Any, right: Any) -> OpType:
         if isinstance(op, Mult):
             return OpType.Mult
         elif isinstance(op, Div):

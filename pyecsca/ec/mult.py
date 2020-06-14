@@ -35,8 +35,8 @@ class ScalarMultiplier(ABC):
                           of the point at infinity.
     :param formulas: Formulas this instance will use.
     """
-    requires: ClassVar[Set[Type[Formula]]]
-    optionals: ClassVar[Set[Type[Formula]]]
+    requires: ClassVar[Set[Type]] #Type[Formula] but mypy has a false positive
+    optionals: ClassVar[Set[Type]] #Type[Formula] but mypy has a false positive
     short_circuit: bool
     formulas: Mapping[str, Formula]
     _params: DomainParameters

@@ -39,6 +39,22 @@ class BinaryTargetTests(TestCase):
         self.assertEqual(resp["r"].data, "01020304")
         target.disconnect()
 
+    def test_debug(self):
+        target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
+        target = TestTarget(["python", target_path], debug_output=True)
+        target.connect()
+        target.send_cmd(SimpleSerialMessage("d", ""), 500)
+        target.disconnect()
+
+    def test_no_connection(self):
+        target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
+        target = TestTarget(target_path)
+        with self.assertRaises(ValueError):
+            target.write(bytes([1,2,3,4]))
+        with self.assertRaises(ValueError):
+            target.read(5)
+        target.disconnect()
+
 
 class ECTesterTargetTests(TestCase):
     reader: Optional[str] = None

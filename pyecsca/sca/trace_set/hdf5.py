@@ -3,7 +3,7 @@ import uuid
 from collections import MutableMapping
 from io import RawIOBase, BufferedIOBase, IOBase
 from pathlib import Path
-from typing import Union, Optional, Dict, Any, List
+from typing import Union, Optional, Dict, Any, List, BinaryIO
 
 import h5py
 import numpy as np
@@ -49,7 +49,7 @@ class HDF5Meta(MutableMapping):
 @public
 class HDF5TraceSet(TraceSet):
     _file: Optional[h5py.File]
-    _ordering: Optional[List[str]]
+    _ordering: List[str]
     #_meta: Optional[HDF5Meta]
 
     def __init__(self, *traces: Trace, _file: Optional[h5py.File] = None,
@@ -62,13 +62,13 @@ class HDF5TraceSet(TraceSet):
 
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "HDF5TraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
         if isinstance(input, (str, Path)):
             hdf5 = h5py.File(str(input), mode="r")
-        elif isinstance(input, IOBase):
+        elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):
             hdf5 = h5py.File(input, mode="r")
         else:
-            raise ValueError
+            raise TypeError
         kwargs = dict(hdf5.attrs)
         kwargs["_ordering"] = list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
         traces = []
@@ -80,13 +80,13 @@ class HDF5TraceSet(TraceSet):
         return HDF5TraceSet(*traces, **kwargs)
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "HDF5TraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
         if isinstance(input, (str, Path)):
             hdf5 = h5py.File(str(input), mode="a")
-        elif isinstance(input, IOBase):
+        elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):
             hdf5 = h5py.File(input, mode="a")
         else:
-            raise ValueError
+            raise TypeError
         kwargs = dict(hdf5.attrs)
         kwargs["_ordering"] = list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
         traces = []
@@ -94,7 +94,7 @@ class HDF5TraceSet(TraceSet):
             meta = HDF5Meta(hdf5[k].attrs)
             samples = hdf5[k]
             traces.append(Trace(samples, meta))
-        return HDF5TraceSet(*traces, **kwargs, _file=hdf5)
+        return HDF5TraceSet(*traces, **kwargs, _file=hdf5) # type: ignore[misc]
 
     def insert(self, index: int, value: Trace) -> Trace:
         key = str(uuid.uuid4())
@@ -147,10 +147,10 @@ class HDF5TraceSet(TraceSet):
     #     else:
     #         super().__setattr__(key, value)
 
-    def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
+    def write(self, output: Union[str, Path, BinaryIO]):
         if isinstance(output, (str, Path)):
             hdf5 = h5py.File(str(output), "w")
-        elif isinstance(output, IOBase):
+        elif isinstance(output, BinaryIO):
             hdf5 = h5py.File(output, "w")
         else:
             raise ValueError

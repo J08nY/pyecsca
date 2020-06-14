@@ -60,6 +60,12 @@ class AlignTests(Plottable):
         self.assertEqual(np.argmax(result[1].samples), np.argmax(result[2].samples))
         self.plot(*result)
 
+        result_other = align_dtw_scale(a, b, c, fast=False)
+
+        self.assertEqual(np.argmax(result_other[0].samples), np.argmax(result_other[1].samples))
+        self.assertEqual(np.argmax(result_other[1].samples), np.argmax(result_other[2].samples))
+        self.plot(*result_other)
+
     def test_dtw_align(self):
         first_arr = np.array([10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10, 8, 10, 12, 10, 13, 9], dtype=np.dtype("i1"))
         second_arr = np.array([10, 10, 60, 40, 90, 20, 10, 17, 16, 10, 10, 10, 10, 10, 17, 12, 10], dtype=np.dtype("i1"))
@@ -72,3 +78,9 @@ class AlignTests(Plottable):
         self.assertEqual(np.argmax(result[0].samples), np.argmax(result[1].samples))
         self.assertEqual(np.argmax(result[1].samples), np.argmax(result[2].samples))
         self.plot(*result)
+
+        result_other = align_dtw(a, b, c, fast=False)
+
+        self.assertEqual(np.argmax(result_other[0].samples), np.argmax(result_other[1].samples))
+        self.assertEqual(np.argmax(result_other[1].samples), np.argmax(result_other[2].samples))
+        self.plot(*result_other)

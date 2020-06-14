@@ -14,6 +14,10 @@ class PointTests(TestCase):
         self.coords = self.secp128r1.curve.coordinate_model
         self.affine = AffineCoordinateModel(ShortWeierstrassModel())
 
+    def test_construction(self):
+        with self.assertRaises(ValueError):
+            Point(self.coords)
+
     def test_to_affine(self):
         pt = Point(self.coords,
                    X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, self.secp128r1.curve.prime),

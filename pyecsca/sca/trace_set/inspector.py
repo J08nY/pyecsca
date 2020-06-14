@@ -2,7 +2,7 @@ import struct
 from enum import IntEnum
 from io import BytesIO, RawIOBase, BufferedIOBase, UnsupportedOperation
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, BinaryIO
 
 import numpy as np
 from public import public
@@ -138,7 +138,7 @@ class InspectorTraceSet(TraceSet):
     }
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
         """
         Read Inspector trace set from file path, bytes or file-like object.
 
@@ -151,10 +151,10 @@ class InspectorTraceSet(TraceSet):
         elif isinstance(input, (str, Path)):
             with open(input, "rb") as f:
                 traces, tags = InspectorTraceSet.__read(f)
-        elif isinstance(input, (RawIOBase, BufferedIOBase)):
+        elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):
             traces, tags = InspectorTraceSet.__read(input)
         else:
-            raise ValueError
+            raise TypeError
         for trace in traces:
             new = InspectorTraceSet.__scale(trace.samples, tags["y_scale"])
             del trace.samples
@@ -194,10 +194,10 @@ class InspectorTraceSet(TraceSet):
         return result, tags
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
         raise NotImplementedError
 
-    def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
+    def write(self, output: Union[str, Path, BinaryIO]):
         """
         Save this trace set into a file.
 
@@ -206,10 +206,10 @@ class InspectorTraceSet(TraceSet):
         if isinstance(output, (str, Path)):
             with open(output, "wb") as f:
                 self.__write(f)
-        elif isinstance(output, (RawIOBase, BufferedIOBase)):
+        elif isinstance(output, (RawIOBase, BufferedIOBase, BinaryIO)):
             self.__write(output)
         else:
-            raise ValueError
+            raise TypeError
 
     def __write(self, file):
         for tag, tag_tuple in self._tag_parsers.items():

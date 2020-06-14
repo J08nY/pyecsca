@@ -3,7 +3,7 @@ from io import RawIOBase, BufferedIOBase
 from itertools import zip_longest
 from os.path import exists, isfile, join, basename, dirname
 from pathlib import Path
-from typing import Union
+from typing import Union, BinaryIO
 
 import numpy as np
 from public import public
@@ -18,7 +18,7 @@ class ChipWhispererTraceSet(TraceSet):
 
     @classmethod
     def read(cls,
-             input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "ChipWhispererTraceSet":
+             input: Union[str, Path, bytes, BinaryIO]) -> "ChipWhispererTraceSet":
         if isinstance(input, (str, Path)):
             traces, kwargs = ChipWhispererTraceSet.__read(input)
             return ChipWhispererTraceSet(*traces, **kwargs)
@@ -26,10 +26,10 @@ class ChipWhispererTraceSet(TraceSet):
             raise ValueError
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "ChipWhispererTraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "ChipWhispererTraceSet":
         raise NotImplementedError
 
-    def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
+    def write(self, output: Union[str, Path, BinaryIO]):
         raise NotImplementedError
 
     @classmethod

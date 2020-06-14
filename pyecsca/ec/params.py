@@ -5,7 +5,7 @@ from typing import Optional, Dict, Union
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
-from .coordinates import AffineCoordinateModel
+from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
 from .mod import Mod
 from .model import (CurveModel, ShortWeierstrassModel, MontgomeryModel, EdwardsModel,
@@ -106,6 +106,7 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
     params = {name: Mod(int(curve["params"][name], 16), field) for name in param_names}
 
     # Check coordinate model name and assumptions
+    coord_model: CoordinateModel
     if coords == "affine":
         coord_model = AffineCoordinateModel(model)
     else:
@@ -138,7 +139,7 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
                 value = Mod(value, field)
             infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
-    elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)
+    elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params) # type: ignore[arg-type]
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
     if not isinstance(coord_model, AffineCoordinateModel):

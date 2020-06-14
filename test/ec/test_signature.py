@@ -30,17 +30,16 @@ class SignatureTests(TestCase):
     ])
     def test_all(self, name, algo):
         signer = algo(self.mult, self.secp128r1, privkey=self.priv)
-        assert signer.can_sign
+        self.assertTrue(signer.can_sign)
         sig = signer.sign_data(self.msg)
         verifier = algo(self.mult, self.secp128r1, add=self.add, pubkey=self.pub)
-        assert verifier.can_verify
-        assert verifier.verify_data(sig, self.msg)
-        # none = ECDSA_NONE(self.mult, add=self.add, pubkey=self.pub, privkey=self.priv)
-        # digest = sha1(self.msg).digest()
-        # sig = none.sign_hash(digest)
-        # assert none.verify_hash(sig, digest)
-        # sig = none.sign_data(digest)
-        # assert none.verify_data(sig, digest)
+        self.assertTrue(verifier.can_verify)
+        self.assertTrue(verifier.verify_data(sig, self.msg))
+
+        none = ECDSA_NONE(self.mult, self.secp128r1, add=self.add, pubkey=self.pub, privkey=self.priv)
+        digest = signer.hash_algo(self.msg).digest()
+        sig = none.sign_hash(digest)
+        self.assertTrue(none.verify_hash(sig, digest))
 
     def test_cannot(self):
         ok = ECDSA_NONE(self.mult, self.secp128r1, add=self.add, pubkey=self.pub, privkey=self.priv)
@@ -73,10 +72,11 @@ class SignatureTests(TestCase):
         sig_one = signer.sign_data(self.msg, nonce=0xabcdef)
         sig_other = signer.sign_data(self.msg, nonce=0xabcdef)
         verifier = algo(self.mult, self.secp128r1, add=self.add, pubkey=self.pub)
-        assert verifier.verify_data(sig_one, self.msg)
-        assert verifier.verify_data(sig_other, self.msg)
+        self.assertTrue(verifier.verify_data(sig_one, self.msg))
+        self.assertTrue(verifier.verify_data(sig_other, self.msg))
         self.assertEqual(sig_one, sig_other)
 
     def test_der(self):
         sig = SignatureResult(0xaaaaa, 0xbbbbb)
         self.assertEqual(sig, SignatureResult.from_DER(sig.to_DER()))
+        self.assertNotEqual(sig, "abc")

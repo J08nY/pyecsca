@@ -1,6 +1,6 @@
 from io import RawIOBase, BufferedIOBase
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, BinaryIO
 
 from public import public
 
@@ -32,14 +32,14 @@ class TraceSet(object):
         yield from self._traces
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
         raise NotImplementedError
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, RawIOBase, BufferedIOBase]) -> "TraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
         raise NotImplementedError
 
-    def write(self, output: Union[str, Path, RawIOBase, BufferedIOBase]):
+    def write(self, output: Union[str, Path, BinaryIO]):
         raise NotImplementedError
 
     def __repr__(self):

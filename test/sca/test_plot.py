@@ -2,6 +2,7 @@ from os import getenv
 
 import numpy as np
 import holoviews as hv
+import matplotlib as mpl
 from pyecsca.sca.trace import Trace
 from pyecsca.sca.trace.plot import (plot_trace, save_figure, save_figure_png, save_figure_svg,
                                     plot_traces)
@@ -27,6 +28,7 @@ class PlotTests(Plottable):
         if getenv("PYECSCA_TEST_PLOTS") is None:
             return
         hv.extension("matplotlib")
+        mpl.use("agg")
         fig = plot_trace(self.trace1)
         save_figure_png(fig, self.get_fname())
 

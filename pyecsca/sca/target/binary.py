@@ -10,7 +10,7 @@ from .serial import SerialTarget
 @public
 class BinaryTarget(SerialTarget):
     binary: List[str]
-    process: Optional[Popen]
+    process: Optional[Popen] = None
     debug_output: bool
 
     def __init__(self, binary: Union[str, List[str]], debug_output: bool = False, **kwargs):
@@ -31,16 +31,20 @@ class BinaryTarget(SerialTarget):
             raise ValueError
         if self.debug_output:
             print(">>", data.decode())
-        self.process.stdin.write(data.decode())
-        self.process.stdin.flush()
+        if self.process.stdin:
+            self.process.stdin.write(data.decode())
+            self.process.stdin.flush()
 
     def read(self, num: int = 0, timeout: int = 0) -> bytes:
         if self.process is None:
             raise ValueError
-        if num != 0:
-            read = self.process.stdout.readline(num)
+        if self.process.stdout:
+            if num != 0:
+                read = self.process.stdout.readline(num)
+            else:
+                read = self.process.stdout.readline()
         else:
-            read = self.process.stdout.readline()
+            read = bytes() # pragma: no cover
         if self.debug_output:
             print("<<", read, end="")
         return read.encode()

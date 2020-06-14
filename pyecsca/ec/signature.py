@@ -163,7 +163,7 @@ class Signature(object):
 
     def sign_data(self, data: bytes, nonce: Optional[int] = None) -> SignatureResult:
         """Sign data."""
-        if not self.can_sign:
+        if not self.can_sign or self.privkey is None:
             raise RuntimeError("This instance cannot sign.")
         with ECDSASignAction(self.params, self.hash_algo, data, self.privkey):
             k = self._get_nonce(nonce)
@@ -199,7 +199,7 @@ class Signature(object):
 
     def verify_data(self, signature: SignatureResult, data: bytes) -> bool:
         """Verify data."""
-        if not self.can_verify:
+        if not self.can_verify or self.pubkey is None:
             raise RuntimeError("This instance cannot verify.")
         with ECDSAVerifyAction(self.params, self.hash_algo, data, signature, self.pubkey):
             if self.hash_algo is None:
