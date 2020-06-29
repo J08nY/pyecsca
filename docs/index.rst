@@ -14,26 +14,28 @@ pyecsca [pɪɛtska]
 
 **Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 
-*pyecsca* aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
+**pyecsca** aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
 black-box implementations of ECC and presents a way to extract implementation information
-about a black-box implementation of ECC through side-channels. It is in an alpha stage of development
-and thus currently only provides basic trace processing capabilities (in the *pyecsca.sca* package)
-and ECC simulation in the *pyecsca.ec* package.
+about a black-box implementation of ECC through side-channels. The main goal of **pyecsca**
+is to be able to reverse engineer the curve model, coordinate system, addition formulas, scalar
+multiplier and even finite-field implementation details.
 
+It is currently in an alpha stage of development and thus only provides:
+ - Enumeration of millions of possible ECC implementation configurations (see :doc:`notebook/configuration_space`)
+ - Simulation and execution tracing of key generation, ECDH and ECDSA (see :doc:`notebook/simulation`)
+ - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`)
+ - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see :doc:`notebook/measurement`)
+ - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning (:doc:`api/pyecsca.sca`)
 
-API
-===
-
-.. toctree::
-   :titlesonly:
-   :maxdepth: 3
-
-   api/modules
+**pyecsca** consists of three packages:
+ - the core: https://github.com/J08nY/pyecsca
+ - the codegen package: https://github.com/J08nY/pyecsca-codegen
+ - the notebook package: https://github.com/J08nY/pyecsca-notebook
 
 Notebooks
 =========
-The notebooks below contain a showcase of what is possible using *pyecsca* and
-are the best source of documentation on how to use *pyecsca*.
+The notebooks below contain a showcase of what is possible using **pyecsca** and
+are the best source of documentation on how to use **pyecsca**.
 
 .. toctree::
    :titlesonly:
@@ -44,6 +46,15 @@ are the best source of documentation on how to use *pyecsca*.
    notebook/codegen
    notebook/measurement
 
+API reference
+=============
+
+.. toctree::
+   :caption: API reference
+   :titlesonly:
+   :maxdepth: 3
+
+   api/modules
 
 Requirements
 ============
