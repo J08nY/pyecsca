@@ -26,6 +26,7 @@ It is currently in an alpha stage of development and thus only provides:
  - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`)
  - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see :doc:`notebook/measurement`)
  - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning (:doc:`api/pyecsca.sca`)
+ - Trace visualization using holoviews and datashader (see :doc:`notebook/visualization`)
 
 **pyecsca** consists of three packages:
  - the core: https://github.com/J08nY/pyecsca
@@ -45,6 +46,7 @@ are the best source of documentation on how to use **pyecsca**.
    notebook/simulation
    notebook/codegen
    notebook/measurement
+   notebook/visualization
 
 API reference
 =============
