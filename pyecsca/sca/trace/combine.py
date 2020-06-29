@@ -24,8 +24,7 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
 
 
 @public
-def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> Optional[
-    CombinedTrace]:
+def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> Optional[CombinedTrace]:
     """
     Average `traces` for which the `condition` is True, sample-wise.
 

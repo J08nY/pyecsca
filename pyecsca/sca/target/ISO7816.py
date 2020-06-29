@@ -44,6 +44,7 @@ class CommandAPDU(object):  # pragma: no cover
                 # Case 4e
                 return bytes([self.cls, self.ins, self.p1, self.p2, 0]) + len(self.data).to_bytes(2, "big") + self.data + (self.ne.to_bytes(2, "big") if self.ne != 65536 else bytes([0, 0]))
 
+
 @public
 @dataclass
 class ResponseAPDU(object):
@@ -81,6 +82,7 @@ class ISO7816Target(Target, ABC):
         :return: The response.
         """
         ...
+
 
 @public
 class ISO7816:

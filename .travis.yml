@@ -33,7 +33,7 @@ install:
 script:
   - make -i typecheck
   - make -i codestyle
-  - make test-plots
+  - make test
 
 after_success:
   - codecov

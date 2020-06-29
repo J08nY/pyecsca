@@ -112,7 +112,7 @@ class EllipticCurve(object):
     def to_affine(self) -> "EllipticCurve":
         """Convert this curve into the affine coordinate model, if possible."""
         coord_model = AffineCoordinateModel(self.model)
-        return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(), self.parameters) # type: ignore[arg-type]
+        return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(), self.parameters)  # type: ignore[arg-type]
 
     def decode_point(self, encoded: bytes) -> Point:
         """Decode a point encoded as a sequence of bytes (ANSI X9.62)."""

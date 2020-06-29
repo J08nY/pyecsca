@@ -139,7 +139,7 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
                 value = Mod(value, field)
             infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
-    elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params) # type: ignore[arg-type]
+    elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
     if not isinstance(coord_model, AffineCoordinateModel):

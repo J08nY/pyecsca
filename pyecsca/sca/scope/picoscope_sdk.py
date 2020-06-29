@@ -25,8 +25,7 @@ def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
 
 
 def volt2adc(volt: Union[np.ndarray, float],
-             volt_range: float, adc_minmax: int) -> Union[
-    np.ndarray, ctypes.c_int16]:  # pragma: no cover
+             volt_range: float, adc_minmax: int) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
     return (volt / volt_range) * adc_minmax
@@ -86,7 +85,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                                      self.COUPLING[coupling], self.RANGES[range]))
         self.ranges[channel] = range
 
-    def setup_channel(self, channel: str, coupling: str, range: float,  offset: float, enable: bool):
+    def setup_channel(self, channel: str, coupling: str, range: float, offset: float, enable: bool):
         self.set_channel(channel, enable, coupling, range, offset)
 
     def _set_freq(self, frequency: int, pretrig: int, posttrig: int, period_bound: float,

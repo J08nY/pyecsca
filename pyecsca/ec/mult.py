@@ -35,8 +35,8 @@ class ScalarMultiplier(ABC):
                           of the point at infinity.
     :param formulas: Formulas this instance will use.
     """
-    requires: ClassVar[Set[Type]] #Type[Formula] but mypy has a false positive
-    optionals: ClassVar[Set[Type]] #Type[Formula] but mypy has a false positive
+    requires: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
+    optionals: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
     short_circuit: bool
     formulas: Mapping[str, Formula]
     _params: DomainParameters
@@ -408,9 +408,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
         current_point = point
         double_point = self._dbl(point)
         for i in range(0, 2**(self.width - 2)):
-            self._points[2*i + 1] = current_point
+            self._points[2 * i + 1] = current_point
             if self.precompute_negation:
-                self._points_neg[2*i + 1] = self._neg(current_point)
+                self._points_neg[2 * i + 1] = self._neg(current_point)
             current_point = self._add(current_point, double_point)
 
     def multiply(self, scalar: int) -> Point:

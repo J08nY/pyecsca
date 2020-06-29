@@ -44,7 +44,7 @@ class BinaryTarget(SerialTarget):
             else:
                 read = self.process.stdout.readline()
         else:
-            read = bytes() # pragma: no cover
+            read = bytes()  # pragma: no cover
         if self.debug_output:
             print("<<", read, end="")
         return read.encode()

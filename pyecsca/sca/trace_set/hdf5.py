@@ -50,16 +50,15 @@ class HDF5Meta(MutableMapping):
 class HDF5TraceSet(TraceSet):
     _file: Optional[h5py.File]
     _ordering: List[str]
-    #_meta: Optional[HDF5Meta]
+    # _meta: Optional[HDF5Meta]
 
     def __init__(self, *traces: Trace, _file: Optional[h5py.File] = None,
                  _ordering: Optional[List[str]] = None, **kwargs):
-        #self._meta = HDF5Meta(_file.attrs) if _file is not None else None
+        # self._meta = HDF5Meta(_file.attrs) if _file is not None else None
         self._file = _file
         if _ordering is None:
             _ordering = [str(uuid.uuid4()) for _ in traces]
         super().__init__(*traces, **kwargs, _ordering=_ordering)
-
 
     @classmethod
     def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
@@ -94,7 +93,7 @@ class HDF5TraceSet(TraceSet):
             meta = HDF5Meta(hdf5[k].attrs)
             samples = hdf5[k]
             traces.append(Trace(samples, meta))
-        return HDF5TraceSet(*traces, **kwargs, _file=hdf5) # type: ignore[misc]
+        return HDF5TraceSet(*traces, **kwargs, _file=hdf5)  # type: ignore[misc]
 
     def insert(self, index: int, value: Trace) -> Trace:
         key = str(uuid.uuid4())

@@ -45,6 +45,6 @@ setup(
             "chipwhisperer": ["chipwhisperer"],
             "smartcard": ["pyscard"],
             "dev": ["mypy", "flake8"],
-            "test": ["nose2", "parameterized", "green", "coverage", "selenium"]
+            "test": ["nose2", "parameterized", "green", "coverage"]
         }
 )
