@@ -1,7 +1,8 @@
 from unittest import TestCase
 
 from pyecsca.ec.context import (local, DefaultContext, NullContext, getcontext,
-                                setcontext, resetcontext, Tree)
+                                setcontext, resetcontext, Tree, PathContext)
+from pyecsca.ec.key_generation import KeygenAction, KeyGeneration
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import RandomModAction
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
@@ -51,7 +52,8 @@ class ContextTests(TestCase):
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
         self.mult = LTRMultiplier(self.coords.formulas["add-1998-cmo"],
-                                  self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"])
+                                  self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"],
+                                  always=True)
         self.mult.init(self.secp128r1, self.base)
 
     def test_null(self):
@@ -75,6 +77,17 @@ class ContextTests(TestCase):
         with local(DefaultContext()) as default:
             with self.assertRaises(ValueError):
                 default.exit_action(RandomModAction(7))
+
+    def test_path(self):
+        with local(PathContext([0, 1])) as ctx:
+            key_generator = KeyGeneration(self.mult, self.secp128r1, True)
+            key_generator.generate()
+        self.assertIsInstance(ctx.value, ScalarMultiplicationAction)
+        with local(PathContext([0, 1, 7])) as ctx:
+            key_generator = KeyGeneration(self.mult, self.secp128r1, True)
+            key_generator.generate()
+        print(ctx.value)
+
 
     def test_str(self):
         with local(DefaultContext()) as default:

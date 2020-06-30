@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from collections import OrderedDict
 from contextvars import ContextVar, Token
 from copy import deepcopy
-from typing import List, Optional, ContextManager, Any, Tuple
+from typing import List, Optional, ContextManager, Any, Tuple, Sequence
 
 from public import public
 
@@ -171,6 +171,36 @@ class DefaultContext(Context):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.actions!r}, current={self.current!r})"
+
+
+@public
+class PathContext(Context):
+    """A context that traces targeted actions."""
+    path: List[int]
+    current: List[int]
+    current_depth: int
+    value: Any
+
+    def enter_action(self, action: Action) -> None:
+        if self.current_depth == len(self.current):
+            self.current.append(0)
+        else:
+            self.current[self.current_depth] += 1
+        self.current_depth += 1
+        if self.path == self.current[:self.current_depth]:
+            self.value = action
+
+    def exit_action(self, action: Action) -> None:
+        if self.current_depth != len(self.current):
+            self.current.pop()
+        self.current_depth -= 1
+
+
+    def __init__(self, path: Sequence[int]):
+        self.path = list(path)
+        self.current = []
+        self.current_depth = 0
+        self.value = None
 
 
 _actual_context: ContextVar[Context] = ContextVar("operational_context", default=NullContext())
