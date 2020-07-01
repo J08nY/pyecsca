@@ -196,6 +196,7 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
         for x, y in path:
             result_samples[x] = trace.samples[y]
             scale[x] += 1
+        # TODO: fix
         result_samples //= scale
         del scale
         result.append(trace.with_samples(result_samples))

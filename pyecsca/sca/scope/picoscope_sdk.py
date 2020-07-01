@@ -4,12 +4,25 @@ from time import time_ns, sleep
 from typing import Mapping, Optional, MutableMapping, Union, Tuple
 
 import numpy as np
+from picosdk.errors import CannotFindPicoSDKError
 from picosdk.functions import assert_pico_ok
 from picosdk.library import Library
-from picosdk.ps3000 import ps3000
-from picosdk.ps4000 import ps4000
-from picosdk.ps5000 import ps5000
-from picosdk.ps6000 import ps6000
+try:
+    from picosdk.ps3000 import ps3000
+except CannotFindPicoSDKError as exc:
+    ps3000 = exc
+try:
+    from picosdk.ps4000 import ps4000
+except CannotFindPicoSDKError as exc:
+    ps4000 = exc
+try:
+    from picosdk.ps5000 import ps5000
+except CannotFindPicoSDKError as exc:
+    ps5000 = exc
+try:
+    from picosdk.ps6000 import ps6000
+except CannotFindPicoSDKError as exc:
+    ps6000 = exc
 from public import public
 
 from .base import Scope, SampleType
@@ -200,199 +213,225 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         return method(*args, **kwargs)
 
 
-@public
-class PS3000Scope(PicoScopeSdk):  # pragma: no cover
-    MODULE = ps3000
-    PREFIX = "ps3000"
-    CHANNELS = {
-        "A": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_A"],
-        "B": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_B"],
-        "C": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_C"],
-        "D": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_D"]
-    }
+if isinstance(ps3000, CannotFindPicoSDKError):
+    @public
+    class PS3000Scope(PicoScopeSdk):  # pragma: no cover
+        def __init__(self):
+            super().__init__()
+            raise ps3000
+else:
+    @public
+    class PS3000Scope(PicoScopeSdk):  # pragma: no cover
+        MODULE = ps3000
+        PREFIX = "ps3000"
+        CHANNELS = {
+            "A": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_A"],
+            "B": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_B"],
+            "C": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_C"],
+            "D": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_D"]
+        }
 
-    RANGES = {
-        0.02: ps3000.PS3000_RANGE["PS3000_20MV"],
-        0.05: ps3000.PS3000_RANGE["PS3000_50MV"],
-        0.10: ps3000.PS3000_RANGE["PS3000_100MV"],
-        0.20: ps3000.PS3000_RANGE["PS3000_200MV"],
-        0.50: ps3000.PS3000_RANGE["PS3000_500MV"],
-        1.00: ps3000.PS3000_RANGE["PS3000_1V"],
-        2.00: ps3000.PS3000_RANGE["PS3000_2V"],
-        5.00: ps3000.PS3000_RANGE["PS3000_5V"],
-        10.0: ps3000.PS3000_RANGE["PS3000_10V"],
-        20.0: ps3000.PS3000_RANGE["PS3000_20V"],
-        50.0: ps3000.PS3000_RANGE["PS3000_50V"],
-        100.0: ps3000.PS3000_RANGE["PS3000_100V"],
-        200.0: ps3000.PS3000_RANGE["PS3000_200V"],
-        400.0: ps3000.PS3000_RANGE["PS3000_400V"]
-    }
+        RANGES = {
+            0.02: ps3000.PS3000_RANGE["PS3000_20MV"],
+            0.05: ps3000.PS3000_RANGE["PS3000_50MV"],
+            0.10: ps3000.PS3000_RANGE["PS3000_100MV"],
+            0.20: ps3000.PS3000_RANGE["PS3000_200MV"],
+            0.50: ps3000.PS3000_RANGE["PS3000_500MV"],
+            1.00: ps3000.PS3000_RANGE["PS3000_1V"],
+            2.00: ps3000.PS3000_RANGE["PS3000_2V"],
+            5.00: ps3000.PS3000_RANGE["PS3000_5V"],
+            10.0: ps3000.PS3000_RANGE["PS3000_10V"],
+            20.0: ps3000.PS3000_RANGE["PS3000_20V"],
+            50.0: ps3000.PS3000_RANGE["PS3000_50V"],
+            100.0: ps3000.PS3000_RANGE["PS3000_100V"],
+            200.0: ps3000.PS3000_RANGE["PS3000_200V"],
+            400.0: ps3000.PS3000_RANGE["PS3000_400V"]
+        }
 
-    MAX_ADC_VALUE = 32764   # TODO: fix
-    MIN_ADC_VALUE = -32764  # TODO: fix
+        MAX_ADC_VALUE = 32764   # TODO: fix
+        MIN_ADC_VALUE = -32764  # TODO: fix
 
-    COUPLING = {
-        "AC": ps3000.PICO_COUPLING["AC"],
-        "DC": ps3000.PICO_COUPLING["DC"]
-    }
+        COUPLING = {
+            "AC": ps3000.PICO_COUPLING["AC"],
+            "DC": ps3000.PICO_COUPLING["DC"]
+        }
 
-    def set_frequency(self, frequency: int, pretrig: int, posttrig: int):  # TODO: fix
-        variant = self.get_variant()
-        if variant in ("4223", "4224", "4423", "4424"):
-            return self._set_freq(frequency, pretrig, posttrig, 50e-9, 2, 80_000_000, 20_000_000, 1)
-        elif variant in ("4226", "4227"):
-            return self._set_freq(frequency, pretrig, posttrig, 32e-9, 3, 250_000_000, 31_250_000,
-                                  2)
-        elif variant == "4262":
-            return self._set_freq(frequency, pretrig, posttrig, 0, 0, 0, 10_000_000, -1)
-
-
-
-
-@public
-class PS4000Scope(PicoScopeSdk):  # pragma: no cover
-    MODULE = ps4000
-    PREFIX = "ps4000"
-    CHANNELS = {
-        "A": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_A"],
-        "B": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_B"],
-        "C": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_C"],
-        "D": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_D"]
-    }
-
-    RANGES = {
-        0.01: ps4000.PS4000_RANGE["PS4000_10MV"],
-        0.02: ps4000.PS4000_RANGE["PS4000_20MV"],
-        0.05: ps4000.PS4000_RANGE["PS4000_50MV"],
-        0.10: ps4000.PS4000_RANGE["PS4000_100MV"],
-        0.20: ps4000.PS4000_RANGE["PS4000_200MV"],
-        0.50: ps4000.PS4000_RANGE["PS4000_500MV"],
-        1.00: ps4000.PS4000_RANGE["PS4000_1V"],
-        2.00: ps4000.PS4000_RANGE["PS4000_2V"],
-        5.00: ps4000.PS4000_RANGE["PS4000_5V"],
-        10.0: ps4000.PS4000_RANGE["PS4000_10V"],
-        20.0: ps4000.PS4000_RANGE["PS4000_20V"],
-        50.0: ps4000.PS4000_RANGE["PS4000_50V"],
-        100.0: ps4000.PS4000_RANGE["PS4000_100V"]
-    }
-
-    MAX_ADC_VALUE = 32764
-    MIN_ADC_VALUE = -32764
-
-    COUPLING = {
-        "AC": ps4000.PICO_COUPLING["AC"],
-        "DC": ps4000.PICO_COUPLING["DC"]
-    }
-
-    def set_frequency(self, frequency: int, pretrig: int, posttrig: int):
-        variant = self.get_variant()
-        if variant in ("4223", "4224", "4423", "4424"):
-            return self._set_freq(frequency, pretrig, posttrig, 50e-9, 2, 80_000_000, 20_000_000, 1)
-        elif variant in ("4226", "4227"):
-            return self._set_freq(frequency, pretrig, posttrig, 32e-9, 3, 250_000_000, 31_250_000,
-                                  2)
-        elif variant == "4262":
-            return self._set_freq(frequency, pretrig, posttrig, 0, 0, 0, 10_000_000, -1)
+        def set_frequency(self, frequency: int, pretrig: int, posttrig: int):  # TODO: fix
+            variant = self.get_variant()
+            if variant in ("4223", "4224", "4423", "4424"):
+                return self._set_freq(frequency, pretrig, posttrig, 50e-9, 2, 80_000_000, 20_000_000, 1)
+            elif variant in ("4226", "4227"):
+                return self._set_freq(frequency, pretrig, posttrig, 32e-9, 3, 250_000_000, 31_250_000,
+                                      2)
+            elif variant == "4262":
+                return self._set_freq(frequency, pretrig, posttrig, 0, 0, 0, 10_000_000, -1)
 
 
-@public
-class PS5000Scope(PicoScopeSdk):  # pragma: no cover
-    MODULE = ps5000
-    PREFIX = "ps5000"
-    CHANNELS = {
-        "A": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_A"],
-        "B": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_B"],
-        "C": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_C"],
-        "D": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_D"]
-    }
+if isinstance(ps4000, CannotFindPicoSDKError):
+    @public
+    class PS4000Scope(PicoScopeSdk):  # pragma: no cover
+        def __init__(self):
+            super().__init__()
+            raise ps4000
+else:
+    @public
+    class PS4000Scope(PicoScopeSdk):  # pragma: no cover
+        MODULE = ps4000
+        PREFIX = "ps4000"
+        CHANNELS = {
+            "A": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_A"],
+            "B": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_B"],
+            "C": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_C"],
+            "D": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_D"]
+        }
 
-    RANGES = {
-        0.01: 0,
-        0.02: 1,
-        0.05: 2,
-        0.10: 3,
-        0.20: 4,
-        0.50: 5,
-        1.00: 6,
-        2.00: 7,
-        5.00: 8,
-        10.0: 9,
-        20.0: 10,
-        50.0: 11
-    }
+        RANGES = {
+            0.01: ps4000.PS4000_RANGE["PS4000_10MV"],
+            0.02: ps4000.PS4000_RANGE["PS4000_20MV"],
+            0.05: ps4000.PS4000_RANGE["PS4000_50MV"],
+            0.10: ps4000.PS4000_RANGE["PS4000_100MV"],
+            0.20: ps4000.PS4000_RANGE["PS4000_200MV"],
+            0.50: ps4000.PS4000_RANGE["PS4000_500MV"],
+            1.00: ps4000.PS4000_RANGE["PS4000_1V"],
+            2.00: ps4000.PS4000_RANGE["PS4000_2V"],
+            5.00: ps4000.PS4000_RANGE["PS4000_5V"],
+            10.0: ps4000.PS4000_RANGE["PS4000_10V"],
+            20.0: ps4000.PS4000_RANGE["PS4000_20V"],
+            50.0: ps4000.PS4000_RANGE["PS4000_50V"],
+            100.0: ps4000.PS4000_RANGE["PS4000_100V"]
+        }
 
-    MAX_ADC_VALUE = 32512
-    MIN_ADC_VALUE = -32512
+        MAX_ADC_VALUE = 32764
+        MIN_ADC_VALUE = -32764
 
-    COUPLING = {
-        "AC": 0,
-        "DC": 1
-    }
+        COUPLING = {
+            "AC": ps4000.PICO_COUPLING["AC"],
+            "DC": ps4000.PICO_COUPLING["DC"]
+        }
 
-    def set_frequency(self, frequency: int, pretrig: int, posttrig: int):
-        return self._set_freq(frequency, pretrig, posttrig, 4e-9, 2, 1_000_000_000, 125_000_000, 2)
+        def set_frequency(self, frequency: int, pretrig: int, posttrig: int):
+            variant = self.get_variant()
+            if variant in ("4223", "4224", "4423", "4424"):
+                return self._set_freq(frequency, pretrig, posttrig, 50e-9, 2, 80_000_000, 20_000_000, 1)
+            elif variant in ("4226", "4227"):
+                return self._set_freq(frequency, pretrig, posttrig, 32e-9, 3, 250_000_000, 31_250_000,
+                                      2)
+            elif variant == "4262":
+                return self._set_freq(frequency, pretrig, posttrig, 0, 0, 0, 10_000_000, -1)
 
 
-@public
-class PS6000Scope(PicoScopeSdk):  # pragma: no cover
-    MODULE = ps6000
-    PREFIX = "ps6000"
-    CHANNELS = {
-        "A": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_A"],
-        "B": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_B"],
-        "C": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_C"],
-        "D": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_D"]
-    }
+if isinstance(ps5000, CannotFindPicoSDKError):
+    @public
+    class PS5000Scope(PicoScopeSdk):  # pragma: no cover
+        def __init__(self):
+            super().__init__()
+            raise ps5000
+else:
+    @public
+    class PS5000Scope(PicoScopeSdk):  # pragma: no cover
+        MODULE = ps5000
+        PREFIX = "ps5000"
+        CHANNELS = {
+            "A": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_A"],
+            "B": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_B"],
+            "C": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_C"],
+            "D": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_D"]
+        }
 
-    RANGES = {
-        0.01: ps6000.PS6000_RANGE["PS6000A_10MV"],
-        0.02: ps6000.PS6000_RANGE["PS6000_20MV"],
-        0.05: ps6000.PS6000_RANGE["PS6000_50MV"],
-        0.10: ps6000.PS6000_RANGE["PS6000_100MV"],
-        0.20: ps6000.PS6000_RANGE["PS6000_200MV"],
-        0.50: ps6000.PS6000_RANGE["PS6000_500MV"],
-        1.00: ps6000.PS6000_RANGE["PS6000_1V"],
-        2.00: ps6000.PS6000_RANGE["PS6000_2V"],
-        5.00: ps6000.PS6000_RANGE["PS6000_5V"],
-        10.0: ps6000.PS6000_RANGE["PS6000_10V"],
-        20.0: ps6000.PS6000_RANGE["PS6000_20V"],
-        50.0: ps6000.PS6000_RANGE["PS6000_50V"]
-    }
+        RANGES = {
+            0.01: 0,
+            0.02: 1,
+            0.05: 2,
+            0.10: 3,
+            0.20: 4,
+            0.50: 5,
+            1.00: 6,
+            2.00: 7,
+            5.00: 8,
+            10.0: 9,
+            20.0: 10,
+            50.0: 11
+        }
 
-    MAX_ADC_VALUE = 32512
-    MIN_ADC_VALUE = -32512
+        MAX_ADC_VALUE = 32512
+        MIN_ADC_VALUE = -32512
 
-    COUPLING = {
-        "AC": ps6000.PS6000_COUPLING["PS6000_AC"],
-        "DC": ps6000.PS6000_COUPLING["PS6000_DC_1M"],
-        "DC_50": ps6000.PS6000_COUPLING["PS6000_DC_50R"]
-    }
+        COUPLING = {
+            "AC": 0,
+            "DC": 1
+        }
 
-    def open(self):
-        assert_pico_ok(ps6000.ps6000OpenUnit(ctypes.byref(self.handle), None))
+        def set_frequency(self, frequency: int, pretrig: int, posttrig: int):
+            return self._set_freq(frequency, pretrig, posttrig, 4e-9, 2, 1_000_000_000, 125_000_000, 2)
 
-    def set_channel(self, channel: str, enabled: bool, coupling: str, range: float, offset: float):
-        assert_pico_ok(ps6000.ps6000SetChannel(self.handle, self.CHANNELS[channel], enabled,
-                                               self.COUPLING[coupling], self.RANGES[range], offset,
-                                               ps6000.PS6000_BANDWIDTH_LIMITER["PS6000_BW_FULL"]))
 
-    def set_buffer(self, channel: str, enable: bool):
-        if self.samples is None:
-            raise ValueError
-        if enable:
-            if channel in self.buffers:
+if isinstance(ps6000, CannotFindPicoSDKError):
+    @public
+    class PS6000Scope(PicoScopeSdk):  # pragma: no cover
+        def __init__(self):
+            super().__init__()
+            raise ps6000
+else:
+    @public
+    class PS6000Scope(PicoScopeSdk):  # pragma: no cover
+        MODULE = ps6000
+        PREFIX = "ps6000"
+        CHANNELS = {
+            "A": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_A"],
+            "B": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_B"],
+            "C": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_C"],
+            "D": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_D"]
+        }
+
+        RANGES = {
+            0.01: ps6000.PS6000_RANGE["PS6000A_10MV"],
+            0.02: ps6000.PS6000_RANGE["PS6000_20MV"],
+            0.05: ps6000.PS6000_RANGE["PS6000_50MV"],
+            0.10: ps6000.PS6000_RANGE["PS6000_100MV"],
+            0.20: ps6000.PS6000_RANGE["PS6000_200MV"],
+            0.50: ps6000.PS6000_RANGE["PS6000_500MV"],
+            1.00: ps6000.PS6000_RANGE["PS6000_1V"],
+            2.00: ps6000.PS6000_RANGE["PS6000_2V"],
+            5.00: ps6000.PS6000_RANGE["PS6000_5V"],
+            10.0: ps6000.PS6000_RANGE["PS6000_10V"],
+            20.0: ps6000.PS6000_RANGE["PS6000_20V"],
+            50.0: ps6000.PS6000_RANGE["PS6000_50V"]
+        }
+
+        MAX_ADC_VALUE = 32512
+        MIN_ADC_VALUE = -32512
+
+        COUPLING = {
+            "AC": ps6000.PS6000_COUPLING["PS6000_AC"],
+            "DC": ps6000.PS6000_COUPLING["PS6000_DC_1M"],
+            "DC_50": ps6000.PS6000_COUPLING["PS6000_DC_50R"]
+        }
+
+        def open(self):
+            assert_pico_ok(ps6000.ps6000OpenUnit(ctypes.byref(self.handle), None))
+
+        def set_channel(self, channel: str, enabled: bool, coupling: str, range: float, offset: float):
+            assert_pico_ok(ps6000.ps6000SetChannel(self.handle, self.CHANNELS[channel], enabled,
+                                                   self.COUPLING[coupling], self.RANGES[range], offset,
+                                                   ps6000.PS6000_BANDWIDTH_LIMITER["PS6000_BW_FULL"]))
+
+        def set_buffer(self, channel: str, enable: bool):
+            if self.samples is None:
+                raise ValueError
+            if enable:
+                if channel in self.buffers:
+                    del self.buffers[channel]
+                buffer = (ctypes.c_int16 * self.samples)()
+                assert_pico_ok(
+                        ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
+                                                   ctypes.byref(buffer), self.samples, 0))
+                self.buffers[channel] = buffer
+            else:
+                assert_pico_ok(
+                        ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
+                                                   None, self.samples, 0))
                 del self.buffers[channel]
-            buffer = (ctypes.c_int16 * self.samples)()
-            assert_pico_ok(
-                    ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
-                                               ctypes.byref(buffer), self.samples, 0))
-            self.buffers[channel] = buffer
-        else:
-            assert_pico_ok(
-                    ps6000.ps6000SetDataBuffer(self.handle, self.CHANNELS[channel],
-                                               None, self.samples, 0))
-            del self.buffers[channel]
 
-    def set_frequency(self, frequency: int, pretrig: int, posttrig: int):
-        return self._set_freq(frequency, pretrig, posttrig, 3.2e-9, 4, 5_000_000_000, 156_250_000,
-                              4)
+        def set_frequency(self, frequency: int, pretrig: int, posttrig: int):
+            return self._set_freq(frequency, pretrig, posttrig, 3.2e-9, 4, 5_000_000_000, 156_250_000,
+                                  4)
