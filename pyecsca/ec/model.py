@@ -16,6 +16,7 @@ class CurveModel(object):
     parameter_names: List[str]
     coordinate_names: List[str]
     equation: Expression
+    ysquared: Expression
     base_addition: List[Module]
     base_doubling: List[Module]
     base_negation: List[Module]
@@ -70,6 +71,8 @@ class EFDCurveModel(CurveModel):
                     cls.coordinate_names.append(line[11:])
                 elif line.startswith("satisfying"):
                     cls.equation = format_eq(line[11:], mode="eval")
+                elif line.startswith("ysquared"):
+                    cls.ysquared = format_eq(line[9:], mode="eval")
                 elif line.startswith("addition"):
                     cls.base_addition.append(format_eq(line[9:]))
                 elif line.startswith("doubling"):

@@ -86,8 +86,6 @@ class ContextTests(TestCase):
         with local(PathContext([0, 1, 7])) as ctx:
             key_generator = KeyGeneration(self.mult, self.secp128r1, True)
             key_generator.generate()
-        print(ctx.value)
-
 
     def test_str(self):
         with local(DefaultContext()) as default:

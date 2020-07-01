@@ -70,6 +70,13 @@ class CurveTests(TestCase):
         self.assertIsNone(self.curve25519.curve.affine_neutral)
         self.assertIsNotNone(self.ed25519.curve.affine_neutral)
 
+    def test_affine_random(self):
+        for params in [self.secp128r1, self.curve25519, self.ed25519]:
+            for _ in range(20):
+                pt = params.curve.affine_random()
+                self.assertIsNotNone(pt)
+                self.assertTrue(params.curve.is_on_curve(pt))
+
     def test_neutral_is_affine(self):
         self.assertFalse(self.secp128r1.curve.neutral_is_affine)
         self.assertFalse(self.curve25519.curve.neutral_is_affine)

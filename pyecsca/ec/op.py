@@ -107,16 +107,5 @@ class CodeOp(object):
 
     def __call__(self, *args, **kwargs: Mod) -> Mod:
         """Execute this operation with kwargs."""
-        loc = dict(kwargs)
-        exec(self.compiled, {}, loc)
-        return loc[self.result]
-
-
-@public
-class OperationAction(ResultAction):
-    """An operation."""
-    operation: CodeOp
-
-    def __init__(self, operation: CodeOp):
-        super().__init__()
-        self.operation = operation
+        exec(self.compiled, {}, kwargs)
+        return kwargs[self.result]

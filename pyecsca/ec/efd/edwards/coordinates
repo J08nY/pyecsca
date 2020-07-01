@@ -4,6 +4,7 @@ parameter d
 coordinate x
 coordinate y
 satisfying x^2+y^2 == c^2*(1+d*x^2*y^2)
+ysquared (x^2-c^2)/(c^2*d*x^2-1)
 addition x = (x1*y2+y1*x2)/(c(1+d*x1*x2*y1*y2))
 addition y = (y1*y2-x1*x2)/(c(1-d*x1*x2*y1*y2))
 doubling x = (x1*y1+y1*x1)/(c(1+d*x1*x1*y1*y1))

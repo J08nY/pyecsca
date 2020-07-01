@@ -129,12 +129,13 @@ class EllipticCurve(object):
                 data = data[coord_len:]
             return Point(self.coordinate_model, **coords)
         elif encoded[0] in (0x02, 0x03):
-            if isinstance(self.coordinate_model, AffineCoordinateModel) and isinstance(self.model, ShortWeierstrassModel):
+            if isinstance(self.coordinate_model, AffineCoordinateModel):
                 data = encoded[1:]
                 if len(data) != coord_len:
                     raise ValueError("Encoded point has bad length")
                 x = Mod(int.from_bytes(data, "big"), self.prime)
-                rhs = x**3 + self.parameters["a"] * x + self.parameters["b"]
+                loc = {**self.parameters, "x": x}
+                rhs = eval(compile(self.model.ysquared, "", mode="eval"), loc)
                 if not rhs.is_residue():
                     raise ValueError("Point not on curve")
                 sqrt = rhs.sqrt()
@@ -148,6 +149,19 @@ class EllipticCurve(object):
                 raise NotImplementedError
         else:
             raise ValueError(f"Wrong encoding type: {hex(encoded[0])}, should be one of 0x04, 0x06, 0x02, 0x03 or 0x00")
+
+    def affine_random(self) -> Point:
+        """Generate a random affine point on the curve."""
+        while True:
+            x = Mod.random(self.prime)
+            loc = {**self.parameters, "x":x}
+            ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)
+            if ysquared.is_residue():
+                y = ysquared.sqrt()
+                b = Mod.random(2)
+                if b == 1:
+                    y = -y
+                return Point(AffineCoordinateModel(self.model), x=x, y=y)
 
     def __eq__(self, other):
         if not isinstance(other, EllipticCurve):

@@ -6,7 +6,7 @@ from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union
 from pkg_resources import resource_stream
 from public import public
 
-from .context import ResultAction
+from .context import ResultAction, getcontext, NullContext
 from .mod import Mod
 from .op import CodeOp, OpType
 
@@ -55,6 +55,8 @@ class FormulaAction(ResultAction):
         self.output_points = []
 
     def add_operation(self, op: CodeOp, value: Mod):
+        if isinstance(getcontext(), NullContext):
+            return
         parents: List[Union[Mod, OpResult]] = []
         for parent in {*op.variables, *op.parameters}:
             if parent in self.intermediates:
@@ -64,6 +66,8 @@ class FormulaAction(ResultAction):
         self.intermediates[op.result] = OpResult(op.result, value, op.operator, *parents)
 
     def add_result(self, point: Any, **outputs: Mod):
+        if isinstance(getcontext(), NullContext):
+            return
         for k in outputs:
             self.outputs[k] = self.intermediates[k]
         self.output_points.append(point)
@@ -99,18 +103,16 @@ class Formula(ABC):
         from .point import Point
         if len(points) != self.num_inputs:
             raise ValueError(f"Wrong number of inputs for {self}.")
-        coords = {}
         for i, point in enumerate(points):
             if point.coordinate_model != self.coordinate_model:
                 raise ValueError(f"Wrong coordinate model of point {point}.")
             for coord, value in point.coords.items():
-                coords[coord + str(i + 1)] = value
-        locals = {**coords, **params}
-        with FormulaAction(self, *points, **locals) as action:
+                params[coord + str(i + 1)] = value
+        with FormulaAction(self, *points, **params) as action:
             for op in self.code:
-                op_result = op(**locals)
+                op_result = op(**params)
                 action.add_operation(op, op_result)
-                locals[op.result] = op_result
+                params[op.result] = op_result
             result = []
             for i in range(self.num_outputs):
                 ind = str(i + self.output_index)
@@ -118,8 +120,8 @@ class Formula(ABC):
                 full_resulting = {}
                 for variable in self.coordinate_model.variables:
                     full_variable = variable + ind
-                    resulting[variable] = locals[full_variable]
-                    full_resulting[full_variable] = locals[full_variable]
+                    resulting[variable] = params[full_variable]
+                    full_resulting[full_variable] = params[full_variable]
                 point = Point(self.coordinate_model, **resulting)
 
                 action.add_result(point, **full_resulting)

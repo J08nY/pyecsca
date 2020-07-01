@@ -4,6 +4,7 @@ parameter b
 coordinate x
 coordinate y
 satisfying b*y^2 == x^3 + a*x^2 + x
+ysquared (x^3+a*x^2+x)/b
 addition x = b*(y2-y1)^2/(x2-x1)^2-a-x1-x2
 addition y = (2*x1+x2+a)*(y2-y1)/(x2-x1)-b*(y2-y1)^3/(x2-x1)^3-y1
 doubling x = b*(3*x1^2+2*a*x1+1)^2/(2*b*y1)^2-a-x1-x1
