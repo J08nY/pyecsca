@@ -1,6 +1,7 @@
 from time import time_ns, sleep
 from typing import Optional, Tuple, Sequence, Union
 
+from picoscope.ps3000 import PS3000
 from picoscope.ps4000 import PS4000
 from picoscope.ps5000 import PS5000
 from picoscope.ps6000 import PS6000
@@ -13,7 +14,7 @@ from ..trace import Trace
 @public
 class PicoScopeAlt(Scope):  # pragma: no cover
 
-    def __init__(self, ps: Union[PS4000, PS5000, PS6000]):
+    def __init__(self, ps: Union[PS3000, PS4000, PS5000, PS6000]):
         super().__init__()
         self.ps = ps
         self.trig_ratio: float = 0.0

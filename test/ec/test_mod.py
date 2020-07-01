@@ -37,6 +37,12 @@ class ModTests(TestCase):
         self.assertNotEqual(Mod(1, 7), Mod(5, 7))
         self.assertNotEqual(Mod(1, 7), Mod(1, 5))
 
+    def test_pow(self):
+        a = Mod(5, 7)
+        self.assertEqual(a**(-1), a.inverse())
+        self.assertEqual(a**0, Mod(1, 7))
+        self.assertEqual(a**(-2),a.inverse()**2)
+
     def test_wrong_mod(self):
         a = Mod(5, 7)
         b = Mod(4, 11)

@@ -6,6 +6,7 @@ from typing import Mapping, Optional, MutableMapping, Union, Tuple
 import numpy as np
 from picosdk.functions import assert_pico_ok
 from picosdk.library import Library
+from picosdk.ps3000 import ps3000
 from picosdk.ps4000 import ps4000
 from picosdk.ps5000 import ps5000
 from picosdk.ps6000 import ps6000
@@ -197,6 +198,55 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         if method is None:
             raise ValueError
         return method(*args, **kwargs)
+
+
+@public
+class PS3000Scope(PicoScopeSdk):  # pragma: no cover
+    MODULE = ps3000
+    PREFIX = "ps3000"
+    CHANNELS = {
+        "A": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_A"],
+        "B": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_B"],
+        "C": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_C"],
+        "D": ps3000.PS3000_CHANNEL["PS3000_CHANNEL_D"]
+    }
+
+    RANGES = {
+        0.02: ps3000.PS3000_RANGE["PS3000_20MV"],
+        0.05: ps3000.PS3000_RANGE["PS3000_50MV"],
+        0.10: ps3000.PS3000_RANGE["PS3000_100MV"],
+        0.20: ps3000.PS3000_RANGE["PS3000_200MV"],
+        0.50: ps3000.PS3000_RANGE["PS3000_500MV"],
+        1.00: ps3000.PS3000_RANGE["PS3000_1V"],
+        2.00: ps3000.PS3000_RANGE["PS3000_2V"],
+        5.00: ps3000.PS3000_RANGE["PS3000_5V"],
+        10.0: ps3000.PS3000_RANGE["PS3000_10V"],
+        20.0: ps3000.PS3000_RANGE["PS3000_20V"],
+        50.0: ps3000.PS3000_RANGE["PS3000_50V"],
+        100.0: ps3000.PS3000_RANGE["PS3000_100V"],
+        200.0: ps3000.PS3000_RANGE["PS3000_200V"],
+        400.0: ps3000.PS3000_RANGE["PS3000_400V"]
+    }
+
+    MAX_ADC_VALUE = 32764   # TODO: fix
+    MIN_ADC_VALUE = -32764  # TODO: fix
+
+    COUPLING = {
+        "AC": ps3000.PICO_COUPLING["AC"],
+        "DC": ps3000.PICO_COUPLING["DC"]
+    }
+
+    def set_frequency(self, frequency: int, pretrig: int, posttrig: int):  # TODO: fix
+        variant = self.get_variant()
+        if variant in ("4223", "4224", "4423", "4424"):
+            return self._set_freq(frequency, pretrig, posttrig, 50e-9, 2, 80_000_000, 20_000_000, 1)
+        elif variant in ("4226", "4227"):
+            return self._set_freq(frequency, pretrig, posttrig, 32e-9, 3, 250_000_000, 31_250_000,
+                                  2)
+        elif variant == "4262":
+            return self._set_freq(frequency, pretrig, posttrig, 0, 0, 0, 10_000_000, -1)
+
+
 
 
 @public

@@ -195,12 +195,19 @@ class PathContext(Context):
             self.current.pop()
         self.current_depth -= 1
 
-
     def __init__(self, path: Sequence[int]):
+        """
+        Create a :py:class:`PathContext`.
+
+        :param path: The path of an action in the execution tree that will be captured.
+        """
         self.path = list(path)
         self.current = []
         self.current_depth = 0
         self.value = None
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.current!r}, depth={self.current_depth!r})"
 
 
 _actual_context: ContextVar[Context] = ContextVar("operational_context", default=NullContext())

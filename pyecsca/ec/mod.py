@@ -239,6 +239,12 @@ class Mod(object):
     def __pow__(self, n):
         if type(n) is not int:
             raise TypeError
+        if n == 0:
+            return Mod(1, self.n)
+        if n < 0:
+            return self.inverse()**(-n)
+        if n == 1:
+            return Mod(self.x, self.n)
 
         q = self
         r = self if n & 1 else Mod(1, self.n)
