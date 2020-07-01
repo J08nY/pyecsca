@@ -13,7 +13,7 @@ class AlignTests(Plottable):
         a = Trace(first_arr)
         b = Trace(second_arr)
         c = Trace(third_arr)
-        result = align_correlation(a, b, c, reference_offset=1, reference_length=3, max_offset=4, min_correlation=0.65)
+        result, offsets = align_correlation(a, b, c, reference_offset=1, reference_length=3, max_offset=4, min_correlation=0.65)
         self.assertIsNotNone(result)
         self.assertEqual(len(result), 2)
         np.testing.assert_equal(result[0].samples, first_arr)
@@ -22,7 +22,7 @@ class AlignTests(Plottable):
     @slow
     def test_large_align(self):
         example = InspectorTraceSet.read("test/data/example.trs")
-        result = align_correlation(*example, reference_offset=100000, reference_length=20000, max_offset=15000)
+        result, offsets  = align_correlation(*example, reference_offset=100000, reference_length=20000, max_offset=15000)
         self.assertIsNotNone(result)
 
     @slow
@@ -36,7 +36,7 @@ class AlignTests(Plottable):
         second_arr = np.array([10, 10, 10, 10, 90, 40, 50, 20, 10, 17, 16, 10], dtype=np.dtype("i1"))
         a = Trace(first_arr)
         b = Trace(second_arr)
-        result = align_peaks(a, b, reference_offset=2, reference_length=5, max_offset=3)
+        result, offsets  = align_peaks(a, b, reference_offset=2, reference_length=5, max_offset=3)
         self.assertEqual(np.argmax(result[0].samples), np.argmax(result[1].samples))
 
     def test_sad_align(self):
@@ -44,7 +44,7 @@ class AlignTests(Plottable):
         second_arr = np.array([10, 10, 90, 40, 50, 20, 10, 17, 16, 10, 10], dtype=np.dtype("i1"))
         a = Trace(first_arr)
         b = Trace(second_arr)
-        result = align_sad(a, b, reference_offset=2, reference_length=5, max_offset=3)
+        result, offsets  = align_sad(a, b, reference_offset=2, reference_length=5, max_offset=3)
         self.assertEqual(len(result), 2)
 
     def test_dtw_align_scale(self):

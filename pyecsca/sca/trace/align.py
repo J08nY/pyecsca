@@ -12,8 +12,9 @@ from .trace import Trace
 
 
 def align_reference(reference: Trace, *traces: Trace,
-                    align_func: Callable[[Trace], Tuple[bool, int]]) -> List[Trace]:
+                    align_func: Callable[[Trace], Tuple[bool, int]]) -> Tuple[List[Trace], List[int]]:
     result = [deepcopy(reference)]
+    offsets = [0]
     for trace in traces:
         length = len(trace.samples)
         include, offset = align_func(trace)
@@ -28,13 +29,14 @@ def align_reference(reference: Trace, *traces: Trace,
             else:
                 result_samples[-offset:] = trace.samples[:length + offset]
         result.append(trace.with_samples(result_samples))
-    return result
+        offsets.append(offset)
+    return result, offsets
 
 
 @public
 def align_correlation(reference: Trace, *traces: Trace,
                       reference_offset: int, reference_length: int,
-                      max_offset: int, min_correlation: float = 0.5) -> List[Trace]:
+                      max_offset: int, min_correlation: float = 0.5) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace`. Using the cross-correlation of a part of the reference
     trace starting at `reference_offset` with `reference_length` and try to match it to a part of
@@ -75,7 +77,7 @@ def align_correlation(reference: Trace, *traces: Trace,
 
 @public
 def align_peaks(reference: Trace, *traces: Trace,
-                reference_offset: int, reference_length: int, max_offset: int) -> List[Trace]:
+                reference_offset: int, reference_length: int, max_offset: int) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace` so that the maximum value within the reference trace
     window from `reference_offset` of `reference_length` aligns with the maximum
@@ -106,7 +108,7 @@ def align_peaks(reference: Trace, *traces: Trace,
 @public
 def align_offset(reference: Trace, *traces: Trace,
                  reference_offset: int, reference_length: int, max_offset: int,
-                 dist_func: Callable[[np.ndarray, np.ndarray], float], max_dist: float = float("inf")) -> List[Trace]:
+                 dist_func: Callable[[np.ndarray, np.ndarray], float], max_dist: float = float("inf")) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace` so that the value of the `dist_func` is minimized
     between the reference trace window from `reference_offset` of `reference_length` and the trace
@@ -145,7 +147,7 @@ def align_offset(reference: Trace, *traces: Trace,
 
 @public
 def align_sad(reference: Trace, *traces: Trace,
-              reference_offset: int, reference_length: int, max_offset: int) -> List[Trace]:
+              reference_offset: int, reference_length: int, max_offset: int) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace` so that the Sum Of Absolute Differences between the
     reference trace window from `reference_offset` of `reference_length` and the trace being aligned

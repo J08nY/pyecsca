@@ -62,8 +62,9 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         "rising": 2,
         "falling": 3
     }
+    _variant: Optional[str]
 
-    def __init__(self):
+    def __init__(self, variant: Optional[str] = None):
         super().__init__()
         self.handle: ctypes.c_int16 = ctypes.c_int16()
         self.frequency: Optional[int] = None
@@ -73,6 +74,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         self.timebase: Optional[int] = None
         self.buffers: MutableMapping = {}
         self.ranges: MutableMapping = {}
+        self._variant = variant
 
     def open(self) -> None:
         assert_pico_ok(self.__dispatch_call("OpenUnit", ctypes.byref(self.handle)))
@@ -82,11 +84,14 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         return list(self.CHANNELS.keys())
 
     def get_variant(self):
+        if self._variant is not None:
+            return self._variant
         info = (ctypes.c_int8 * 6)()
         size = ctypes.c_int16()
         assert_pico_ok(self.__dispatch_call("GetUnitInfo", self.handle, ctypes.byref(info), 6,
                                             ctypes.byref(size), 3))
-        return "".join(chr(i) for i in info[:size.value])
+        self._variant = "".join(chr(i) for i in info[:size.value])
+        return self._variant
 
     def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
         return self.set_frequency(frequency, pretrig, posttrig)
@@ -216,8 +221,8 @@ class PicoScopeSdk(Scope):  # pragma: no cover
 if isinstance(ps3000, CannotFindPicoSDKError):
     @public
     class PS3000Scope(PicoScopeSdk):  # pragma: no cover
-        def __init__(self):
-            super().__init__()
+        def __init__(self, variant: Optional[str] = None):
+            super().__init__(variant)
             raise ps3000
 else:
     @public
@@ -270,8 +275,8 @@ else:
 if isinstance(ps4000, CannotFindPicoSDKError):
     @public
     class PS4000Scope(PicoScopeSdk):  # pragma: no cover
-        def __init__(self):
-            super().__init__()
+        def __init__(self, variant: Optional[str] = None):
+            super().__init__(variant)
             raise ps4000
 else:
     @public
@@ -323,8 +328,8 @@ else:
 if isinstance(ps5000, CannotFindPicoSDKError):
     @public
     class PS5000Scope(PicoScopeSdk):  # pragma: no cover
-        def __init__(self):
-            super().__init__()
+        def __init__(self, variant: Optional[str] = None):
+            super().__init__(variant)
             raise ps5000
 else:
     @public
@@ -368,8 +373,8 @@ else:
 if isinstance(ps6000, CannotFindPicoSDKError):
     @public
     class PS6000Scope(PicoScopeSdk):  # pragma: no cover
-        def __init__(self):
-            super().__init__()
+        def __init__(self, variant: Optional[str] = None):
+            super().__init__(variant)
             raise ps6000
 else:
     @public
