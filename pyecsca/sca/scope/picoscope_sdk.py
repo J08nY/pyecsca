@@ -203,7 +203,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             data = arr
         else:
             data = adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE)
-        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel})
+        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel, "sample_type": type})
 
     def stop(self):
         assert_pico_ok(self.__dispatch_call("Stop"))
@@ -237,20 +237,20 @@ else:
         }
 
         RANGES = {
-            0.02: ps3000.PS3000_RANGE["PS3000_20MV"],
-            0.05: ps3000.PS3000_RANGE["PS3000_50MV"],
-            0.10: ps3000.PS3000_RANGE["PS3000_100MV"],
-            0.20: ps3000.PS3000_RANGE["PS3000_200MV"],
-            0.50: ps3000.PS3000_RANGE["PS3000_500MV"],
-            1.00: ps3000.PS3000_RANGE["PS3000_1V"],
-            2.00: ps3000.PS3000_RANGE["PS3000_2V"],
-            5.00: ps3000.PS3000_RANGE["PS3000_5V"],
-            10.0: ps3000.PS3000_RANGE["PS3000_10V"],
-            20.0: ps3000.PS3000_RANGE["PS3000_20V"],
-            50.0: ps3000.PS3000_RANGE["PS3000_50V"],
-            100.0: ps3000.PS3000_RANGE["PS3000_100V"],
-            200.0: ps3000.PS3000_RANGE["PS3000_200V"],
-            400.0: ps3000.PS3000_RANGE["PS3000_400V"]
+            0.02: ps3000.PS3000_VOLTAGE_RANGE["PS3000_20MV"],
+            0.05: ps3000.PS3000_VOLTAGE_RANGE["PS3000_50MV"],
+            0.10: ps3000.PS3000_VOLTAGE_RANGE["PS3000_100MV"],
+            0.20: ps3000.PS3000_VOLTAGE_RANGE["PS3000_200MV"],
+            0.50: ps3000.PS3000_VOLTAGE_RANGE["PS3000_500MV"],
+            1.00: ps3000.PS3000_VOLTAGE_RANGE["PS3000_1V"],
+            2.00: ps3000.PS3000_VOLTAGE_RANGE["PS3000_2V"],
+            5.00: ps3000.PS3000_VOLTAGE_RANGE["PS3000_5V"],
+            10.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_10V"],
+            20.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_20V"],
+            50.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_50V"],
+            100.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_100V"],
+            200.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_200V"],
+            400.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_400V"]
         }
 
         MAX_ADC_VALUE = 32764   # TODO: fix

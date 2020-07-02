@@ -64,7 +64,7 @@ class PicoScopeAlt(Scope):  # pragma: no cover
             data = self.ps.getDataV(channel)
         if data is None:
             return None
-        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel})
+        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel, "sample_type": type})
 
     def stop(self) -> None:
         self.ps.stop()
