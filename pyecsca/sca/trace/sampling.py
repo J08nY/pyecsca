@@ -16,7 +16,7 @@ def downsample_average(trace: Trace, factor: int = 2) -> Trace:
     :return:
     """
     resized = np.resize(trace.samples, len(trace.samples) - (len(trace.samples) % factor))
-    result_samples = resized.reshape(-1, factor).mean(axis=1).astype(trace.samples.dtype)
+    result_samples = resized.reshape(-1, factor).mean(axis=1).astype(trace.samples.dtype, copy=False)
     return trace.with_samples(result_samples)
 
 

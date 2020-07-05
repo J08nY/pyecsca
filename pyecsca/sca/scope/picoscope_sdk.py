@@ -226,9 +226,9 @@ if isinstance(ps3000, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps3000
-else:
+else:  # pragma: no cover
     @public
-    class PS3000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS3000Scope(PicoScopeSdk):  # type: ignore
         MODULE = ps3000
         PREFIX = "ps3000"
         CHANNELS = {
@@ -276,16 +276,15 @@ else:
             raise NotImplementedError
 
 
-
 if isinstance(ps4000, CannotFindPicoSDKError):
     @public
     class PS4000Scope(PicoScopeSdk):  # pragma: no cover
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps4000
-else:
+else:  # pragma: no cover
     @public
-    class PS4000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS4000Scope(PicoScopeSdk):  # type: ignore
         MODULE = ps4000
         PREFIX = "ps4000"
         CHANNELS = {
@@ -336,9 +335,9 @@ if isinstance(ps5000, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps5000
-else:
+else:  # pragma: no cover
     @public
-    class PS5000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS5000Scope(PicoScopeSdk):  # type: ignore
         MODULE = ps5000
         PREFIX = "ps5000"
         CHANNELS = {
@@ -381,9 +380,9 @@ if isinstance(ps6000, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps6000
-else:
+else:  # pragma: no cover
     @public
-    class PS6000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS6000Scope(PicoScopeSdk):  # type: ignore
         MODULE = ps6000
         PREFIX = "ps6000"
         CHANNELS = {

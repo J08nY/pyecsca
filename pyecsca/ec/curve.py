@@ -154,7 +154,7 @@ class EllipticCurve(object):
         """Generate a random affine point on the curve."""
         while True:
             x = Mod.random(self.prime)
-            loc = {**self.parameters, "x":x}
+            loc = {**self.parameters, "x": x}
             ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)
             if ysquared.is_residue():
                 y = ysquared.sqrt()

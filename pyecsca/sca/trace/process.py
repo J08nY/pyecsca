@@ -57,7 +57,7 @@ def rolling_mean(trace: Trace, window: int) -> Trace:
     :return:
     """
     return trace.with_samples(np.mean(rolling_window(trace.samples, window), -1).astype(
-            dtype=trace.samples.dtype))
+            dtype=trace.samples.dtype, copy=False))
 
 
 @public

@@ -9,7 +9,7 @@ import numpy as np
 from pyecsca.sca import (TraceSet, InspectorTraceSet, ChipWhispererTraceSet, PickleTraceSet,
                          HDF5TraceSet, Trace)
 
-EXAMPLE_TRACES = [Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1"))),
+EXAMPLE_TRACES = [Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")), {"something": 5}),
                   Trace(np.array([1, 2, 3, 4, 5], dtype=np.dtype("i1"))),
                   Trace(np.array([6, 7, 8, 9, 10], dtype=np.dtype("i1")))]
 EXAMPLE_KWARGS = {"num_traces": 3, "thingy": "abc"}
@@ -98,11 +98,17 @@ class HDF5TraceSetTests(TestCase):
             trace_set = HDF5TraceSet.inplace(path)
             self.assertIsNotNone(trace_set)
             test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
+            other_trace = Trace(np.array([15, 7], dtype=np.dtype("i1")), meta={"a": "b"})
             trace_set.append(test_trace)
+            self.assertEqual(len(trace_set), 4)
+            trace_set.append(other_trace)
+            trace_set.remove(other_trace)
+            self.assertEqual(len(trace_set), 4)
             trace_set.save()
             trace_set.close()
 
             test_set = HDF5TraceSet.read(path)
+            self.assertEqual(test_set.get(3), test_set[3])
             self.assertTrue(np.array_equal(test_set[3].samples, test_trace.samples))
             self.assertEqual(test_set[3].meta["thing"], test_trace.meta["thing"])
             self.assertEqual(test_set[3], test_trace)
