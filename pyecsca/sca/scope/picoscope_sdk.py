@@ -30,20 +30,20 @@ from ..trace import Trace
 
 
 def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
-             volt_range: float, adc_minmax: int) -> Union[np.ndarray, float]:  # pragma: no cover
+             volt_range: float, adc_minmax: int, dtype = np.float32) -> Union[np.ndarray, float]:  # pragma: no cover
     if isinstance(adc, ctypes.c_int16):
         return (adc.value / adc_minmax) * volt_range
     if isinstance(adc, np.ndarray):
-        return ((adc / adc_minmax) * volt_range).astype(np.float16, copy=False)
+        return ((adc / adc_minmax) * volt_range).astype(dtype=dtype, copy=False)
     raise ValueError
 
 
 def volt2adc(volt: Union[np.ndarray, float],
-             volt_range: float, adc_minmax: int) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
+             volt_range: float, adc_minmax: int, dtype = np.float32) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
     if isinstance(volt, np.ndarray):
-        return ((volt / volt_range) * adc_minmax).astype(np.int16, copy=False)
+        return ((volt / volt_range) * adc_minmax).astype(dtype=dtype, copy=False)
     raise ValueError
 
 
@@ -192,7 +192,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str, type: SampleType) -> Optional[Trace]:
+    def retrieve(self, channel: str, type: SampleType, dtype = np.float32) -> Optional[Trace]:
         if self.samples is None:
             raise ValueError
         actual_samples = ctypes.c_int32(self.samples)
@@ -200,7 +200,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         assert_pico_ok(
                 self.__dispatch_call("GetValues", self.handle, 0, ctypes.byref(actual_samples), 1,
                                      0, 0, ctypes.byref(overflow)))
-        arr = np.array(self.buffers[channel], dtype=np.int16)
+        arr = np.array(self.buffers[channel], dtype=dtype)
         if type == SampleType.Raw:
             data = arr
         else:

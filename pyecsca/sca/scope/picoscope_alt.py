@@ -1,4 +1,5 @@
 from time import time_ns, sleep
+import numpy as np
 from typing import Optional, Tuple, Sequence, Union
 
 from picoscope.ps3000 import PS3000
@@ -57,11 +58,11 @@ class PicoScopeAlt(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str, type: SampleType) -> Optional[Trace]:
+    def retrieve(self, channel: str, type: SampleType, dtype = np.float32) -> Optional[Trace]:
         if type == SampleType.Raw:
-            data = self.ps.getDataRaw(channel)
+            data = self.ps.getDataRaw(channel).astype(dtype=dtype, copy=False)
         else:
-            data = self.ps.getDataV(channel)
+            data = self.ps.getDataV(channel, dtype=dtype)
         if data is None:
             return None
         return Trace(data, {"sampling_frequency": self.frequency, "channel": channel, "sample_type": type})
