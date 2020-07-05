@@ -121,6 +121,7 @@ class HDF5TraceSet(TraceSet):
             index = self._traces.index(value)
             key = self._ordering[index]
             self._ordering.remove(key)
+            self._traces.remove(value)
             if self._file:
                 self._file.pop(key)
                 self._file.attrs["_ordering"] = self._ordering

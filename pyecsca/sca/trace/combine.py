@@ -19,7 +19,7 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
     if len(traces) == 1:
         return CombinedTrace(traces[0].samples.copy())
     dtype = traces[0].samples.dtype
-    result_samples = np.mean(np.array([trace.samples for trace in traces]), axis=0).astype(dtype)
+    result_samples = np.mean(np.stack([trace.samples for trace in traces]), axis=0).astype(dtype)
     return CombinedTrace(result_samples)
 
 
@@ -46,7 +46,7 @@ def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
     if not traces:
         return None
     dtype = traces[0].samples.dtype
-    result_samples = np.std(np.array([trace.samples for trace in traces]), axis=0).astype(dtype)
+    result_samples = np.std(np.stack([trace.samples for trace in traces]), axis=0).astype(dtype)
     return CombinedTrace(result_samples)
 
 
@@ -63,7 +63,7 @@ def add(*traces: Trace) -> Optional[CombinedTrace]:
     if len(traces) == 1:
         return CombinedTrace(traces[0].samples.copy())
     dtype = traces[0].samples.dtype
-    result_samples = np.sum(np.array([trace.samples for trace in traces]), axis=0).astype(dtype)
+    result_samples = np.sum(np.stack([trace.samples for trace in traces]), axis=0).astype(dtype)
     return CombinedTrace(result_samples)
 
 
@@ -76,5 +76,4 @@ def subtract(one: Trace, other: Trace) -> CombinedTrace:
     :param other:
     :return:
     """
-    result_samples = one.samples - other.samples
-    return CombinedTrace(result_samples)
+    return CombinedTrace(np.subtract(one.samples, other.samples))

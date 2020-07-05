@@ -32,17 +32,19 @@ from ..trace import Trace
 def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
              volt_range: float, adc_minmax: int) -> Union[np.ndarray, float]:  # pragma: no cover
     if isinstance(adc, ctypes.c_int16):
-        adc = adc.value
+        return (adc.value / adc_minmax) * volt_range
     if isinstance(adc, np.ndarray):
-        adc = adc.astype(np.dtype("f2"))
-    return (adc / adc_minmax) * volt_range
+        return ((adc / adc_minmax) * volt_range).astype(np.float16, copy=False)
+    raise ValueError
 
 
 def volt2adc(volt: Union[np.ndarray, float],
              volt_range: float, adc_minmax: int) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
-    return (volt / volt_range) * adc_minmax
+    if isinstance(volt, np.ndarray):
+        return ((volt / volt_range) * adc_minmax).astype(np.int16, copy=False)
+    raise ValueError
 
 
 @public
