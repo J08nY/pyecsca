@@ -204,7 +204,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         if type == SampleType.Raw:
             data = arr
         else:
-            data = adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE)
+            data = adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE, dtype=dtype)
         return Trace(data, {"sampling_frequency": self.frequency, "channel": channel, "sample_type": type})
 
     def stop(self):

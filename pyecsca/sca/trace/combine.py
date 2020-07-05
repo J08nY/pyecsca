@@ -18,9 +18,13 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
         return None
     if len(traces) == 1:
         return CombinedTrace(traces[0].samples.copy())
-    dtype = traces[0].samples.dtype
-    result_samples = np.mean(np.stack([trace.samples for trace in traces]), axis=0).astype(dtype, copy=False)
-    return CombinedTrace(result_samples)
+    min_samples = min(map(len, traces))
+    s = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        s = np.add(s, t.samples[:min_samples])
+    avg = ((1/len(traces)) * s)
+    del s
+    return CombinedTrace(avg)
 
 
 @public
@@ -45,9 +49,46 @@ def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
     """
     if not traces:
         return None
-    dtype = traces[0].samples.dtype
-    result_samples = np.std(np.stack([trace.samples for trace in traces]), axis=0).astype(dtype, copy=False)
-    return CombinedTrace(result_samples)
+    if len(traces) == 0:
+        return CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64))
+    min_samples = min(map(len, traces))
+    s = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        s = np.add(s, t.samples[:min_samples])
+    ts = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        d = np.subtract(t.samples[:min_samples], s)
+        ts = np.add(ts, np.multiply(d, d, dtype=np.float64))
+    std = np.sqrt((1/len(traces)-1) * ts)
+    del s
+    del ts
+    return CombinedTrace(std)
+
+
+@public
+def variance(*traces: Trace) -> Optional[CombinedTrace]:
+    """
+    Compute the variance of the `traces`, sample-wise.
+
+    :param traces:
+    :return:
+    """
+    if not traces:
+        return None
+    if len(traces) == 0:
+        return CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64))
+    min_samples = min(map(len, traces))
+    s = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        s = np.add(s, t.samples[:min_samples])
+    ts = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        d = np.subtract(t.samples[:min_samples], s)
+        ts = np.add(ts, np.multiply(d, d, dtype=np.float64))
+    var = (1/len(traces)-1) * ts
+    del s
+    del ts
+    return CombinedTrace(var)
 
 
 @public
@@ -62,9 +103,11 @@ def add(*traces: Trace) -> Optional[CombinedTrace]:
         return None
     if len(traces) == 1:
         return CombinedTrace(traces[0].samples.copy())
-    dtype = traces[0].samples.dtype
-    result_samples = np.sum(np.stack([trace.samples for trace in traces]), axis=0).astype(dtype, copy=False)
-    return CombinedTrace(result_samples)
+    min_samples = min(map(len, traces))
+    s = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        s = np.add(s, t.samples[:min_samples])
+    return CombinedTrace(s)
 
 
 @public
