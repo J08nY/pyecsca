@@ -253,23 +253,26 @@ else:
             400.0: ps3000.PS3000_VOLTAGE_RANGE["PS3000_400V"]
         }
 
-        MAX_ADC_VALUE = 32764   # TODO: fix
-        MIN_ADC_VALUE = -32764  # TODO: fix
+        MAX_ADC_VALUE = 32767
+        MIN_ADC_VALUE = -32767
 
         COUPLING = {
             "AC": ps3000.PICO_COUPLING["AC"],
             "DC": ps3000.PICO_COUPLING["DC"]
         }
 
+        def get_variant(self):
+            if self._variant is not None:
+                return self._variant
+            info = (ctypes.c_int8 * 6)()
+            size = ctypes.c_int16(6)
+            assert_pico_ok(self.__dispatch_call("GetUnitInfo", self.handle, ctypes.byref(info), size, 3))
+            self._variant = "".join(chr(i) for i in info[:size.value])
+            return self._variant
+
         def set_frequency(self, frequency: int, pretrig: int, posttrig: int):  # TODO: fix
-            variant = self.get_variant()
-            if variant in ("4223", "4224", "4423", "4424"):
-                return self._set_freq(frequency, pretrig, posttrig, 50e-9, 2, 80_000_000, 20_000_000, 1)
-            elif variant in ("4226", "4227"):
-                return self._set_freq(frequency, pretrig, posttrig, 32e-9, 3, 250_000_000, 31_250_000,
-                                      2)
-            elif variant == "4262":
-                return self._set_freq(frequency, pretrig, posttrig, 0, 0, 0, 10_000_000, -1)
+            raise NotImplementedError
+
 
 
 if isinstance(ps4000, CannotFindPicoSDKError):

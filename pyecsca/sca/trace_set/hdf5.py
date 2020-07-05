@@ -158,9 +158,18 @@ class HDF5TraceSet(TraceSet):
         hdf5.attrs["_ordering"] = self._ordering
         for i, k in enumerate(self._ordering):
             trace = self[i]
-            dset = hdf5.create_dataset(k, trace.samples)
+            dset = hdf5.create_dataset(k, data=trace.samples)
             if trace.meta:
                 meta = HDF5Meta(dset.attrs)
                 for k, v in trace.meta.items():
                     meta[k] = v
         hdf5.close()
+
+    def __repr__(self):
+        fname = ""
+        status = ""
+        if self._file is not None:
+            fname = self._file.filename
+            status = " (opened)" if self._file.id.valid else " (closed)"
+        args = ", ".join([f"{key}={getattr(self, key)!r}" for key in self._keys if not key.startswith("_")])
+        return f"HDF5TraceSet('{fname}'{status}, {args})"
