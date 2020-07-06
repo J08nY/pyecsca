@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 from public import public
@@ -42,19 +42,20 @@ def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> O
 @public
 def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
     """
-    Compute the standard-deviation of the `traces`, sample-wise.
+    Compute the sample standard-deviation of the `traces`, sample-wise.
 
     :param traces:
     :return:
     """
     if not traces:
         return None
-    if len(traces) == 0:
+    if len(traces) == 1:
         return CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64))
     min_samples = min(map(len, traces))
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         s = np.add(s, t.samples[:min_samples])
+    s = (1/len(traces)) * s
     ts = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         d = np.subtract(t.samples[:min_samples], s)
@@ -68,19 +69,20 @@ def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
 @public
 def variance(*traces: Trace) -> Optional[CombinedTrace]:
     """
-    Compute the variance of the `traces`, sample-wise.
+    Compute the sample variance of the `traces`, sample-wise.
 
     :param traces:
     :return:
     """
     if not traces:
         return None
-    if len(traces) == 0:
+    if len(traces) == 1:
         return CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64))
     min_samples = min(map(len, traces))
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         s = np.add(s, t.samples[:min_samples])
+    s = (1 / len(traces)) * s
     ts = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         d = np.subtract(t.samples[:min_samples], s)
@@ -89,6 +91,33 @@ def variance(*traces: Trace) -> Optional[CombinedTrace]:
     del s
     del ts
     return CombinedTrace(var)
+
+
+@public
+def average_and_variance(*traces) -> Optional[Tuple[CombinedTrace, CombinedTrace]]:
+    """
+    Compute the average and sample variance of the `traces`, sample-wise.
+
+    :param traces:
+    :return:
+    """
+    if not traces:
+        return None
+    if len(traces) == 1:
+        return (CombinedTrace(traces[0].samples.copy()),
+                CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64)))
+    min_samples = min(map(len, traces))
+    s = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        s = np.add(s, t.samples[:min_samples])
+    s = (1 / len(traces)) * s
+    ts = np.zeros(min_samples, dtype=np.float64)
+    for t in traces:
+        d = np.subtract(t.samples[:min_samples], s)
+        ts = np.add(ts, np.multiply(d, d, dtype=np.float64))
+    var = (1/len(traces)-1) * ts
+    del ts
+    return (CombinedTrace(s), CombinedTrace(var))
 
 
 @public
