@@ -58,7 +58,7 @@ class PicoScopeAlt(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str, type: SampleType, dtype = np.float32) -> Optional[Trace]:
+    def retrieve(self, channel: str, type: SampleType, dtype=np.float32) -> Optional[Trace]:
         if type == SampleType.Raw:
             data = self.ps.getDataRaw(channel).astype(dtype=dtype, copy=False)
         else:

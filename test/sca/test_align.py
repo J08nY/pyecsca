@@ -48,9 +48,9 @@ class AlignTests(Plottable):
         self.assertEqual(len(result), 2)
 
     def test_dtw_align_scale(self):
-        first_arr = np.array([10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10, 8, 10, 12, 10, 13, 9], dtype=np.dtype("i1"))
-        second_arr = np.array([10, 10, 60, 40, 90, 20, 10, 17, 16, 10, 10, 10, 10, 10, 17, 12, 10], dtype=np.dtype("i1"))
-        third_arr = np.array([10, 30, 20, 21, 15, 8, 10, 37, 21, 77, 20, 28, 25, 10, 9, 10, 15, 9, 10], dtype=np.dtype("i1"))
+        first_arr = np.array( [10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10,  8, 10, 12, 10, 13, 9], dtype=np.dtype("f2"))
+        second_arr = np.array([10, 10, 60, 40,  90, 20, 10, 17, 16, 10, 10, 10, 10, 10, 17, 12, 10], dtype=np.dtype("f2"))
+        third_arr = np.array( [10, 30, 20, 21,  15,  8, 10, 37, 21, 77, 20, 28, 25, 10,  9, 10, 15, 9, 10], dtype=np.dtype("f2"))
         a = Trace(first_arr)
         b = Trace(second_arr)
         c = Trace(third_arr)

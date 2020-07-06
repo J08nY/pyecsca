@@ -30,7 +30,7 @@ from ..trace import Trace
 
 
 def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
-             volt_range: float, adc_minmax: int, dtype = np.float32) -> Union[np.ndarray, float]:  # pragma: no cover
+             volt_range: float, adc_minmax: int, dtype=np.float32) -> Union[np.ndarray, float]:  # pragma: no cover
     if isinstance(adc, ctypes.c_int16):
         return (adc.value / adc_minmax) * volt_range
     if isinstance(adc, np.ndarray):
@@ -39,7 +39,7 @@ def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
 
 
 def volt2adc(volt: Union[np.ndarray, float],
-             volt_range: float, adc_minmax: int, dtype = np.float32) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
+             volt_range: float, adc_minmax: int, dtype=np.float32) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
     if isinstance(volt, np.ndarray):
@@ -192,7 +192,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str, type: SampleType, dtype = np.float32) -> Optional[Trace]:
+    def retrieve(self, channel: str, type: SampleType, dtype=np.float32) -> Optional[Trace]:
         if self.samples is None:
             raise ValueError
         actual_samples = ctypes.c_int32(self.samples)

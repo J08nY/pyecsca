@@ -90,7 +90,7 @@ class Scope(object):
         """
         raise NotImplementedError
 
-    def retrieve(self, channel: str, type: SampleType, dtype = None) -> Optional[Trace]:
+    def retrieve(self, channel: str, type: SampleType, dtype=None) -> Optional[Trace]:
         """
         Retrieve a captured trace of a channel.
 

@@ -172,7 +172,7 @@ def align_sad(reference: Trace, *traces: Trace,
 def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
                     fast: bool = True) -> List[Trace]:
     """
-    Align `traces` to the reference `trace`.
+    Align `traces` to the `reference` trace.
     Using fastdtw (Dynamic Time Warping) with scaling as per:
 
     Jasper G. J. van Woudenberg, Marc F. Witteman, Bram Bakker:
@@ -193,13 +193,13 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
             dist, path = fastdtw(reference_samples, trace.samples, radius=radius)
         else:
             dist, path = dtw(reference_samples, trace.samples)
-        result_samples = np.zeros(max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype)
-        scale = np.ones(max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype)
+        result_samples = np.zeros(len(reference_samples), dtype=trace.samples.dtype)
+        scale = np.zeros(len(reference_samples), dtype=trace.samples.dtype)
         for x, y in path:
-            result_samples[x] = trace.samples[y]
+            result_samples[x] += trace.samples[y]
             scale[x] += 1
-        # TODO: fix
-        result_samples //= scale
+        result_samples /= scale
+        del path
         del scale
         result.append(trace.with_samples(result_samples))
     return result
@@ -208,7 +208,7 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
 @public
 def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True) -> List[Trace]:
     """
-    Align `traces` to the reference `trace`. Using fastdtw (Dynamic Time Warping) as per:
+    Align `traces` to the `reference` trace. Using fastdtw (Dynamic Time Warping) as per:
 
     Stan Salvador, Philip Chan:
     FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space
@@ -233,8 +233,6 @@ def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = Tr
                          dtype=np.dtype([("x", "int"), ("y", "int")]))
         result_samples[pairs["x"]] = trace.samples[pairs["y"]]
         del pairs
-        # or manually:
-        # for x, y in path:
-        #    result_samples[x] = trace.samples[y]
+        del path
         result.append(trace.with_samples(result_samples))
     return result

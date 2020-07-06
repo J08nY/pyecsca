@@ -52,7 +52,7 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     def capture(self, timeout: Optional[int] = None) -> bool:
         return not self.scope.capture()
 
-    def retrieve(self, channel: str, type: SampleType, dtype = np.float16) -> Optional[Trace]:
+    def retrieve(self, channel: str, type: SampleType, dtype=np.float16) -> Optional[Trace]:
         data = self.scope.get_last_trace()
         if data is None:
             return None
