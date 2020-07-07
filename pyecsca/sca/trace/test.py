@@ -1,10 +1,12 @@
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Union, Tuple
 
 import numpy as np
 from public import public
-from scipy.stats import ttest_ind, ks_2samp
+from scipy.stats import ttest_ind, ks_2samp, t
 
 from .trace import Trace, CombinedTrace
+from .combine import average_and_variance
+from .edit import trim
 
 
 def ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
@@ -18,16 +20,46 @@ def ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
 
 
 @public
-def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Optional[CombinedTrace]:
+def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bool = False, p_value: bool = False) -> Optional[Union[CombinedTrace, Tuple[CombinedTrace, CombinedTrace], Tuple[CombinedTrace, CombinedTrace, CombinedTrace]]]:
     """
     Perform the Welch's t-test sample wise on two sets of traces `first_set` and `second_set`.
     Useful for Test Vector Leakage Analysis (TVLA).
 
     :param first_set:
     :param second_set:
-    :return: Welch's t-values (samplewise)
+    :param dof: Whether to compute and return the degrees-of-freedom.
+    :param p_value: Whether to compute and return the p-values.
+    :return: Welch's t-values (samplewise) (+ degrees-of-freedom, + p-values)
     """
-    return ttest_func(first_set, second_set, False)
+    if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
+        return None
+    n0 = len(first_set)
+    n1 = len(second_set)
+    mean_0, var_0 = average_and_variance(*first_set)
+    mean_1, var_1 = average_and_variance(*second_set)
+    if len(mean_0) < len(mean_1):
+        mean_1 = trim(mean_1, end=len(mean_0))
+        var_1 = trim(var_1, end=len(mean_0))
+    if len(mean_1) < len(mean_0):
+        mean_0 = trim(mean_0, end=len(mean_1))
+        var_0 = trim(var_0, end=len(mean_1))
+    varn_0 = var_0.samples / n0
+    varn_1 = var_1.samples / n1
+    tval = (mean_0.samples - mean_1.samples) / np.sqrt(varn_0 + varn_1)
+    result = [tval]
+    if dof or p_value:
+        top = (varn_0 + varn_1)**2
+        bot = (varn_0**2 / (n0 - 1)) + (varn_1**2 / (n1 - 1))
+        df = top / bot
+        del top
+        del bot
+        result.append(df)
+    if p_value:
+        atval = np.abs(tval)
+        p = 2 * t.sf(atval, df)
+        del atval
+        result.append(p)
+    return tuple(result)
 
 
 @public
