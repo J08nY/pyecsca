@@ -84,7 +84,7 @@ class Point(object):
                 elif var.startswith("Z"):
                     result[var] = Mod(1, n)
                 elif var == "T":
-                    result[var] = Mod(affine_point.coords["x"] * affine_point.coords["y"], n)
+                    result[var] = Mod(int(affine_point.coords["x"] * affine_point.coords["y"]), n)
                 else:
                     raise NotImplementedError
             return action.exit(Point(coordinate_model, **result))
