@@ -63,7 +63,13 @@ class Point(object):
             result = {}
             locals = {**self.coords}
             for op in ops:
-                locals[op.result] = op(**locals)
+                try:
+                    locals[op.result] = op(**locals)
+                except NameError as e:
+                    if op.result in affine_model.variables:
+                        raise e
+                    else:
+                        continue
                 if op.result in affine_model.variables:
                     result[op.result] = locals[op.result]
             return action.exit(Point(affine_model, **result))

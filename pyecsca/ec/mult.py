@@ -241,7 +241,7 @@ class LadderMultiplier(ScalarMultiplier):
                  complete: bool = True, short_circuit: bool = True):
         super().__init__(short_circuit=short_circuit, ladd=ladd, dbl=dbl, scl=scl)
         self.complete = complete
-        if not complete and dbl is None:
+        if (not complete or short_circuit) and dbl is None:
             raise ValueError
 
     def multiply(self, scalar: int) -> Point:
