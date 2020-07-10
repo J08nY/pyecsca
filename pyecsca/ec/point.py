@@ -51,7 +51,7 @@ class Point(object):
         with CoordinateMappingAction(self.coordinate_model, affine_model, self) as action:
             if isinstance(self.coordinate_model, AffineCoordinateModel):
                 return action.exit(copy(self))
-            ops = list()
+            ops = []
             for s in self.coordinate_model.satisfying:
                 try:
                     ops.append(CodeOp(s))
@@ -61,36 +61,48 @@ class Point(object):
             if not result_variables.issuperset(affine_model.variables):
                 raise NotImplementedError
             result = {}
-            locals = {**self.coords}
+            locls = {**self.coords}
             for op in ops:
                 try:
-                    locals[op.result] = op(**locals)
+                    locls[op.result] = op(**locls)
                 except NameError as e:
                     if op.result in affine_model.variables:
                         raise e
                     else:
                         continue
                 if op.result in affine_model.variables:
-                    result[op.result] = locals[op.result]
+                    result[op.result] = locls[op.result]
             return action.exit(Point(affine_model, **result))
 
-    @staticmethod
-    def from_affine(coordinate_model: CoordinateModel, affine_point: "Point") -> "Point":
+    def to_model(self, coordinate_model: CoordinateModel, curve: "EllipticCurve") -> "Point":
         """Convert an affine point into a given coordinate model, if possible."""
-        with CoordinateMappingAction(affine_point.coordinate_model, coordinate_model, affine_point) as action:
-            if not isinstance(affine_point.coordinate_model, AffineCoordinateModel):
-                raise ValueError
+        if not isinstance(self.coordinate_model, AffineCoordinateModel):
+            raise ValueError
+        with CoordinateMappingAction(self.coordinate_model, coordinate_model, self) as action:
+            ops = []
+            for s in coordinate_model.satisfying:
+                try:
+                    ops.append(CodeOp(s))
+                except Exception:
+                    pass
+            locls = {**self.coords, **curve.parameters, "Z": Mod(1, curve.prime)}
+            for op in ops:
+                try:
+                    locls[op.result] = op(**locls)
+                except:
+                    continue
             result = {}
-            n = affine_point.coords["x"].n
-            for var in coordinate_model.variables:  #  XXX: This just works for the stuff currently in EFD.
-                if var == "X":
-                    result[var] = affine_point.coords["x"]
+            for var in coordinate_model.variables:  
+                if var in locls:  # Try this first.
+                    result[var] = locls[var]
+                elif var == "X":  #  XXX: This just works for the stuff currently in EFD.
+                    result[var] = self.coords["x"]
                 elif var == "Y":
-                    result[var] = affine_point.coords["y"]
+                    result[var] = self.coords["y"]
                 elif var.startswith("Z"):
-                    result[var] = Mod(1, n)
+                    result[var] = Mod(1, curve.prime)
                 elif var == "T":
-                    result[var] = Mod(int(affine_point.coords["x"] * affine_point.coords["y"]), n)
+                    result[var] = Mod(int(affine_point.coords["x"] * affine_point.coords["y"]), curve.prime)
                 else:
                     raise NotImplementedError
             return action.exit(Point(coordinate_model, **result))
@@ -138,9 +150,8 @@ class InfinityPoint(Point):
     def to_affine(self) -> "InfinityPoint":
         return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
 
-    @staticmethod
-    def from_affine(coordinate_model: CoordinateModel, affine_point: "Point") -> "InfinityPoint":
-        raise NotImplementedError
+    def to_model(self, coordinate_model: CoordinateModel, curve: "EllipticCurve") -> "InfinityPoint":
+        return InfinityPoint(coordinate_model)
 
     def equals(self, other) -> bool:
         return self == other

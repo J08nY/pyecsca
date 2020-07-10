@@ -143,7 +143,7 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
     affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
                    y=Mod(int(curve["generator"]["y"], 16), field))
     if not isinstance(coord_model, AffineCoordinateModel):
-        generator = Point.from_affine(coord_model, affine)
+        generator = affine.to_model(coord_model, elliptic_curve)
     else:
         generator = affine
     return DomainParameters(elliptic_curve, generator, order, cofactor, name, category)

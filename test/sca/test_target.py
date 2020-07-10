@@ -207,8 +207,8 @@ class ECTesterTargetTests(TestCase):
         privkey = Mod(int.from_bytes(
                 export_privkey_resp.get_param(KeypairEnum.KEYPAIR_REMOTE, ParameterEnum.S), "big"),
                 self.secp256r1.curve.prime)
-        pubkey_projective = Point.from_affine(self.secp256r1_projective.curve.coordinate_model,
-                                              pubkey)
+        pubkey_projective = pubkey.to_model(self.secp256r1_projective.curve.coordinate_model, self.secp256r1.curve)
+
         mult = LTRMultiplier(
                 self.secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
                 self.secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"])
@@ -257,8 +257,7 @@ class ECTesterTargetTests(TestCase):
                                                 ParameterEnum.W)
         pubkey_bytes = export_public_resp.get_param(KeypairEnum.KEYPAIR_LOCAL, ParameterEnum.W)
         pubkey = self.secp256r1.curve.decode_point(pubkey_bytes)
-        pubkey_projective = Point.from_affine(self.secp256r1_projective.curve.coordinate_model,
-                                              pubkey)
+        pubkey_projective = pubkey.to_model(self.secp256r1_projective.curve.coordinate_model, self.secp256r1.curve)
 
         sig = SignatureResult.from_DER(ecdsa_resp.signature)
         mult = LTRMultiplier(
@@ -284,8 +283,7 @@ class ECTesterTargetTests(TestCase):
                                                 ParameterEnum.W)
         pubkey_bytes = export_public_resp.get_param(KeypairEnum.KEYPAIR_LOCAL, ParameterEnum.W)
         pubkey = self.secp256r1.curve.decode_point(pubkey_bytes)
-        pubkey_projective = Point.from_affine(self.secp256r1_projective.curve.coordinate_model,
-                                              pubkey)
+        pubkey_projective = pubkey.to_model(self.secp256r1_projective.curve.coordinate_model, self.secp256r1.curve)
 
         sig = SignatureResult.from_DER(ecdsa_resp.signature)
         mult = LTRMultiplier(

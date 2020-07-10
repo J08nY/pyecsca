@@ -34,11 +34,11 @@ class PointTests(TestCase):
         affine = InfinityPoint(self.coords).to_affine()
         self.assertIsInstance(affine, InfinityPoint)
 
-    def test_from_affine(self):
+    def test_to_model(self):
         affine = Point(self.affine, x=Mod(0xabcd, self.secp128r1.curve.prime),
                        y=Mod(0xef, self.secp128r1.curve.prime))
         projective_model = self.coords
-        other = Point.from_affine(projective_model, affine)
+        other = affine.to_model(projective_model, self.secp128r1.curve)
 
         self.assertEqual(other.coordinate_model, projective_model)
         self.assertSetEqual(set(other.coords.keys()), set(projective_model.variables))
@@ -46,17 +46,19 @@ class PointTests(TestCase):
         self.assertEqual(other.coords["Y"], affine.coords["y"])
         self.assertEqual(other.coords["Z"], Mod(1, self.secp128r1.curve.prime))
 
-        with self.assertRaises(NotImplementedError):
-            InfinityPoint.from_affine(self.coords, affine)
+        infty = InfinityPoint(AffineCoordinateModel(self.secp128r1.curve.model))
+        other_infty = infty.to_model(self.coords, self.secp128r1.curve)
+        self.assertIsInstance(other_infty, InfinityPoint)
+        
         with self.assertRaises(ValueError):
-            Point.from_affine(self.coords, self.base)
+            self.base.to_model(self.coords, self.secp128r1.curve)
 
     def test_to_from_affine(self):
         pt = Point(self.coords,
                    X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, self.secp128r1.curve.prime),
                    Y=Mod(0xcf5ac8395bafeb13c02da292dded7a83, self.secp128r1.curve.prime),
                    Z=Mod(1, self.secp128r1.curve.prime))
-        other = Point.from_affine(self.coords, pt.to_affine())
+        other = pt.to_affine().to_model(self.coords, self.secp128r1.curve)
         self.assertEqual(pt, other)
 
     def test_equals(self):
