@@ -170,7 +170,10 @@ class HDF5TraceSet(TraceSet):
         fname = ""
         status = ""
         if self._file is not None:
-            fname = self._file.filename
-            status = " (opened)" if self._file.id.valid else " (closed)"
+            if self._file.id.valid:
+                status = " (opened)"
+                fname = self._file.filename
+            else:
+                status =  "(closed)"
         args = ", ".join([f"{key}={getattr(self, key)!r}" for key in self._keys if not key.startswith("_")])
         return f"HDF5TraceSet('{fname}'{status}, {args})"

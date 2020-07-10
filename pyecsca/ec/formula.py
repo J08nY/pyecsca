@@ -40,12 +40,11 @@ class FormulaAction(ResultAction):
     formula: "Formula"
     inputs: MutableMapping[str, Mod]
     input_points: List[Any]
-    intermediates: MutableMapping[str, OpResult]
+    intermediates: MutableMapping[str, List[OpResult]]
     outputs: MutableMapping[str, OpResult]
     output_points: List[Any]
 
-    def __init__(self, formula: "Formula", *points: Any,
-                 **inputs: Mod):
+    def __init__(self, formula: "Formula", *points: Any, **inputs: Mod):
         super().__init__()
         self.formula = formula
         self.inputs = inputs
@@ -60,16 +59,17 @@ class FormulaAction(ResultAction):
         parents: List[Union[Mod, OpResult]] = []
         for parent in {*op.variables, *op.parameters}:
             if parent in self.intermediates:
-                parents.append(self.intermediates[parent])
+                parents.append(self.intermediates[parent][-1])
             elif parent in self.inputs:
                 parents.append(self.inputs[parent])
-        self.intermediates[op.result] = OpResult(op.result, value, op.operator, *parents)
+        l = self.intermediates.setdefault(op.result, list())
+        l.append(OpResult(op.result, value, op.operator, *parents))
 
     def add_result(self, point: Any, **outputs: Mod):
         if isinstance(getcontext(), NullContext):
             return
         for k in outputs:
-            self.outputs[k] = self.intermediates[k]
+            self.outputs[k] = self.intermediates[k][-1]
         self.output_points.append(point)
 
     def __str__(self):

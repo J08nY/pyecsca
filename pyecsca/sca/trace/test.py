@@ -1,4 +1,4 @@
-from typing import Sequence, Optional, Union, Tuple
+from typing import Sequence, Optional, Tuple
 
 import numpy as np
 from public import public
@@ -20,7 +20,7 @@ def ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
 
 
 @public
-def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bool = False, p_value: bool = False) -> Optional[Union[CombinedTrace, Tuple[CombinedTrace, CombinedTrace], Tuple[CombinedTrace, CombinedTrace, CombinedTrace]]]:
+def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bool = False, p_value: bool = False) -> Optional[Tuple[CombinedTrace, ...]]:
     """
     Perform the Welch's t-test sample wise on two sets of traces `first_set` and `second_set`.
     Useful for Test Vector Leakage Analysis (TVLA).
@@ -46,19 +46,19 @@ def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bo
     varn_0 = var_0.samples / n0
     varn_1 = var_1.samples / n1
     tval = (mean_0.samples - mean_1.samples) / np.sqrt(varn_0 + varn_1)
-    result = [tval]
+    result = [CombinedTrace(tval)]
     if dof or p_value:
         top = (varn_0 + varn_1)**2
         bot = (varn_0**2 / (n0 - 1)) + (varn_1**2 / (n1 - 1))
         df = top / bot
         del top
         del bot
-        result.append(df)
+        result.append(CombinedTrace(df))
     if p_value:
         atval = np.abs(tval)
         p = 2 * t.sf(atval, df)
         del atval
-        result.append(p)
+        result.append(CombinedTrace(p))
     return tuple(result)
 
 
