@@ -81,8 +81,11 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
             break
     else:
         raise ValueError("Curve {} not found in category {}.".format(name, category))
+
     if curve["field"]["type"] == "Binary":
         raise ValueError("Binary field curves are currently not supported.")
+    if curve["field"]["type"] == "Extension":
+        raise ValueError("Extension field curves are currently not supported.")
 
     # Get model and param names
     model: CurveModel
@@ -103,7 +106,7 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
         param_names = ["a", "d"]
     else:
         raise ValueError("Unknown curve model.")
-    params = {name: Mod(int(curve["params"][name], 16), field) for name in param_names}
+    params = {name: Mod(int(curve["params"][name]["raw"], 16), field) for name in param_names}
 
     # Check coordinate model name and assumptions
     coord_model: CoordinateModel
@@ -140,8 +143,8 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
             infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
-    affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"], 16), field),
-                   y=Mod(int(curve["generator"]["y"], 16), field))
+    affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
+                   y=Mod(int(curve["generator"]["y"]["raw"], 16), field))
     if not isinstance(coord_model, AffineCoordinateModel):
         generator = affine.to_model(coord_model, elliptic_curve)
     else:
