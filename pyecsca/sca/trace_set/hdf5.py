@@ -1,9 +1,9 @@
 import pickle
 import uuid
 from collections import MutableMapping
-from io import RawIOBase, BufferedIOBase, IOBase
+from io import RawIOBase, BufferedIOBase
 from pathlib import Path
-from typing import Union, Optional, Dict, Any, List, BinaryIO
+from typing import Union, Optional, List, BinaryIO
 
 import h5py
 import numpy as np

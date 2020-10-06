@@ -3,7 +3,7 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.params import get_params
+from pyecsca.ec.params import get_params, load_params
 
 
 class DomainParameterTests(TestCase):
@@ -31,6 +31,13 @@ class DomainParameterTests(TestCase):
     ])
     def test_get_params(self, name, coords):
         params = get_params(*name.split("/"), coords)
+        try:
+            assert params.curve.is_on_curve(params.generator)
+        except NotImplementedError:
+            pass
+
+    def test_load_params(self):
+        params = load_params("test/data/curve.json", "projective")
         try:
             assert params.curve.is_on_curve(params.generator)
         except NotImplementedError:

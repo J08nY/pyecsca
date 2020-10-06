@@ -1,6 +1,8 @@
 import json
+from io import RawIOBase, BufferedIOBase
 from os.path import join
-from typing import Optional, Dict, Union
+from pathlib import Path
+from typing import Optional, Dict, Union, BinaryIO
 
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
@@ -56,32 +58,7 @@ class DomainParameters(object):
         return f"{self.__class__.__name__}({self.curve!r}, {self.generator!r}, {self.order}, {self.cofactor})"
 
 
-@public
-def get_params(category: str, name: str, coords: str, infty: bool = True) -> DomainParameters:
-    """
-    Retrieve a curve from a set of stored parameters. Uses the std-curves database at
-    https://github.com/J08nY/std-curves.
-
-    :param category: The category of the curve.
-    :param name: The name of the curve.
-    :param coords: The name of the coordinate system to use.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
-                  point at infinity of the coordinate system.
-    :return: The curve.
-    """
-    listing = resource_listdir(__name__, "std")
-    categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
-    if category not in categories:
-        raise ValueError("Category {} not found.".format(category))
-    json_path = join("std", category, "curves.json")
-    with resource_stream(__name__, json_path) as f:
-        category_json = json.load(f)
-    for curve in category_json["curves"]:
-        if curve["name"] == name:
-            break
-    else:
-        raise ValueError("Curve {} not found in category {}.".format(name, category))
-
+def _create_params(curve, coords, infty):
     if curve["field"]["type"] == "Binary":
         raise ValueError("Binary field curves are currently not supported.")
     if curve["field"]["type"] == "Extension":
@@ -122,7 +99,8 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
             exec(compiled, None, alocals)
             for param, value in alocals.items():
                 if params[param] != value:
-                    raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+                    raise ValueError(
+                        f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
 
     # Construct the point at infinity
     infinity: Point
@@ -143,10 +121,64 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
             infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
-    affine = Point(AffineCoordinateModel(model), x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
+    affine = Point(AffineCoordinateModel(model),
+                   x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
                    y=Mod(int(curve["generator"]["y"]["raw"], 16), field))
     if not isinstance(coord_model, AffineCoordinateModel):
         generator = affine.to_model(coord_model, elliptic_curve)
     else:
         generator = affine
-    return DomainParameters(elliptic_curve, generator, order, cofactor, name, category)
+    return DomainParameters(elliptic_curve, generator, order, cofactor, curve["name"], curve["category"])
+
+
+@public
+def load_params(file: Union[str, Path, BinaryIO], coords: str, infty: bool = True) -> DomainParameters:
+    """
+
+    :param input:
+    :param coords: The name of the coordinate system to use.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system.
+    :return: The curve.
+    """
+    curve = None
+    if isinstance(file, (str, Path)):
+        with open(file, "rb") as f:
+            curve = json.load(f)
+    elif isinstance(file, (RawIOBase, BufferedIOBase, BinaryIO)):
+        curve = json.load(file)
+    if curve["field"]["type"] == "Binary":
+        raise ValueError("Binary field curves are currently not supported.")
+    if curve["field"]["type"] == "Extension":
+        raise ValueError("Extension field curves are currently not supported.")
+
+    return _create_params(curve, coords, infty)
+
+
+@public
+def get_params(category: str, name: str, coords: str, infty: bool = True) -> DomainParameters:
+    """
+    Retrieve a curve from a set of stored parameters. Uses the std-curves database at
+    https://github.com/J08nY/std-curves.
+
+    :param category: The category of the curve.
+    :param name: The name of the curve.
+    :param coords: The name of the coordinate system to use.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system.
+    :return: The curve.
+    """
+    listing = resource_listdir(__name__, "std")
+    categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
+    if category not in categories:
+        raise ValueError("Category {} not found.".format(category))
+    json_path = join("std", category, "curves.json")
+    with resource_stream(__name__, json_path) as f:
+        category_json = json.load(f)
+    for curve in category_json["curves"]:
+        if curve["name"] == name:
+            break
+    else:
+        raise ValueError("Curve {} not found in category {}.".format(name, category))
+
+    return _create_params(curve, coords, infty)

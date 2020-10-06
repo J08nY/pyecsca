@@ -1,0 +1,29 @@
+{
+  "name": "small",
+  "category": "test",
+  "desc": "A small prime order test curve.",
+  "field": {
+    "type": "Prime",
+    "p": "0xc5f5cd5e4a0beb9a445bd3b824e46d8b",
+    "bits": 128
+  },
+  "form": "Weierstrass",
+  "params": {
+    "a": {
+      "raw": "0x307c28b1209bb670e6b44f5ff6ee8118"
+    },
+    "b": {
+      "raw": "0xa3206b2b16fa6dd383acc084e649782a"
+    }
+  },
+  "generator": {
+    "x": {
+      "raw": "0xb805e6ee5f3cd8a9c103c3978b688391"
+    },
+    "y": {
+      "raw": "0x74b0a63b1cc5aa501a9e2101c16d9939"
+    }
+  },
+  "order": "0xc5f5cd5e4a0beb9b5515cd2847c4051d",
+  "cofactor": "0x01"
+}

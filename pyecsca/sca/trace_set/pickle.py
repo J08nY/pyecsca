@@ -1,5 +1,5 @@
 import pickle
-from io import BufferedIOBase, RawIOBase, IOBase
+from io import BufferedIOBase, RawIOBase
 from pathlib import Path
 from typing import Union, BinaryIO
 
