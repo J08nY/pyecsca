@@ -1,4 +1,4 @@
-# ![](docs/_static/logo_black_small.png) pyecsca [pɪɛtska]
+# ![](docs/_static/logo_black_full.png)
 
 [![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) [![Build Status](https://travis-ci.com/J08nY/pyecsca.svg?branch=master)](https://travis-ci.com/J08nY/pyecsca) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) ![](https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen)
 
