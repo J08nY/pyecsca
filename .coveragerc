@@ -2,6 +2,7 @@
 branch = True
 omit =
     test/*
+    virt/*
     setup.py
     fakesource
 

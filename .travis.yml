@@ -1,7 +1,9 @@
 os: linux
 language: python
-dist: xenial
-python: "3.8"
+dist: focal
+python:
+  - "3.8"
+  - "3.9"
 
 addons:
   apt:
@@ -15,6 +17,15 @@ addons:
       - swig
       - gcc
       - libpcsclite-dev
+      - libgmp-dev
+      - libmpfr-dev
+      - libmpc-dev
+      - llvm-10
+      - libllvm10
+      - llvm-10-dev
+
+env:
+  - LLVM_CONFIG=/usr/bin/llvm-config-10
 
 before_install:
   - git clone https://github.com/colinoflynn/pico-python
