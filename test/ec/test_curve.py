@@ -1,6 +1,7 @@
 from binascii import unhexlify
 from unittest import TestCase
 
+from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import Mod
@@ -49,7 +50,10 @@ class CurveTests(TestCase):
         self.assertFalse(self.secp128r1.curve.is_on_curve(self.curve25519.generator))
 
     def test_affine_add(self):
-        self.assertIsNotNone(self.secp128r1.curve.affine_add(self.affine_base, self.affine_base))
+        pt = Point(AffineCoordinateModel(self.secp128r1.curve.model),
+                   x=Mod(0xeb916224eda4fb356421773573297c15, self.secp128r1.curve.prime),
+                   y=Mod(0xbcdaf32a2c08fd4271228fef35070848, self.secp128r1.curve.prime))
+        self.assertIsNotNone(self.secp128r1.curve.affine_add(self.affine_base, pt))
 
     def test_affine_double(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_double(self.affine_base))

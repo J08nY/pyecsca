@@ -77,7 +77,7 @@ class ModTests(TestCase):
     def test_undefined(self):
         u = Undefined()
         for k, meth in u.__class__.__dict__.items():
-            if k in ("__module__", "__init__", "__doc__", "__hash__"):
+            if k in ("__module__", "__init__", "__doc__", "__hash__", "__abstractmethods__", "_abc_impl"):
                 continue
             args = [5 for _ in range(meth.__code__.co_argcount - 1)]
             if k == "__repr__":
