@@ -1,9 +1,6 @@
 os: linux
 language: python
 dist: focal
-python:
-  - "3.8"
-  - "3.9"
 
 addons:
   apt:
@@ -24,8 +21,24 @@ addons:
       - libllvm10
       - llvm-10-dev
 
-env:
-  - LLVM_CONFIG=/usr/bin/llvm-config-10
+jobs:
+  include:
+  - env:
+    - USE_GMP=1
+    - LLVM_CONFIG=/usr/bin/llvm-config-10
+    python: "3.9"
+  - env:
+    - USE_GMP=0
+    - LLVM_CONFIG=/usr/bin/llvm-config-10
+    python: "3.9"
+  - env:
+    - USE_GMP=1
+    - LLVM_CONFIG=/usr/bin/llvm-config-10
+    python: "3.8"
+  - env:
+    - USE_GMP=0
+    - LLVM_CONFIG=/usr/bin/llvm-config-10
+    python: "3.8"
 
 before_install:
   - git clone https://github.com/colinoflynn/pico-python
@@ -39,7 +52,8 @@ before_install:
 
 install:
   - pip install codecov
-  - pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, test, dev]"
+  - if [ $USE_GMP ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmpy2, test, dev]"; fi
+  - if [ ! $USE_GMP ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, test, dev]"; fi
 
 script:
   - make -i typecheck
