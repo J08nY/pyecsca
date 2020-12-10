@@ -70,10 +70,16 @@ class PointTests(TestCase):
                       X=Mod(0x2, self.secp128r1.curve.prime),
                       Y=Mod(0x3, self.secp128r1.curve.prime),
                       Z=Mod(1, self.secp128r1.curve.prime))
+        third = Point(self.coords,
+                      X=Mod(0x5, self.secp128r1.curve.prime),
+                      Y=Mod(0x3, self.secp128r1.curve.prime),
+                      Z=Mod(1, self.secp128r1.curve.prime))
         self.assertTrue(pt.equals(other))
         self.assertNotEqual(pt, other)
         self.assertFalse(pt.equals(2))
         self.assertNotEqual(pt, 2)
+        self.assertFalse(pt.equals(third))
+        self.assertNotEqual(pt, third)
 
         infty_one = InfinityPoint(self.coords)
         infty_other = InfinityPoint(self.coords)

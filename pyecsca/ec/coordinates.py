@@ -1,4 +1,4 @@
-from ast import parse, Expression, Module
+from ast import parse, Module
 from os.path import join
 from typing import List, Any, MutableMapping
 
@@ -6,9 +6,8 @@ from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
 from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormula,
-                      TriplingEFDFormula,
-                      DifferentialAdditionEFDFormula, LadderEFDFormula, ScalingEFDFormula,
-                      NegationEFDFormula)
+                      TriplingEFDFormula, DifferentialAdditionEFDFormula, LadderEFDFormula,
+                      ScalingEFDFormula, NegationEFDFormula)
 
 
 @public

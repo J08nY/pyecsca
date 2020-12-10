@@ -55,6 +55,10 @@ class CurveTests(TestCase):
                    y=Mod(0xbcdaf32a2c08fd4271228fef35070848, self.secp128r1.curve.prime))
         self.assertIsNotNone(self.secp128r1.curve.affine_add(self.affine_base, pt))
 
+        added = self.secp128r1.curve.affine_add(self.affine_base, self.affine_base)
+        doubled = self.secp128r1.curve.affine_double(self.affine_base)
+        self.assertEqual(added, doubled)
+
     def test_affine_double(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_double(self.affine_base))
 

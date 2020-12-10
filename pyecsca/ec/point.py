@@ -89,20 +89,24 @@ class Point(object):
             for op in ops:
                 try:
                     locls[op.result] = op(**locls)
-                except:
+                except Exception:
                     continue
             result = {}
-            for var in coordinate_model.variables:  
+            for var in coordinate_model.variables:
                 if var in locls:  # Try this first.
                     result[var] = locls[var]
-                elif var == "X":  #  XXX: This just works for the stuff currently in EFD.
+                elif var == "X":
                     result[var] = self.coords["x"]
+                    if coordinate_model.name == "inverted":
+                        result[var] = result[var].inverse()
                 elif var == "Y":
                     result[var] = self.coords["y"]
+                    if coordinate_model.name == "inverted":
+                        result[var] = result[var].inverse()
                 elif var.startswith("Z"):
                     result[var] = Mod(1, curve.prime)
                 elif var == "T":
-                    result[var] = Mod(int(affine_point.coords["x"] * affine_point.coords["y"]), curve.prime)
+                    result[var] = Mod(int(self.coords["x"] * self.coords["y"]), curve.prime)
                 else:
                     raise NotImplementedError
             return action.exit(Point(coordinate_model, **result))
@@ -113,6 +117,11 @@ class Point(object):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
             return False
+        if "z" in self.coordinate_model.formulas:
+            formula = self.coordinate_model.formulas["z"]
+            self_mapped = formula(self)
+            other_mapped = formula(other)
+            return self_mapped == other_mapped
         return self.to_affine() == other.to_affine()
 
     def __bytes__(self):

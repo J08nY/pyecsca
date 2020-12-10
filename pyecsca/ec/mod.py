@@ -2,6 +2,7 @@ import random
 import secrets
 from functools import wraps, lru_cache
 from abc import ABC, abstractmethod
+from typing import Type
 
 has_gmp = False
 try:
@@ -359,6 +360,7 @@ class Undefined(BaseMod):
 
     def __pow__(self, n):
         raise NotImplementedError
+
 
 if has_gmp:
 

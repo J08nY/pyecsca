@@ -6,7 +6,7 @@ from public import public
 
 from .coordinates import CoordinateModel, AffineCoordinateModel
 from .mod import Mod
-from .model import CurveModel, ShortWeierstrassModel
+from .model import CurveModel
 from .point import Point, InfinityPoint
 
 
@@ -56,12 +56,22 @@ class EllipticCurve(object):
         return Point(AffineCoordinateModel(self.model), x=locals["x"], y=locals["y"])
 
     def affine_add(self, one: Point, other: Point) -> Point:
+        if isinstance(one, InfinityPoint):
+            return other
+        if isinstance(other, InfinityPoint):
+            return one
+        if one == other:
+            return self.affine_double(one)
         return self._execute_base_formulas(self.model.base_addition, one, other)
 
     def affine_double(self, one: Point) -> Point:
+        if isinstance(one, InfinityPoint):
+            return one
         return self._execute_base_formulas(self.model.base_doubling, one)
 
     def affine_negate(self, one: Point) -> Point:
+        if isinstance(one, InfinityPoint):
+            return one
         return self._execute_base_formulas(self.model.base_negation, one)
 
     def affine_multiply(self, point: Point, scalar: int) -> Point:
@@ -69,6 +79,8 @@ class EllipticCurve(object):
             raise ValueError
         if not isinstance(point.coordinate_model, AffineCoordinateModel):
             raise ValueError
+        if isinstance(point, InfinityPoint):
+            return point
         q = copy(point)
         r = copy(point)
 
@@ -93,7 +105,7 @@ class EllipticCurve(object):
 
     @property
     def neutral_is_affine(self):
-        """Whether the neurtal point is an affine point."""
+        """Whether the neutral point is an affine point."""
         return bool(self.model.base_neutral)
 
     def is_neutral(self, point: Point) -> bool:
