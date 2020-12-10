@@ -7,7 +7,6 @@ from pyecsca.ec.params import get_params, load_params
 
 
 class DomainParameterTests(TestCase):
-
     def setUp(self):
         self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.curve25519 = get_params("other", "Curve25519", "xz")
@@ -59,12 +58,16 @@ class DomainParameterTests(TestCase):
 
     def test_infty(self):
         with self.assertRaises(ValueError):
-            get_params("secg", "secp128r1", "modified", False)
+            get_params("other", "Ed25519", "modified", False)
         self.assertIsNotNone(get_params("secg", "secp128r1", "projective", False))
 
     def test_no_binary(self):
         with self.assertRaises(ValueError):
             get_params("secg", "sect163r1", "something")
+
+    def test_no_extension(self):
+        with self.assertRaises(ValueError):
+            get_params("other", "Fp254n2BNa", "something")
 
     def test_affine(self):
         aff = get_params("secg", "secp128r1", "affine")
