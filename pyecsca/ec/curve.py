@@ -32,7 +32,7 @@ class EllipticCurve(object):
         for name, value in parameters.items():
             if isinstance(value, Mod):
                 if value.n != prime:
-                    raise ValueError
+                    raise ValueError(f"Parameter {name} has wrong modulus.")
             else:
                 value = Mod(value, prime)
             self.parameters[name] = value
@@ -40,22 +40,26 @@ class EllipticCurve(object):
 
     def _execute_base_formulas(self, formulas: List[Module], *points: Point) -> Point:
         for point in points:
-            if point.coordinate_model.curve_model != self.model:
-                raise ValueError
             if not isinstance(point.coordinate_model, AffineCoordinateModel):
-                raise ValueError
-        locals = {var + str(i + 1): point.coords[var]
-                  for i, point in enumerate(points) for var in point.coords}
-        locals.update(self.parameters)
+                raise ValueError("Coordinate model of point is not affine.")
+            if point.coordinate_model.curve_model != self.model:
+                raise ValueError("Curve model of point does not match the curve.")
+        locls = {var + str(i + 1): point.coords[var]
+                 for i, point in enumerate(points) for var in point.coords}
+        locls.update(self.parameters)
         for line in formulas:
-            exec(compile(line, "", mode="exec"), None, locals)
-        if not isinstance(locals["x"], Mod):
-            locals["x"] = Mod(locals["x"], self.prime)
-        if not isinstance(locals["y"], Mod):
-            locals["y"] = Mod(locals["y"], self.prime)
-        return Point(AffineCoordinateModel(self.model), x=locals["x"], y=locals["y"])
+            exec(compile(line, "", mode="exec"), None, locls)
+        if not isinstance(locls["x"], Mod):
+            locls["x"] = Mod(locls["x"], self.prime)
+        if not isinstance(locls["y"], Mod):
+            locls["y"] = Mod(locls["y"], self.prime)
+        return Point(AffineCoordinateModel(self.model), x=locls["x"], y=locls["y"])
 
     def affine_add(self, one: Point, other: Point) -> Point:
+        """
+        Add two affine points using the affine addition formula.
+        Handles the case of point at infinity gracefully.
+        """
         if isinstance(one, InfinityPoint):
             return other
         if isinstance(other, InfinityPoint):
@@ -65,22 +69,34 @@ class EllipticCurve(object):
         return self._execute_base_formulas(self.model.base_addition, one, other)
 
     def affine_double(self, one: Point) -> Point:
+        """
+        Double an affine point using the affine doubling formula.
+        Handles the case of point at infinity gracefully.
+        """
         if isinstance(one, InfinityPoint):
             return one
         return self._execute_base_formulas(self.model.base_doubling, one)
 
     def affine_negate(self, one: Point) -> Point:
+        """
+        Negate an affine point using the affine negation formula.
+        Handles the case of point at infinity gracefully.
+        """
         if isinstance(one, InfinityPoint):
             return one
         return self._execute_base_formulas(self.model.base_negation, one)
 
     def affine_multiply(self, point: Point, scalar: int) -> Point:
-        if point.coordinate_model.curve_model != self.model:
-            raise ValueError
-        if not isinstance(point.coordinate_model, AffineCoordinateModel):
-            raise ValueError
+        """
+        Multiply an affine point by a scalar using the affine doubling and addition formulas.
+        Handles the case of point at infinity gracefully.
+        """
         if isinstance(point, InfinityPoint):
             return point
+        if not isinstance(point.coordinate_model, AffineCoordinateModel):
+            raise ValueError("Coordinate model of point is not affine.")
+        if point.coordinate_model.curve_model != self.model:
+            raise ValueError("Curve model of point does not match the curve.")
         q = copy(point)
         r = copy(point)
 
@@ -92,16 +108,20 @@ class EllipticCurve(object):
 
     @property
     def affine_neutral(self) -> Optional[Point]:
+        """
+        Get the neutral point in affine form, if it has one, otherwise `None`.
+        :return: The affine neutral point or `None`.
+        """
         if not self.neutral_is_affine:
             return None
-        locals = {**self.parameters}
+        locls = {**self.parameters}
         for line in self.model.base_neutral:
-            exec(compile(line, "", mode="exec"), None, locals)
-        if not isinstance(locals["x"], Mod):
-            locals["x"] = Mod(locals["x"], self.prime)
-        if not isinstance(locals["y"], Mod):
-            locals["y"] = Mod(locals["y"], self.prime)
-        return Point(AffineCoordinateModel(self.model), x=locals["x"], y=locals["y"])
+            exec(compile(line, "", mode="exec"), None, locls)
+        if not isinstance(locls["x"], Mod):
+            locls["x"] = Mod(locls["x"], self.prime)
+        if not isinstance(locls["y"], Mod):
+            locls["y"] = Mod(locls["y"], self.prime)
+        return Point(AffineCoordinateModel(self.model), x=locls["x"], y=locls["y"])
 
     @property
     def neutral_is_affine(self):

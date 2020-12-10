@@ -58,12 +58,20 @@ class CurveTests(TestCase):
         added = self.secp128r1.curve.affine_add(self.affine_base, self.affine_base)
         doubled = self.secp128r1.curve.affine_double(self.affine_base)
         self.assertEqual(added, doubled)
+        self.assertEqual(self.secp128r1.curve.affine_add(self.secp128r1.curve.neutral, pt), pt)
+        self.assertEqual(self.secp128r1.curve.affine_add(pt, self.secp128r1.curve.neutral), pt)
 
     def test_affine_double(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_double(self.affine_base))
+        self.assertEqual(self.secp128r1.curve.affine_double(self.secp128r1.curve.neutral), self.secp128r1.curve.neutral)
 
     def test_affine_negate(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_negate(self.affine_base))
+        self.assertEqual(self.secp128r1.curve.affine_negate(self.secp128r1.curve.neutral), self.secp128r1.curve.neutral)
+        with self.assertRaises(ValueError):
+            self.secp128r1.curve.affine_negate(self.base)
+        with self.assertRaises(ValueError):
+            self.secp128r1.curve.affine_negate(self.curve25519.generator)
 
     def test_affine_multiply(self):
         expected = self.affine_base
@@ -72,6 +80,11 @@ class CurveTests(TestCase):
         expected = self.secp128r1.curve.affine_add(expected, self.affine_base)
         expected = self.secp128r1.curve.affine_double(expected)
         self.assertEqual(self.secp128r1.curve.affine_multiply(self.affine_base, 10), expected)
+        self.assertEqual(self.secp128r1.curve.affine_multiply(self.secp128r1.curve.neutral, 10), self.secp128r1.curve.neutral)
+        with self.assertRaises(ValueError):
+            self.secp128r1.curve.affine_multiply(self.base, 10)
+        with self.assertRaises(ValueError):
+            self.secp128r1.curve.affine_multiply(self.curve25519.generator, 10)
 
     def test_affine_neutral(self):
         self.assertIsNone(self.secp128r1.curve.affine_neutral)

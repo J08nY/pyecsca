@@ -35,8 +35,7 @@ class PointTests(TestCase):
         self.assertIsInstance(affine, InfinityPoint)
 
     def test_to_model(self):
-        affine = Point(self.affine, x=Mod(0xabcd, self.secp128r1.curve.prime),
-                       y=Mod(0xef, self.secp128r1.curve.prime))
+        affine = Point(self.affine, x=Mod(0xabcd, self.secp128r1.curve.prime), y=Mod(0xef, self.secp128r1.curve.prime))
         projective_model = self.coords
         other = affine.to_model(projective_model, self.secp128r1.curve)
 
@@ -80,11 +79,19 @@ class PointTests(TestCase):
         self.assertNotEqual(pt, 2)
         self.assertFalse(pt.equals(third))
         self.assertNotEqual(pt, third)
+        self.assertTrue(pt.equals_scaled(other))
+        self.assertTrue(pt.equals_affine(other))
+        self.assertFalse(pt.equals_scaled(third))
 
         infty_one = InfinityPoint(self.coords)
         infty_other = InfinityPoint(self.coords)
         self.assertTrue(infty_one.equals(infty_other))
+        self.assertTrue(infty_one.equals_affine(infty_other))
+        self.assertTrue(infty_one.equals_scaled(infty_other))
         self.assertEqual(infty_one, infty_other)
+        self.assertFalse(pt.equals(infty_one))
+        self.assertFalse(pt.equals_affine(infty_one))
+        self.assertFalse(pt.equals_scaled(infty_one))
 
         mont = MontgomeryModel()
         different = Point(mont.coordinates["xz"],

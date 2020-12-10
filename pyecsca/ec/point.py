@@ -111,9 +111,24 @@ class Point(object):
                     raise NotImplementedError
             return action.exit(Point(coordinate_model, **result))
 
-    def equals(self, other: Any) -> bool:
+    def equals_affine(self, other: "Point") -> bool:
         """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""
-        if not isinstance(other, Point):
+        if not isinstance(other, Point) or isinstance(other, InfinityPoint):
+            return False
+        if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
+            return False
+        return self.to_affine() == other.to_affine()
+
+    def equals_scaled(self, other: "Point") -> bool:
+        """
+        Test whether this point is equal to `other` using the "z" scaling formula,
+        which maps the projective class to a single representative.
+
+        :param other: The point to compare
+        :raises ValueError: If the "z" formula is not available for the coordinate system.
+        :return: Whether the points are equal.
+        """
+        if not isinstance(other, Point) or isinstance(other, InfinityPoint):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
             return False
@@ -122,7 +137,12 @@ class Point(object):
             self_mapped = formula(self)
             other_mapped = formula(other)
             return self_mapped == other_mapped
-        return self.to_affine() == other.to_affine()
+        else:
+            raise ValueError("No scaling formula available.")
+
+    def equals(self, other: "Point") -> bool:
+        """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""
+        return self.equals_affine(other)
 
     def __bytes__(self):
         res = b"\x04"
@@ -162,7 +182,13 @@ class InfinityPoint(Point):
     def to_model(self, coordinate_model: CoordinateModel, curve: "EllipticCurve") -> "InfinityPoint":
         return InfinityPoint(coordinate_model)
 
-    def equals(self, other) -> bool:
+    def equals_affine(self, other: "Point") -> bool:
+        return self == other
+
+    def equals_scaled(self, other: "Point") -> bool:
+        return self == other
+
+    def equals(self, other: "Point") -> bool:
         return self == other
 
     def __bytes__(self):

@@ -224,11 +224,10 @@ class RawMod(BaseMod):
         """
         if not miller_rabin(self.n):
             raise NotImplementedError
+        if self.x == 0:
+            return RawMod(0, self.n)
         if not self.is_residue():
-            if self.x == 0:
-                return RawMod(0, self.n)
-            else:
-                raise NonResidueError("No square root exists.")
+            raise NonResidueError("No square root exists.")
         if self.n % 4 == 3:
             return self ** int((self.n + 1) // 4)
         q = self.n - 1
@@ -403,11 +402,10 @@ if has_gmp:
             """
             if not gmpy2.is_prime(self.n):
                 raise NotImplementedError
+            if self.x == 0:
+                return GMPMod(0, self.n)
             if not self.is_residue():
-                if self.x == 0:
-                    return GMPMod(0, self.n)
-                else:
-                    raise NonResidueError("No square root exists.")
+                raise NonResidueError("No square root exists.")
             if self.n % 4 == 3:
                 return self ** int((self.n + 1) // 4)
             q = self.n - 1
