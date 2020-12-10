@@ -1,4 +1,0 @@
-compute A = 1/Z1
-compute X3 = X1 A
-compute Y3 = Y1 A
-compute Z3 = 1

@@ -1,4 +1,0 @@
-name XZ coordinates
-variable X
-variable Z
-satisfying x = X/Z

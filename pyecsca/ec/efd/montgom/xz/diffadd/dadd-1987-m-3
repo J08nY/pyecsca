@@ -1,9 +1,0 @@
-source 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization", page 261, fifth display, plus common-subexpression elimination
-compute A = X2+Z2
-compute B = X2-Z2
-compute C = X3+Z3
-compute D = X3-Z3
-compute DA = D A
-compute CB = C B
-compute X4 = Z1(DA+CB)^2
-compute Z4 = X1(DA-CB)^2

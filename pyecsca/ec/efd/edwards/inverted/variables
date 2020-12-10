@@ -1,6 +1,0 @@
-name inverted coordinates
-variable X
-variable Y
-variable Z
-satisfying x = Z/X
-satisfying y = Z/Y

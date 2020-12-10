@@ -1,7 +1,0 @@
-name squared YZ coordinates with square d
-parameter r
-assume c = 1
-assume d = r^2
-variable Y
-variable Z
-satisfying r*y^2 = Y/Z

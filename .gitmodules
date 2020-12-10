@@ -5,3 +5,6 @@
 [submodule "notebook"]
 	path = notebook
 	url = https://github.com/J08nY/pyecsca-notebook
+[submodule "pyecsca/ec/efd"]
+	path = pyecsca/ec/efd
+	url = https://github.com/J08nY/efd

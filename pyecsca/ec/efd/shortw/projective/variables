@@ -1,9 +1,0 @@
-name projective coordinates
-variable X
-variable Y
-variable Z
-neutral X = 0
-neutral Y = 1
-neutral Z = 0
-satisfying x = X/Z
-satisfying y = Y/Z

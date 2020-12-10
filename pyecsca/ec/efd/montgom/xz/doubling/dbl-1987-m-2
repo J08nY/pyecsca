@@ -1,5 +1,0 @@
-source 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization", page 261, sixth display
-parameter a24
-assume 4*a24 = a+2
-compute X3 = (X1+Z1)^2 (X1-Z1)^2
-compute Z3 = (4 X1 Z1)((X1-Z1)^2 + a24(4 X1 Z1))
