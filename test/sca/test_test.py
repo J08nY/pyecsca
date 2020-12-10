@@ -19,7 +19,7 @@ class TTestTests(TestCase):
         b = Trace(np.array([28.2, 26.6, 20.1, 23.3, 25.2, 22.1, 17.7, 27.6, 20.6, 13.7]))
         c = Trace(np.array([20.2, 21.6, 27.1, 13.3, 24.2, 20.1, 11.7, 25.6, 26.6, 21.4]))
 
-        result = welch_ttest([a, b], [b, c])
+        result = welch_ttest([a, b], [b, c], dof=True, p_value=True)
         self.assertIsNotNone(result)
 
     def test_students_ttest(self):

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin
+from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, NonResidueError, NonInvertibleError
 
 
 class ModTests(TestCase):
@@ -18,6 +18,14 @@ class ModTests(TestCase):
         self.assertTrue(miller_rabin(0xe807561107ccf8fa82af74fd492543a918ca2e9c13750233a9))
         self.assertFalse(miller_rabin(0x6f6889deb08da211927370810f026eb4c17b17755f72ea005))
 
+    def test_inverse(self):
+        p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
+        self.assertEqual(Mod(0x702bdafd3c1c837b23a1cb196ed7f9fadb333c5cfe4a462be32adcd67bfb6ac1, p).inverse(), Mod(0x1cb2e5274bba085c4ca88eede75ae77949e7a410c80368376e97ab22eb590f9d, p))
+        with self.assertRaises(NonInvertibleError):
+            Mod(0, p).inverse()
+        with self.assertRaises(NonInvertibleError):
+            Mod(5, 10).inverse()
+
     def test_is_residue(self):
         self.assertTrue(Mod(4, 11).is_residue())
         self.assertFalse(Mod(11, 31).is_residue())
@@ -27,6 +35,9 @@ class ModTests(TestCase):
     def test_sqrt(self):
         p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
         self.assertIn(Mod(0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc, p).sqrt(), (0x9add512515b70d9ec471151c1dec46625cd18b37bde7ca7fb2c8b31d7033599d, 0x6522aed9ea48f2623b8eeae3e213b99da32e74c9421835804d374ce28fcca662))
+        with self.assertRaises(NonResidueError):
+            Mod(0x702bdafd3c1c837b23a1cb196ed7f9fadb333c5cfe4a462be32adcd67bfb6ac1, p).sqrt()
+        self.assertEqual(Mod(0, p).sqrt(), Mod(0, p))
         q = 0x75d44fee9a71841ae8403c0c251fbad
         self.assertIn(Mod(0x591e0db18cf1bd81a11b2985a821eb3, q).sqrt(), (0x113b41a1a2b73f636e73be3f9a3716e, 0x64990e4cf7ba44b779cc7dcc8ae8a3f))
 
