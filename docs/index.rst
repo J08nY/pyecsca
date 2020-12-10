@@ -83,6 +83,10 @@ Requirements
 
      - pyscard_
 
+   - **Faster arithmetic:**
+
+     - gmpy2_ (and also GMP library)
+
 *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
 
 It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
@@ -148,6 +152,7 @@ this support is very appreciated.
 .. _picoscope: https://github.com/colinoflynn/pico-python
 .. _chipwhisperer: https://github.com/newaetech/chipwhisperer
 .. _pyscard: https://pyscard.sourceforge.io/
+.. _gmpy2: https://gmpy2.readthedocs.io/
 .. _nose2: https://nose2.readthedocs.io
 .. _green: https://github.com/CleanCut/green
 .. _parameterized: https://github.com/wolever/parameterized

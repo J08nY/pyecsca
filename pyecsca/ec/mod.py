@@ -188,6 +188,7 @@ class BaseMod(ABC):
             return action.exit(cls(secrets.randbelow(n), n))
 
 
+@public
 class RawMod(BaseMod):
     """An element x of ℤₙ."""
     x: int
@@ -364,6 +365,7 @@ class Undefined(BaseMod):
 
 if has_gmp:
 
+    @public
     class GMPMod(BaseMod):
         """An element x of ℤₙ. Implemented by GMP."""
         x: gmpy2.mpz

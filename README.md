@@ -34,6 +34,8 @@ and ECC simulation in the [*pyecsca.ec*](pyecsca/ec) package.
      - [chipwhisperer](https://github.com/newaetech/chipwhisperer)
    - **Smartcard support:**
      - [pyscard](https://pyscard.sourceforge.io/)
+   - **Faster arithmetic:**
+     - [gmpy2](https://gmpy2.readthedocs.io/) (and also GMP library)
 
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
