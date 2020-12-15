@@ -23,7 +23,7 @@ class EllipticCurve(object):
                  prime: int, neutral: Point, parameters: MutableMapping[str, Union[Mod, int]]):
         if coordinate_model not in model.coordinates.values() and not isinstance(coordinate_model, AffineCoordinateModel):
             raise ValueError
-        if set(model.parameter_names).symmetric_difference(parameters.keys()):
+        if set(model.parameter_names).union(coordinate_model.parameters).symmetric_difference(parameters.keys()):
             raise ValueError
         self.model = model
         self.coordinate_model = coordinate_model

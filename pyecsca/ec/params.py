@@ -1,8 +1,10 @@
 import json
+from sympy import Poly, PythonFiniteField, symbols, sympify
+from ast import unparse
 from io import RawIOBase, BufferedIOBase
 from os.path import join
 from pathlib import Path
-from typing import Optional, Dict, Union, BinaryIO
+from typing import Optional, Dict, Union, BinaryIO, List, Callable
 
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
@@ -58,6 +60,34 @@ class DomainParameters(object):
         return f"{self.__class__.__name__}({self.curve!r}, {self.generator!r}, {self.order}, {self.cofactor})"
 
 
+@public
+class DomainParameterCategory(object):
+    """A category of domain parameters."""
+    name: str
+    description: str
+    curves: List[DomainParameters]
+
+    def __init__(self, name: str, description: str, curves: List[DomainParameters]):
+        self.name = name
+        self.description = description
+        self.curves = curves
+
+    def __str__(self):
+        return f"{self.__class__.__name__}({self.name})"
+
+    def __iter__(self):
+        yield from self.curves
+
+    def __contains__(self, item):
+        return item in self.curves
+
+    def __len__(self):
+        return len(self.curves)
+
+    def __getitem__(self, item):
+        return self.curves[item]
+
+
 def _create_params(curve, coords, infty):
     if curve["field"]["type"] == "Binary":
         raise ValueError("Binary field curves are currently not supported.")
@@ -94,13 +124,34 @@ def _create_params(curve, coords, infty):
             raise ValueError("Coordinate model not supported for curve.")
         coord_model = model.coordinates[coords]
         for assumption in coord_model.assumptions:
-            alocals: Dict[str, Union[Mod, int]] = {}
-            compiled = compile(assumption, "", mode="exec")
-            exec(compiled, None, alocals)
-            for param, value in alocals.items():
-                if params[param] != value:
-                    raise ValueError(
-                        f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+            # Try to execute assumption, if it works, check with curve parameters
+            # if it doesn't work, move all over to rhs and construct a sympy polynomial of it
+            # then find roots and take first  one for new value for new coordinate parameter.
+            try:
+                alocals: Dict[str, Union[Mod, int]] = {}
+                compiled = compile(assumption, "", mode="exec")
+                exec(compiled, None, alocals)
+                for param, value in alocals.items():
+                    if params[param] != value:
+                        raise ValueError(
+                            f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+            except NameError:
+                k = PythonFiniteField(field)
+                assumption_string = unparse(assumption)
+                lhs, rhs = assumption_string.split(" = ")
+                expr = sympify(f"{rhs} - {lhs}")
+                for curve_param, value in params.items():
+                    expr = expr.subs(curve_param, k(value))
+                if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in coord_model.parameters:
+                    raise ValueError(f"This coordinate model couldn't be loaded due to unsupported asusmption ({assumption_string}).")
+                poly = Poly(expr, symbols(param), domain=k)
+                roots = poly.ground_roots()
+                for root in roots.keys():
+                    if root >= 0:
+                        params[param] = Mod(int(root), field)
+                        break
+                else:
+                    raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr}).")
 
     # Construct the point at infinity
     infinity: Point
@@ -132,27 +183,78 @@ def _create_params(curve, coords, infty):
 
 
 @public
+def load_category(file: Union[str, Path, BinaryIO], coords: Union[str, Callable[[str], str]],
+                  infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
+    """
+    Load a category of domain parameters containing several curves from a JSON file.
+
+    :param file: The file to load from.
+    :param coords: The name of the coordinate system to use. Can be a callable that takes
+                   as argument the name of the curve and produces the coordinate system to use for that curve.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system. Can be a callable that takes
+                  as argument the name of the curve and returns the infinity option to use for that curve.
+    :return: The category.
+    """
+    if isinstance(file, (str, Path)):
+        with open(file, "rb") as f:
+            data = json.load(f)
+    elif isinstance(file, (RawIOBase, BufferedIOBase, BinaryIO)):
+        data = json.load(file)
+    else:
+        raise TypeError
+
+    curves = []
+    for curve_data in data["curves"]:
+        curve_coords = coords(curve_data["name"]) if callable(coords) else coords
+        curve_infty = infty(curve_data["name"]) if callable(infty) else infty
+        try:
+            curve = _create_params(curve_data, curve_coords, curve_infty)
+        except ValueError:
+            continue
+        curves.append(curve)
+
+    return DomainParameterCategory(data["name"], data["desc"], curves)
+
+
+@public
 def load_params(file: Union[str, Path, BinaryIO], coords: str, infty: bool = True) -> DomainParameters:
     """
+    Load a curve from a JSON file.
 
-    :param input:
+    :param file: The file to load from.
     :param coords: The name of the coordinate system to use.
     :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
                   point at infinity of the coordinate system.
     :return: The curve.
     """
-    curve = None
     if isinstance(file, (str, Path)):
         with open(file, "rb") as f:
             curve = json.load(f)
     elif isinstance(file, (RawIOBase, BufferedIOBase, BinaryIO)):
         curve = json.load(file)
-    if curve["field"]["type"] == "Binary":
-        raise ValueError("Binary field curves are currently not supported.")
-    if curve["field"]["type"] == "Extension":
-        raise ValueError("Extension field curves are currently not supported.")
+    else:
+        raise TypeError
 
     return _create_params(curve, coords, infty)
+
+@public
+def get_category(category: str, coords: Union[str, Callable[[str], str]],
+                  infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
+    """
+
+    :param category:
+    :param coords:
+    :param infty:
+    :return:
+    """
+    listing = resource_listdir(__name__, "std")
+    categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
+    if category not in categories:
+        raise ValueError("Category {} not found.".format(category))
+    json_path = join("std", category, "curves.json")
+    with resource_stream(__name__, json_path) as f:
+        return load_category(f, coords, infty)
 
 
 @public

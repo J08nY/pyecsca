@@ -63,6 +63,7 @@ Requirements
 
  - Numpy_
  - Scipy_
+ - sympy_
  - atpublic_
  - fastdtw_
  - asn1crypto_
@@ -139,6 +140,7 @@ this support is very appreciated.
 
 .. _Numpy: https://www.numpy.org
 .. _Scipy: https://www.scipy.org
+.. _sympy: https://sympy.org/
 .. _matplotlib: https://matplotlib.org/
 .. _atpublic: https://public.readthedocs.io/
 .. _fastdtw: https://github.com/slaypni/fastdtw

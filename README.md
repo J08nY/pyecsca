@@ -18,6 +18,7 @@ and ECC simulation in the [*pyecsca.ec*](pyecsca/ec) package.
 
  - [Numpy](https://www.numpy.org/)
  - [Scipy](https://www.scipy.org/)
+ - [sympy](https://sympy.org/)
  - [atpublic](https://public.readthedocs.io/)
  - [fastdtw](https://github.com/slaypni/fastdtw)
  - [asn1crypto](https://github.com/wbond/asn1crypto)

@@ -3,7 +3,7 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.params import get_params, load_params
+from pyecsca.ec.params import get_params, load_params, load_category, get_category
 
 
 class DomainParameterTests(TestCase):
@@ -35,12 +35,23 @@ class DomainParameterTests(TestCase):
         except NotImplementedError:
             pass
 
+    @parameterized.expand([
+        ("anssi", "projective"),
+        ("brainpool", lambda name: "projective" if name.endswith("r1") else "jacobian")
+    ])
+    def test_get_category(self, name, coords):
+        get_category(name, coords)
+
     def test_load_params(self):
         params = load_params("test/data/curve.json", "projective")
         try:
             assert params.curve.is_on_curve(params.generator)
         except NotImplementedError:
             pass
+
+    def test_load_category(self):
+        category = load_category("test/data/curves.json", "yz")
+        self.assertEqual(len(category), 1)
 
     @parameterized.expand([
         ("no_category/some", "else"),

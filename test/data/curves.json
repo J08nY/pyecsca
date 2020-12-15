@@ -1,0 +1,37 @@
+{
+  "name": "test",
+  "desc": "Test description",
+  "curves": [
+    {
+      "form": "Edwards",
+      "name": "small-8bits-edwards-curve-c1-d-has-sqrt",
+      "category": "test",
+      "desc": "A small 8-bit Edwards curve with with c = 1 and d has sqrt.",
+      "field": {
+        "type": "Prime",
+        "p": "0xDF",
+        "bits": 8
+      },
+      "params": {
+        "c": {
+          "raw": "0x1"
+        },
+        "d": {
+          "raw": "0xF"
+        }
+      },
+      "generator": {
+        "x": {
+          "raw": "0xC3"
+        },
+        "y": {
+          "raw": "0xB4"
+        }
+      },
+      "r": "0x62",
+      "s": "0xB0",
+      "order": "0x1F0",
+      "cofactor": "0x1"
+    }
+  ]
+}
