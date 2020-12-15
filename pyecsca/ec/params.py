@@ -1,6 +1,6 @@
 import json
 from sympy import Poly, PythonFiniteField, symbols, sympify
-from ast import unparse
+from astunparse import unparse
 from io import RawIOBase, BufferedIOBase
 from os.path import join
 from pathlib import Path

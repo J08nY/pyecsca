@@ -38,7 +38,8 @@ setup(
         "bokeh",
         "matplotlib",
         "datashader",
-        "xarray"
+        "xarray",
+        "astunparse"
     ],
     extras_require={
         "picoscope_sdk": ["picosdk"],
