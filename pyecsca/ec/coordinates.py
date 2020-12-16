@@ -14,14 +14,24 @@ from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormul
 class CoordinateModel(object):
     """A coordinate system for a particular model(form) of an elliptic curve."""
     name: str
+    """Name of the coordinate model"""
     full_name: str
+    """Full name."""
     curve_model: Any
+    """The curve model."""
     variables: List[str]
+    """Variables that the coordinate model uses."""
     satisfying: List[Module]
+    """Relationship between the coordinate system and affine coordinates."""
     parameters: List[str]
+    """Coordinate system parameters."""
     assumptions: List[Module]
+    """Assumptions that need to hold for the curve to use this coordinate system,
+    also used to compute the values of the coordinate system parameters."""
     neutral: List[Module]
+    """Coordinates of the neutral point in the coordinate system, might contain expressions of parameters."""
     formulas: MutableMapping[str, Formula]
+    """Formulas available on the coordinate system."""
 
     def __repr__(self):
         return f"{self.__class__.__name__}(\"{self.name}\" on {self.curve_model.name})"

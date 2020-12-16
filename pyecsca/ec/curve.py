@@ -14,10 +14,15 @@ from .point import Point, InfinityPoint
 class EllipticCurve(object):
     """An elliptic curve."""
     model: CurveModel
+    """The model of the curve."""
     coordinate_model: CoordinateModel
+    """The coordinate system of the curve."""
     prime: int
+    """The prime specifying the base prime field of the curve."""
     parameters: MutableMapping[str, Mod]
+    """The values of the parameters defining the curve, these cover the curve model and coordinate system parameters."""
     neutral: Point
+    """The neutral point on the curve."""
 
     def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
                  prime: int, neutral: Point, parameters: MutableMapping[str, Union[Mod, int]]):
@@ -59,6 +64,10 @@ class EllipticCurve(object):
         """
         Add two affine points using the affine addition formula.
         Handles the case of point at infinity gracefully.
+
+        :param one: One point.
+        :param other: Another point.
+        :return: The addition of the two points.
         """
         if isinstance(one, InfinityPoint):
             return other
@@ -72,6 +81,9 @@ class EllipticCurve(object):
         """
         Double an affine point using the affine doubling formula.
         Handles the case of point at infinity gracefully.
+
+        :param one: A point.
+        :return: The doubling of the point.
         """
         if isinstance(one, InfinityPoint):
             return one
@@ -81,6 +93,9 @@ class EllipticCurve(object):
         """
         Negate an affine point using the affine negation formula.
         Handles the case of point at infinity gracefully.
+
+        :param one: A point.
+        :return: The negation of the point.
         """
         if isinstance(one, InfinityPoint):
             return one
@@ -90,6 +105,10 @@ class EllipticCurve(object):
         """
         Multiply an affine point by a scalar using the affine doubling and addition formulas.
         Handles the case of point at infinity gracefully.
+
+        :param point: The point to multiply.
+        :param scalar: The scalar to use.
+        :return: The scalar multiplication of `point`.
         """
         if isinstance(point, InfinityPoint):
             return point
@@ -110,6 +129,7 @@ class EllipticCurve(object):
     def affine_neutral(self) -> Optional[Point]:
         """
         Get the neutral point in affine form, if it has one, otherwise `None`.
+
         :return: The affine neutral point or `None`.
         """
         if not self.neutral_is_affine:
@@ -129,11 +149,20 @@ class EllipticCurve(object):
         return bool(self.model.base_neutral)
 
     def is_neutral(self, point: Point) -> bool:
-        """Check whether the point is the neutral point."""
+        """Check whether the point is the neutral point.
+
+        :param point: The point to test.
+        :return: Whether it is the neutral point.
+        """
         return self.neutral == point
 
     def is_on_curve(self, point: Point) -> bool:
-        """Check whether the point is on the curve."""
+        """
+        Check whether the point is on the curve.
+
+        :param point: The point to test.
+        :return: Whether it is on the curve.
+        """
         if point.coordinate_model.curve_model != self.model:
             return False
         if self.is_neutral(point):
@@ -142,12 +171,25 @@ class EllipticCurve(object):
         return eval(compile(self.model.equation, "", mode="eval"), loc)
 
     def to_affine(self) -> "EllipticCurve":
-        """Convert this curve into the affine coordinate model, if possible."""
+        """
+        Convert this curve into the affine coordinate model, if possible.
+
+        :return: The transformed elliptic curve.
+        """
         coord_model = AffineCoordinateModel(self.model)
         return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(), self.parameters)  # type: ignore[arg-type]
 
     def decode_point(self, encoded: bytes) -> Point:
-        """Decode a point encoded as a sequence of bytes (ANSI X9.62)."""
+        """
+        Decode a point encoded as a sequence of bytes (ANSI X9.62). This decoding is the same as ANSI X9.63 for
+        the affine coordinate system and for others it only implements the uncompressed variant.
+
+        .. warning::
+            The point is not validated to be on the curve (if the uncompressed encoding is used).
+
+        :param encoded: The encoded representation of a point.
+        :return: The decoded point.
+        """
         if encoded[0] == 0x00 and len(encoded) == 1:
             return InfinityPoint(self.coordinate_model)
         coord_len = (self.prime.bit_length() + 7) // 8

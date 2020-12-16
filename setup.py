@@ -47,7 +47,7 @@ setup(
         "chipwhisperer": ["chipwhisperer"],
         "smartcard": ["pyscard"],
         "gmp": ["gmpy2"],
-        "dev": ["mypy", "flake8"],
+        "dev": ["mypy", "flake8", "interrogate"],
         "test": ["nose2", "parameterized", "green", "coverage"]
     }
 )

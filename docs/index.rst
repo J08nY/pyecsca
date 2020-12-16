@@ -73,6 +73,7 @@ Requirements
  - datashader_
  - matplotlib_
  - xarray_
+ - astunparse_
  - **Optionally**:
 
    - **Oscilloscope support:**
@@ -150,6 +151,7 @@ this support is very appreciated.
 .. _bokeh: https://bokeh.org
 .. _datashader: https://datashader.org
 .. _xarray: https://xarray.pydata.org/en/stable/
+.. _astunparse: https://astunparse.readthedocs.io/
 .. _picosdk: https://github.com/picotech/picosdk-python-wrappers/
 .. _picoscope: https://github.com/colinoflynn/pico-python
 .. _chipwhisperer: https://github.com/newaetech/chipwhisperer

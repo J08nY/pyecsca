@@ -4,7 +4,7 @@ from typing import Mapping, Any
 from public import public
 
 from .context import ResultAction
-from .coordinates import AffineCoordinateModel, CoordinateModel
+from .coordinates import AffineCoordinateModel, CoordinateModel, EFDCoordinateModel
 from .mod import Mod, Undefined
 from .op import CodeOp
 
@@ -97,11 +97,11 @@ class Point(object):
                     result[var] = locls[var]
                 elif var == "X":
                     result[var] = self.coords["x"]
-                    if coordinate_model.name == "inverted":
+                    if isinstance(coordinate_model, EFDCoordinateModel) and coordinate_model.name == "inverted":
                         result[var] = result[var].inverse()
                 elif var == "Y":
                     result[var] = self.coords["y"]
-                    if coordinate_model.name == "inverted":
+                    if isinstance(coordinate_model, EFDCoordinateModel) and coordinate_model.name == "inverted":
                         result[var] = result[var].inverse()
                 elif var.startswith("Z"):
                     result[var] = Mod(1, curve.prime)

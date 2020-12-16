@@ -27,6 +27,7 @@ class ScalarMultiplicationAction(ResultAction):
         return f"{self.__class__.__name__}({self.point}, {self.scalar})"
 
 
+@public
 class ScalarMultiplier(ABC):
     """
     A scalar multiplication algorithm.
@@ -36,7 +37,9 @@ class ScalarMultiplier(ABC):
     :param formulas: Formulas this instance will use.
     """
     requires: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
+    """The set of formulas that the multiplier requires."""
     optionals: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
+    """The optional set of formulas that the multiplier can use."""
     short_circuit: bool
     formulas: Mapping[str, Formula]
     _params: DomainParameters
@@ -99,7 +102,15 @@ class ScalarMultiplier(ABC):
         return self.formulas["neg"](point, **self._params.curve.parameters)[0]
 
     def init(self, params: DomainParameters, point: Point):
-        """Initialize the scalar multiplier with params and a point."""
+        """
+        Initialize the scalar multiplier with params and a point.
+
+        .. warning::
+            The point is not verified to be on the curve represented in the domain parameters.
+
+        :param params: The domain parameters to initialize the multiplier with.
+        :param point: The point to initialize the multiplier with.
+        """
         coord_model = set(self.formulas.values()).pop().coordinate_model
         if params.curve.coordinate_model != coord_model or point.coordinate_model != coord_model:
             raise ValueError
@@ -109,14 +120,22 @@ class ScalarMultiplier(ABC):
 
     @abstractmethod
     def multiply(self, scalar: int) -> Point:
-        """Multiply the point with the scalar."""
+        """
+        Multiply the point with the scalar.
+
+        .. note::
+            The multiplier needs to be initialized by a call to the :py:meth:`.init` method.
+
+        :param scalar: The scalar to use.
+        :return: The resulting multiple.
+        """
         ...
 
 
 @public
 class LTRMultiplier(ScalarMultiplier):
     """
-    Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb)
+    Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb).
 
     The `always` parameter determines whether the double and add always method is used.
     """
@@ -161,7 +180,7 @@ class LTRMultiplier(ScalarMultiplier):
 @public
 class RTLMultiplier(ScalarMultiplier):
     """
-    Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb)
+    Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb).
 
     The `always` parameter determines whether the double and add always method is used.
     """
@@ -195,6 +214,7 @@ class RTLMultiplier(ScalarMultiplier):
             return action.exit(r)
 
 
+@public
 class CoronMultiplier(ScalarMultiplier):
     """
     Coron's double and add resistant against SPA, from:
@@ -407,7 +427,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
         self._points_neg = {}
         current_point = point
         double_point = self._dbl(point)
-        for i in range(0, 2**(self.width - 2)):
+        for i in range(0, 2 ** (self.width - 2)):
             self._points[2 * i + 1] = current_point
             if self.precompute_negation:
                 self._points_neg[2 * i + 1] = self._neg(current_point)

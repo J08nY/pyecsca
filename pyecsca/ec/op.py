@@ -6,12 +6,12 @@ from typing import FrozenSet, cast, Any, Optional, Union
 
 from public import public
 
-from .context import ResultAction
 from .mod import Mod
 
 
 @public
 class OpType(Enum):
+    """A type of binary and unary operators."""
     Add = (2, "+")
     Sub = (2, "-")
     Neg = (1, "-")
@@ -29,12 +29,19 @@ class OpType(Enum):
 
 @public
 class CodeOp(object):
+    """An operation that can be executed."""
     result: str
+    """The result variable of the operation (e.g. the `r` in `r = 2*a`)."""
     parameters: FrozenSet[str]
+    """The parameters used in the operation (e.g. `a`, `b`)."""
     variables: FrozenSet[str]
+    """The variables used in the operation (e.g. `X1`, `Z2`)."""
     code: Module
+    """The code of the operation."""
     operator: OpType
+    """The operator type that executes in the operation."""
     compiled: CodeType
+    """The compiled code of the operation."""
 
     def __init__(self, code: Module):
         self.code = code

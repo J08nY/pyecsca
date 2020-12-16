@@ -8,11 +8,24 @@ For more info, see the [![docs](https://img.shields.io/badge/docs-neuromancer.sk
 
 ## Functionality
 
-*pyecsca* aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
+**pyecsca** aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
 black-box implementations of ECC and presents a way to extract implementation information
-about a black-box implementation of ECC through side-channels. It is in an alpha stage of development
-and thus currently only provides basic trace processing capabilities (in the [*pyecsca.sca*](pyecsca/sca) package)
-and ECC simulation in the [*pyecsca.ec*](pyecsca/ec) package.
+about a black-box implementation of ECC through side-channels. The main goal of **pyecsca**
+is to be able to reverse engineer the curve model, coordinate system, addition formulas, scalar
+multiplier and even finite-field implementation details.
+
+It is currently in an alpha stage of development and thus only provides:
+ - Enumeration of millions of possible ECC implementation configurations (see [notebook/configuration_space](https://neuromancer.sk/pyecsca/notebook/configuration_space.html))
+ - Simulation and execution tracing of key generation, ECDH and ECDSA (see [notebook/simulation](https://neuromancer.sk/pyecsca/notebook/simulation.html))
+ - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see [notebook/codegen](https://neuromancer.sk/pyecsca/notebook/codegen.html))
+ - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see [notebook/measurement](https://neuromancer.sk/pyecsca/notebook/measurement.html))
+ - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning ([pyecsca.sca](https://neuromancer.sk/pyecsca/api/pyecsca.sca.html))
+ - Trace visualization using holoviews and datashader (see [notebook/visualization](https://neuromancer.sk/pyecsca/notebook/visualization.html))
+
+**pyecsca** consists of three packages:
+ - the core: https://github.com/J08nY/pyecsca
+ - the codegen package: https://github.com/J08nY/pyecsca-codegen
+ - the notebook package: https://github.com/J08nY/pyecsca-notebook
 
 ## Requirements
 
@@ -28,6 +41,7 @@ and ECC simulation in the [*pyecsca.ec*](pyecsca/ec) package.
  - [datashader](https://datashader.org)
  - [matplotlib](https://matplotlib.org/)
  - [xarray](https://xarray.pydata.org/en/stable/)
+ - [astunparse](https://astunparse.readthedocs.io/)
  - **Optionally**:
    - **Oscilloscope support:**
      - [picosdk](https://github.com/picotech/picosdk-python-wrappers/)

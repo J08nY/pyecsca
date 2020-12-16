@@ -206,7 +206,8 @@ autodoc_default_options = {
     "members": True,
     "undoc-members": True,
     "inherited-members": True,
-    "show-inheritance": True
+    "show-inheritance": True,
+    "member-order": "bysource"
 }
 
 nbsphinx_allow_errors = True
