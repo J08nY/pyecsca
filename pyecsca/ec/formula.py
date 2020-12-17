@@ -131,6 +131,7 @@ class Formula(ABC):
             for coord, value in point.coords.items():
                 params[coord + str(i + 1)] = value
         # Validate assumptions and compute formula parameters.
+        field = int(params[next(iter(params.keys()))].n)  # This is nasty...
         for assumption in self.assumptions:
             assumption_string = unparse(assumption)[1:-2]
             lhs, rhs = assumption_string.split(" == ")
@@ -142,14 +143,13 @@ class Formula(ABC):
                 if not holds:
                     raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
             else:
-                field = int(params[next(iter(params.keys()))].n)  # This is nasty...
                 k = FF(field)
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in params.items():
                     expr = expr.subs(curve_param, k(value))
                 if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in self.parameters:
                     raise ValueError(
-                        f"This formula couldn't be executed due to an unsupported asusmption ({assumption_string}).")
+                        f"This formula couldn't be executed due to an unsupported assumption ({assumption_string}).")
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots.keys():
@@ -157,12 +157,21 @@ class Formula(ABC):
                     break
                 else:
                     raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
+        # Execute the actual formula.
         with FormulaAction(self, *points, **params) as action:
             for op in self.code:
                 op_result = op(**params)
+                # This check and cast fixes the issue when the op is `Z3 = 1`.
+                # TODO: This is not general enough, if for example the op is `t = 1/2`, it will be float.
+                #       Temporarily, add an assertion that this does not happen so we do not give bad results.
+                if isinstance(op_result, float):
+                    raise AssertionError(f"Bad stuff happened in op {op}, floats will pollute the results.")
+                if not isinstance(op_result, Mod):
+                    op_result = Mod(op_result, field)
                 action.add_operation(op, op_result)
                 params[op.result] = op_result
             result = []
+            # Go over the outputs and construct the resulting points.
             for i in range(self.num_outputs):
                 ind = str(i + self.output_index)
                 resulting = {}
