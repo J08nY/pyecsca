@@ -4,9 +4,9 @@ from functools import wraps, lru_cache
 from abc import abstractmethod
 from public import public
 
-from .error import NonInvertibleError, NonResidueError
+from .error import raise_non_invertible, raise_non_residue
 from .context import ResultAction
-
+from ..cfg import getconfig
 
 has_gmp = False
 try:
@@ -104,7 +104,7 @@ class RandomModAction(ResultAction):
         return f"{self.__class__.__name__}({self.order:x})"
 
 
-_mod_classes = []
+_mod_classes = {}
 
 
 @public
@@ -114,8 +114,12 @@ class Mod(object):
         if cls != Mod:
             return cls.__new__(cls, *args, **kwargs)
         if not _mod_classes:
-            raise ValueError("Cannot find a working Mod class.")
-        return _mod_classes[-1].__new__(_mod_classes[-1], *args, **kwargs)
+            raise ValueError("Cannot find any working Mod class.")
+        selected_class = getconfig().ec.mod_implementation
+        if selected_class not in _mod_classes:
+            # Fallback to something
+            selected_class = next(iter(_mod_classes.keys()))
+        return _mod_classes[selected_class].__new__(_mod_classes[selected_class], *args, **kwargs)
 
     def __init__(self, x, n):
         self.x = x
@@ -245,10 +249,10 @@ class RawMod(Mod):
 
     def inverse(self):
         if self.x == 0:
-            raise NonInvertibleError("Inverting zero.")
+            raise_non_invertible()
         x, y, d = extgcd(self.x, self.n)
         if d != 1:
-            raise NonInvertibleError("Element not invertible.")
+            raise_non_invertible()
         return RawMod(x, self.n)
 
     def is_residue(self):
@@ -267,7 +271,7 @@ class RawMod(Mod):
         if self.x == 0:
             return RawMod(0, self.n)
         if not self.is_residue():
-            raise NonResidueError("No square root exists.")
+            raise_non_residue()
         if self.n % 4 == 3:
             return self ** int((self.n + 1) // 4)
         q = self.n - 1
@@ -330,7 +334,7 @@ class RawMod(Mod):
         return RawMod(pow(self.x, n, self.n), self.n)
 
 
-_mod_classes.append(RawMod)
+_mod_classes["python"] = RawMod
 
 
 @public
@@ -430,13 +434,14 @@ if has_gmp:
 
         def inverse(self):
             if self.x == 0:
-                raise NonInvertibleError("Inverting zero!")
+                raise_non_invertible()
             if self.x == 1:
                 return GMPMod(1, self.n)
             try:
                 res = gmpy2.invert(self.x, self.n)
             except ZeroDivisionError:
-                raise NonInvertibleError("Element not invertible.")
+                raise_non_invertible()
+                res = 0
             return GMPMod(res, self.n)
 
         def is_residue(self):
@@ -460,7 +465,7 @@ if has_gmp:
             if self.x == 0:
                 return GMPMod(0, self.n)
             if not self.is_residue():
-                raise NonResidueError("No square root exists.")
+                raise_non_residue()
             if self.n % 4 == 3:
                 return self ** int((self.n + 1) // 4)
             q = self.n - 1
@@ -527,4 +532,4 @@ if has_gmp:
             return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n)
 
 
-    _mod_classes.append(GMPMod)
+    _mod_classes["gmp"] = GMPMod

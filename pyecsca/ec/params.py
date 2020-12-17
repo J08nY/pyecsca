@@ -11,11 +11,12 @@ from public import public
 
 from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
-from .error import UnsatisfiedAssumptionError
+from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod
 from .model import (CurveModel, ShortWeierstrassModel, MontgomeryModel, EdwardsModel,
                     TwistedEdwardsModel)
 from .point import Point, InfinityPoint
+from ..cfg import getconfig
 
 
 @public
@@ -127,15 +128,15 @@ def _create_params(curve, coords, infty):
         for assumption in coord_model.assumptions:
             # Try to execute assumption, if it works, check with curve parameters
             # if it doesn't work, move all over to rhs and construct a sympy polynomial of it
-            # then find roots and take first  one for new value for new coordinate parameter.
+            # then find roots and take first one for new value for new coordinate parameter.
             try:
                 alocals: Dict[str, Union[Mod, int]] = {}
                 compiled = compile(assumption, "", mode="exec")
                 exec(compiled, None, alocals)
                 for param, value in alocals.items():
                     if params[param] != value:
-                        raise UnsatisfiedAssumptionError(
-                            f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+                        raise_unsatisified_assumption(getconfig().ec.unsatisfied_coordinate_assumption_action,
+                                                      f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
             except NameError:
                 k = FF(field)
                 assumption_string = unparse(assumption)
@@ -148,9 +149,8 @@ def _create_params(curve, coords, infty):
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots.keys():
-                    if root >= 0:
-                        params[param] = Mod(int(root), field)
-                        break
+                    params[param] = Mod(int(root), field)
+                    break
                 else:
                     raise UnsatisfiedAssumptionError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr}).")
 

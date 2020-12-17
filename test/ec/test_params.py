@@ -2,7 +2,9 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
+from pyecsca.cfg import TemporaryConfig
 from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params, load_params, load_category, get_category
 
 
@@ -63,8 +65,12 @@ class DomainParameterTests(TestCase):
             get_params(*name.split("/"), coords)
 
     def test_assumption(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UnsatisfiedAssumptionError):
             get_params("secg", "secp128r1", "projective-1")
+        with TemporaryConfig() as cfg:
+            cfg.ec.unsatisfied_coordinate_assumption_action = "ignore"
+            params = get_params("secg", "secp128r1", "projective-1")
+            self.assertIsNotNone(params)
         self.assertIsNotNone(get_params("secg", "secp128r1", "projective-3"))
 
     def test_infty(self):

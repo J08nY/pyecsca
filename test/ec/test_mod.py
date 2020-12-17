@@ -1,7 +1,8 @@
 from unittest import TestCase
 
-from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin
-from pyecsca.ec.error import NonInvertibleError, NonResidueError
+from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, has_gmp, RawMod
+from pyecsca.ec.error import NonInvertibleError, NonResidueError, NonInvertibleWarning, NonResidueWarning
+from pyecsca.cfg import getconfig, TemporaryConfig
 
 
 class ModTests(TestCase):
@@ -26,6 +27,15 @@ class ModTests(TestCase):
             Mod(0, p).inverse()
         with self.assertRaises(NonInvertibleError):
             Mod(5, 10).inverse()
+        getconfig().ec.no_inverse_action = "warning"
+        with self.assertRaises(NonInvertibleWarning):
+            Mod(0, p).inverse()
+        with self.assertRaises(NonInvertibleWarning):
+            Mod(5, 10).inverse()
+        getconfig().ec.no_inverse_action = "ignore"
+        Mod(0, p).inverse()
+        Mod(5, 10).inverse()
+        getconfig().ec.no_inverse_action = "error"
 
     def test_is_residue(self):
         self.assertTrue(Mod(4, 11).is_residue())
@@ -38,9 +48,19 @@ class ModTests(TestCase):
         self.assertIn(Mod(0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc, p).sqrt(), (0x9add512515b70d9ec471151c1dec46625cd18b37bde7ca7fb2c8b31d7033599d, 0x6522aed9ea48f2623b8eeae3e213b99da32e74c9421835804d374ce28fcca662))
         with self.assertRaises(NonResidueError):
             Mod(0x702bdafd3c1c837b23a1cb196ed7f9fadb333c5cfe4a462be32adcd67bfb6ac1, p).sqrt()
+        getconfig().ec.non_residue_action = "warning"
+        with self.assertRaises(NonResidueWarning):
+            Mod(0x702bdafd3c1c837b23a1cb196ed7f9fadb333c5cfe4a462be32adcd67bfb6ac1, p).sqrt()
+        getconfig().ec.non_residue_action = "ignore"
+        Mod(0x702bdafd3c1c837b23a1cb196ed7f9fadb333c5cfe4a462be32adcd67bfb6ac1, p).sqrt()
+        with TemporaryConfig() as cfg:
+            cfg.ec.non_residue_action = "warning"
+            with self.assertRaises(NonResidueWarning):
+                Mod(0x702bdafd3c1c837b23a1cb196ed7f9fadb333c5cfe4a462be32adcd67bfb6ac1, p).sqrt()
         self.assertEqual(Mod(0, p).sqrt(), Mod(0, p))
         q = 0x75d44fee9a71841ae8403c0c251fbad
         self.assertIn(Mod(0x591e0db18cf1bd81a11b2985a821eb3, q).sqrt(), (0x113b41a1a2b73f636e73be3f9a3716e, 0x64990e4cf7ba44b779cc7dcc8ae8a3f))
+        getconfig().ec.non_residue_action = "error"
 
     def test_eq(self):
         self.assertEqual(Mod(1, 7), 1)
@@ -99,3 +119,10 @@ class ModTests(TestCase):
             else:
                 with self.assertRaises(NotImplementedError):
                     meth(u, *args)
+
+    def test_implementation(self):
+        if not has_gmp:
+            self.skipTest("Only makes sense if more Mod implementations are available.")
+        with TemporaryConfig() as cfg:
+            cfg.ec.mod_implementation = "python"
+            self.assertIsInstance(Mod(5, 7), RawMod)

@@ -9,9 +9,10 @@ from public import public
 from sympy import sympify, FF, symbols, Poly
 
 from .context import ResultAction, getcontext, NullContext
-from .error import UnsatisfiedAssumptionError
+from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod
 from .op import CodeOp, OpType
+from ..cfg import getconfig
 
 
 @public
@@ -131,7 +132,7 @@ class Formula(ABC):
             for coord, value in point.coords.items():
                 params[coord + str(i + 1)] = value
         # Validate assumptions and compute formula parameters.
-        field = int(params[next(iter(params.keys()))].n)  # This is nasty...
+        field = int(params[next(iter(params.keys()))].n)  # TODO: This is nasty...
         for assumption in self.assumptions:
             assumption_string = unparse(assumption)[1:-2]
             lhs, rhs = assumption_string.split(" == ")
@@ -141,7 +142,9 @@ class Formula(ABC):
                 compiled = compile(assumption, "", mode="eval")
                 holds = eval(compiled, None, alocals)
                 if not holds:
-                    raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
+                    # The assumption doesn't hold, see what is the current configured action and do it.
+                    raise_unsatisified_assumption(getconfig().ec.unsatisfied_formula_assumption_action,
+                                                  f"Unsatisfied assumption in the formula ({assumption_string}).")
             else:
                 k = FF(field)
                 expr = sympify(f"{rhs} - {lhs}")

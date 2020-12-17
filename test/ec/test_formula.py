@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from pyecsca.cfg import TemporaryConfig
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point
@@ -50,6 +51,10 @@ class FormulaTests(TestCase):
         other = Point(self.secp128r1.generator.coordinate_model, **coords)
         with self.assertRaises(UnsatisfiedAssumptionError):
             self.mdbl(other, **self.secp128r1.curve.parameters)
+        with TemporaryConfig() as cfg:
+            cfg.ec.unsatisfied_formula_assumption_action = "ignore"
+            pt = self.mdbl(other, **self.secp128r1.curve.parameters)
+            self.assertIsNotNone(pt)
 
     def test_parameters(self):
         res = self.jac_dbl(self.jac_secp128r1.generator, **self.jac_secp128r1.curve.parameters)
