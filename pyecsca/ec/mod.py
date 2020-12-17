@@ -1,7 +1,7 @@
 import random
 import secrets
 from functools import wraps, lru_cache
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from public import public
 
 from .error import NonInvertibleError, NonResidueError
@@ -14,7 +14,7 @@ try:
 
     has_gmp = True
 except ImportError:
-    pass
+    gmpy2 = None
 
 
 @public
@@ -104,7 +104,19 @@ class RandomModAction(ResultAction):
         return f"{self.__class__.__name__}({self.order:x})"
 
 
-class BaseMod(ABC):
+_mod_classes = []
+
+
+@public
+class Mod(object):
+
+    def __new__(cls, *args, **kwargs):
+        if cls != Mod:
+            return cls.__new__(cls, *args, **kwargs)
+        if not _mod_classes:
+            raise ValueError("Cannot find a working Mod class.")
+        return _mod_classes[-1].__new__(_mod_classes[-1], *args, **kwargs)
+
     def __init__(self, x, n):
         self.x = x
         self.n = n
@@ -129,11 +141,31 @@ class BaseMod(ABC):
         return self.__class__(self.n - self.x, self.n)
 
     @abstractmethod
-    def inverse(self):
+    def inverse(self) -> "Mod":
+        """
+        Invert the element.
+
+        :return: The inverse.
+        :raises: :py:class:`NonInvertibleError` if the element is not invertible.
+        """
         ...
 
     def __invert__(self):
         return self.inverse()
+
+    @abstractmethod
+    def is_residue(self) -> bool:
+        """Whether this element is a quadratic residue (only implemented for prime modulus)."""
+        ...
+
+    @abstractmethod
+    def sqrt(self) -> "Mod":
+        """
+        The modular square root of this element (only implemented for prime modulus).
+
+        Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
+        """
+        ...
 
     @check
     def __mul__(self, other):
@@ -172,17 +204,41 @@ class BaseMod(ABC):
         q, r = divmod(self.x, divisor.x)
         return self.__class__(q, self.n), self.__class__(r, self.n)
 
+    @abstractmethod
+    def __bytes__(self):
+        ...
+
+    @abstractmethod
+    def __int__(self):
+        ...
+
     @classmethod
     def random(cls, n: int):
+        """
+        Generate a random :py:class:`Mod` in ℤₙ.
+
+        :param n: The order.
+        :return: The random :py:class:`Mod`.
+        """
         with RandomModAction(n) as action:
             return action.exit(cls(secrets.randbelow(n), n))
 
+    @abstractmethod
+    def __pow__(self, n):
+        ...
+
+    def __str__(self):
+        return str(self.x)
+
 
 @public
-class RawMod(BaseMod):
+class RawMod(Mod):
     """An element x of ℤₙ."""
     x: int
     n: int
+
+    def __new__(cls, *args, **kwargs):
+        return object.__new__(cls)
 
     def __init__(self, x: int, n: int):
         super().__init__(x % n, n)
@@ -196,7 +252,6 @@ class RawMod(BaseMod):
         return RawMod(x, self.n)
 
     def is_residue(self):
-        """Whether this element is a quadratic residue (only implemented for prime modulus)."""
         if not miller_rabin(self.n):
             raise NotImplementedError
         if self.x == 0:
@@ -207,11 +262,6 @@ class RawMod(BaseMod):
         return legendre_symbol == 1
 
     def sqrt(self):
-        """
-        The modular square root of this element (only implemented for prime modulus).
-
-        Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
-        """
         if not miller_rabin(self.n):
             raise NotImplementedError
         if self.x == 0:
@@ -280,8 +330,14 @@ class RawMod(BaseMod):
         return RawMod(pow(self.x, n, self.n), self.n)
 
 
+_mod_classes.append(RawMod)
+
+
 @public
-class Undefined(BaseMod):
+class Undefined(Mod):
+    def __new__(cls, *args, **kwargs):
+        return object.__new__(cls)
+
     def __init__(self):
         super().__init__(None, None)
 
@@ -301,6 +357,12 @@ class Undefined(BaseMod):
         raise NotImplementedError
 
     def inverse(self):
+        raise NotImplementedError
+
+    def sqrt(self):
+        raise NotImplementedError
+
+    def is_residue(self) -> bool:
         raise NotImplementedError
 
     def __invert__(self):
@@ -355,10 +417,13 @@ class Undefined(BaseMod):
 if has_gmp:
 
     @public
-    class GMPMod(BaseMod):
+    class GMPMod(Mod):
         """An element x of ℤₙ. Implemented by GMP."""
         x: gmpy2.mpz
         n: gmpy2.mpz
+
+        def __new__(cls, *args, **kwargs):
+            return object.__new__(cls)
 
         def __init__(self, x: int, n: int):
             super().__init__(gmpy2.mpz(x % n), gmpy2.mpz(n))
@@ -462,8 +527,4 @@ if has_gmp:
             return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n)
 
 
-    Mod = GMPMod
-else:
-    Mod = RawMod
-
-public(Mod=Mod)
+    _mod_classes.append(GMPMod)
