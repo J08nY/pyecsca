@@ -1,5 +1,5 @@
 import json
-from sympy import Poly, PythonFiniteField, symbols, sympify
+from sympy import Poly, FF, symbols, sympify
 from astunparse import unparse
 from io import RawIOBase, BufferedIOBase
 from os.path import join
@@ -11,6 +11,7 @@ from public import public
 
 from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
+from .error import UnsatisfiedAssumptionError
 from .mod import Mod
 from .model import (CurveModel, ShortWeierstrassModel, MontgomeryModel, EdwardsModel,
                     TwistedEdwardsModel)
@@ -133,17 +134,17 @@ def _create_params(curve, coords, infty):
                 exec(compiled, None, alocals)
                 for param, value in alocals.items():
                     if params[param] != value:
-                        raise ValueError(
+                        raise UnsatisfiedAssumptionError(
                             f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
             except NameError:
-                k = PythonFiniteField(field)
+                k = FF(field)
                 assumption_string = unparse(assumption)
                 lhs, rhs = assumption_string.split(" = ")
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in params.items():
                     expr = expr.subs(curve_param, k(value))
                 if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in coord_model.parameters:
-                    raise ValueError(f"This coordinate model couldn't be loaded due to unsupported asusmption ({assumption_string}).")
+                    raise ValueError(f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string}).")
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots.keys():
@@ -151,7 +152,7 @@ def _create_params(curve, coords, infty):
                         params[param] = Mod(int(root), field)
                         break
                 else:
-                    raise ValueError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr}).")
+                    raise UnsatisfiedAssumptionError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr}).")
 
     # Construct the point at infinity
     infinity: Point
@@ -238,20 +239,25 @@ def load_params(file: Union[str, Path, BinaryIO], coords: str, infty: bool = Tru
 
     return _create_params(curve, coords, infty)
 
+
 @public
 def get_category(category: str, coords: Union[str, Callable[[str], str]],
                   infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
     """
+    Retrieve a category from the std-curves database at https://github.com/J08nY/std-curves.
 
-    :param category:
-    :param coords:
-    :param infty:
-    :return:
+    :param category: The category to retrieve.
+    :param coords: The name of the coordinate system to use. Can be a callable that takes
+                   as argument the name of the curve and produces the coordinate system to use for that curve.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system. Can be a callable that takes
+                  as argument the name of the curve and returns the infinity option to use for that curve.
+    :return: The category.
     """
     listing = resource_listdir(__name__, "std")
     categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
     if category not in categories:
-        raise ValueError("Category {} not found.".format(category))
+        raise ValueError(f"Category {category} not found.")
     json_path = join("std", category, "curves.json")
     with resource_stream(__name__, json_path) as f:
         return load_category(f, coords, infty)
@@ -273,7 +279,7 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
     listing = resource_listdir(__name__, "std")
     categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
     if category not in categories:
-        raise ValueError("Category {} not found.".format(category))
+        raise ValueError(f"Category {category} not found.")
     json_path = join("std", category, "curves.json")
     with resource_stream(__name__, json_path) as f:
         category_json = json.load(f)
@@ -281,6 +287,6 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
         if curve["name"] == name:
             break
     else:
-        raise ValueError("Curve {} not found in category {}.".format(name, category))
+        raise ValueError(f"Curve {name} not found in category {category}.")
 
     return _create_params(curve, coords, infty)

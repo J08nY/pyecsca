@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, NonResidueError, NonInvertibleError
+from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin
+from pyecsca.ec.error import NonInvertibleError, NonResidueError
 
 
 class ModTests(TestCase):

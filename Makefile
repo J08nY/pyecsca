@@ -23,7 +23,7 @@ codestyle:
 	flake8 --ignore=E501,F405,F403,F401,E126 pyecsca
 
 doc-coverage:
-    interrogate -vv -nmps pyecsca
+	interrogate -vv -nmps pyecsca
 
 docs:
 	$(MAKE) -C docs apidoc

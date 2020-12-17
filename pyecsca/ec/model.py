@@ -8,6 +8,7 @@ from public import public
 from .coordinates import EFDCoordinateModel, CoordinateModel
 
 
+@public
 class CurveModel(object):
     """A model(form) of an elliptic curve."""
     name: str

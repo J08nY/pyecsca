@@ -2,7 +2,11 @@ import random
 import secrets
 from functools import wraps, lru_cache
 from abc import ABC, abstractmethod
-from typing import Type
+from public import public
+
+from .error import NonInvertibleError, NonResidueError
+from .context import ResultAction
+
 
 has_gmp = False
 try:
@@ -11,10 +15,6 @@ try:
     has_gmp = True
 except ImportError:
     pass
-
-from public import public
-
-from .context import ResultAction
 
 
 @public
@@ -89,16 +89,6 @@ def check(func):
         return func(self, other)
 
     return method
-
-
-@public
-class NonInvertibleError(ArithmeticError):
-    pass
-
-
-@public
-class NonResidueError(ArithmeticError):
-    pass
 
 
 @public
@@ -470,6 +460,7 @@ if has_gmp:
             if n == 1:
                 return GMPMod(self.x, self.n)
             return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n)
+
 
     Mod = GMPMod
 else:

@@ -1,6 +1,8 @@
 from unittest import TestCase
 
+from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params
+from pyecsca.ec.point import Point
 
 
 class FormulaTests(TestCase):
@@ -9,6 +11,9 @@ class FormulaTests(TestCase):
         self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.add = self.secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
         self.dbl = self.secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
+        self.mdbl = self.secp128r1.curve.coordinate_model.formulas["mdbl-2007-bl"]
+        self.jac_secp128r1 = get_params("secg", "secp128r1", "jacobian")
+        self.jac_dbl = self.jac_secp128r1.curve.coordinate_model.formulas["dbl-1998-hnm"]
 
     def test_wrong_call(self):
         with self.assertRaises(ValueError):
@@ -36,3 +41,16 @@ class FormulaTests(TestCase):
         self.assertEqual(self.add.num_powers, 0)
         self.assertEqual(self.add.num_squarings, 6)
         self.assertEqual(self.add.num_addsubs, 10)
+
+    def test_assumptions(self):
+        res = self.mdbl(self.secp128r1.generator, **self.secp128r1.curve.parameters)
+        self.assertIsNotNone(res)
+
+        coords = {name: value * 5 for name, value in self.secp128r1.generator.coords.items()}
+        other = Point(self.secp128r1.generator.coordinate_model, **coords)
+        with self.assertRaises(UnsatisfiedAssumptionError):
+            self.mdbl(other, **self.secp128r1.curve.parameters)
+
+    def test_parameters(self):
+        res = self.jac_dbl(self.jac_secp128r1.generator, **self.jac_secp128r1.curve.parameters)
+        self.assertIsNotNone(res)

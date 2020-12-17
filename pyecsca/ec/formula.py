@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
 from ast import parse, Expression
+from astunparse import unparse
 from itertools import product
-from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union
+from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from pkg_resources import resource_stream
 from public import public
+from sympy import sympify, FF, symbols, Poly
 
 from .context import ResultAction, getcontext, NullContext
+from .error import UnsatisfiedAssumptionError
 from .mod import Mod
 from .op import CodeOp, OpType
 
@@ -38,11 +41,17 @@ class OpResult(object):
 class FormulaAction(ResultAction):
     """An execution of a formula, on some input points and parameters, with some outputs."""
     formula: "Formula"
+    """The formula that was executed."""
     inputs: MutableMapping[str, Mod]
+    """The input variables (point coordinates and parameters)."""
     input_points: List[Any]
+    """The input points."""
     intermediates: MutableMapping[str, List[OpResult]]
+    """Intermediates computed during execution."""
     outputs: MutableMapping[str, OpResult]
+    """The output variables."""
     output_points: List[Any]
+    """The output points."""
 
     def __init__(self, formula: "Formula", *points: Any, **inputs: Mod):
         super().__init__()
@@ -62,8 +71,8 @@ class FormulaAction(ResultAction):
                 parents.append(self.intermediates[parent][-1])
             elif parent in self.inputs:
                 parents.append(self.inputs[parent])
-        l = self.intermediates.setdefault(op.result, list())
-        l.append(OpResult(op.result, value, op.operator, *parents))
+        li = self.intermediates.setdefault(op.result, list())
+        li.append(OpResult(op.result, value, op.operator, *parents))
 
     def add_result(self, point: Any, **outputs: Mod):
         if isinstance(getcontext(), NullContext):
@@ -79,18 +88,29 @@ class FormulaAction(ResultAction):
         return f"{self.__class__.__name__}({self.formula}, {self.input_points}) = {self.output_points}"
 
 
+@public
 class Formula(ABC):
     """A formula operating on points."""
     name: str
-    coordinate_model: Any
-    meta: MutableMapping[str, Any]
-    parameters: List[str]
-    assumptions: List[Expression]
-    code: List[CodeOp]
+    """Name of the formula."""
     shortname: ClassVar[str]
+    """A shortname for the type of the formula."""
+    coordinate_model: Any
+    """Coordinate model of the formula."""
+    meta: MutableMapping[str, Any]
+    """Meta information about the formula, such as its source."""
+    parameters: List[str]
+    """Formula parameters (i.e. new parameters introduced by the formula, like `half = 1/2`)."""
+    assumptions: List[Expression]
+    """Assumptions of the formula (e.g. `Z1 == 1` or `2*half == 1`)."""
+    code: List[CodeOp]
+    """The collection of ops that constitute the code of the formula."""
     num_inputs: ClassVar[int]
+    """Number of inputs (points) of the formula."""
     num_outputs: ClassVar[int]
+    """Number of outputs (points) of the formula."""
     unified: bool
+    """Whether the formula is specifies that it is unified."""
 
     def __call__(self, *points: Any, **params: Mod) -> Tuple[Any, ...]:
         """
@@ -101,13 +121,42 @@ class Formula(ABC):
         :return: The resulting point(s).
         """
         from .point import Point
+        # Validate number of inputs.
         if len(points) != self.num_inputs:
             raise ValueError(f"Wrong number of inputs for {self}.")
+        # Validate input points and unroll them into input params.
         for i, point in enumerate(points):
             if point.coordinate_model != self.coordinate_model:
                 raise ValueError(f"Wrong coordinate model of point {point}.")
             for coord, value in point.coords.items():
                 params[coord + str(i + 1)] = value
+        # Validate assumptions and compute formula parameters.
+        for assumption in self.assumptions:
+            assumption_string = unparse(assumption)[1:-2]
+            lhs, rhs = assumption_string.split(" == ")
+            if lhs in params:
+                # Handle an assumption check on value of input points.
+                alocals: Dict[str, Union[Mod, int]] = {**params}
+                compiled = compile(assumption, "", mode="eval")
+                holds = eval(compiled, None, alocals)
+                if not holds:
+                    raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
+            else:
+                field = int(params[next(iter(params.keys()))].n)  # This is nasty...
+                k = FF(field)
+                expr = sympify(f"{rhs} - {lhs}")
+                for curve_param, value in params.items():
+                    expr = expr.subs(curve_param, k(value))
+                if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in self.parameters:
+                    raise ValueError(
+                        f"This formula couldn't be executed due to an unsupported asusmption ({assumption_string}).")
+                poly = Poly(expr, symbols(param), domain=k)
+                roots = poly.ground_roots()
+                for root in roots.keys():
+                    params[param] = Mod(int(root), field)
+                    break
+                else:
+                    raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
         with FormulaAction(self, *points, **params) as action:
             for op in self.code:
                 op_result = op(**params)
@@ -219,7 +268,7 @@ class EFDFormula(Formula):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
                     self.assumptions.append(
-                            parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
+                        parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
                 elif line.startswith("unified"):
                     self.unified = True
                 line = f.readline().decode("ascii")
@@ -259,7 +308,7 @@ class EFDFormula(Formula):
 
 
 @public
-class AdditionFormula(Formula):
+class AdditionFormula(Formula, ABC):
     shortname = "add"
     num_inputs = 2
     num_outputs = 1
@@ -271,7 +320,7 @@ class AdditionEFDFormula(AdditionFormula, EFDFormula):
 
 
 @public
-class DoublingFormula(Formula):
+class DoublingFormula(Formula, ABC):
     shortname = "dbl"
     num_inputs = 1
     num_outputs = 1
@@ -283,7 +332,7 @@ class DoublingEFDFormula(DoublingFormula, EFDFormula):
 
 
 @public
-class TriplingFormula(Formula):
+class TriplingFormula(Formula, ABC):
     shortname = "tpl"
     num_inputs = 1
     num_outputs = 1
@@ -295,7 +344,7 @@ class TriplingEFDFormula(TriplingFormula, EFDFormula):
 
 
 @public
-class NegationFormula(Formula):
+class NegationFormula(Formula, ABC):
     shortname = "neg"
     num_inputs = 1
     num_outputs = 1
@@ -307,7 +356,7 @@ class NegationEFDFormula(NegationFormula, EFDFormula):
 
 
 @public
-class ScalingFormula(Formula):
+class ScalingFormula(Formula, ABC):
     shortname = "scl"
     num_inputs = 1
     num_outputs = 1
@@ -319,7 +368,7 @@ class ScalingEFDFormula(ScalingFormula, EFDFormula):
 
 
 @public
-class DifferentialAdditionFormula(Formula):
+class DifferentialAdditionFormula(Formula, ABC):
     shortname = "dadd"
     num_inputs = 3
     num_outputs = 1
@@ -331,7 +380,7 @@ class DifferentialAdditionEFDFormula(DifferentialAdditionFormula, EFDFormula):
 
 
 @public
-class LadderFormula(Formula):
+class LadderFormula(Formula, ABC):
     shortname = "ladd"
     num_inputs = 3
     num_outputs = 2
