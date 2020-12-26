@@ -6,7 +6,7 @@ from public import public
 
 from .error import raise_non_invertible, raise_non_residue
 from .context import ResultAction
-from ..cfg import getconfig
+from ..misc.cfg import getconfig
 
 has_gmp = False
 try:

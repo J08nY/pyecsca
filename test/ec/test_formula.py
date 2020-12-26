@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pyecsca.cfg import TemporaryConfig
+from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point

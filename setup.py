@@ -6,6 +6,7 @@ setup(
     author='Jan Jancar',
     author_email='johny@neuromancer.sk',
     version='0.1.0',
+    url="https://neuromancer.sk/pyecsca/",
     packages=find_namespace_packages(include=["pyecsca.*"]),
     license="MIT",
     description="Python Elliptic Curve cryptography Side Channel Analysis toolkit.",
@@ -48,6 +49,6 @@ setup(
         "smartcard": ["pyscard"],
         "gmp": ["gmpy2"],
         "dev": ["mypy", "flake8", "interrogate"],
-        "test": ["nose2", "parameterized", "green", "coverage"]
+        "test": ["nose2", "parameterized", "coverage"]
     }
 )

@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-from pyecsca.cfg import TemporaryConfig
+from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params, load_params, load_category, get_category

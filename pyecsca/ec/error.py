@@ -1,5 +1,5 @@
 from public import public
-from ..cfg import getconfig
+from ..misc.cfg import getconfig
 
 @public
 class NonInvertibleError(ArithmeticError):

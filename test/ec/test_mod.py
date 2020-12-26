@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, has_gmp, RawMod
 from pyecsca.ec.error import NonInvertibleError, NonResidueError, NonInvertibleWarning, NonResidueWarning
-from pyecsca.cfg import getconfig, TemporaryConfig
+from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
 
 class ModTests(TestCase):

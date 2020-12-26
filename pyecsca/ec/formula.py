@@ -12,7 +12,7 @@ from .context import ResultAction, getcontext, NullContext
 from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod
 from .op import CodeOp, OpType
-from ..cfg import getconfig
+from ..misc.cfg import getconfig
 
 
 @public

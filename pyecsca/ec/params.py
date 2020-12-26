@@ -16,7 +16,7 @@ from .mod import Mod
 from .model import (CurveModel, ShortWeierstrassModel, MontgomeryModel, EdwardsModel,
                     TwistedEdwardsModel)
 from .point import Point, InfinityPoint
-from ..cfg import getconfig
+from ..misc.cfg import getconfig
 
 
 @public
