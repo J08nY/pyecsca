@@ -242,7 +242,7 @@ def load_params(file: Union[str, Path, BinaryIO], coords: str, infty: bool = Tru
 
 @public
 def get_category(category: str, coords: Union[str, Callable[[str], str]],
-                  infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
+                 infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
     """
     Retrieve a category from the std-curves database at https://github.com/J08nY/std-curves.
 

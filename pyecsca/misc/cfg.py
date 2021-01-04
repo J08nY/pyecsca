@@ -100,7 +100,7 @@ class ECConfig(object):
     @mod_implementation.setter
     def mod_implementation(self, value: str):
         if value not in ("python", "gmp"):
-            raise ValueError(f"Bad Mod implementaiton, can be one of 'python' or 'gmp'.")
+            raise ValueError("Bad Mod implementaiton, can be one of 'python' or 'gmp'.")
         self._mod_implementation = value
 
 

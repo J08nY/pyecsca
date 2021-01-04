@@ -1,6 +1,7 @@
 from public import public
 from ..misc.cfg import getconfig
 
+
 @public
 class NonInvertibleError(ArithmeticError):
     pass

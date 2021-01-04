@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Mapping, Any
+from typing import Mapping, TYPE_CHECKING
 
 from public import public
 
@@ -7,6 +7,8 @@ from .context import ResultAction
 from .coordinates import AffineCoordinateModel, CoordinateModel, EFDCoordinateModel
 from .mod import Mod, Undefined
 from .op import CodeOp
+if TYPE_CHECKING:
+    from .curve import EllipticCurve
 
 
 @public

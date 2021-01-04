@@ -1,7 +1,8 @@
 import random
 import secrets
 from functools import wraps, lru_cache
-from abc import abstractmethod
+from typing import Type, Dict
+
 from public import public
 
 from .error import raise_non_invertible, raise_non_residue
@@ -104,7 +105,7 @@ class RandomModAction(ResultAction):
         return f"{self.__class__.__name__}({self.order:x})"
 
 
-_mod_classes = {}
+_mod_classes: Dict[str, Type] = {}
 
 
 @public
@@ -144,7 +145,6 @@ class Mod(object):
     def __neg__(self):
         return self.__class__(self.n - self.x, self.n)
 
-    @abstractmethod
     def inverse(self) -> "Mod":
         """
         Invert the element.
@@ -157,12 +157,10 @@ class Mod(object):
     def __invert__(self):
         return self.inverse()
 
-    @abstractmethod
     def is_residue(self) -> bool:
         """Whether this element is a quadratic residue (only implemented for prime modulus)."""
         ...
 
-    @abstractmethod
     def sqrt(self) -> "Mod":
         """
         The modular square root of this element (only implemented for prime modulus).
@@ -208,11 +206,9 @@ class Mod(object):
         q, r = divmod(self.x, divisor.x)
         return self.__class__(q, self.n), self.__class__(r, self.n)
 
-    @abstractmethod
     def __bytes__(self):
         ...
 
-    @abstractmethod
     def __int__(self):
         ...
 
@@ -227,7 +223,6 @@ class Mod(object):
         with RandomModAction(n) as action:
             return action.exit(cls(secrets.randbelow(n), n))
 
-    @abstractmethod
     def __pow__(self, n):
         ...
 
@@ -530,6 +525,5 @@ if has_gmp:
             if n == 1:
                 return GMPMod(self.x, self.n)
             return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n)
-
 
     _mod_classes["gmp"] = GMPMod
