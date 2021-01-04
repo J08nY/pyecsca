@@ -5,5 +5,7 @@ pyecsca.egg-info
 .mypy_cache/
 /.pytest_cache/
 /htmlcov/
+/build/
+/dist/
 /Pipfile.lock
 __pycache__/

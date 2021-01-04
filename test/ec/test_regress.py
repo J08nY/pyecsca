@@ -25,3 +25,12 @@ class RegressionTests(TestCase):
         self.assertNotIsInstance(a.coords["X"].x, float)
         self.assertNotIsInstance(a.coords["Y"].x, float)
         self.assertNotIsInstance(a.coords["Z"].x, float)
+
+    def test_issue_8(self):
+        e222 = get_params("other", "E-222", "projective")
+        base = e222.generator
+        affine_base = base.to_affine()
+        affine_double = e222.curve.affine_double(affine_base)
+        affine_triple = e222.curve.affine_add(affine_base, affine_double)
+        self.assertIsNotNone(affine_double)
+        self.assertIsNotNone(affine_triple)
