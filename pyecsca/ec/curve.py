@@ -167,7 +167,10 @@ class EllipticCurve(object):
             return False
         if self.is_neutral(point):
             return True
-        loc = {**self.parameters, **point.to_affine().coords}
+        if isinstance(point.coordinate_model, AffineCoordinateModel):
+            loc = {**self.parameters, **point.coords}
+        else:
+            loc = {**self.parameters, **point.to_affine().coords}
         return eval(compile(self.model.equation, "", mode="eval"), loc)
 
     def to_affine(self) -> "EllipticCurve":

@@ -103,8 +103,13 @@ class Point(object):
                         result[var] = result[var].inverse()
                 elif var == "Y":
                     result[var] = self.coords["y"]
-                    if isinstance(coordinate_model, EFDCoordinateModel) and coordinate_model.name == "inverted":
-                        result[var] = result[var].inverse()
+                    if isinstance(coordinate_model, EFDCoordinateModel):
+                        if coordinate_model.name == "inverted":
+                            result[var] = result[var].inverse()
+                        elif coordinate_model.name == "yz":
+                            result[var] = result[var] * curve.parameters["r"]
+                        elif coordinate_model.name == "yzsquared":
+                            result[var] = result[var] * curve.parameters["r"]**2
                 elif var.startswith("Z"):
                     result[var] = Mod(1, curve.prime)
                 elif var == "T":

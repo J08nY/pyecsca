@@ -49,3 +49,15 @@ class RegressionTests(TestCase):
         formula = coords.formulas["dbl-1987-m-2"]
         res = formula(base, **curve.parameters)[0]
         self.assertIsNotNone(res)
+
+    def test_issue_10(self):
+        model = EdwardsModel()
+        coords = model.coordinates["yz"]
+        p = 0x1d
+        c = Mod(1, p)
+        d = Mod(0x1c, p)
+        r = d.sqrt()
+        neutral = Point(coords, Y=c * r, Z=Mod(1, p))
+        curve = EllipticCurve(model, coords, p, neutral, {"c": c, "d": d, "r": r})
+        neutral_affine = Point(AffineCoordinateModel(model), x=Mod(0, p), y=c)
+        self.assertEqual(neutral, neutral_affine.to_model(coords, curve))
