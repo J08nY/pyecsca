@@ -29,7 +29,7 @@ setup(
     install_requires=[
         "numpy",
         "scipy",
-        "sympy",
+        "sympy>=1.7.1",
         "atpublic",
         "cython",
         "fastdtw",

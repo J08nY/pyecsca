@@ -49,6 +49,12 @@ class RegressionTests(TestCase):
         formula = coords.formulas["dbl-1987-m-2"]
         res = formula(base, **curve.parameters)[0]
         self.assertIsNotNone(res)
+        affine_base = Point(AffineCoordinateModel(model), x=Mod(12, p), y=Mod(2, p))
+        dbase = curve.affine_double(affine_base).to_model(coords, curve)
+        ladder = coords.formulas["ladd-1987-m-3"]
+        one, other = ladder(base, dbase, base, **curve.parameters)
+        self.assertIsNotNone(one)
+        self.assertIsNotNone(other)
 
     def test_issue_10(self):
         model = EdwardsModel()
