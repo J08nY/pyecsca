@@ -109,7 +109,7 @@ class Point(object):
                         elif coordinate_model.name == "yz":
                             result[var] = result[var] * curve.parameters["r"]
                         elif coordinate_model.name == "yzsquared":
-                            result[var] = result[var] * curve.parameters["r"]**2
+                            result[var] = result[var]**2 * curve.parameters["r"]
                 elif var.startswith("Z"):
                     result[var] = Mod(1, curve.prime)
                 elif var == "T":

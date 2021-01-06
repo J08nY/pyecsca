@@ -59,6 +59,7 @@ class RegressionTests(TestCase):
     def test_issue_10(self):
         model = EdwardsModel()
         coords = model.coordinates["yz"]
+        coords_sqr = model.coordinates["yzsquared"]
         p = 0x1d
         c = Mod(1, p)
         d = Mod(0x1c, p)
@@ -67,3 +68,5 @@ class RegressionTests(TestCase):
         curve = EllipticCurve(model, coords, p, neutral, {"c": c, "d": d, "r": r})
         neutral_affine = Point(AffineCoordinateModel(model), x=Mod(0, p), y=c)
         self.assertEqual(neutral, neutral_affine.to_model(coords, curve))
+        neutral_sqr = Point(coords_sqr, Y=c**2 * r, Z=Mod(1, p))
+        self.assertEqual(neutral_sqr, neutral_affine.to_model(coords_sqr, curve))
