@@ -6,7 +6,7 @@ from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from pkg_resources import resource_stream
 from public import public
-from sympy import sympify, FF, symbols, Poly
+from sympy import sympify, FF, symbols, Poly, Rational
 
 from .context import ResultAction, getcontext, NullContext
 from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
@@ -113,15 +113,7 @@ class Formula(ABC):
     unified: bool
     """Whether the formula is specifies that it is unified."""
 
-    def __call__(self, *points: Any, **params: Mod) -> Tuple[Any, ...]:
-        """
-        Execute a formula.
-
-        :param points: Points to pass into the formula.
-        :param params: Parameters of the curve.
-        :return: The resulting point(s).
-        """
-        from .point import Point
+    def __validate_points(self, points, params):
         # Validate number of inputs.
         if len(points) != self.num_inputs:
             raise ValueError(f"Wrong number of inputs for {self}.")
@@ -131,8 +123,9 @@ class Formula(ABC):
                 raise ValueError(f"Wrong coordinate model of point {point}.")
             for coord, value in point.coords.items():
                 params[coord + str(i + 1)] = value
+
+    def __validate_assumptions(self, field, params):
         # Validate assumptions and compute formula parameters.
-        field = int(params[next(iter(params.keys()))].n)  # TODO: This is nasty...
         for assumption in self.assumptions:
             assumption_string = unparse(assumption)[1:-2]
             lhs, rhs = assumption_string.split(" == ")
@@ -147,12 +140,28 @@ class Formula(ABC):
                                                   f"Unsatisfied assumption in the formula ({assumption_string}).")
             else:
                 k = FF(field)
-                expr = sympify(f"{rhs} - {lhs}")
+                expr = sympify(f"{rhs} - {lhs}", evaluate=False)
                 for curve_param, value in params.items():
                     expr = expr.subs(curve_param, k(value))
                 if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in self.parameters:
                     raise ValueError(
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string}).")
+
+                def resolve(expr):
+                    if not expr.args:
+                        return expr
+                    args = []
+                    for arg in expr.args:
+                        if isinstance(arg, Rational):
+                            a = arg.numerator()
+                            b = arg.denominator()
+                            arg = k(a) / k(b)
+                        else:
+                            arg = resolve(arg)
+                        args.append(arg)
+                    return expr.func(*args)
+
+                expr = resolve(expr)
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots.keys():
@@ -160,6 +169,19 @@ class Formula(ABC):
                     break
                 else:
                     raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
+
+    def __call__(self, *points: Any, **params: Mod) -> Tuple[Any, ...]:
+        """
+        Execute a formula.
+
+        :param points: Points to pass into the formula.
+        :param params: Parameters of the curve.
+        :return: The resulting point(s).
+        """
+        from .point import Point
+        self.__validate_points(points, params)
+        field = int(params[next(iter(params.keys()))].n)  # TODO: This is nasty...
+        self.__validate_assumptions(field, params)
         # Execute the actual formula.
         with FormulaAction(self, *points, **params) as action:
             for op in self.code:

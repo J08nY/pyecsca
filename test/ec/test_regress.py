@@ -1,8 +1,12 @@
 from unittest import TestCase
 
+from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import MontgomeryModel, EdwardsModel
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.point import Point
 
 
 class RegressionTests(TestCase):
@@ -34,3 +38,14 @@ class RegressionTests(TestCase):
         affine_triple = e222.curve.affine_add(affine_base, affine_double)
         self.assertIsNotNone(affine_double)
         self.assertIsNotNone(affine_triple)
+
+    def test_issue_9(self):
+        model = MontgomeryModel()
+        coords = model.coordinates["xz"]
+        p = 19
+        neutral = Point(coords, X=Mod(1, p), Z=Mod(0, p))
+        curve = EllipticCurve(model, coords, p, neutral, {"a": Mod(8, p), "b": Mod(1, p)})
+        base = Point(coords, X=Mod(12, p), Z=Mod(1, p))
+        formula = coords.formulas["dbl-1987-m-2"]
+        res = formula(base, **curve.parameters)[0]
+        self.assertIsNotNone(res)
