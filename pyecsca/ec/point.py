@@ -165,7 +165,7 @@ class Point(object):
         return self.coords == other.coords
 
     def __hash__(self):
-        return hash(self.coords) + 1
+        return hash((tuple(self.coords.keys()), tuple(self.coords.values()))) + 1
 
     def __str__(self):
         args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])

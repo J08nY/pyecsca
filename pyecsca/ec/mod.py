@@ -316,6 +316,9 @@ class RawMod(Mod):
     def __repr__(self):
         return str(self.x)
 
+    def __hash__(self):
+        return hash(("RawMod", self.x, self.n))
+
     def __pow__(self, n):
         if type(n) is not int:
             raise TypeError
@@ -408,6 +411,9 @@ class Undefined(Mod):
 
     def __repr__(self):
         return "Undefined"
+
+    def __hash__(self):
+        return hash("Undefined") + 1
 
     def __pow__(self, n):
         raise NotImplementedError
@@ -514,6 +520,9 @@ if has_gmp:
 
         def __repr__(self):
             return str(int(self.x))
+
+        def __hash__(self):
+            return hash(("GMPMod", self.x, self.n))
 
         def __pow__(self, n):
             if type(n) not in (int, gmpy2.mpz):
