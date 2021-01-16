@@ -1,3 +1,6 @@
 include README.md
 graft pyecsca/ec/efd/
 graft pyecsca/ec/std/
+global-exclude .git*
+exclude pyecsca/ec/efd/README.md pyecsca/ec/std/README.md
+prune pyecsca/ec/std/.github/
