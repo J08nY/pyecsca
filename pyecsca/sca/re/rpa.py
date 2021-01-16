@@ -1,28 +1,33 @@
 from public import public
-from typing import MutableMapping
+from typing import MutableMapping, Optional
 
 from ...ec.formula import FormulaAction, DoublingFormula, AdditionFormula, TriplingFormula, NegationFormula, \
     DifferentialAdditionFormula, LadderFormula
-from ...ec.mult import ScalarMultiplicationAction
+from ...ec.mult import ScalarMultiplicationAction, PrecomputationAction
 from ...ec.point import Point
 from ...ec.context import Context, Action
 
 
 @public
 class MultipleContext(Context):
-    """A context that traces the multiples computed."""
-    base: Point
+    """A context that traces the multiples of points computed."""
+    base: Optional[Point]
     points: MutableMapping[Point, int]
     inside: bool
 
+    def __init__(self):
+        self.base = None
+        self.points = {}
+        self.inside = False
+
     def enter_action(self, action: Action) -> None:
-        if isinstance(action, ScalarMultiplicationAction):
+        if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
             self.base = action.point
             self.points = {self.base: 1}
             self.inside = True
 
     def exit_action(self, action: Action) -> None:
-        if isinstance(action, ScalarMultiplicationAction):
+        if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
             self.inside = False
         if isinstance(action, FormulaAction) and self.inside:
             if isinstance(action.formula, DoublingFormula):
@@ -48,5 +53,8 @@ class MultipleContext(Context):
             elif isinstance(action.formula, LadderFormula):
                 diff, one, other = action.input_points
                 dbl, add = action.output_points
-                self.points[dbl] = 2 * self.points[one]
                 self.points[add] = self.points[one] + self.points[other]
+                self.points[dbl] = 2 * self.points[one]
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.base!r}, multiples={self.points.values()!r})"

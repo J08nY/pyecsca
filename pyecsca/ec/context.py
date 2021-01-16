@@ -156,6 +156,10 @@ class DefaultContext(Context):
     actions: Tree
     current: List[Action]
 
+    def __init__(self):
+        self.actions = Tree()
+        self.current = []
+
     def enter_action(self, action: Action) -> None:
         self.actions.get_by_key(self.current)[action] = Tree()
         self.current.append(action)
@@ -164,10 +168,6 @@ class DefaultContext(Context):
         if len(self.current) < 1 or self.current[-1] != action:
             raise ValueError
         self.current.pop()
-
-    def __init__(self):
-        self.actions = Tree()
-        self.current = []
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.actions!r}, current={self.current!r})"
@@ -180,6 +180,17 @@ class PathContext(Context):
     current: List[int]
     current_depth: int
     value: Any
+
+    def __init__(self, path: Sequence[int]):
+        """
+        Create a :py:class:`PathContext`.
+
+        :param path: The path of an action in the execution tree that will be captured.
+        """
+        self.path = list(path)
+        self.current = []
+        self.current_depth = 0
+        self.value = None
 
     def enter_action(self, action: Action) -> None:
         if self.current_depth == len(self.current):
@@ -194,17 +205,6 @@ class PathContext(Context):
         if self.current_depth != len(self.current):
             self.current.pop()
         self.current_depth -= 1
-
-    def __init__(self, path: Sequence[int]):
-        """
-        Create a :py:class:`PathContext`.
-
-        :param path: The path of an action in the execution tree that will be captured.
-        """
-        self.path = list(path)
-        self.current = []
-        self.current_depth = 0
-        self.value = None
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.current!r}, depth={self.current_depth!r})"

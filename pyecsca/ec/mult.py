@@ -4,7 +4,7 @@ from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
 
 from public import public
 
-from .context import ResultAction
+from .context import ResultAction, Action
 from .formula import (Formula, AdditionFormula, DoublingFormula, DifferentialAdditionFormula,
                       ScalingFormula, LadderFormula, NegationFormula)
 from .naf import naf, wnaf
@@ -28,6 +28,18 @@ class ScalarMultiplicationAction(ResultAction):
 
 
 @public
+class PrecomputationAction(Action):
+    """"""
+    params: DomainParameters
+    point: Point
+
+    def __init__(self, params: DomainParameters, point: Point):
+        super().__init__()
+        self.params = params
+        self.point = point
+
+
+@public
 class ScalarMultiplier(ABC):
     """
     A scalar multiplication algorithm.
@@ -46,7 +58,7 @@ class ScalarMultiplier(ABC):
     _point: Point
     _initialized: bool = False
 
-    def __init__(self, short_circuit=True, **formulas: Optional[Formula]):
+    def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
         if len(set(formula.coordinate_model for formula in formulas.values() if
                    formula is not None)) != 1:
             raise ValueError
@@ -380,8 +392,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
 
     def init(self, params: DomainParameters, point: Point):
-        super().init(params, point)
-        self._point_neg = self._neg(point)
+        with PrecomputationAction(params, point):
+            super().init(params, point)
+            self._point_neg = self._neg(point)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -422,16 +435,17 @@ class WindowNAFMultiplier(ScalarMultiplier):
         self.precompute_negation = precompute_negation
 
     def init(self, params: DomainParameters, point: Point):
-        super().init(params, point)
-        self._points = {}
-        self._points_neg = {}
-        current_point = point
-        double_point = self._dbl(point)
-        for i in range(0, 2 ** (self.width - 2)):
-            self._points[2 * i + 1] = current_point
-            if self.precompute_negation:
-                self._points_neg[2 * i + 1] = self._neg(current_point)
-            current_point = self._add(current_point, double_point)
+        with PrecomputationAction(params, point):
+            super().init(params, point)
+            self._points = {}
+            self._points_neg = {}
+            current_point = point
+            double_point = self._dbl(point)
+            for i in range(0, 2 ** (self.width - 2)):
+                self._points[2 * i + 1] = current_point
+                if self.precompute_negation:
+                    self._points_neg[2 * i + 1] = self._neg(current_point)
+                current_point = self._add(current_point, double_point)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
