@@ -18,9 +18,9 @@ class FormulaTests(TestCase):
 
     def test_wrong_call(self):
         with self.assertRaises(ValueError):
-            self.add()
+            self.add(self.secp128r1.curve.prime)
         with self.assertRaises(ValueError):
-            self.add(self.secp128r1.generator.to_affine(), self.secp128r1.generator.to_affine())
+            self.add(self.secp128r1.curve.prime, self.secp128r1.generator.to_affine(), self.secp128r1.generator.to_affine())
 
     def test_indices(self):
         self.assertEqual(self.add.input_index, 1)
@@ -44,18 +44,18 @@ class FormulaTests(TestCase):
         self.assertEqual(self.add.num_addsubs, 10)
 
     def test_assumptions(self):
-        res = self.mdbl(self.secp128r1.generator, **self.secp128r1.curve.parameters)
+        res = self.mdbl(self.secp128r1.curve.prime, self.secp128r1.generator, **self.secp128r1.curve.parameters)
         self.assertIsNotNone(res)
 
         coords = {name: value * 5 for name, value in self.secp128r1.generator.coords.items()}
         other = Point(self.secp128r1.generator.coordinate_model, **coords)
         with self.assertRaises(UnsatisfiedAssumptionError):
-            self.mdbl(other, **self.secp128r1.curve.parameters)
+            self.mdbl(self.secp128r1.curve.prime, other, **self.secp128r1.curve.parameters)
         with TemporaryConfig() as cfg:
             cfg.ec.unsatisfied_formula_assumption_action = "ignore"
-            pt = self.mdbl(other, **self.secp128r1.curve.parameters)
+            pt = self.mdbl(self.secp128r1.curve.prime, other, **self.secp128r1.curve.parameters)
             self.assertIsNotNone(pt)
 
     def test_parameters(self):
-        res = self.jac_dbl(self.jac_secp128r1.generator, **self.jac_secp128r1.curve.parameters)
+        res = self.jac_dbl(self.secp128r1.curve.prime, self.jac_secp128r1.generator, **self.jac_secp128r1.curve.parameters)
         self.assertIsNotNone(res)

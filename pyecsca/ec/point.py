@@ -33,14 +33,24 @@ class Point(object):
     """A point with coordinates in a coordinate model."""
     coordinate_model: CoordinateModel
     coords: Mapping[str, Mod]
+    field: int
 
     def __init__(self, model: CoordinateModel, **coords: Mod):
         if not set(model.variables) == set(coords.keys()):
             raise ValueError
         self.coordinate_model = model
         self.coords = coords
+        field = None
+        for value in self.coords.values():
+            if field is None:
+                field = value.n
+            else:
+                if field != value.n:
+                    raise ValueError(f"Mismatched coordinate field of definition, {field} vs {value.n}.")
+        self.field = field
 
     def __getattribute__(self, name):
+        # Do the magic such that point.X1 works!
         if "coords" in super().__getattribute__("__dict__"):
             coords = super().__getattribute__("coords")
             if name in coords:
@@ -141,8 +151,8 @@ class Point(object):
             return False
         if "z" in self.coordinate_model.formulas:
             formula = self.coordinate_model.formulas["z"]
-            self_mapped = formula(self)
-            other_mapped = formula(other)
+            self_mapped = formula(self.field, self)
+            other_mapped = formula(self.field, other)
             return self_mapped == other_mapped
         else:
             raise ValueError("No scaling formula available.")

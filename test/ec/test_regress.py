@@ -47,12 +47,12 @@ class RegressionTests(TestCase):
         curve = EllipticCurve(model, coords, p, neutral, {"a": Mod(8, p), "b": Mod(1, p)})
         base = Point(coords, X=Mod(12, p), Z=Mod(1, p))
         formula = coords.formulas["dbl-1987-m-2"]
-        res = formula(base, **curve.parameters)[0]
+        res = formula(p, base, **curve.parameters)[0]
         self.assertIsNotNone(res)
         affine_base = Point(AffineCoordinateModel(model), x=Mod(12, p), y=Mod(2, p))
         dbase = curve.affine_double(affine_base).to_model(coords, curve)
         ladder = coords.formulas["ladd-1987-m-3"]
-        one, other = ladder(base, dbase, base, **curve.parameters)
+        one, other = ladder(p, base, dbase, base, **curve.parameters)
         self.assertIsNotNone(one)
         self.assertIsNotNone(other)
 

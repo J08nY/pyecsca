@@ -186,7 +186,7 @@ class Signature(object):
         p1 = self.mult.multiply(int(u1))
         self.mult.init(self.params, self.pubkey)
         p2 = self.mult.multiply(int(u2))
-        p = self.add(p1, p2, **self.params.curve.parameters)[0]
+        p = self.add(self.params.curve.prime, p1, p2, **self.params.curve.parameters)[0]
         affine = p.to_affine()
         v = Mod(int(affine.x), self.params.order)
         return signature.r == int(v)

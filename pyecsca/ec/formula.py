@@ -113,7 +113,12 @@ class Formula(ABC):
     unified: bool
     """Whether the formula is specifies that it is unified."""
 
-    def __validate_points(self, points, params):
+    def __validate_params(self, field, params):
+        for key, value in params.items():
+            if not isinstance(value, Mod) or value.n != field:
+                raise ValueError(f"Wrong param input {key} = {value}.")
+
+    def __validate_points(self, field, points, params):
         # Validate number of inputs.
         if len(points) != self.num_inputs:
             raise ValueError(f"Wrong number of inputs for {self}.")
@@ -122,6 +127,8 @@ class Formula(ABC):
             if point.coordinate_model != self.coordinate_model:
                 raise ValueError(f"Wrong coordinate model of point {point}.")
             for coord, value in point.coords.items():
+                if not isinstance(value, Mod) or value.n != field:
+                    raise ValueError(f"Wrong coordinate input {coord} = {value} of point {i}.")
                 params[coord + str(i + 1)] = value
 
     def __validate_assumptions(self, field, params):
@@ -147,11 +154,11 @@ class Formula(ABC):
                     raise ValueError(
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string}).")
 
-                def resolve(expr):
-                    if not expr.args:
-                        return expr
+                def resolve(expression):
+                    if not expression.args:
+                        return expression
                     args = []
-                    for arg in expr.args:
+                    for arg in expression.args:
                         if isinstance(arg, Rational):
                             a = arg.numerator()
                             b = arg.denominator()
@@ -159,7 +166,7 @@ class Formula(ABC):
                         else:
                             arg = resolve(arg)
                         args.append(arg)
-                    return expr.func(*args)
+                    return expression.func(*args)
 
                 expr = resolve(expr)
                 poly = Poly(expr, symbols(param), domain=k)
@@ -170,17 +177,18 @@ class Formula(ABC):
                 else:
                     raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
 
-    def __call__(self, *points: Any, **params: Mod) -> Tuple[Any, ...]:
+    def __call__(self, field: int, *points: Any, **params: Mod) -> Tuple[Any, ...]:
         """
         Execute a formula.
 
+        :param field: The field over which the computation is performed.
         :param points: Points to pass into the formula.
         :param params: Parameters of the curve.
         :return: The resulting point(s).
         """
         from .point import Point
-        self.__validate_points(points, params)
-        field = int(params[next(iter(params.keys()))].n)  # TODO: This is nasty...
+        self.__validate_params(field, params)
+        self.__validate_points(field, points, params)
         self.__validate_assumptions(field, params)
         # Execute the actual formula.
         with FormulaAction(self, *points, **params) as action:

@@ -73,7 +73,7 @@ class ScalarMultiplier(ABC):
                 return copy(other)
             if other == self._params.curve.neutral:
                 return copy(one)
-        return self.formulas["add"](one, other, **self._params.curve.parameters)[0]
+        return self.formulas["add"](self._params.curve.prime, one, other, **self._params.curve.parameters)[0]
 
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
@@ -81,12 +81,12 @@ class ScalarMultiplier(ABC):
         if self.short_circuit:
             if point == self._params.curve.neutral:
                 return copy(point)
-        return self.formulas["dbl"](point, **self._params.curve.parameters)[0]
+        return self.formulas["dbl"](self._params.curve.prime, point, **self._params.curve.parameters)[0]
 
     def _scl(self, point: Point) -> Point:
         if "scl" not in self.formulas:
             raise NotImplementedError
-        return self.formulas["scl"](point, **self._params.curve.parameters)[0]
+        return self.formulas["scl"](self._params.curve.prime, point, **self._params.curve.parameters)[0]
 
     def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, ...]:
         if "ladd" not in self.formulas:
@@ -96,7 +96,7 @@ class ScalarMultiplier(ABC):
                 return to_dbl, to_add
             if to_add == self._params.curve.neutral:
                 return self._dbl(to_dbl), to_dbl
-        return self.formulas["ladd"](start, to_dbl, to_add, **self._params.curve.parameters)
+        return self.formulas["ladd"](self._params.curve.prime, start, to_dbl, to_add, **self._params.curve.parameters)
 
     def _dadd(self, start: Point, one: Point, other: Point) -> Point:
         if "dadd" not in self.formulas:
@@ -106,12 +106,12 @@ class ScalarMultiplier(ABC):
                 return copy(other)
             if other == self._params.curve.neutral:
                 return copy(one)
-        return self.formulas["dadd"](start, one, other, **self._params.curve.parameters)[0]
+        return self.formulas["dadd"](self._params.curve.prime, start, one, other, **self._params.curve.parameters)[0]
 
     def _neg(self, point: Point) -> Point:
         if "neg" not in self.formulas:
             raise NotImplementedError
-        return self.formulas["neg"](point, **self._params.curve.parameters)[0]
+        return self.formulas["neg"](self._params.curve.prime, point, **self._params.curve.parameters)[0]
 
     def init(self, params: DomainParameters, point: Point):
         """
