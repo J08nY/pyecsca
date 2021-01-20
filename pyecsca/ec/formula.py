@@ -1,3 +1,6 @@
+"""
+This module provides an abstract base class of a formula along with concrete instantiations.
+"""
 from abc import ABC, abstractmethod
 from ast import parse, Expression
 from astunparse import unparse
@@ -287,6 +290,7 @@ class Formula(ABC):
 
 
 class EFDFormula(Formula):
+    """A formula from the `Explicit-Formulas Database <https://www.hyperelliptic.org/EFD/>`_."""
 
     def __init__(self, path: str, name: str, coordinate_model: Any):
         self.name = name
@@ -351,6 +355,7 @@ class EFDFormula(Formula):
 
 @public
 class AdditionFormula(Formula, ABC):
+    """A formula that adds two points."""
     shortname = "add"
     num_inputs = 2
     num_outputs = 1
@@ -363,6 +368,7 @@ class AdditionEFDFormula(AdditionFormula, EFDFormula):
 
 @public
 class DoublingFormula(Formula, ABC):
+    """A formula that doubles a point."""
     shortname = "dbl"
     num_inputs = 1
     num_outputs = 1
@@ -375,6 +381,7 @@ class DoublingEFDFormula(DoublingFormula, EFDFormula):
 
 @public
 class TriplingFormula(Formula, ABC):
+    """A formula that triples a point."""
     shortname = "tpl"
     num_inputs = 1
     num_outputs = 1
@@ -387,6 +394,7 @@ class TriplingEFDFormula(TriplingFormula, EFDFormula):
 
 @public
 class NegationFormula(Formula, ABC):
+    """A formula that negates a point."""
     shortname = "neg"
     num_inputs = 1
     num_outputs = 1
@@ -399,6 +407,7 @@ class NegationEFDFormula(NegationFormula, EFDFormula):
 
 @public
 class ScalingFormula(Formula, ABC):
+    """A formula that somehow scales the point (to a given representative of a projective class)."""
     shortname = "scl"
     num_inputs = 1
     num_outputs = 1
@@ -411,6 +420,10 @@ class ScalingEFDFormula(ScalingFormula, EFDFormula):
 
 @public
 class DifferentialAdditionFormula(Formula, ABC):
+    """
+    A differential addition formula that adds two points with a known difference.
+    The first input point is the difference of the third input and the second input (`P[0] = P[2] - P[1]`).
+    """
     shortname = "dadd"
     num_inputs = 3
     num_outputs = 1
@@ -423,6 +436,12 @@ class DifferentialAdditionEFDFormula(DifferentialAdditionFormula, EFDFormula):
 
 @public
 class LadderFormula(Formula, ABC):
+    """
+    A ladder formula for simultaneous addition of two points and doubling of the one of them, with a known difference.
+    The first input point is the difference of the third input and the second input (`P[0] = P[2] - P[1]`).
+    The first output point is the doubling of the second input point (`O[0] = 2 * P[1]`).
+    The second output point is the addition of the second and third input points (`O[1] = P[1] + P[2]`).
+    """
     shortname = "ladd"
     num_inputs = 3
     num_outputs = 2

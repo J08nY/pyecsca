@@ -1,3 +1,6 @@
+"""
+This module provides a class for a code operation.
+"""
 from ast import (Module, walk, Name, BinOp, UnaryOp, Constant, Mult, Div, Add, Sub, Pow, Assign,
                  operator as ast_operator, unaryop as ast_unaryop, USub)
 from enum import Enum

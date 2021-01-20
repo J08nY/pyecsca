@@ -1,5 +1,4 @@
 from configparser import ConfigParser
-from io import RawIOBase, BufferedIOBase
 from itertools import zip_longest
 from os.path import exists, isfile, join, basename, dirname
 from pathlib import Path
@@ -17,8 +16,7 @@ class ChipWhispererTraceSet(TraceSet):
     """ChipWhisperer trace set (native) format."""
 
     @classmethod
-    def read(cls,
-             input: Union[str, Path, bytes, BinaryIO]) -> "ChipWhispererTraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "ChipWhispererTraceSet":
         if isinstance(input, (str, Path)):
             traces, kwargs = ChipWhispererTraceSet.__read(input)
             return ChipWhispererTraceSet(*traces, **kwargs)

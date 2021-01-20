@@ -1,3 +1,6 @@
+"""
+This module provides curve model classes for the supported curve models.
+"""
 from ast import parse, Expression, Module
 from os.path import join
 from typing import List, MutableMapping
@@ -110,6 +113,13 @@ class EFDCurveModel(CurveModel):
 
 @public
 class ShortWeierstrassModel(EFDCurveModel):
+    """
+    A short-Weierstrass curve model, with the equation:
+
+    .. math::
+
+       y^2 = x^3 + a x + b
+    """
 
     def __init__(self):
         super().__init__("shortw")
@@ -117,13 +127,26 @@ class ShortWeierstrassModel(EFDCurveModel):
 
 @public
 class MontgomeryModel(EFDCurveModel):
+    """
+    A Montgomery curve model, with the equation:
 
+    .. math::
+
+       B y^2 = x^3 + A x^2 + x
+    """
     def __init__(self):
         super().__init__("montgom")
 
 
 @public
 class EdwardsModel(EFDCurveModel):
+    """
+    An Edwards curve model, with the equation:
+
+    .. math::
+
+       x^2 + y^2 = c^2 (1 + d x^2 y^2)
+    """
 
     def __init__(self):
         super().__init__("edwards")
@@ -131,6 +154,13 @@ class EdwardsModel(EFDCurveModel):
 
 @public
 class TwistedEdwardsModel(EFDCurveModel):
+    """
+    A twisted-Edwards curve model, with the equation:
+
+    .. math::
+
+       a x^2 + y^2 = 1 + d x^2 y^2
+    """
 
     def __init__(self):
         super().__init__("twisted")

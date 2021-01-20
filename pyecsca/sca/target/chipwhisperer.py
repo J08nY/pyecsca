@@ -1,4 +1,9 @@
-from typing import Optional
+"""
+This module provides a `ChipWhisperer <https://github.com/newaetech/chipwhisperer/>`_ target class.
+ChipWhisperer is a side-channel analysis tool and framework. A ChipWhisperer target is one
+that uses the ChipWhisperer's SimpleSerial communication protocol and is communicated with
+using ChipWhisperer-Lite or Pro.
+"""
 from time import sleep
 
 import chipwhisperer as cw
@@ -12,6 +17,10 @@ from .simpleserial import SimpleSerialTarget
 
 @public
 class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
+    """
+    A ChipWhisperer-based target, using the SimpleSerial protocol and communicating
+    using ChipWhisperer-Lite/Pro.
+    """
 
     def __init__(self, target: SimpleSerial, scope: ScopeTemplate, programmer, **kwargs):
         super().__init__()
@@ -32,7 +41,7 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
             return False
         return True
 
-    def write(self, data: bytes):
+    def write(self, data: bytes) -> None:
         self.target.flush()
         self.target.write(data.decode())
 

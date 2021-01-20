@@ -13,6 +13,15 @@ from .trace import Trace
 
 @public
 def match_pattern(trace: Trace, pattern: Trace, threshold: float = 0.8) -> List[int]:
+    """
+    Match a `pattern` to a `trace`. Returns indices where the pattern matches, e.g. those where correlation
+    of the two traces has peaks larger than `threshold`. Uses the :py:func:`scipy.signal.find_peaks` function.
+
+    :param trace: The trace to match into.
+    :param pattern: The pattern to match.
+    :param threshold: The threshold passed to :py:func:`scipy.signal.find_peaks` as a `prominence` value.
+    :return: Indices where the pattern matches.
+    """
     normalized = normalize(trace)
     pattern_samples = normalize(pattern).samples
     correlation = np.correlate(normalized.samples, pattern_samples, "same")
@@ -34,5 +43,16 @@ def match_pattern(trace: Trace, pattern: Trace, threshold: float = 0.8) -> List[
 
 
 @public
-def match_part(trace: Trace, offset: int, length: int) -> List[int]:
-    return match_pattern(trace, trim(trace, offset, offset + length))
+def match_part(trace: Trace, offset: int, length: int, threshold: float = 0.8) -> List[int]:
+    """
+    Match a part of a `trace` starting at `offset` of `length` to the `trace`. Returns indices where the pattern matches
+    , e.g. those where correlation of the two traces has peaks larger than `threshold`. Uses the
+    :py:func:`scipy.signal.find_peaks` function.
+
+    :param trace: The trace to match into.
+    :param offset: The start of the pattern in the trace to match.
+    :param length: The length of the pattern in the trace to match.
+    :param threshold: The threshold passed to :py:func:`scipy.signal.find_peaks` as a `prominence` value.
+    :return: Indices where the part of the trace matches matches.
+    """
+    return match_pattern(trace, trim(trace, offset, offset + length), threshold)

@@ -1,3 +1,6 @@
+"""
+This module provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class.
+"""
 from abc import ABC
 from binascii import hexlify
 from enum import IntEnum, IntFlag
@@ -45,6 +48,7 @@ class ShiftableFlag(IntFlag):  # pragma: no cover
 
 @public
 class KeypairEnum(ShiftableFlag):  # pragma: no cover
+    """ECTester's KeyPair type."""
     KEYPAIR_LOCAL = 0x01
     KEYPAIR_REMOTE = 0x02
     KEYPAIR_BOTH = KEYPAIR_LOCAL | KEYPAIR_REMOTE
@@ -52,6 +56,7 @@ class KeypairEnum(ShiftableFlag):  # pragma: no cover
 
 @public
 class InstructionEnum(IntEnum):  # pragma: no cover
+    """ECTester's instruction (INS)."""
     INS_ALLOCATE = 0x5a
     INS_CLEAR = 0x5b
     INS_SET = 0x5c
@@ -74,12 +79,14 @@ class InstructionEnum(IntEnum):  # pragma: no cover
 
 @public
 class KeyBuildEnum(IntEnum):  # pragma: no cover
+    """ECTester's key builder type."""
     BUILD_KEYPAIR = 0x01
     BUILD_KEYBUILDER = 0x02
 
 
 @public
 class ExportEnum(IntEnum):  # pragma: no cover
+    """ECTester's export boolean."""
     EXPORT_TRUE = 0xff
     EXPORT_FALSE = 0x00
 
@@ -90,12 +97,14 @@ class ExportEnum(IntEnum):  # pragma: no cover
 
 @public
 class RunModeEnum(IntEnum):  # pragma: no cover
+    """ECTester's run mode."""
     MODE_NORMAL = 0xaa
     MODE_DRY_RUN = 0xbb
 
 
 @public
 class KeyEnum(ShiftableFlag):  # pragma: no cover
+    """ECTester's key enum."""
     PUBLIC = 0x01
     PRIVATE = 0x02
     BOTH = PRIVATE | PUBLIC
@@ -103,18 +112,21 @@ class KeyEnum(ShiftableFlag):  # pragma: no cover
 
 @public
 class AppletBaseEnum(IntEnum):  # pragma: no cover
+    """ECTester's JavaCard applet base version."""
     BASE_221 = 0x0221
     BASE_222 = 0x0222
 
 
 @public
 class KeyClassEnum(IntEnum):  # pragma: no cover
+    """JavaCard EC-based key class."""
     ALG_EC_F2M = 4
     ALG_EC_FP = 5
 
 
 @public
 class KeyAgreementEnum(IntEnum):  # pragma: no cover
+    """JavaCard `KeyAgreement` type values."""
     ALG_EC_SVDP_DH = 1
     ALG_EC_SVDP_DH_KDF = 1
     ALG_EC_SVDP_DHC = 2
@@ -127,6 +139,7 @@ class KeyAgreementEnum(IntEnum):  # pragma: no cover
 
 @public
 class SignatureEnum(IntEnum):  # pragma: no cover
+    """JavaCard `Signature` type values."""
     ALG_ECDSA_SHA = 17
     ALG_ECDSA_SHA_224 = 37
     ALG_ECDSA_SHA_256 = 33
@@ -136,6 +149,7 @@ class SignatureEnum(IntEnum):  # pragma: no cover
 
 @public
 class TransformationEnum(ShiftableFlag):  # pragma: no cover
+    """ECTester's point/value transformation types."""
     NONE = 0x00
     FIXED = 0x01
     FULLRANDOM = 0x02
@@ -152,6 +166,7 @@ class TransformationEnum(ShiftableFlag):  # pragma: no cover
 
 @public
 class FormatEnum(IntEnum):  # pragma: no cover
+    """ECTester's point format types."""
     UNCOMPRESSED = 0
     COMPRESSED = 1
     HYBRID = 2
@@ -159,6 +174,7 @@ class FormatEnum(IntEnum):  # pragma: no cover
 
 @public
 class CurveEnum(IntEnum):  # pragma: no cover
+    """ECTester's curve constants."""
     default = 0x00
     external = 0xff
     secp112r1 = 0x01
@@ -178,6 +194,7 @@ class CurveEnum(IntEnum):  # pragma: no cover
 
 @public
 class ParameterEnum(ShiftableFlag):  # pragma: no cover
+    """ECTester's parameter ids."""
     NONE = 0x00
     FP = 0x01
     F2M = 0x02
@@ -196,10 +213,12 @@ class ParameterEnum(ShiftableFlag):  # pragma: no cover
 
 @public
 class ChunkingException(Exception):  # pragma: no cover
+    """An exception that is raised if an error happened during the chunking process of a large APDU."""
     pass
 
 
 class Response(ABC):  # pragma: no cover
+    """An abstract base class of a response APDU."""
     resp: ResponseAPDU
     sws: List[int]
     params: List[bytes]

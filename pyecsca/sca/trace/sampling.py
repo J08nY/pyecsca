@@ -1,3 +1,6 @@
+"""
+This module provides downsampling functions for traces.
+"""
 import numpy as np
 from public import public
 from scipy.signal import decimate

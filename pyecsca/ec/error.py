@@ -1,3 +1,6 @@
+"""
+This module contains exceptions and warnings used in the library.
+"""
 from public import public
 from ..misc.cfg import getconfig
 

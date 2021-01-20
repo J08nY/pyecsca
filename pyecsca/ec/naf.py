@@ -1,3 +1,6 @@
+"""
+This module provides functions for computing the Non-Adjacent Form (NAF) of integers.
+"""
 from public import public
 from typing import List
 

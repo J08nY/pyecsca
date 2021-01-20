@@ -23,7 +23,7 @@ project = 'pyecsca'
 copyright = '2018-2020, Jan Jancar'
 author = 'Jan Jancar'
 
-import sys; import os; sys.path.append(os.path.abspath('..'))
+sys.path.append(os.path.abspath('..'))
 
 # The short X.Y version
 version = '0.1.0'
@@ -175,7 +175,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'pyecsca', 'pyecsca Documentation',
-     author, 'pyecsca', 'One line description of project.',
+     author, 'pyecsca', 'Python Elliptic Curve Side-Channel Analysis toolkit',
      'Miscellaneous'),
 ]
 
@@ -207,7 +207,10 @@ autodoc_default_options = {
     "undoc-members": True,
     "inherited-members": True,
     "show-inheritance": True,
-    "member-order": "bysource"
+    "member-order": "bysource",
+    # "special-members": "__init__"
 }
+
+autoclass_content = "both"
 
 nbsphinx_allow_errors = True

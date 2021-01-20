@@ -1,5 +1,7 @@
+"""
+This module provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm).
+"""
 import hashlib
-import secrets
 from typing import Optional, Any
 
 from asn1crypto.core import Sequence, SequenceOf, Integer

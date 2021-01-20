@@ -1,3 +1,6 @@
+"""
+This module provides an abstract base class for oscilloscopes.
+"""
 from enum import Enum, auto
 from typing import Tuple, Sequence, Optional
 
@@ -8,6 +11,7 @@ from ..trace import Trace
 
 @public
 class SampleType(Enum):
+    """The sample unit."""
     Raw = auto()
     Volt = auto()
 

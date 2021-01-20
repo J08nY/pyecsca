@@ -1,3 +1,6 @@
+"""
+This module provides a way to work with and enumerate implementation configurations.
+"""
 from dataclasses import dataclass
 from enum import Enum
 from itertools import product

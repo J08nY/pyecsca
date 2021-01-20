@@ -1,10 +1,17 @@
+"""
+This module provides several implementations of an element of ℤₙ. The base class :py:class:`Mod` dynamically
+dispatches to the implementation chosen by the runtime configuration of the library
+(see :py:class:`pyecsca.misc.cfg.Config`). A Python integer based implementation is available under
+:py:class:`RawMod`. A symbolic implementation based on sympy is available under :py:class:`SymbolicMod`. If
+`gmpy2` is installed, a GMP based implementation is available under :py:class:`GMPMod`.
+"""
 import random
 import secrets
 from functools import wraps, lru_cache
 from typing import Type, Dict
 
 from public import public
-from sympy import Expr, Mod as SympyMod, FF
+from sympy import Expr, FF
 
 from .error import raise_non_invertible, raise_non_residue
 from .context import ResultAction
@@ -80,7 +87,7 @@ def miller_rabin(n: int, rounds: int = 50) -> bool:
     return True
 
 
-def check(func):
+def _check(func):
     @wraps(func)
     def method(self, other):
         if type(self) is not type(other):
@@ -111,6 +118,7 @@ _mod_classes: Dict[str, Type] = {}
 
 @public
 class Mod(object):
+    """An element x of ℤₙ."""
 
     def __new__(cls, *args, **kwargs):
         if cls != Mod:
@@ -127,19 +135,19 @@ class Mod(object):
         self.x = x
         self.n = n
 
-    @check
+    @_check
     def __add__(self, other):
         return self.__class__((self.x + other.x) % self.n, self.n)
 
-    @check
+    @_check
     def __radd__(self, other):
         return self + other
 
-    @check
+    @_check
     def __sub__(self, other):
         return self.__class__((self.x - other.x) % self.n, self.n)
 
-    @check
+    @_check
     def __rsub__(self, other):
         return -self + other
 
@@ -170,31 +178,31 @@ class Mod(object):
         """
         ...
 
-    @check
+    @_check
     def __mul__(self, other):
         return self.__class__((self.x * other.x) % self.n, self.n)
 
-    @check
+    @_check
     def __rmul__(self, other):
         return self * other
 
-    @check
+    @_check
     def __truediv__(self, other):
         return self * ~other
 
-    @check
+    @_check
     def __rtruediv__(self, other):
         return ~self * other
 
-    @check
+    @_check
     def __floordiv__(self, other):
         return self * ~other
 
-    @check
+    @_check
     def __rfloordiv__(self, other):
         return ~self * other
 
-    @check
+    @_check
     def __divmod__(self, divisor):
         q, r = divmod(self.x, divisor.x)
         return self.__class__(q, self.n), self.__class__(r, self.n)
@@ -225,7 +233,7 @@ class Mod(object):
 
 @public
 class RawMod(Mod):
-    """An element x of ℤₙ."""
+    """An element x of ℤₙ (implemented using Python integers)."""
     x: int
     n: int
 
@@ -330,6 +338,8 @@ _mod_classes["python"] = RawMod
 
 @public
 class Undefined(Mod):
+    """A special undefined element."""
+
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
 
@@ -406,12 +416,17 @@ class Undefined(Mod):
         raise NotImplementedError
 
 
-def symbolic_check(func):
+@lru_cache
+def __ff_cache(n):
+    return FF(n)
+
+
+def _symbolic_check(func):
     @wraps(func)
     def method(self, other):
         if type(self) is not type(other):
             if type(other) is int:
-                other = self.__class__(FF(self.n)(other), self.n)
+                other = self.__class__(__ff_cache(self.n)(other), self.n)
             else:
                 other = self.__class__(other, self.n)
         else:
@@ -424,7 +439,7 @@ def symbolic_check(func):
 
 @public
 class SymbolicMod(Mod):
-    """A symbolic element x of ℤₙ."""
+    """A symbolic element x of ℤₙ (implemented using sympy)."""
     x: Expr
     n: int
 
@@ -434,19 +449,19 @@ class SymbolicMod(Mod):
     def __init__(self, x: Expr, n: int):
         super().__init__(x, n)
 
-    @symbolic_check
+    @_symbolic_check
     def __add__(self, other):
         return self.__class__((self.x + other.x), self.n)
 
-    @symbolic_check
+    @_symbolic_check
     def __radd__(self, other):
         return self + other
 
-    @symbolic_check
+    @_symbolic_check
     def __sub__(self, other):
         return self.__class__((self.x - other.x), self.n)
 
-    @symbolic_check
+    @_symbolic_check
     def __rsub__(self, other):
         return -self + other
 
@@ -465,27 +480,27 @@ class SymbolicMod(Mod):
     def __invert__(self):
         return self.inverse()
 
-    @symbolic_check
+    @_symbolic_check
     def __mul__(self, other):
         return self.__class__(self.x * other.x, self.n)
 
-    @symbolic_check
+    @_symbolic_check
     def __rmul__(self, other):
         return self * other
 
-    @symbolic_check
+    @_symbolic_check
     def __truediv__(self, other):
         return self * ~other
 
-    @symbolic_check
+    @_symbolic_check
     def __rtruediv__(self, other):
         return ~self * other
 
-    @symbolic_check
+    @_symbolic_check
     def __floordiv__(self, other):
         return self * ~other
 
-    @symbolic_check
+    @_symbolic_check
     def __rfloordiv__(self, other):
         return ~self * other
 
@@ -596,7 +611,7 @@ if has_gmp:
                 r *= b
             return r
 
-        @check
+        @_check
         def __divmod__(self, divisor):
             q, r = gmpy2.f_divmod(self.x, divisor.x)
             return GMPMod(q, self.n), GMPMod(r, self.n)

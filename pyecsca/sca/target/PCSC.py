@@ -1,3 +1,6 @@
+"""
+This module provides a smartcard target communicating via PC/SC (Personal Computer/Smart Card).
+"""
 from typing import Union
 
 from public import public

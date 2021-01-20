@@ -1,3 +1,7 @@
+"""
+This module provides an oscilloscope class for PicoScope branded oscilloscopes using
+the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_.
+"""
 import ctypes
 from math import log2, floor
 from time import time_ns, sleep
@@ -31,6 +35,15 @@ from ..trace import Trace
 
 def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
              volt_range: float, adc_minmax: int, dtype=np.float32) -> Union[np.ndarray, float]:  # pragma: no cover
+    """
+    Convert raw adc values to volts.
+
+    :param adc: Either a single value (:py:class:`ctypes.c_int16`) or an array (:py:class:`np.ndarray`) of those to convert.
+    :param volt_range: The voltage range used for collecting the samples.
+    :param adc_minmax:
+    :param dtype: The numpy `dtype` of the output.
+    :return: The converted values.
+    """
     if isinstance(adc, ctypes.c_int16):
         return (adc.value / adc_minmax) * volt_range
     if isinstance(adc, np.ndarray):
@@ -40,6 +53,15 @@ def adc2volt(adc: Union[np.ndarray, ctypes.c_int16],
 
 def volt2adc(volt: Union[np.ndarray, float],
              volt_range: float, adc_minmax: int, dtype=np.float32) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
+    """
+    Convert volt values to raw adc values.
+
+    :param volt: Either a single value (:py:class:`float`) or an array (:py:class:`np.ndarray`) of those to convert.
+    :param volt_range: The voltage range used for collecting the samples.
+    :param adc_minmax:
+    :param dtype: The numpy `dtype` of the output.
+    :return: The converted values.
+    """
     if isinstance(volt, float):
         return ctypes.c_int16(int((volt / volt_range) * adc_minmax))
     if isinstance(volt, np.ndarray):
@@ -100,7 +122,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
 
     def set_channel(self, channel: str, enabled: bool, coupling: str, range: float, offset: float):
         if offset != 0.0:
-            raise ValueError("Offset not supported.")
+            raise ValueError("Nonzero offset not supported.")
         assert_pico_ok(
                 self.__dispatch_call("SetChannel", self.handle, self.CHANNELS[channel], enabled,
                                      self.COUPLING[coupling], self.RANGES[range]))
@@ -223,12 +245,14 @@ class PicoScopeSdk(Scope):  # pragma: no cover
 if isinstance(ps3000, CannotFindPicoSDKError):
     @public
     class PS3000Scope(PicoScopeSdk):  # pragma: no cover
+        """A PicoScope 3000 series oscilloscope is not available. (Install `libps3000`)."""
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps3000
 else:  # pragma: no cover
     @public
     class PS3000Scope(PicoScopeSdk):  # type: ignore
+        """A PicoScope 3000 series oscilloscope."""
         MODULE = ps3000
         PREFIX = "ps3000"
         CHANNELS = {
@@ -279,12 +303,14 @@ else:  # pragma: no cover
 if isinstance(ps4000, CannotFindPicoSDKError):
     @public
     class PS4000Scope(PicoScopeSdk):  # pragma: no cover
+        """A PicoScope 4000 series oscilloscope is not available. (Install `libps4000`)."""
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps4000
 else:  # pragma: no cover
     @public
     class PS4000Scope(PicoScopeSdk):  # type: ignore
+        """A PicoScope 4000 series oscilloscope."""
         MODULE = ps4000
         PREFIX = "ps4000"
         CHANNELS = {
@@ -332,12 +358,14 @@ else:  # pragma: no cover
 if isinstance(ps5000, CannotFindPicoSDKError):
     @public
     class PS5000Scope(PicoScopeSdk):  # pragma: no cover
+        """A PicoScope 5000 series oscilloscope is not available. (Install `libps5000`)."""
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps5000
 else:  # pragma: no cover
     @public
     class PS5000Scope(PicoScopeSdk):  # type: ignore
+        """A PicoScope 5000 series oscilloscope."""
         MODULE = ps5000
         PREFIX = "ps5000"
         CHANNELS = {
@@ -377,12 +405,14 @@ else:  # pragma: no cover
 if isinstance(ps6000, CannotFindPicoSDKError):
     @public
     class PS6000Scope(PicoScopeSdk):  # pragma: no cover
+        """A PicoScope 6000 series oscilloscope is not available. (Install `libps6000`)."""
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps6000
 else:  # pragma: no cover
     @public
     class PS6000Scope(PicoScopeSdk):  # type: ignore
+        """A PicoScope 6000 series oscilloscope."""
         MODULE = ps6000
         PREFIX = "ps6000"
         CHANNELS = {

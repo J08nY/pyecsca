@@ -1,3 +1,6 @@
+"""
+This module provides functions for sample-wise processing of single traces.
+"""
 import numpy as np
 from public import public
 
@@ -41,7 +44,7 @@ def threshold(trace: Trace, value) -> Trace:
     return trace.with_samples(result_samples)
 
 
-def rolling_window(samples: np.ndarray, window: int) -> np.ndarray:
+def _rolling_window(samples: np.ndarray, window: int) -> np.ndarray:
     shape = samples.shape[:-1] + (samples.shape[-1] - window + 1, window)
     strides = samples.strides + (samples.strides[-1],)
     return np.lib.stride_tricks.as_strided(samples, shape=shape, strides=strides)
@@ -56,7 +59,7 @@ def rolling_mean(trace: Trace, window: int) -> Trace:
     :param window:
     :return:
     """
-    return trace.with_samples(np.mean(rolling_window(trace.samples, window), -1).astype(
+    return trace.with_samples(np.mean(_rolling_window(trace.samples, window), -1).astype(
             dtype=trace.samples.dtype, copy=False))
 
 
@@ -72,7 +75,7 @@ def offset(trace: Trace, offset) -> Trace:
     return trace.with_samples(trace.samples + offset)
 
 
-def root_mean_square(trace: Trace):
+def _root_mean_square(trace: Trace):
     return np.sqrt(np.mean(np.square(trace.samples)))
 
 
@@ -84,16 +87,28 @@ def recenter(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    around = root_mean_square(trace)
+    around = _root_mean_square(trace)
     return offset(trace, -around)
 
 
 @public
 def normalize(trace: Trace) -> Trace:
+    """
+    Normalize a `trace` by subtracting its mean and dividing by its standard deviation.
+
+    :param trace:
+    :return:
+    """
     return trace.with_samples((trace.samples - np.mean(trace.samples)) / np.std(trace.samples))
 
 
 @public
 def normalize_wl(trace: Trace) -> Trace:
+    """
+    Normalize a `trace` by subtracting its mean and dividing by a multiple (= `len(trace)`) of its standard deviation.
+
+    :param trace:
+    :return:
+    """
     return trace.with_samples((trace.samples - np.mean(trace.samples)) / (
             np.std(trace.samples) * len(trace.samples)))

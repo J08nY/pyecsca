@@ -1,3 +1,7 @@
+"""
+This module provides an oscilloscope class for the PicoScope branded oscilloscopes using
+the alternative `pico-python <https://github.com/colinoflynn/pico-python>`_ bindings.
+"""
 from time import time_ns, sleep
 import numpy as np
 from typing import Optional, Tuple, Sequence, Union
@@ -14,8 +18,15 @@ from ..trace import Trace
 
 @public
 class PicoScopeAlt(Scope):  # pragma: no cover
+    """A PicoScope based scope. Supports series 3000,4000,5000 and 6000."""
 
     def __init__(self, ps: Union[PS3000, PS4000, PS5000, PS6000]):
+        """
+        Create a new scope.
+
+        :param ps: An instance of one of the supported PicoScope classes (:py:class:`PS3000`, :py:class:`PS4000`,
+                   :py:class:`PS5000`, :py:class:`PS6000`).
+        """
         super().__init__()
         self.ps = ps
         self.trig_ratio: float = 0.0

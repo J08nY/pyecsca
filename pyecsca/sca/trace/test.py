@@ -1,3 +1,6 @@
+"""
+This module provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...).
+"""
 from typing import Sequence, Optional, Tuple
 
 import numpy as np
@@ -9,8 +12,8 @@ from .combine import average_and_variance
 from .edit import trim
 
 
-def ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
-               equal_var: bool) -> Optional[CombinedTrace]:
+def _ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
+                equal_var: bool) -> Optional[CombinedTrace]:
     if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
         return None
     first_stack = np.stack([first.samples for first in first_set])
@@ -73,7 +76,7 @@ def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Op
     :param second_set:
     :return: Student's t-values (samplewise)
     """
-    return ttest_func(first_set, second_set, True)
+    return _ttest_func(first_set, second_set, True)
 
 
 @public

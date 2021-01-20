@@ -1,3 +1,7 @@
+"""
+This module provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_
+repository. It also provides a domain parameter class and a class for a whole category of domain parameters.
+"""
 import json
 from sympy import Poly, FF, symbols, sympify
 from astunparse import unparse

@@ -1,3 +1,6 @@
+"""
+This module provides several classes implementing different scalar multiplication algorithms.
+"""
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
@@ -29,7 +32,7 @@ class ScalarMultiplicationAction(ResultAction):
 
 @public
 class PrecomputationAction(Action):
-    """"""
+    """A precomputation of a point in scalar multiplication."""
     params: DomainParameters
     point: Point
 
@@ -53,7 +56,9 @@ class ScalarMultiplier(ABC):
     optionals: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
     """The optional set of formulas that the multiplier can use."""
     short_circuit: bool
+    """Whether the formulas will short-circuit upon input of the point at infinity."""
     formulas: Mapping[str, Formula]
+    """All formulas the multiplier was initialized with."""
     _params: DomainParameters
     _point: Point
     _initialized: bool = False

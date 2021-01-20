@@ -1,3 +1,7 @@
+"""
+This module provides an abstract target class communicating using the
+`ChipWhisperer's <https://github.com/newaetech/chipwhisperer/>`_ SimpleSerial protocol.
+"""
 from time import time_ns, sleep
 from typing import Mapping, Union
 
@@ -8,6 +12,7 @@ from .serial import SerialTarget
 
 @public
 class SimpleSerialMessage(object):
+    """A SimpleSerial message consisting of a starting character and a hexadecimal string."""
     char: str
     data: str
 
@@ -33,6 +38,7 @@ class SimpleSerialMessage(object):
 
 @public
 class SimpleSerialTarget(SerialTarget):
+    """A SimpleSerial target, sends and receives SimpleSerial messages over a serial link."""
 
     def recv_msgs(self, timeout: int) -> Mapping[str, SimpleSerialMessage]:
         start = time_ns() // 1000000
@@ -56,10 +62,12 @@ class SimpleSerialTarget(SerialTarget):
 
     def send_cmd(self, cmd: SimpleSerialMessage, timeout: int) -> Mapping[str, SimpleSerialMessage]:
         """
+        Send a :py:class:`SimpleSerialMessage` and receive the response messages that the command produces,
+        within a `timeout`.
 
-        :param cmd:
-        :param timeout:
-        :return:
+        :param cmd: The command message to send.
+        :param timeout: The timeout value to wait for the responses.
+        :return: A mapping of the starting character of the message to the message.
         """
         data = bytes(cmd)
         for i in range(0, len(data), 64):

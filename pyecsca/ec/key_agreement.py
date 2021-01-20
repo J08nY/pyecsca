@@ -1,3 +1,6 @@
+"""
+This module provides an implementation of ECDH (Elliptic Curve Diffie-Hellman).
+"""
 import hashlib
 from typing import Optional, Any
 
@@ -18,9 +21,7 @@ class ECDHAction(ResultAction):
     privkey: Mod
     pubkey: Point
 
-    def __init__(self, params: DomainParameters, hash_algo: Optional[Any],
-                 privkey: Mod,
-                 pubkey: Point):
+    def __init__(self, params: DomainParameters, hash_algo: Optional[Any], privkey: Mod, pubkey: Point):
         super().__init__()
         self.params = params
         self.hash_algo = hash_algo

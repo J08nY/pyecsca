@@ -1,3 +1,6 @@
+"""
+This module provides the Trace class.
+"""
 import weakref
 from typing import Any, Mapping, Sequence
 from copy import copy, deepcopy
@@ -14,6 +17,13 @@ class Trace(object):
     samples: ndarray
 
     def __init__(self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None):
+        """
+        Construct a new trace.
+
+        :param samples: The sample array of the trace.
+        :param meta: Metadata associated with the trace.
+        :param trace_set: A trace set the trace is contained in.
+        """
         if meta is None:
             meta = {}
         self.meta = meta
@@ -38,12 +48,18 @@ class Trace(object):
 
     @property
     def trace_set(self) -> Any:
+        """
+        The trace set this trace is contained in, if any.
+        """
         if self._trace_set is None:
             return None
         return self._trace_set()
 
     @trace_set.setter
     def trace_set(self, trace_set: Any):
+        """
+        Set the trace set of this trace.
+        """
         if trace_set is None:
             self._trace_set = None
         else:
@@ -64,6 +80,12 @@ class Trace(object):
         return np.array_equal(self.samples, other.samples) and self.meta == other.meta
 
     def with_samples(self, samples: ndarray) -> "Trace":
+        """
+        Construct a copy of this trace, with the same metadata, but samples replaced by `samples`.
+
+        :param samples: The samples of the new trace.
+        :return: The new trace.
+        """
         return Trace(samples, deepcopy(self.meta))
 
     def __copy__(self):

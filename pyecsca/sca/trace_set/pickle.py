@@ -1,3 +1,7 @@
+"""
+This module provides a traceset implementation based on Python's pickle format. This implementation of the
+traceset is thus very generic.
+"""
 import pickle
 from io import BufferedIOBase, RawIOBase
 from pathlib import Path
@@ -10,6 +14,8 @@ from .base import TraceSet
 
 @public
 class PickleTraceSet(TraceSet):
+    """Pickle-based traceset format."""
+
     @classmethod
     def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "PickleTraceSet":
         if isinstance(input, bytes):

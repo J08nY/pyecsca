@@ -1,3 +1,7 @@
+"""
+This module provides functions for runtime configuration of the toolkit, such as how errors are handled, or which
+:py:class:`Mod` implementation is used.
+"""
 from copy import deepcopy
 from contextvars import ContextVar, Token
 
@@ -119,21 +123,47 @@ _config: ContextVar[Config] = ContextVar("config", default=Config())
 
 @public
 def getconfig() -> Config:
+    """
+    Get the current config.
+
+    :return: The current config.
+    """
     return _config.get()
 
 
 @public
 def setconfig(cfg: Config) -> Token:
+    """
+    Set the current config.
+
+    :param cfg: The config to set.
+    :return: A token that can be used to reset the config to the previous one.
+    """
     return _config.set(cfg)
 
 
 @public
-def resetconfig(token: Token):
+def resetconfig(token: Token) -> None:
+    """
+    Reset the config to the previous one.
+
+    :param token: A token from :py:func:`setconfig()`.
+    """
     _config.reset(token)
 
 
 @public
 class TemporaryConfig(object):
+    """
+    A temporary config context manager, can be entered as follows:
+
+    .. code-block:: python
+
+        with TemporaryConfig() as cfg:
+            cfg.some_property = some_value
+            ...
+    """
+
     def __init__(self):
         self.new_config = deepcopy(getconfig())
 

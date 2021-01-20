@@ -49,6 +49,7 @@ setup(
         "smartcard": ["pyscard"],
         "gmp": ["gmpy2"],
         "dev": ["mypy", "flake8", "interrogate"],
-        "test": ["nose2", "parameterized", "coverage"]
+        "test": ["nose2", "parameterized", "coverage"],
+        "doc": ["sphinx", "sphinx-autodoc-typehints", "nbsphinx"]
     }
 )

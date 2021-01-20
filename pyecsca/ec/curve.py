@@ -1,3 +1,6 @@
+"""
+This module provides an elliptic curve class.
+"""
 from ast import Module
 from copy import copy
 from typing import MutableMapping, Union, List, Optional
@@ -63,7 +66,7 @@ class EllipticCurve(object):
     def affine_add(self, one: Point, other: Point) -> Point:
         """
         Add two affine points using the affine addition formula.
-        Handles the case of point at infinity gracefully.
+        Handles the case of point at infinity gracefully (short-circuits).
 
         :param one: One point.
         :param other: Another point.
@@ -80,7 +83,7 @@ class EllipticCurve(object):
     def affine_double(self, one: Point) -> Point:
         """
         Double an affine point using the affine doubling formula.
-        Handles the case of point at infinity gracefully.
+        Handles the case of point at infinity gracefully (short-circuits).
 
         :param one: A point.
         :return: The doubling of the point.
@@ -92,7 +95,7 @@ class EllipticCurve(object):
     def affine_negate(self, one: Point) -> Point:
         """
         Negate an affine point using the affine negation formula.
-        Handles the case of point at infinity gracefully.
+        Handles the case of point at infinity gracefully (short-circuits).
 
         :param one: A point.
         :return: The negation of the point.
@@ -104,7 +107,7 @@ class EllipticCurve(object):
     def affine_multiply(self, point: Point, scalar: int) -> Point:
         """
         Multiply an affine point by a scalar using the affine doubling and addition formulas.
-        Handles the case of point at infinity gracefully.
+        Handles the case of point at infinity gracefully (short-circuits).
 
         :param point: The point to multiply.
         :param scalar: The scalar to use.

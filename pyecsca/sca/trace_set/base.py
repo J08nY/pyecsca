@@ -1,4 +1,6 @@
-from io import RawIOBase, BufferedIOBase
+"""
+This module provides a base traceset class.
+"""
 from pathlib import Path
 from typing import List, Union, BinaryIO
 
@@ -9,6 +11,7 @@ from ..trace import Trace
 
 @public
 class TraceSet(object):
+    """A set of traces with some metadata."""
     _traces: List[Trace]
     _keys: List
 

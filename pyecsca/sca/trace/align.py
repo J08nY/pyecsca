@@ -11,8 +11,8 @@ from .process import normalize
 from .trace import Trace
 
 
-def align_reference(reference: Trace, *traces: Trace,
-                    align_func: Callable[[Trace], Tuple[bool, int]]) -> Tuple[List[Trace], List[int]]:
+def _align_reference(reference: Trace, *traces: Trace,
+                     align_func: Callable[[Trace], Tuple[bool, int]]) -> Tuple[List[Trace], List[int]]:
     result = [deepcopy(reference)]
     offsets = [0]
     for trace in traces:
@@ -72,7 +72,7 @@ def align_correlation(reference: Trace, *traces: Trace,
         shift = left_space + reference_length // 2
         return True, max_correlation_offset - shift
 
-    return align_reference(reference, *traces, align_func=align_func)
+    return _align_reference(reference, *traces, align_func=align_func)
 
 
 @public
@@ -102,7 +102,7 @@ def align_peaks(reference: Trace, *traces: Trace,
         left_space = min(max_offset, reference_offset)
         return True, int(window_peak - reference_peak - left_space)
 
-    return align_reference(reference, *traces, align_func=align_func)
+    return _align_reference(reference, *traces, align_func=align_func)
 
 
 @public
@@ -142,7 +142,7 @@ def align_offset(reference: Trace, *traces: Trace,
             return True, best_offset
         else:
             return False, 0
-    return align_reference(reference, *traces, align_func=align_func)
+    return _align_reference(reference, *traces, align_func=align_func)
 
 
 @public

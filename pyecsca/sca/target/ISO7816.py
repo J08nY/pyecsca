@@ -1,3 +1,6 @@
+"""
+This module provides classes for working with ISO7816-4 APDUs and an abstract base class for an ISO7816-4 based target.
+"""
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional
@@ -86,6 +89,7 @@ class ISO7816Target(Target, ABC):
 
 @public
 class ISO7816:
+    """A bunch of ISO7816-4 constants (status words)."""
     SW_FILE_FULL = 0x6A84
     SW_UNKNOWN = 0x6F00
     SW_CLA_NOT_SUPPORTED = 0x6E00

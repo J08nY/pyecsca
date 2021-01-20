@@ -1,3 +1,16 @@
+"""
+This module provides classes for tracing the execution of operations (key generation, scalar multiplication, formula
+execution, operation evaluation). These operations are traced in `Context` classes using `Actions`. Different contexts
+trace actions differently.
+
+A :py:class:`DefaultContext` traces actions into a tree as they are executed (a scalar
+multiplication actions has as its children an ordered list of the individual formula executions it has done).
+
+A :py:class:`PathContext` works like a :py:class:`DefaultContext` that only traces an action on a particular path
+in the tree.
+
+A :py:class:`NullContext` does not trace any actions and is the default context.
+"""
 from abc import abstractmethod, ABC
 from collections import OrderedDict
 from contextvars import ContextVar, Token
@@ -54,6 +67,7 @@ class ResultAction(Action):
 
 @public
 class Tree(OrderedDict):
+    """A recursively-implemented tree."""
 
     def get_by_key(self, path: List) -> Any:
         """

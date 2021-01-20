@@ -1,3 +1,6 @@
+"""
+This module provides functions for transforming curves to different models.
+"""
 from public import public
 
 from .coordinates import AffineCoordinateModel
