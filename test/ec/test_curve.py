@@ -134,4 +134,3 @@ class CurveTests(TestCase):
             affine_curve.decode_point(unhexlify("7a161ff7528b899b2d0c28607ca52c5b86"))
         with self.assertRaises(ValueError):
             affine_curve.decode_point(unhexlify("03161ff7528b899b2d0c28607ca52c5b88"))
-

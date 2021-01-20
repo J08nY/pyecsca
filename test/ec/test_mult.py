@@ -136,7 +136,7 @@ class ScalarMultiplierTests(TestCase):
         formulas = self.get_formulas(self.coords, add, dbl, neg, scale)
         mult = WindowNAFMultiplier(*formulas[:3], width, *formulas[3:])
         mult.init(self.secp128r1, self.base)
-        res = mult.multiply(157*789)
+        res = mult.multiply(157 * 789)
         other = mult.multiply(157)
         mult.init(self.secp128r1, other)
         other = mult.multiply(789)
@@ -147,14 +147,14 @@ class ScalarMultiplierTests(TestCase):
         mult = WindowNAFMultiplier(*formulas[:3], width, *formulas[3:],
                                    precompute_negation=True)
         mult.init(self.secp128r1, self.base)
-        res_precompute = mult.multiply(157*789)
+        res_precompute = mult.multiply(157 * 789)
         self.assertPointEquality(res_precompute, res, scale)
 
     @parameterized.expand(cartesian([
         ("10", 10),
         ("2355498743", 2355498743),
         ("325385790209017329644351321912443757746", 325385790209017329644351321912443757746)
-    ],[
+    ], [
         ("add-1998-cmo", "dbl-1998-cmo"),
         ("add-2016-rcb", "dbl-2016-rcb")
     ]))

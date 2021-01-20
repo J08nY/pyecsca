@@ -1,5 +1,6 @@
 from os import mkdir, getenv, getcwd
 from os.path import join, exists, split
+from typing import Dict
 from unittest import TestCase
 
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ def disabled(func):
     return func
 
 
-cases = {}
+cases: Dict[str, int] = {}
 
 
 class Plottable(TestCase):

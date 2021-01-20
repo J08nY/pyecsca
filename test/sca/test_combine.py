@@ -63,4 +63,3 @@ class CombineTests(TestCase):
         self.assertIsInstance(result, CombinedTrace)
         self.assertEqual(result.samples[0], -10)
         self.assertEqual(result.samples[1], 38)
-

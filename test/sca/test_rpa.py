@@ -59,7 +59,11 @@ class MultipleContextTests(TestCase):
         with local(MultipleContext()) as ctx:
             ladd_mult.init(curve25519, base)
             ladd_mult.multiply(1339278426732672313)
+        muls = list(ctx.points.values())
+        self.assertEqual(muls[-2], 1339278426732672313)
         dadd_mult = DifferentialLadderMultiplier(dadd, dbl, scale)
         with local(MultipleContext()) as ctx:
             dadd_mult.init(curve25519, base)
             dadd_mult.multiply(1339278426732672313)
+        muls = list(ctx.points.values())
+        self.assertEqual(muls[-2], 1339278426732672313)

@@ -38,6 +38,7 @@ class OpTests(TestCase):
         res = op(**locals)
         self.assertEqual(res, result)
 
+
 class OpResultTests(TestCase):
 
     def test_str(self):

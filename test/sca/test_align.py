@@ -22,7 +22,7 @@ class AlignTests(Plottable):
     @slow
     def test_large_align(self):
         example = InspectorTraceSet.read("test/data/example.trs")
-        result, offsets  = align_correlation(*example, reference_offset=100000, reference_length=20000, max_offset=15000)
+        result, offsets = align_correlation(*example, reference_offset=100000, reference_length=20000, max_offset=15000)
         self.assertIsNotNone(result)
 
     @slow
@@ -36,7 +36,7 @@ class AlignTests(Plottable):
         second_arr = np.array([10, 10, 10, 10, 90, 40, 50, 20, 10, 17, 16, 10], dtype=np.dtype("i1"))
         a = Trace(first_arr)
         b = Trace(second_arr)
-        result, offsets  = align_peaks(a, b, reference_offset=2, reference_length=5, max_offset=3)
+        result, offsets = align_peaks(a, b, reference_offset=2, reference_length=5, max_offset=3)
         self.assertEqual(np.argmax(result[0].samples), np.argmax(result[1].samples))
 
     def test_sad_align(self):
@@ -44,13 +44,13 @@ class AlignTests(Plottable):
         second_arr = np.array([10, 10, 90, 40, 50, 20, 10, 17, 16, 10, 10], dtype=np.dtype("i1"))
         a = Trace(first_arr)
         b = Trace(second_arr)
-        result, offsets  = align_sad(a, b, reference_offset=2, reference_length=5, max_offset=3)
+        result, offsets = align_sad(a, b, reference_offset=2, reference_length=5, max_offset=3)
         self.assertEqual(len(result), 2)
 
     def test_dtw_align_scale(self):
-        first_arr = np.array( [10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10,  8, 10, 12, 10, 13, 9], dtype=np.dtype("f2"))
-        second_arr = np.array([10, 10, 60, 40,  90, 20, 10, 17, 16, 10, 10, 10, 10, 10, 17, 12, 10], dtype=np.dtype("f2"))
-        third_arr = np.array( [10, 30, 20, 21,  15,  8, 10, 37, 21, 77, 20, 28, 25, 10,  9, 10, 15, 9, 10], dtype=np.dtype("f2"))
+        first_arr = np.array([10, 64, 14, 120, 15, 30, 10, 15, 20, 15, 15, 10, 10, 8, 10, 12, 10, 13, 9], dtype=np.dtype("f2"))
+        second_arr = np.array([10, 10, 60, 40, 90, 20, 10, 17, 16, 10, 10, 10, 10, 10, 17, 12, 10], dtype=np.dtype("f2"))
+        third_arr = np.array([10, 30, 20, 21, 15, 8, 10, 37, 21, 77, 20, 28, 25, 10, 9, 10, 15, 9, 10], dtype=np.dtype("f2"))
         a = Trace(first_arr)
         b = Trace(second_arr)
         c = Trace(third_arr)

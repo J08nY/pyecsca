@@ -48,7 +48,7 @@ class PointTests(TestCase):
         infty = InfinityPoint(AffineCoordinateModel(self.secp128r1.curve.model))
         other_infty = infty.to_model(self.coords, self.secp128r1.curve)
         self.assertIsInstance(other_infty, InfinityPoint)
-        
+
         with self.assertRaises(ValueError):
             self.base.to_model(self.coords, self.secp128r1.curve)
 

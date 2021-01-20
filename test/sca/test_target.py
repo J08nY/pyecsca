@@ -50,7 +50,7 @@ class BinaryTargetTests(TestCase):
         target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
         target = TestTarget(target_path)
         with self.assertRaises(ValueError):
-            target.write(bytes([1,2,3,4]))
+            target.write(bytes([1, 2, 3, 4]))
         with self.assertRaises(ValueError):
             target.read(5)
         target.disconnect()

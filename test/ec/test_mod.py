@@ -74,7 +74,7 @@ class ModTests(TestCase):
         a = Mod(5, 7)
         self.assertEqual(a**(-1), a.inverse())
         self.assertEqual(a**0, Mod(1, 7))
-        self.assertEqual(a**(-2),a.inverse()**2)
+        self.assertEqual(a**(-2), a.inverse()**2)
 
     def test_wrong_mod(self):
         a = Mod(5, 7)
