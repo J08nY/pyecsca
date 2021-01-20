@@ -1,5 +1,8 @@
 from unittest import TestCase
 
+from sympy import FF, symbols
+
+from pyecsca.ec.mod import SymbolicMod, Mod
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params
@@ -59,3 +62,18 @@ class FormulaTests(TestCase):
     def test_parameters(self):
         res = self.jac_dbl(self.secp128r1.curve.prime, self.jac_secp128r1.generator, **self.jac_secp128r1.curve.parameters)
         self.assertIsNotNone(res)
+
+    def test_symbolic(self):
+        p = self.secp128r1.curve.prime
+        k = FF(p)
+        coords = self.secp128r1.curve.coordinate_model
+        sympy_params = {key: SymbolicMod(k(int(value)), p) for key, value in self.secp128r1.curve.parameters.items()}
+        symbolic_point = Point(coords, **{key: SymbolicMod(symbols(key), p) for key in coords.variables})
+        symbolic_double = self.dbl(p, symbolic_point, **sympy_params)[0]
+        generator_double = self.dbl(p, self.secp128r1.generator, **self.secp128r1.curve.parameters)[0]
+        for outer_var in coords.variables:
+            symbolic_val = getattr(symbolic_double, outer_var).x
+            generator_val = getattr(generator_double, outer_var).x
+            for inner_var in coords.variables:
+                symbolic_val = symbolic_val.subs(inner_var, k(getattr(self.secp128r1.generator, inner_var).x))
+            self.assertEqual(Mod(int(symbolic_val), p), Mod(generator_val, p))

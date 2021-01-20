@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Mapping, TYPE_CHECKING
+from typing import Mapping, TYPE_CHECKING, Optional
 
 from public import public
 
@@ -47,7 +47,7 @@ class Point(object):
             else:
                 if field != value.n:
                     raise ValueError(f"Mismatched coordinate field of definition, {field} vs {value.n}.")
-        self.field = field
+        self.field = field if field is not None else 0
 
     def __getattribute__(self, name):
         # Do the magic such that point.X1 works!

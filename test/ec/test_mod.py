@@ -1,6 +1,7 @@
+from sympy import FF, symbols
 from unittest import TestCase
 
-from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, has_gmp, RawMod
+from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, has_gmp, RawMod, SymbolicMod
 from pyecsca.ec.error import NonInvertibleError, NonResidueError, NonInvertibleWarning, NonResidueWarning
 from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
@@ -105,6 +106,7 @@ class ModTests(TestCase):
         self.assertEqual(5 + b, Mod(1, 7))
         self.assertEqual(a + 3, Mod(1, 7))
         self.assertNotEqual(a, 6)
+        self.assertIsNotNone(hash(a))
 
     def test_undefined(self):
         u = Undefined()
@@ -126,3 +128,32 @@ class ModTests(TestCase):
         with TemporaryConfig() as cfg:
             cfg.ec.mod_implementation = "python"
             self.assertIsInstance(Mod(5, 7), RawMod)
+
+    def test_symbolic(self):
+        x, y = symbols("x y")
+        p = 13
+        k = FF(p)
+        sx = SymbolicMod(x, p)
+        a = k(3)
+        b = k(5)
+        r = sx * a + b
+        self.assertIsInstance(r, SymbolicMod)
+        self.assertEqual(r.n, p)
+        sa = SymbolicMod(a, p)
+        sb = SymbolicMod(b, p)
+        self.assertEqual(sa, 3)
+        self.assertEqual(sa.inverse(), SymbolicMod(k(9), p))
+        self.assertEqual(1 / sa, SymbolicMod(k(9), p))
+        self.assertEqual(sa + sb, 8)
+        self.assertEqual(1 + sa, 4)
+        self.assertEqual(sa - 1, 2)
+        self.assertEqual(1 - sa, 11)
+        self.assertEqual(sa + 1, 4)
+        self.assertEqual(-sa, 10)
+        self.assertEqual(sa / 2, 8)
+        self.assertEqual(2 / sa, 5)
+        self.assertEqual(sa // 2, 8)
+        self.assertEqual(2 // sa, 5)
+        self.assertEqual(int(sa), 3)
+        self.assertNotEqual(sa, sb)
+        self.assertIsNotNone(hash(sa))

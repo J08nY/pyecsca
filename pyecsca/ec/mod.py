@@ -4,6 +4,7 @@ from functools import wraps, lru_cache
 from typing import Type, Dict
 
 from public import public
+from sympy import Expr, Mod as SympyMod, FF
 
 from .error import raise_non_invertible, raise_non_residue
 from .context import ResultAction
@@ -194,14 +195,6 @@ class Mod(object):
         return ~self * other
 
     @check
-    def __div__(self, other):
-        return self.__floordiv__(other)
-
-    @check
-    def __rdiv__(self, other):
-        return self.__rfloordiv__(other)
-
-    @check
     def __divmod__(self, divisor):
         q, r = divmod(self.x, divisor.x)
         return self.__class__(q, self.n), self.__class__(r, self.n)
@@ -388,12 +381,6 @@ class Undefined(Mod):
     def __rfloordiv__(self, other):
         raise NotImplementedError
 
-    def __div__(self, other):
-        raise NotImplementedError
-
-    def __rdiv__(self, other):
-        raise NotImplementedError
-
     def __divmod__(self, divisor):
         raise NotImplementedError
 
@@ -417,6 +404,118 @@ class Undefined(Mod):
 
     def __pow__(self, n):
         raise NotImplementedError
+
+
+def symbolic_check(func):
+    @wraps(func)
+    def method(self, other):
+        if type(self) is not type(other):
+            if type(other) is int:
+                other = self.__class__(FF(self.n)(other), self.n)
+            else:
+                other = self.__class__(other, self.n)
+        else:
+            if self.n != other.n:
+                raise ValueError
+        return func(self, other)
+
+    return method
+
+
+@public
+class SymbolicMod(Mod):
+    """A symbolic element x of ℤₙ."""
+    x: Expr
+    n: int
+
+    def __new__(cls, *args, **kwargs):
+        return object.__new__(cls)
+
+    def __init__(self, x: Expr, n: int):
+        super().__init__(x, n)
+
+    @symbolic_check
+    def __add__(self, other):
+        return self.__class__((self.x + other.x), self.n)
+
+    @symbolic_check
+    def __radd__(self, other):
+        return self + other
+
+    @symbolic_check
+    def __sub__(self, other):
+        return self.__class__((self.x - other.x), self.n)
+
+    @symbolic_check
+    def __rsub__(self, other):
+        return -self + other
+
+    def __neg__(self):
+        return self.__class__(- self.x, self.n)
+
+    def inverse(self):
+        return self.__class__(self.x**(-1), self.n)
+
+    def sqrt(self):
+        raise NotImplementedError
+
+    def is_residue(self) -> bool:
+        raise NotImplementedError
+
+    def __invert__(self):
+        return self.inverse()
+
+    @symbolic_check
+    def __mul__(self, other):
+        return self.__class__(self.x * other.x, self.n)
+
+    @symbolic_check
+    def __rmul__(self, other):
+        return self * other
+
+    @symbolic_check
+    def __truediv__(self, other):
+        return self * ~other
+
+    @symbolic_check
+    def __rtruediv__(self, other):
+        return ~self * other
+
+    @symbolic_check
+    def __floordiv__(self, other):
+        return self * ~other
+
+    @symbolic_check
+    def __rfloordiv__(self, other):
+        return ~self * other
+
+    def __divmod__(self, divisor):
+        raise NotImplementedError
+
+    def __bytes__(self):
+        return int(self.x).to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")
+
+    def __int__(self):
+        return int(self.x)
+
+    def __eq__(self, other):
+        if type(other) is int:
+            return self.x == other % self.n
+        if type(other) is not SymbolicMod:
+            return False
+        return self.x == other.x and self.n == other.n
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return str(self.x)
+
+    def __hash__(self):
+        return hash(("SymbolicMod", self.x, self.n)) + 1
+
+    def __pow__(self, n):
+        return SymbolicMod(pow(self.x, n, self.n), self.n)
 
 
 if has_gmp:
