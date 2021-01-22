@@ -29,7 +29,7 @@ codestyle-all:
 	flake8 --ignore=E501,F405,F403,F401,E126 pyecsca test
 
 doc-coverage:
-	interrogate -vv -nmps -e pyecsca/ec/std/.github/ pyecsca
+	interrogate -vv -nmps -e pyecsca/ec/std/.github/ -f 55 pyecsca
 
 docs:
 	$(MAKE) -C docs apidoc

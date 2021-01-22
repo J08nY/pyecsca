@@ -5,7 +5,7 @@ the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-pytho
 import ctypes
 from math import log2, floor
 from time import time_ns, sleep
-from typing import Mapping, Optional, MutableMapping, Union, Tuple
+from typing import cast, Mapping, Optional, MutableMapping, Union, Tuple
 
 import numpy as np
 from picosdk.errors import CannotFindPicoSDKError
@@ -226,7 +226,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         if type == SampleType.Raw:
             data = arr
         else:
-            data = adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE, dtype=dtype)
+            data = cast(np.ndarray, adc2volt(arr, self.ranges[channel], self.MAX_ADC_VALUE, dtype=dtype))
         return Trace(data, {"sampling_frequency": self.frequency, "channel": channel, "sample_type": type})
 
     def stop(self):
