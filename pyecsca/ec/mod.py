@@ -530,7 +530,11 @@ class SymbolicMod(Mod):
         return hash(("SymbolicMod", self.x, self.n)) + 1
 
     def __pow__(self, n):
-        return SymbolicMod(pow(self.x, n, self.n), self.n)
+        try:
+            x = pow(self.x, n, self.n)
+        except TypeError:
+            x = pow(self.x, n) % self.n
+        return SymbolicMod(x, self.n)
 
 
 if has_gmp:
