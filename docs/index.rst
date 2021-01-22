@@ -6,8 +6,10 @@ pyecsca [pɪɛtska]
    :target: https://github.com/J08nY/pyecsca
 .. image:: https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen
    :target: https://github.com/J08nY/pyecsca/blob/master/LICENSE
-.. image:: https://img.shields.io/travis/J08nY/pyecsca
-   :target: https://travis-ci.com/J08nY/pyecsca
+.. image:: https://github.com/J08nY/pyecsca/workflows/Test/badge.svg
+   :target: https://github.com/J08nY/pyecsca/actions?query=workflow%3ATest
+.. image:: https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg
+   :target: https://github.com/J08nY/pyecsca/actions?query=workflow%3ALint
 .. image:: https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov
    :target: https://codecov.io/gh/J08nY/pyecsca
 .. image:: https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen
