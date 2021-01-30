@@ -1,7 +1,7 @@
 from sympy import FF, symbols
 from unittest import TestCase
 
-from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, has_gmp, RawMod, SymbolicMod
+from pyecsca.ec.mod import Mod, gcd, extgcd, Undefined, miller_rabin, has_gmp, RawMod, SymbolicMod, jacobi
 from pyecsca.ec.error import NonInvertibleError, NonResidueError, NonInvertibleWarning, NonResidueWarning
 from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
@@ -12,6 +12,11 @@ class ModTests(TestCase):
         self.assertEqual(gcd(15, 20), 5)
         self.assertEqual(extgcd(15, 0), (1, 0, 15))
         self.assertEqual(extgcd(15, 20), (-1, 1, 5))
+
+    def test_jacobi(self):
+        self.assertEqual(jacobi(5, 1153486465415345646578465454655646543248656451), 1)
+        self.assertEqual(jacobi(564786456646845, 46874698564153465453246546545456849797895547657), -1)
+        self.assertEqual(jacobi(564786456646845, 46874698564153465453246546545456849797895), 0)
 
     def test_miller_rabin(self):
         self.assertTrue(miller_rabin(2))

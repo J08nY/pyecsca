@@ -60,6 +60,28 @@ def extgcd(a, b):
 
 
 @public
+def jacobi(x: int, n: int):
+    """Jacobi symbol."""
+    if n <= 0:
+        raise ValueError("'n' must be a positive integer.")
+    if n % 2 == 0:
+        raise ValueError("'n' must be odd.")
+    x %= n
+    r = 1
+    while x != 0:
+        while x % 2 == 0:
+            x //= 2
+            nm8 = n % 8
+            if nm8 == 3 or nm8 == 5:
+                r = -r
+        x, n = n, x
+        if x % 4 == 3 and n % 4 == 3:
+            r = -r
+        x %= n
+    return r if n == 1 else 0
+
+
+@public
 @lru_cache
 def miller_rabin(n: int, rounds: int = 50) -> bool:
     """Miller-Rabin probabilistic primality test."""
@@ -257,7 +279,7 @@ class RawMod(Mod):
             return True
         if self.n == 2:
             return self.x in (0, 1)
-        legendre_symbol = self ** ((self.n - 1) // 2)
+        legendre_symbol = jacobi(self.x, self.n)
         return legendre_symbol == 1
 
     def sqrt(self):
