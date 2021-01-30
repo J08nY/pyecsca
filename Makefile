@@ -7,6 +7,8 @@ sca.test_sampling sca.test_target sca.test_test sca.test_trace sca.test_traceset
 
 TESTS = ${EC_TESTS} ${SCA_TESTS}
 
+PERF_SCRIPTS = test/ec/perf_mod.py test/ec/perf_formula.py test/ec/perf_mult.py
+
 test:
 	nose2 -s test -E "not slow and not disabled" -C -v ${TESTS}
 
@@ -28,6 +30,10 @@ codestyle:
 codestyle-all:
 	flake8 --ignore=E501,F405,F403,F401,E126 pyecsca test
 
+perf: ${PERF_SCRIPTS}
+	mkdir -p .perf
+	echo $^ | env DIR=".perf" xargs -n 1 python
+
 doc-coverage:
 	interrogate -vv -nmps -e pyecsca/ec/std/.github/ -f 55 pyecsca
 
@@ -35,4 +41,4 @@ docs:
 	$(MAKE) -C docs apidoc
 	$(MAKE) -C docs html
 
-.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all doc-coverage docs
+.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all perf doc-coverage docs

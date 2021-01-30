@@ -105,6 +105,8 @@ Testing
  - mypy_
  - flake8_
  - coverage_
+ - interrogate_
+ - pyinstrument_
 
 Docs
 ----
@@ -118,7 +120,7 @@ License
 
     MIT License
 
-    Copyright (c) 2018-2020 Jan Jancar
+    Copyright (c) 2018-2021 Jan Jancar
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -165,6 +167,8 @@ this support is very appreciated.
 .. _mypy: http://mypy-lang.org/
 .. _flake8: https://flake8.pycqa.org/
 .. _coverage: https://coverage.readthedocs.io/
+.. _interrogate: https://interrogate.readthedocs.io/
+.. _pyinstrument: https://github.com/joerick/pyinstrument/
 .. _sphinx: https://www.sphinx-doc.org/
 .. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
 .. _nbsphinx: https://nbsphinx.readthedocs.io/

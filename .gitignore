@@ -1,6 +1,7 @@
 /*.trs
 
 pyecsca.egg-info
+.perf/
 .coverage
 .mypy_cache/
 /.pytest_cache/

@@ -66,6 +66,8 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
  - [parameterized](https://github.com/wolever/parameterized)
  - [flake8](https://flake8.pycqa.org/)
  - [coverage](https://coverage.readthedocs.io/)
+ - [interrogate](https://interrogate.readthedocs.io/)
+ - [pyinstrument](https://github.com/joerick/pyinstrument/)
 
 ### Docs
 
@@ -78,7 +80,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
 
     MIT License
 
-    Copyright (c) 2018-2020 Jan Jancar
+    Copyright (c) 2018-2021 Jan Jancar
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
