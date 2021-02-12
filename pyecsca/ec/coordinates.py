@@ -96,9 +96,8 @@ class EFDCoordinateModel(CoordinateModel):
 
     def __read_coordinates_file(self, file_path):
         with resource_stream(__name__, file_path) as f:
-            line = f.readline().decode("ascii")
+            line = f.readline().decode("ascii").rstrip()
             while line:
-                line = line[:-1]
                 if line.startswith("name"):
                     self.full_name = line[5:]
                 elif line.startswith("variable"):
@@ -120,7 +119,7 @@ class EFDCoordinateModel(CoordinateModel):
                 elif line.startswith("assume"):
                     self.assumptions.append(
                             parse(line[7:].replace("^", "**"), mode="exec"))
-                line = f.readline().decode("ascii")
+                line = f.readline().decode("ascii").rstrip()
 
     def __eq__(self, other):
         if not isinstance(other, EFDCoordinateModel):

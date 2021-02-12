@@ -305,9 +305,8 @@ class EFDFormula(Formula):
 
     def __read_meta_file(self, path):
         with resource_stream(__name__, path) as f:
-            line = f.readline().decode("ascii")
+            line = f.readline().decode("ascii").rstrip()
             while line:
-                line = line[:-1]
                 if line.startswith("source"):
                     self.meta["source"] = line[7:]
                 elif line.startswith("parameter"):
@@ -317,7 +316,7 @@ class EFDFormula(Formula):
                         parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
                 elif line.startswith("unified"):
                     self.unified = True
-                line = f.readline().decode("ascii")
+                line = f.readline().decode("ascii").rstrip()
 
     def __read_op3_file(self, path):
         with resource_stream(__name__, path) as f:
