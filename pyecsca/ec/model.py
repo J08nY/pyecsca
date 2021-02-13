@@ -66,7 +66,7 @@ class EFDCurveModel(CurveModel):
         with resource_stream(__name__, file_path) as f:
             line = f.readline()
             while line:
-                line = line.decode("ascii")[:-1]
+                line = line.decode("ascii").rstrip()
                 if line.startswith("name"):
                     cls.name = line[5:]
                 elif line.startswith("parameter"):
