@@ -181,7 +181,7 @@ def _create_params(curve, coords, infty):
                     )
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
-                for root in roots.keys():
+                for root in roots:
                     params[param] = Mod(int(root), field)
                     break
                 else:
@@ -304,9 +304,9 @@ def get_category(
     :return: The category.
     """
     listing = resource_listdir(__name__, "std")
-    categories = list(
+    categories = [
         entry for entry in listing if resource_isdir(__name__, join("std", entry))
-    )
+    ]
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
     json_path = join("std", category, "curves.json")
@@ -330,9 +330,9 @@ def get_params(
     :return: The curve.
     """
     listing = resource_listdir(__name__, "std")
-    categories = list(
+    categories = [
         entry for entry in listing if resource_isdir(__name__, join("std", entry))
-    )
+    ]
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
     json_path = join("std", category, "curves.json")

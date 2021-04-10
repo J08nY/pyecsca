@@ -145,7 +145,7 @@ class Context(ABC):
 
         :param action: The action.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     def exit_action(self, action: Action) -> None:
@@ -154,7 +154,7 @@ class Context(ABC):
 
         :param action: The action.
         """
-        ...
+        raise NotImplementedError
 
     def __str__(self):
         return self.__class__.__name__

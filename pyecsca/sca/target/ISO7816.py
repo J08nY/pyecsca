@@ -96,7 +96,7 @@ class ISO7816Target(Target, ABC):
     @abstractmethod
     def atr(self) -> bytes:
         """The ATR (Answer To Reset) of the target."""
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     def select(self, aid: bytes) -> bool:
@@ -106,7 +106,7 @@ class ISO7816Target(Target, ABC):
         :param aid: The AID of the applet to select.
         :return: Whether the selection was successful.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     def send_apdu(self, apdu: CommandAPDU) -> ResponseAPDU:
@@ -116,7 +116,7 @@ class ISO7816Target(Target, ABC):
         :param apdu: The APDU to send.
         :return: The response.
         """
-        ...
+        raise NotImplementedError
 
 
 @public

@@ -1,7 +1,6 @@
 import os.path
 import shutil
 import tempfile
-from copy import deepcopy
 from unittest import TestCase
 
 import numpy as np

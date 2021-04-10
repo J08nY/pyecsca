@@ -190,7 +190,7 @@ class ModTests(TestCase):
             self.assertIsInstance(Mod(5, 7), RawMod)
 
     def test_symbolic(self):
-        x, y = symbols("x y")
+        x = symbols("x")
         p = 13
         k = FF(p)
         sx = SymbolicMod(x, p)

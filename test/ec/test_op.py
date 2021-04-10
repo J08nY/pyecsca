@@ -44,6 +44,7 @@ class OpTests(TestCase):
 
 class OpResultTests(TestCase):
     def test_str(self):
-        for op, char in zip((ast.Add(), ast.Sub(), ast.Mult(), ast.Div()), "+-*/"):
+        for op in (OpType.Add, OpType.Sub, OpType.Mult, OpType.Div):
             res = OpResult("X1", Mod(0, 5), op, Mod(2, 5), Mod(3, 5))
             self.assertEqual(str(res), "X1")
+            self.assertEqual(repr(res), f"X1 = 2{op.op_str}3")

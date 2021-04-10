@@ -10,7 +10,6 @@ from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import DomainParameters, get_params
-from pyecsca.ec.point import Point
 from pyecsca.ec.signature import SignatureResult, ECDSA_SHA1
 from pyecsca.sca.target import (
     BinaryTarget,
@@ -340,7 +339,7 @@ class ECTesterTargetTests(TestCase):
             self.secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"],
         )
         keygen = KeyGeneration(copy(mult), self.secp256r1_projective)
-        priv, pubkey_projective = keygen.generate()
+        _, pubkey_projective = keygen.generate()
 
         ecdh_resp = self.target.ecdh_direct(
             KeypairEnum.KEYPAIR_LOCAL,

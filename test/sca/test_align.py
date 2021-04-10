@@ -37,11 +37,14 @@ class AlignTests(Plottable):
             result[1].samples,
             np.array([10, 50, 80, 50, 20, 0, 0, 0], dtype=np.dtype("i1")),
         )
+        self.assertEqual(len(offsets), 2)
+        self.assertEqual(offsets[0], 0)
+        self.assertEqual(offsets[1], 3)
 
     @slow
     def test_large_align(self):
         example = InspectorTraceSet.read("test/data/example.trs")
-        result, offsets = align_correlation(
+        result, _ = align_correlation(
             *example, reference_offset=100000, reference_length=20000, max_offset=15000
         )
         self.assertIsNotNone(result)
@@ -61,7 +64,7 @@ class AlignTests(Plottable):
         )
         a = Trace(first_arr)
         b = Trace(second_arr)
-        result, offsets = align_peaks(
+        result, _ = align_peaks(
             a, b, reference_offset=2, reference_length=5, max_offset=3
         )
         self.assertEqual(np.argmax(result[0].samples), np.argmax(result[1].samples))
@@ -75,7 +78,7 @@ class AlignTests(Plottable):
         )
         a = Trace(first_arr)
         b = Trace(second_arr)
-        result, offsets = align_sad(
+        result, _ = align_sad(
             a, b, reference_offset=2, reference_length=5, max_offset=3
         )
         self.assertEqual(len(result), 2)

@@ -166,9 +166,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             tb = floor(high_freq / frequency + high_subtract)
             actual_frequency = high_freq // (tb - high_subtract)
         else:
-            tb = floor(log2(low_freq) - log2(frequency))
-            if tb > timebase_bound:
-                tb = timebase_bound
+            tb = min(floor(log2(low_freq) - log2(frequency)), timebase_bound)
             actual_frequency = low_freq // 2 ** tb
         max_samples = ctypes.c_int32()
         assert_pico_ok(

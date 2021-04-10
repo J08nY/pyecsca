@@ -19,7 +19,7 @@ class SerialTarget(Target):
 
         :param data: The data to write.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     def read(self, num: int = 0, timeout: int = 0) -> bytes:
@@ -30,4 +30,4 @@ class SerialTarget(Target):
         :param timeout: The timeout in milliseconds.
         :return: The bytes read.
         """
-        ...
+        raise NotImplementedError

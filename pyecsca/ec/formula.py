@@ -77,7 +77,7 @@ class FormulaAction(ResultAction):
                 parents.append(self.intermediates[parent][-1])
             elif parent in self.inputs:
                 parents.append(self.inputs[parent])
-        li = self.intermediates.setdefault(op.result, list())
+        li = self.intermediates.setdefault(op.result, [])
         li.append(OpResult(op.result, value, op.operator, *parents))
 
     def add_result(self, point: Any, **outputs: Mod):
@@ -185,7 +185,7 @@ class Formula(ABC):
                 expr = resolve(expr)
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
-                for root in roots.keys():
+                for root in roots:
                     params[param] = Mod(int(root), field)
                     break
                 else:
@@ -248,25 +248,25 @@ class Formula(ABC):
     @abstractmethod
     def input_index(self):
         """The starting index where this formula reads its inputs."""
-        ...
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def output_index(self) -> int:
         """The starting index where this formula stores its outputs."""
-        ...
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def inputs(self) -> Set[str]:
         """The input variables of the formula."""
-        ...
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def outputs(self) -> Set[str]:
         """The output variables of the formula."""
-        ...
+        raise NotImplementedError
 
     @property
     def num_operations(self) -> int:
@@ -302,12 +302,7 @@ class Formula(ABC):
     def num_addsubs(self) -> int:
         """Number of additions and subtractions."""
         return len(
-            list(
-                filter(
-                    lambda op: op.operator == OpType.Add or op.operator == OpType.Sub,
-                    self.code,
-                )
-            )
+            list(filter(lambda op: op.operator in (OpType.Add, OpType.Sub), self.code))
         )
 
 
@@ -361,22 +356,22 @@ class EFDFormula(Formula):
 
     @property
     def inputs(self):
-        return set(
+        return {
             var + str(i)
             for var, i in product(
                 self.coordinate_model.variables, range(1, 1 + self.num_inputs)
             )
-        )
+        }
 
     @property
     def outputs(self):
-        return set(
+        return {
             var + str(i)
             for var, i in product(
                 self.coordinate_model.variables,
                 range(self.output_index, self.output_index + self.num_outputs),
             )
-        )
+        }
 
     def __eq__(self, other):
         if not isinstance(other, EFDFormula):

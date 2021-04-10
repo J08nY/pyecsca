@@ -1,7 +1,9 @@
+from typing import cast
 from unittest import TestCase
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import MontgomeryModel, EdwardsModel
 from pyecsca.ec.params import get_params
@@ -14,9 +16,9 @@ class RegressionTests(TestCase):
         secp128r1 = get_params("secg", "secp128r1", "projective")
         base = secp128r1.generator
         coords = secp128r1.curve.coordinate_model
-        add = coords.formulas["add-1998-cmo"]
-        dbl = coords.formulas["dbl-1998-cmo"]
-        scl = coords.formulas["z"]
+        add = cast(AdditionFormula, coords.formulas["add-1998-cmo"])
+        dbl = cast(DoublingFormula, coords.formulas["dbl-1998-cmo"])
+        scl = cast(ScalingFormula, coords.formulas["z"])
         mult = LTRMultiplier(
             add, dbl, scl, always=False, complete=False, short_circuit=True
         )

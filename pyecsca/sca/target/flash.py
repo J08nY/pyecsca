@@ -17,4 +17,4 @@ class Flashable(ABC):
         :param fw_path: The path to the firmware blob.
         :return: Whether the flashing was successful.
         """
-        ...
+        raise NotImplementedError

@@ -43,7 +43,7 @@ class HDF5Meta(MutableMapping):
     def __copy__(self):
         return deepcopy(self)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict):
         return dict(self)
 
     def __iter__(self):

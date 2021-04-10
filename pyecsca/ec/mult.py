@@ -76,11 +76,11 @@ class ScalarMultiplier(ABC):
     def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
         if (
             len(
-                set(
+                {
                     formula.coordinate_model
                     for formula in formulas.values()
                     if formula is not None
-                )
+                }
             )
             != 1
         ):
@@ -183,7 +183,7 @@ class ScalarMultiplier(ABC):
         :param scalar: The scalar to use.
         :return: The resulting multiple.
         """
-        ...
+        raise NotImplementedError
 
 
 @public

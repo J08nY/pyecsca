@@ -13,9 +13,9 @@ class Target(ABC):
     @abstractmethod
     def connect(self):
         """Connect to the target device."""
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     def disconnect(self):
         """Disconnect from the target device."""
-        ...
+        raise NotImplementedError

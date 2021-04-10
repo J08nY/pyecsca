@@ -10,7 +10,7 @@ from pyecsca.ec.context import (
     Tree,
     PathContext,
 )
-from pyecsca.ec.key_generation import KeygenAction, KeyGeneration
+from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import RandomModAction
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
@@ -83,9 +83,8 @@ class ContextTests(TestCase):
         self.assertEqual(result, action.result)
 
     def test_default_no_enter(self):
-        with local(DefaultContext()) as default:
-            with self.assertRaises(ValueError):
-                default.exit_action(RandomModAction(7))
+        with local(DefaultContext()) as default, self.assertRaises(ValueError):
+            default.exit_action(RandomModAction(7))
 
     def test_path(self):
         with local(PathContext([0, 1])) as ctx:

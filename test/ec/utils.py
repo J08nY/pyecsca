@@ -47,12 +47,19 @@ class Profiler(object):
         if self._output_directory is None or self._benchmark_name is None:
             return
         git_commit = (
-            run(["git", "rev-parse", "--short", "HEAD"], stdout=PIPE, stderr=DEVNULL)
+            run(
+                ["git", "rev-parse", "--short", "HEAD"],
+                stdout=PIPE,
+                stderr=DEVNULL,
+                check=False,
+            )
             .stdout.strip()
             .decode()
         )
         git_dirty = (
-            run(["git", "diff", "--quiet"], stdout=DEVNULL, stderr=DEVNULL).returncode
+            run(
+                ["git", "diff", "--quiet"], stdout=DEVNULL, stderr=DEVNULL, check=False
+            ).returncode
             != 0
         )
         version = git_commit + ("-dirty" if git_dirty else "")

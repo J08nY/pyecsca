@@ -8,7 +8,7 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 import random
 import secrets
 from functools import wraps, lru_cache
-from typing import Type, Dict, Any
+from typing import Type, Dict, Any, Tuple
 
 from public import public
 from sympy import Expr, FF
@@ -60,7 +60,7 @@ def extgcd(a, b):
 
 
 @public
-def jacobi(x: int, n: int):
+def jacobi(x: int, n: int) -> int:
     """Jacobi symbol."""
     if n <= 0:
         raise ValueError("'n' must be a positive integer.")
@@ -72,7 +72,7 @@ def jacobi(x: int, n: int):
         while x % 2 == 0:
             x //= 2
             nm8 = n % 8
-            if nm8 == 3 or nm8 == 5:
+            if nm8 in (3, 5):
                 r = -r
         x, n = n, x
         if x % 4 == 3 and n % 4 == 3:
@@ -85,7 +85,7 @@ def jacobi(x: int, n: int):
 @lru_cache
 def miller_rabin(n: int, rounds: int = 50) -> bool:
     """Miller-Rabin probabilistic primality test."""
-    if n == 2 or n == 3:
+    if n in (2, 3):
         return True
 
     if n % 2 == 0:
@@ -98,7 +98,7 @@ def miller_rabin(n: int, rounds: int = 50) -> bool:
     for _ in range(rounds):
         a = random.randrange(2, n - 1)
         x = pow(a, s, n)
-        if x == 1 or x == n - 1:
+        if x in (1, n - 1):
             continue
         for _ in range(r - 1):
             x = pow(x, 2, n)
@@ -160,22 +160,22 @@ class Mod(object):
         )
 
     @_check
-    def __add__(self, other):
+    def __add__(self, other) -> "Mod":
         return self.__class__((self.x + other.x) % self.n, self.n)
 
     @_check
-    def __radd__(self, other):
+    def __radd__(self, other) -> "Mod":
         return self + other
 
     @_check
-    def __sub__(self, other):
+    def __sub__(self, other) -> "Mod":
         return self.__class__((self.x - other.x) % self.n, self.n)
 
     @_check
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> "Mod":
         return -self + other
 
-    def __neg__(self):
+    def __neg__(self) -> "Mod":
         return self.__class__(self.n - self.x, self.n)
 
     def inverse(self) -> "Mod":
@@ -185,14 +185,14 @@ class Mod(object):
         :return: The inverse.
         :raises: :py:class:`NonInvertibleError` if the element is not invertible.
         """
-        ...
+        raise NotImplementedError
 
-    def __invert__(self):
+    def __invert__(self) -> "Mod":
         return self.inverse()
 
     def is_residue(self) -> bool:
         """Whether this element is a quadratic residue (only implemented for prime modulus)."""
-        ...
+        raise NotImplementedError
 
     def sqrt(self) -> "Mod":
         """
@@ -200,45 +200,45 @@ class Mod(object):
 
         Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
         """
-        ...
+        raise NotImplementedError
 
     @_check
-    def __mul__(self, other):
+    def __mul__(self, other) -> "Mod":
         return self.__class__((self.x * other.x) % self.n, self.n)
 
     @_check
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "Mod":
         return self * other
 
     @_check
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> "Mod":
         return self * ~other
 
     @_check
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> "Mod":
         return ~self * other
 
     @_check
-    def __floordiv__(self, other):
+    def __floordiv__(self, other) -> "Mod":
         return self * ~other
 
     @_check
-    def __rfloordiv__(self, other):
+    def __rfloordiv__(self, other) -> "Mod":
         return ~self * other
 
     @_check
-    def __divmod__(self, divisor):
+    def __divmod__(self, divisor) -> Tuple["Mod", "Mod"]:
         q, r = divmod(self.x, divisor.x)
         return self.__class__(q, self.n), self.__class__(r, self.n)
 
-    def __bytes__(self):
-        ...
+    def __bytes__(self) -> bytes:
+        raise NotImplementedError
 
-    def __int__(self):
-        ...
+    def __int__(self) -> int:
+        raise NotImplementedError
 
     @classmethod
-    def random(cls, n: int):
+    def random(cls, n: int) -> "Mod":
         """
         Generate a random :py:class:`Mod` in ℤₙ.
 
@@ -248,8 +248,8 @@ class Mod(object):
         with RandomModAction(n) as action:
             return action.exit(cls(secrets.randbelow(n), n))
 
-    def __pow__(self, n):
-        ...
+    def __pow__(self, n) -> "Mod":
+        raise NotImplementedError
 
     def __str__(self):
         return str(self.x)
@@ -269,7 +269,7 @@ class RawMod(Mod):
         self.x = x % n
         self.n = n
 
-    def inverse(self):
+    def inverse(self) -> "RawMod":
         if self.x == 0:
             raise_non_invertible()
         x, y, d = extgcd(self.x, self.n)
@@ -287,7 +287,7 @@ class RawMod(Mod):
         legendre_symbol = jacobi(self.x, self.n)
         return legendre_symbol == 1
 
-    def sqrt(self):
+    def sqrt(self) -> "RawMod":
         if not miller_rabin(self.n):
             raise NotImplementedError
         if self.x == 0:
@@ -346,7 +346,7 @@ class RawMod(Mod):
     def __hash__(self):
         return hash(("RawMod", self.x, self.n))
 
-    def __pow__(self, n):
+    def __pow__(self, n) -> "RawMod":
         if type(n) is not int:
             raise TypeError
         if n == 0:
@@ -394,7 +394,7 @@ class Undefined(Mod):
     def sqrt(self):
         raise NotImplementedError
 
-    def is_residue(self) -> bool:
+    def is_residue(self):
         raise NotImplementedError
 
     def __invert__(self):
@@ -479,61 +479,61 @@ class SymbolicMod(Mod):
         self.n = n
 
     @_symbolic_check
-    def __add__(self, other):
+    def __add__(self, other) -> "SymbolicMod":
         return self.__class__((self.x + other.x), self.n)
 
     @_symbolic_check
-    def __radd__(self, other):
+    def __radd__(self, other) -> "SymbolicMod":
         return self + other
 
     @_symbolic_check
-    def __sub__(self, other):
+    def __sub__(self, other) -> "SymbolicMod":
         return self.__class__((self.x - other.x), self.n)
 
     @_symbolic_check
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> "SymbolicMod":
         return -self + other
 
-    def __neg__(self):
+    def __neg__(self) -> "SymbolicMod":
         return self.__class__(-self.x, self.n)
 
-    def inverse(self):
+    def inverse(self) -> "SymbolicMod":
         return self.__class__(self.x ** (-1), self.n)
 
-    def sqrt(self):
+    def sqrt(self) -> "SymbolicMod":
         raise NotImplementedError
 
-    def is_residue(self) -> bool:
+    def is_residue(self):
         raise NotImplementedError
 
-    def __invert__(self):
+    def __invert__(self) -> "SymbolicMod":
         return self.inverse()
 
     @_symbolic_check
-    def __mul__(self, other):
+    def __mul__(self, other) -> "SymbolicMod":
         return self.__class__(self.x * other.x, self.n)
 
     @_symbolic_check
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "SymbolicMod":
         return self * other
 
     @_symbolic_check
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> "SymbolicMod":
         return self * ~other
 
     @_symbolic_check
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> "SymbolicMod":
         return ~self * other
 
     @_symbolic_check
-    def __floordiv__(self, other):
+    def __floordiv__(self, other) -> "SymbolicMod":
         return self * ~other
 
     @_symbolic_check
-    def __rfloordiv__(self, other):
+    def __rfloordiv__(self, other) -> "SymbolicMod":
         return ~self * other
 
-    def __divmod__(self, divisor):
+    def __divmod__(self, divisor) -> "SymbolicMod":
         raise NotImplementedError
 
     def __bytes__(self):
@@ -558,7 +558,7 @@ class SymbolicMod(Mod):
     def __hash__(self):
         return hash(("SymbolicMod", self.x, self.n)) + 1
 
-    def __pow__(self, n):
+    def __pow__(self, n) -> "SymbolicMod":
         try:
             x = pow(self.x, n, self.n)
         except TypeError:
@@ -586,7 +586,7 @@ if has_gmp:
             self.x = gmpy2.mpz(x % n)
             self.n = gmpy2.mpz(n)
 
-        def inverse(self):
+        def inverse(self) -> "GMPMod":
             if self.x == 0:
                 raise_non_invertible()
             if self.x == 1:
@@ -598,7 +598,7 @@ if has_gmp:
                 res = 0
             return GMPMod(res, self.n)
 
-        def is_residue(self):
+        def is_residue(self) -> bool:
             """Whether this element is a quadratic residue (only implemented for prime modulus)."""
             if not _is_prime(self.n):
                 raise NotImplementedError
@@ -608,7 +608,7 @@ if has_gmp:
                 return self.x in (0, 1)
             return gmpy2.legendre(self.x, self.n) == 1
 
-        def sqrt(self):
+        def sqrt(self) -> "GMPMod":
             """
             The modular square root of this element (only implemented for prime modulus).
 
@@ -651,7 +651,7 @@ if has_gmp:
             return r
 
         @_check
-        def __divmod__(self, divisor):
+        def __divmod__(self, divisor) -> Tuple["GMPMod", "GMPMod"]:
             q, r = gmpy2.f_divmod(self.x, divisor.x)
             return GMPMod(q, self.n), GMPMod(r, self.n)
 
@@ -677,7 +677,7 @@ if has_gmp:
         def __hash__(self):
             return hash(("GMPMod", self.x, self.n))
 
-        def __pow__(self, n):
+        def __pow__(self, n) -> "GMPMod":
             if type(n) not in (int, gmpy2.mpz):
                 raise TypeError
             if n == 0:

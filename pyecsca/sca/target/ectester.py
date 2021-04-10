@@ -556,10 +556,18 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
             )
         return resp
 
-    def select_applet(self, latest_version: bytes = AID_CURRENT_VERSION):
-        """Select the *ECTester* applet, with a specified version or older."""
+    def select_applet(
+        self, latest_version: bytes = AID_CURRENT_VERSION, count_back: int = 10
+    ) -> bool:
+        """
+        Select the *ECTester* applet, with a specified version or older.
+
+        :param latest_version: The latest version to try.
+        :param count_back: How many versions back to try.
+        :return: Whether an applet was successfully selected.
+        """
         version_bytes = bytearray(latest_version)
-        for i in range(10):
+        for _ in range(count_back):
             aid_222 = self.AID_PREFIX + version_bytes + self.AID_SUFFIX_222
             if self.select(aid_222):
                 break

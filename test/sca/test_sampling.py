@@ -1,5 +1,3 @@
-from unittest import TestCase
-
 import numpy as np
 from pyecsca.sca import (
     Trace,

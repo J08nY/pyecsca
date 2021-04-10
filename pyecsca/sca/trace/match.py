@@ -30,7 +30,7 @@ def match_pattern(trace: Trace, pattern: Trace, threshold: float = 0.8) -> List[
     pairs = sorted(zip(peaks, props["prominences"]), key=lambda it: it[1], reverse=True)
     half = len(pattern_samples) // 2
     filtered_peaks: List[int] = []
-    for peak, prominence in pairs:
+    for peak, _ in pairs:
         if not filtered_peaks:
             filtered_peaks.append(peak - half)
         else:

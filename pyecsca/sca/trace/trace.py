@@ -94,7 +94,7 @@ class Trace(object):
     def __copy__(self):
         return Trace(copy(self.samples), copy(self.meta), copy(self.trace_set))
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict):
         return Trace(
             deepcopy(self.samples, memo=memodict),
             deepcopy(self.meta, memo=memodict),

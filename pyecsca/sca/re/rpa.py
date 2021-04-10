@@ -61,11 +61,11 @@ class MultipleContext(Context):
                 out = action.output_points[0]
                 self.points[out] = -self.points[inp]
             elif isinstance(action.formula, DifferentialAdditionFormula):
-                diff, one, other = action.input_points
+                _, one, other = action.input_points
                 out = action.output_points[0]
                 self.points[out] = self.points[one] + self.points[other]
             elif isinstance(action.formula, LadderFormula):
-                diff, one, other = action.input_points
+                _, one, other = action.input_points
                 dbl, add = action.output_points
                 self.points[add] = self.points[one] + self.points[other]
                 self.points[dbl] = 2 * self.points[one]

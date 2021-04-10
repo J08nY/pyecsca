@@ -4,7 +4,15 @@ This module provides a way to work with and enumerate implementation configurati
 from dataclasses import dataclass
 from enum import Enum
 from itertools import product
-from typing import get_type_hints, Union, get_origin, get_args, Generator, FrozenSet
+from typing import (
+    get_type_hints,
+    Union,
+    get_origin,
+    get_args,
+    Generator,
+    FrozenSet,
+    Any,
+)
 
 from public import public
 
@@ -24,11 +32,11 @@ class EnumDefine(Enum):
 
     @classmethod
     def names(cls):
-        return list(e.name for e in cls)
+        return [e.name for e in cls]
 
     @classmethod
     def values(cls):
-        return list(e.value for e in cls)
+        return [e.value for e in cls]
 
 
 @public
@@ -130,7 +138,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
         return (
             get_origin(arg_type) == Union
             and len(get_args(arg_type)) == 2
-            and get_args(arg_type)[1] == type(None)  # noqa
+            and get_args(arg_type)[1] is type(None)  # noqa
         )
 
     def leaf_subclasses(cls):
@@ -216,7 +224,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
         if "model" in kwargs:
             if model != kwargs["model"]:
                 continue
-        for coords_name, coords in model.coordinates.items():
+        for coords in model.coordinates.values():
             if "coords" in kwargs:
                 if coords != kwargs["coords"]:
                     continue
