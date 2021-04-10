@@ -58,7 +58,7 @@ The data was partially changed, to make working with it easier.
 
 It also supports working with [Riscure](https://www.riscure.com) Inspector trace sets, which are of a proprietary format.
 
-### Testing
+### Testing & Development
 
  - [nose2](https://nose2.readthedocs.io)
  - [green](https://github.com/CleanCut/green)
@@ -68,6 +68,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
  - [coverage](https://coverage.readthedocs.io/)
  - [interrogate](https://interrogate.readthedocs.io/)
  - [pyinstrument](https://github.com/joerick/pyinstrument/)
+ - [pre-commit](https://pre-commit.com/) at `.pre-commit-config.yaml`
 
 ### Docs
 
@@ -81,17 +82,17 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
     MIT License
 
     Copyright (c) 2018-2021 Jan Jancar
-    
+
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
     copies of the Software, and to permit persons to whom the Software is
     furnished to do so, subject to the following conditions:
-    
+
     The above copyright notice and this permission notice shall be included in all
     copies or substantial portions of the Software.
-    
+
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -99,7 +100,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-    
+
 
 *Development is supported by the Masaryk University grant [MUNI/C/1701/2018](https://www.muni.cz/en/research/projects/46834),
 this support is very appreciated.*

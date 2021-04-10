@@ -120,9 +120,6 @@ html_css_files = [
 #
 # html_sidebars = {}
 
-
-
-
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
@@ -134,7 +131,7 @@ htmlhelp_basename = 'pyecscadoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #

@@ -1,8 +1,8 @@
 [Aux Settings]
 [Trace Settings]
 [[ChipWhisperer/Native]]
-Config File = 
-Format = 
+Config File =
+Format =
 [Trace Settings]
 [Target Settings]
 [[Simple Serial]]
@@ -15,11 +15,11 @@ Version = auto
 Timeout (ms) = 20
 [[Simple Serial]]
 Preset Mode = Custom
-Init Command = 
-Load Key Command = 
-Load Input Command = 
+Init Command =
+Load Key Command =
+Load Input Command =
 Go Command = p$TEXT$\n
-Output Format = 
+Output Format =
 [[[NewAE USB (CWLite/CW1200)]]]
 baud = 38400
 [Target Settings]
