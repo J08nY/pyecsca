@@ -8,13 +8,23 @@ from typing import Union, Tuple
 from .trace import Trace
 
 
-def _filter_any(trace: Trace, sampling_frequency: int,
-                cutoff: Union[int, Tuple[int, int]], band_type: str) -> Trace:
+def _filter_any(
+    trace: Trace,
+    sampling_frequency: int,
+    cutoff: Union[int, Tuple[int, int]],
+    band_type: str,
+) -> Trace:
     nyq = 0.5 * sampling_frequency
     if not isinstance(cutoff, int):
-        b, a = butter(6, tuple(map(lambda x: x / nyq, cutoff)), btype=band_type, analog=False, output='ba')
+        b, a = butter(
+            6,
+            tuple(map(lambda x: x / nyq, cutoff)),
+            btype=band_type,
+            analog=False,
+            output="ba",
+        )
     else:
-        b, a = butter(6, cutoff / nyq, btype=band_type, analog=False, output='ba')
+        b, a = butter(6, cutoff / nyq, btype=band_type, analog=False, output="ba")
     return trace.with_samples(lfilter(b, a, trace.samples))
 
 
@@ -47,7 +57,9 @@ def filter_highpass(trace: Trace, sampling_frequency: int, cutoff: int) -> Trace
 
 
 @public
-def filter_bandpass(trace: Trace, sampling_frequency: int, low: int, high: int) -> Trace:
+def filter_bandpass(
+    trace: Trace, sampling_frequency: int, low: int, high: int
+) -> Trace:
     """
     Apply a bandpass digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the
     passband from `low` to `high`.
@@ -62,7 +74,9 @@ def filter_bandpass(trace: Trace, sampling_frequency: int, low: int, high: int) 
 
 
 @public
-def filter_bandstop(trace: Trace, sampling_frequency: int, low: int, high: int) -> Trace:
+def filter_bandstop(
+    trace: Trace, sampling_frequency: int, low: int, high: int
+) -> Trace:
     """
     Apply a bandstop digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the
     stopband from `low` to `high`.

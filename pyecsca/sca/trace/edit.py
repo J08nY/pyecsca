@@ -39,8 +39,11 @@ def reverse(trace: Trace) -> Trace:
 
 
 @public
-def pad(trace: Trace, lengths: Union[Tuple[int, int], int],
-        values: Union[Tuple[Any, Any], Any] = (0, 0)) -> Trace:
+def pad(
+    trace: Trace,
+    lengths: Union[Tuple[int, int], int],
+    values: Union[Tuple[Any, Any], Any] = (0, 0),
+) -> Trace:
     """
     Pad the samples of the `trace` by `values` at the beginning and end.
 
@@ -53,4 +56,6 @@ def pad(trace: Trace, lengths: Union[Tuple[int, int], int],
         lengths = (lengths, lengths)
     if not isinstance(values, tuple):
         values = (values, values)
-    return trace.with_samples(np.pad(trace.samples, lengths, "constant", constant_values=values))
+    return trace.with_samples(
+        np.pad(trace.samples, lengths, "constant", constant_values=values)
+    )

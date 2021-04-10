@@ -11,6 +11,7 @@ from public import public
 @public
 class ECConfig(object):
     """Configuration for the :py:mod:`pyecsca.ec` package."""
+
     _no_inverse_action: str = "error"
     _non_residue_action: str = "error"
     _unsatisfied_formula_assumption_action: str = "error"
@@ -111,6 +112,7 @@ class ECConfig(object):
 @public
 class Config(object):
     """A runtime configuration for the library."""
+
     ec: ECConfig
     """Configuration for the :py:mod:`pyecsca.ec` package."""
 

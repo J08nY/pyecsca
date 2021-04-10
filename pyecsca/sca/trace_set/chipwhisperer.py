@@ -24,7 +24,9 @@ class ChipWhispererTraceSet(TraceSet):
             raise ValueError
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "ChipWhispererTraceSet":
+    def inplace(
+        cls, input: Union[str, Path, bytes, BinaryIO]
+    ) -> "ChipWhispererTraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):
@@ -39,10 +41,12 @@ class ChipWhispererTraceSet(TraceSet):
         name = file_name[7:-4]
         data = ChipWhispererTraceSet.__read_data(path, name)
         traces = []
-        for samples, key, textin, textout in zip_longest(data["traces"], data["keylist"],
-                                                         data["textin"], data["textout"]):
+        for samples, key, textin, textout in zip_longest(
+            data["traces"], data["keylist"], data["textin"], data["textout"]
+        ):
             traces.append(
-                    Trace(samples, {"key": key, "textin": textin, "textout": textout}))
+                Trace(samples, {"key": key, "textin": textin, "textout": textout})
+            )
         del data["traces"]
         del data["keylist"]
         del data["textin"]
@@ -52,7 +56,13 @@ class ChipWhispererTraceSet(TraceSet):
 
     @classmethod
     def __read_data(cls, path, name):
-        types = {"keylist": None, "knownkey": None, "textin": None, "textout": None, "traces": None}
+        types = {
+            "keylist": None,
+            "knownkey": None,
+            "textin": None,
+            "textout": None,
+            "traces": None,
+        }
         for type in types.keys():
             type_path = join(path, name + type + ".npy")
             if exists(type_path) and isfile(type_path):

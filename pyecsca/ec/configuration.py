@@ -34,6 +34,7 @@ class EnumDefine(Enum):
 @public
 class Multiplication(EnumDefine):
     """Base multiplication algorithm to use."""
+
     TOOM_COOK = "MUL_TOOM_COOK"
     KARATSUBA = "MUL_KARATSUBA"
     COMBA = "MUL_COMBA"
@@ -43,6 +44,7 @@ class Multiplication(EnumDefine):
 @public
 class Squaring(EnumDefine):
     """Base squaring algorithm to use."""
+
     TOOM_COOK = "SQR_TOOM_COOK"
     KARATSUBA = "SQR_KARATSUBA"
     COMBA = "SQR_COMBA"
@@ -52,6 +54,7 @@ class Squaring(EnumDefine):
 @public
 class Reduction(EnumDefine):
     """Modular reduction method used."""
+
     BARRETT = "RED_BARRETT"
     MONTGOMERY = "RED_MONTGOMERY"
     BASE = "RED_BASE"
@@ -60,6 +63,7 @@ class Reduction(EnumDefine):
 @public
 class Inversion(EnumDefine):
     """Inversion algorithm used."""
+
     GCD = "INV_GCD"
     EULER = "INV_EULER"
 
@@ -67,6 +71,7 @@ class Inversion(EnumDefine):
 @public
 class HashType(EnumDefine):
     """Hash algorithm used in ECDH and ECDSA."""
+
     NONE = "HASH_NONE"
     SHA1 = "HASH_SHA1"
     SHA224 = "HASH_SHA224"
@@ -78,6 +83,7 @@ class HashType(EnumDefine):
 @public
 class RandomMod(EnumDefine):
     """Method of sampling a uniform integer modulo order."""
+
     SAMPLE = "MOD_RAND_SAMPLE"
     REDUCE = "MOD_RAND_REDUCE"
 
@@ -86,6 +92,7 @@ class RandomMod(EnumDefine):
 @dataclass(frozen=True)
 class Configuration(object):
     """An ECC implementation configuration."""
+
     model: CurveModel
     coords: CoordinateModel
     formulas: FrozenSet[Formula]
@@ -120,8 +127,11 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
     """
 
     def is_optional(arg_type):
-        return get_origin(arg_type) == Union and len(get_args(arg_type)) == 2 and \
-               get_args(arg_type)[1] == type(None)  # noqa
+        return (
+            get_origin(arg_type) == Union
+            and len(get_args(arg_type)) == 2
+            and get_args(arg_type)[1] == type(None)  # noqa
+        )
 
     def leaf_subclasses(cls):
         subs = cls.__subclasses__()
@@ -140,7 +150,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
             "mult": Multiplication,
             "sqr": Squaring,
             "red": Reduction,
-            "inv": Inversion
+            "inv": Inversion,
         }
         keys = list(filter(lambda key: key not in kwargs, options.keys()))
         values = [options[key] for key in keys]
@@ -150,7 +160,11 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
 
     def multipliers(mult_classes, coords_formulas, fixed_args=None):
         for mult_cls in mult_classes:
-            if fixed_args is not None and "cls" in fixed_args and mult_cls != fixed_args["cls"]:
+            if (
+                fixed_args is not None
+                and "cls" in fixed_args
+                and mult_cls != fixed_args["cls"]
+            ):
                 continue
             arg_options = {}
             for name, required_type in get_type_hints(mult_cls.__init__).items():
@@ -160,17 +174,30 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
                 if is_optional(required_type):
                     opt_type = get_args(required_type)[0]
                     if issubclass(opt_type, Formula):
-                        options = [formula for formula in coords_formulas if
-                                   isinstance(formula, opt_type)] + [None]
+                        options = [
+                            formula
+                            for formula in coords_formulas
+                            if isinstance(formula, opt_type)
+                        ] + [None]
                     else:
                         options = [None]  # TODO: anything here?
-                elif get_origin(required_type) is None and issubclass(required_type, Formula):
-                    options = [formula for formula in coords_formulas if
-                               isinstance(formula, required_type)]
-                elif get_origin(required_type) is None and issubclass(required_type, bool):
+                elif get_origin(required_type) is None and issubclass(
+                    required_type, Formula
+                ):
+                    options = [
+                        formula
+                        for formula in coords_formulas
+                        if isinstance(formula, required_type)
+                    ]
+                elif get_origin(required_type) is None and issubclass(
+                    required_type, bool
+                ):
                     options = [True, False]
-                elif get_origin(required_type) is None and issubclass(required_type,
-                                                                      int) and name == "width":
+                elif (
+                    get_origin(required_type) is None
+                    and issubclass(required_type, int)
+                    and name == "width"
+                ):
                     options = [3, 5]
                 else:
                     options = []
@@ -198,19 +225,29 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
             if "scalarmult" in kwargs:
                 if isinstance(kwargs["scalarmult"], ScalarMultiplier):
                     mults = [kwargs["scalarmult"]]
-                    if not set(kwargs["scalarmult"].formulas.values()).issubset(coords_formulas):
+                    if not set(kwargs["scalarmult"].formulas.values()).issubset(
+                        coords_formulas
+                    ):
                         continue
-                elif isinstance(kwargs["scalarmult"], type) and issubclass(kwargs["scalarmult"],
-                                                                           ScalarMultiplier):
+                elif isinstance(kwargs["scalarmult"], type) and issubclass(
+                    kwargs["scalarmult"], ScalarMultiplier
+                ):
                     mult_classes = list(
-                            filter(lambda mult: issubclass(mult, kwargs["scalarmult"]),
-                                   mult_classes))
+                        filter(
+                            lambda mult: issubclass(mult, kwargs["scalarmult"]),
+                            mult_classes,
+                        )
+                    )
                     mults = multipliers(mult_classes, coords_formulas)
                 else:
-                    mults = multipliers(mult_classes, coords_formulas, kwargs["scalarmult"])
+                    mults = multipliers(
+                        mult_classes, coords_formulas, kwargs["scalarmult"]
+                    )
             else:
                 mults = multipliers(mult_classes, coords_formulas)
             for mult in mults:
                 formulas = frozenset(mult.formulas.values())
                 for independent_args in independents(kwargs):
-                    yield Configuration(model, coords, formulas, mult, **independent_args)
+                    yield Configuration(
+                        model, coords, formulas, mult, **independent_args
+                    )

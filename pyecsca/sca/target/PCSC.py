@@ -37,7 +37,7 @@ class PCSCTarget(ISO7816Target):  # pragma: no cover
         return bytes(self.connection.getATR())
 
     def select(self, aid: bytes) -> bool:
-        apdu = CommandAPDU(0x00, 0xa4, 0x04, 0x00, aid)
+        apdu = CommandAPDU(0x00, 0xA4, 0x04, 0x00, aid)
         resp = self.send_apdu(apdu)
         return resp.sw == ISO7816.SW_NO_ERROR
 

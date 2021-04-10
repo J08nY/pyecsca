@@ -24,7 +24,6 @@ cases: Dict[str, int] = {}
 
 
 class Plottable(TestCase):
-
     def get_dir(self):
         if split(getcwd())[1] == "test":
             directory = "plots"

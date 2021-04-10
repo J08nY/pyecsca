@@ -13,10 +13,13 @@ from public import public
 @public
 class Trace(object):
     """A trace, which has some samples and metadata."""
+
     meta: Mapping[str, Any]
     samples: ndarray
 
-    def __init__(self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None):
+    def __init__(
+        self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None
+    ):
         """
         Construct a new trace.
 
@@ -92,8 +95,11 @@ class Trace(object):
         return Trace(copy(self.samples), copy(self.meta), copy(self.trace_set))
 
     def __deepcopy__(self, memodict={}):
-        return Trace(deepcopy(self.samples, memo=memodict), deepcopy(self.meta, memo=memodict),
-                     deepcopy(self.trace_set, memo=memodict))
+        return Trace(
+            deepcopy(self.samples, memo=memodict),
+            deepcopy(self.meta, memo=memodict),
+            deepcopy(self.trace_set, memo=memodict),
+        )
 
     def __repr__(self):
         return f"Trace(samples={self.samples!r}, trace_set={self.trace_set!r})"
@@ -103,8 +109,13 @@ class Trace(object):
 class CombinedTrace(Trace):
     """A trace that was combined from other traces, `parents`."""
 
-    def __init__(self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None,
-                 parents: Sequence[Trace] = None):
+    def __init__(
+        self,
+        samples: ndarray,
+        meta: Mapping[str, Any] = None,
+        trace_set: Any = None,
+        parents: Sequence[Trace] = None,
+    ):
         super().__init__(samples, meta, trace_set=trace_set)
         self.parents = None
         if parents is not None:

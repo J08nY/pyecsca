@@ -4,13 +4,17 @@ import numpy as np
 import holoviews as hv
 import matplotlib as mpl
 from pyecsca.sca.trace import Trace
-from pyecsca.sca.trace.plot import (plot_trace, save_figure, save_figure_png, save_figure_svg,
-                                    plot_traces)
+from pyecsca.sca.trace.plot import (
+    plot_trace,
+    save_figure,
+    save_figure_png,
+    save_figure_svg,
+    plot_traces,
+)
 from .utils import Plottable
 
 
 class PlotTests(Plottable):
-
     def setUp(self) -> None:
         self.trace1 = Trace(np.array([6, 7, 3, -2, 5, 1], dtype=np.dtype("i1")))
         self.trace2 = Trace(np.array([2, 3, 7, 0, -1, 0], dtype=np.dtype("i1")))

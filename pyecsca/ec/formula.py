@@ -21,6 +21,7 @@ from ..misc.cfg import getconfig
 @public
 class OpResult(object):
     """A result of an operation."""
+
     parents: Tuple
     op: OpType
     name: str
@@ -44,6 +45,7 @@ class OpResult(object):
 @public
 class FormulaAction(ResultAction):
     """An execution of a formula, on some input points and parameters, with some outputs."""
+
     formula: "Formula"
     """The formula that was executed."""
     inputs: MutableMapping[str, Mod]
@@ -95,6 +97,7 @@ class FormulaAction(ResultAction):
 @public
 class Formula(ABC):
     """A formula operating on points."""
+
     name: str
     """Name of the formula."""
     shortname: ClassVar[str]
@@ -131,7 +134,9 @@ class Formula(ABC):
                 raise ValueError(f"Wrong coordinate model of point {point}.")
             for coord, value in point.coords.items():
                 if not isinstance(value, Mod) or value.n != field:
-                    raise ValueError(f"Wrong coordinate input {coord} = {value} of point {i}.")
+                    raise ValueError(
+                        f"Wrong coordinate input {coord} = {value} of point {i}."
+                    )
                 params[coord + str(i + 1)] = value
 
     def __validate_assumptions(self, field, params):
@@ -146,16 +151,22 @@ class Formula(ABC):
                 holds = eval(compiled, None, alocals)
                 if not holds:
                     # The assumption doesn't hold, see what is the current configured action and do it.
-                    raise_unsatisified_assumption(getconfig().ec.unsatisfied_formula_assumption_action,
-                                                  f"Unsatisfied assumption in the formula ({assumption_string}).")
+                    raise_unsatisified_assumption(
+                        getconfig().ec.unsatisfied_formula_assumption_action,
+                        f"Unsatisfied assumption in the formula ({assumption_string}).",
+                    )
             else:
                 k = FF(field)
                 expr = sympify(f"{rhs} - {lhs}", evaluate=False)
                 for curve_param, value in params.items():
                     expr = expr.subs(curve_param, k(value))
-                if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in self.parameters:
+                if (
+                    len(expr.free_symbols) > 1
+                    or (param := str(expr.free_symbols.pop())) not in self.parameters
+                ):
                     raise ValueError(
-                        f"This formula couldn't be executed due to an unsupported assumption ({assumption_string}).")
+                        f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
+                    )
 
                 def resolve(expression):
                     if not expression.args:
@@ -178,7 +189,9 @@ class Formula(ABC):
                     params[param] = Mod(int(root), field)
                     break
                 else:
-                    raise UnsatisfiedAssumptionError(f"Unsatisfied assumption in the formula ({assumption_string}).")
+                    raise UnsatisfiedAssumptionError(
+                        f"Unsatisfied assumption in the formula ({assumption_string})."
+                    )
 
     def __call__(self, field: int, *points: Any, **params: Mod) -> Tuple[Any, ...]:
         """
@@ -190,6 +203,7 @@ class Formula(ABC):
         :return: The resulting point(s).
         """
         from .point import Point
+
         self.__validate_params(field, params)
         self.__validate_points(field, points, params)
         self.__validate_assumptions(field, params)
@@ -201,7 +215,9 @@ class Formula(ABC):
                 # TODO: This is not general enough, if for example the op is `t = 1/2`, it will be float.
                 #       Temporarily, add an assertion that this does not happen so we do not give bad results.
                 if isinstance(op_result, float):
-                    raise AssertionError(f"Bad stuff happened in op {op}, floats will pollute the results.")
+                    raise AssertionError(
+                        f"Bad stuff happened in op {op}, floats will pollute the results."
+                    )
                 if not isinstance(op_result, Mod):
                     op_result = Mod(op_result, field)
                 action.add_operation(op, op_result)
@@ -285,8 +301,14 @@ class Formula(ABC):
     @property
     def num_addsubs(self) -> int:
         """Number of additions and subtractions."""
-        return len(list(
-            filter(lambda op: op.operator == OpType.Add or op.operator == OpType.Sub, self.code)))
+        return len(
+            list(
+                filter(
+                    lambda op: op.operator == OpType.Add or op.operator == OpType.Sub,
+                    self.code,
+                )
+            )
+        )
 
 
 class EFDFormula(Formula):
@@ -313,7 +335,10 @@ class EFDFormula(Formula):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
                     self.assumptions.append(
-                        parse(line[7:].replace("=", "==").replace("^", "**"), mode="eval"))
+                        parse(
+                            line[7:].replace("=", "==").replace("^", "**"), mode="eval"
+                        )
+                    )
                 elif line.startswith("unified"):
                     self.unified = True
                 line = f.readline().decode("ascii").rstrip()
@@ -321,7 +346,9 @@ class EFDFormula(Formula):
     def __read_op3_file(self, path):
         with resource_stream(__name__, path) as f:
             for line in f.readlines():
-                code_module = parse(line.decode("ascii").replace("^", "**"), path, mode="exec")
+                code_module = parse(
+                    line.decode("ascii").replace("^", "**"), path, mode="exec"
+                )
                 self.code.append(CodeOp(code_module))
 
     @property
@@ -334,19 +361,29 @@ class EFDFormula(Formula):
 
     @property
     def inputs(self):
-        return set(var + str(i) for var, i in product(self.coordinate_model.variables,
-                                                      range(1, 1 + self.num_inputs)))
+        return set(
+            var + str(i)
+            for var, i in product(
+                self.coordinate_model.variables, range(1, 1 + self.num_inputs)
+            )
+        )
 
     @property
     def outputs(self):
-        return set(var + str(i) for var, i in product(self.coordinate_model.variables,
-                                                      range(self.output_index,
-                                                            self.output_index + self.num_outputs)))
+        return set(
+            var + str(i)
+            for var, i in product(
+                self.coordinate_model.variables,
+                range(self.output_index, self.output_index + self.num_outputs),
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, EFDFormula):
             return False
-        return self.name == other.name and self.coordinate_model == other.coordinate_model
+        return (
+            self.name == other.name and self.coordinate_model == other.coordinate_model
+        )
 
     def __hash__(self):
         return hash(self.name) + hash(self.coordinate_model)
@@ -355,6 +392,7 @@ class EFDFormula(Formula):
 @public
 class AdditionFormula(Formula, ABC):
     """A formula that adds two points."""
+
     shortname = "add"
     num_inputs = 2
     num_outputs = 1
@@ -368,6 +406,7 @@ class AdditionEFDFormula(AdditionFormula, EFDFormula):
 @public
 class DoublingFormula(Formula, ABC):
     """A formula that doubles a point."""
+
     shortname = "dbl"
     num_inputs = 1
     num_outputs = 1
@@ -381,6 +420,7 @@ class DoublingEFDFormula(DoublingFormula, EFDFormula):
 @public
 class TriplingFormula(Formula, ABC):
     """A formula that triples a point."""
+
     shortname = "tpl"
     num_inputs = 1
     num_outputs = 1
@@ -394,6 +434,7 @@ class TriplingEFDFormula(TriplingFormula, EFDFormula):
 @public
 class NegationFormula(Formula, ABC):
     """A formula that negates a point."""
+
     shortname = "neg"
     num_inputs = 1
     num_outputs = 1
@@ -407,6 +448,7 @@ class NegationEFDFormula(NegationFormula, EFDFormula):
 @public
 class ScalingFormula(Formula, ABC):
     """A formula that somehow scales the point (to a given representative of a projective class)."""
+
     shortname = "scl"
     num_inputs = 1
     num_outputs = 1
@@ -423,6 +465,7 @@ class DifferentialAdditionFormula(Formula, ABC):
     A differential addition formula that adds two points with a known difference.
     The first input point is the difference of the third input and the second input (`P[0] = P[2] - P[1]`).
     """
+
     shortname = "dadd"
     num_inputs = 3
     num_outputs = 1
@@ -441,6 +484,7 @@ class LadderFormula(Formula, ABC):
     The first output point is the doubling of the second input point (`O[0] = 2 * P[1]`).
     The second output point is the addition of the second and third input points (`O[1] = P[1] + P[2]`).
     """
+
     shortname = "ladd"
     num_inputs = 3
     num_outputs = 2

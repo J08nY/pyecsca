@@ -125,6 +125,7 @@ def _check(func):
 @public
 class RandomModAction(ResultAction):
     """A random sampling from Z_n."""
+
     order: int
 
     def __init__(self, order: int):
@@ -141,6 +142,7 @@ _mod_classes: Dict[str, Type] = {}
 @public
 class Mod(object):
     """An element x of ℤₙ."""
+
     x: Any
     n: Any
 
@@ -153,7 +155,9 @@ class Mod(object):
         if selected_class not in _mod_classes:
             # Fallback to something
             selected_class = next(iter(_mod_classes.keys()))
-        return _mod_classes[selected_class].__new__(_mod_classes[selected_class], *args, **kwargs)
+        return _mod_classes[selected_class].__new__(
+            _mod_classes[selected_class], *args, **kwargs
+        )
 
     @_check
     def __add__(self, other):
@@ -254,6 +258,7 @@ class Mod(object):
 @public
 class RawMod(Mod):
     """An element x of ℤₙ (implemented using Python integers)."""
+
     x: int
     n: int
 
@@ -462,6 +467,7 @@ def _symbolic_check(func):
 @public
 class SymbolicMod(Mod):
     """A symbolic element x of ℤₙ (implemented using sympy)."""
+
     x: Expr
     n: int
 
@@ -489,10 +495,10 @@ class SymbolicMod(Mod):
         return -self + other
 
     def __neg__(self):
-        return self.__class__(- self.x, self.n)
+        return self.__class__(-self.x, self.n)
 
     def inverse(self):
-        return self.__class__(self.x**(-1), self.n)
+        return self.__class__(self.x ** (-1), self.n)
 
     def sqrt(self):
         raise NotImplementedError
@@ -569,6 +575,7 @@ if has_gmp:
     @public
     class GMPMod(Mod):
         """An element x of ℤₙ. Implemented by GMP."""
+
         x: gmpy2.mpz
         n: gmpy2.mpz
 

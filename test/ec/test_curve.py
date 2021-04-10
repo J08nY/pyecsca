@@ -19,55 +19,89 @@ class CurveTests(TestCase):
 
     def test_init(self):
         with self.assertRaises(ValueError):
-            EllipticCurve(MontgomeryModel(), self.secp128r1.curve.coordinate_model, 1,
-                          InfinityPoint(self.secp128r1.curve.coordinate_model), parameters={})
+            EllipticCurve(
+                MontgomeryModel(),
+                self.secp128r1.curve.coordinate_model,
+                1,
+                InfinityPoint(self.secp128r1.curve.coordinate_model),
+                parameters={},
+            )
 
         with self.assertRaises(ValueError):
-            EllipticCurve(self.secp128r1.curve.model, self.secp128r1.curve.coordinate_model, 15,
-                          InfinityPoint(self.secp128r1.curve.coordinate_model), parameters={"c": 0})
+            EllipticCurve(
+                self.secp128r1.curve.model,
+                self.secp128r1.curve.coordinate_model,
+                15,
+                InfinityPoint(self.secp128r1.curve.coordinate_model),
+                parameters={"c": 0},
+            )
 
         with self.assertRaises(ValueError):
-            EllipticCurve(self.secp128r1.curve.model, self.secp128r1.curve.coordinate_model, 15,
-                          InfinityPoint(self.secp128r1.curve.coordinate_model),
-                          parameters={"a": Mod(1, 5), "b": Mod(2, 5)})
+            EllipticCurve(
+                self.secp128r1.curve.model,
+                self.secp128r1.curve.coordinate_model,
+                15,
+                InfinityPoint(self.secp128r1.curve.coordinate_model),
+                parameters={"a": Mod(1, 5), "b": Mod(2, 5)},
+            )
 
     def test_is_neutral(self):
-        self.assertTrue(self.secp128r1.curve.is_neutral(InfinityPoint(self.secp128r1.curve.coordinate_model)))
+        self.assertTrue(
+            self.secp128r1.curve.is_neutral(
+                InfinityPoint(self.secp128r1.curve.coordinate_model)
+            )
+        )
 
     def test_is_on_curve(self):
         self.assertTrue(self.secp128r1.curve.is_on_curve(self.secp128r1.curve.neutral))
-        pt = Point(self.secp128r1.curve.coordinate_model,
-                   X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, self.secp128r1.curve.prime),
-                   Y=Mod(0xcf5ac8395bafeb13c02da292dded7a83, self.secp128r1.curve.prime),
-                   Z=Mod(1, self.secp128r1.curve.prime))
+        pt = Point(
+            self.secp128r1.curve.coordinate_model,
+            X=Mod(0x161FF7528B899B2D0C28607CA52C5B86, self.secp128r1.curve.prime),
+            Y=Mod(0xCF5AC8395BAFEB13C02DA292DDED7A83, self.secp128r1.curve.prime),
+            Z=Mod(1, self.secp128r1.curve.prime),
+        )
         self.assertTrue(self.secp128r1.curve.is_on_curve(pt))
         self.assertTrue(self.secp128r1.curve.is_on_curve(pt.to_affine()))
-        other = Point(self.secp128r1.curve.coordinate_model,
-                      X=Mod(0x161ff7528b899b2d0c28607ca52c5b86, self.secp128r1.curve.prime),
-                      Y=Mod(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, self.secp128r1.curve.prime),
-                      Z=Mod(1, self.secp128r1.curve.prime))
+        other = Point(
+            self.secp128r1.curve.coordinate_model,
+            X=Mod(0x161FF7528B899B2D0C28607CA52C5B86, self.secp128r1.curve.prime),
+            Y=Mod(0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, self.secp128r1.curve.prime),
+            Z=Mod(1, self.secp128r1.curve.prime),
+        )
         self.assertFalse(self.secp128r1.curve.is_on_curve(other))
         self.assertFalse(self.secp128r1.curve.is_on_curve(self.curve25519.generator))
 
     def test_affine_add(self):
-        pt = Point(AffineCoordinateModel(self.secp128r1.curve.model),
-                   x=Mod(0xeb916224eda4fb356421773573297c15, self.secp128r1.curve.prime),
-                   y=Mod(0xbcdaf32a2c08fd4271228fef35070848, self.secp128r1.curve.prime))
+        pt = Point(
+            AffineCoordinateModel(self.secp128r1.curve.model),
+            x=Mod(0xEB916224EDA4FB356421773573297C15, self.secp128r1.curve.prime),
+            y=Mod(0xBCDAF32A2C08FD4271228FEF35070848, self.secp128r1.curve.prime),
+        )
         self.assertIsNotNone(self.secp128r1.curve.affine_add(self.affine_base, pt))
 
         added = self.secp128r1.curve.affine_add(self.affine_base, self.affine_base)
         doubled = self.secp128r1.curve.affine_double(self.affine_base)
         self.assertEqual(added, doubled)
-        self.assertEqual(self.secp128r1.curve.affine_add(self.secp128r1.curve.neutral, pt), pt)
-        self.assertEqual(self.secp128r1.curve.affine_add(pt, self.secp128r1.curve.neutral), pt)
+        self.assertEqual(
+            self.secp128r1.curve.affine_add(self.secp128r1.curve.neutral, pt), pt
+        )
+        self.assertEqual(
+            self.secp128r1.curve.affine_add(pt, self.secp128r1.curve.neutral), pt
+        )
 
     def test_affine_double(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_double(self.affine_base))
-        self.assertEqual(self.secp128r1.curve.affine_double(self.secp128r1.curve.neutral), self.secp128r1.curve.neutral)
+        self.assertEqual(
+            self.secp128r1.curve.affine_double(self.secp128r1.curve.neutral),
+            self.secp128r1.curve.neutral,
+        )
 
     def test_affine_negate(self):
         self.assertIsNotNone(self.secp128r1.curve.affine_negate(self.affine_base))
-        self.assertEqual(self.secp128r1.curve.affine_negate(self.secp128r1.curve.neutral), self.secp128r1.curve.neutral)
+        self.assertEqual(
+            self.secp128r1.curve.affine_negate(self.secp128r1.curve.neutral),
+            self.secp128r1.curve.neutral,
+        )
         with self.assertRaises(ValueError):
             self.secp128r1.curve.affine_negate(self.base)
         with self.assertRaises(ValueError):
@@ -79,8 +113,13 @@ class CurveTests(TestCase):
         expected = self.secp128r1.curve.affine_double(expected)
         expected = self.secp128r1.curve.affine_add(expected, self.affine_base)
         expected = self.secp128r1.curve.affine_double(expected)
-        self.assertEqual(self.secp128r1.curve.affine_multiply(self.affine_base, 10), expected)
-        self.assertEqual(self.secp128r1.curve.affine_multiply(self.secp128r1.curve.neutral, 10), self.secp128r1.curve.neutral)
+        self.assertEqual(
+            self.secp128r1.curve.affine_multiply(self.affine_base, 10), expected
+        )
+        self.assertEqual(
+            self.secp128r1.curve.affine_multiply(self.secp128r1.curve.neutral, 10),
+            self.secp128r1.curve.neutral,
+        )
         with self.assertRaises(ValueError):
             self.secp128r1.curve.affine_multiply(self.base, 10)
         with self.assertRaises(ValueError):
@@ -129,7 +168,9 @@ class CurveTests(TestCase):
         with self.assertRaises(ValueError):
             affine_curve.decode_point(unhexlify("03161ff7528b899b2d0c28607ca52c5b"))
         with self.assertRaises(ValueError):
-            affine_curve.decode_point(unhexlify("04161ff7528b899b2d0c28607ca52c5b2c5b2c5b2c5b"))
+            affine_curve.decode_point(
+                unhexlify("04161ff7528b899b2d0c28607ca52c5b2c5b2c5b2c5b")
+            )
         with self.assertRaises(ValueError):
             affine_curve.decode_point(unhexlify("7a161ff7528b899b2d0c28607ca52c5b86"))
         with self.assertRaises(ValueError):

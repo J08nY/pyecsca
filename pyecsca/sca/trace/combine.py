@@ -25,13 +25,15 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         s = np.add(s, t.samples[:min_samples])
-    avg = ((1 / len(traces)) * s)
+    avg = (1 / len(traces)) * s
     del s
     return CombinedTrace(avg)
 
 
 @public
-def conditional_average(*traces: Trace, condition: Callable[[Trace], bool]) -> Optional[CombinedTrace]:
+def conditional_average(
+    *traces: Trace, condition: Callable[[Trace], bool]
+) -> Optional[CombinedTrace]:
     """
     Average `traces` for which the `condition` is True, sample-wise.
 
@@ -107,8 +109,10 @@ def average_and_variance(*traces) -> Optional[Tuple[CombinedTrace, CombinedTrace
     if not traces:
         return None
     if len(traces) == 1:
-        return (CombinedTrace(traces[0].samples.copy()),
-                CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64)))
+        return (
+            CombinedTrace(traces[0].samples.copy()),
+            CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64)),
+        )
     min_samples = min(map(len, traces))
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:

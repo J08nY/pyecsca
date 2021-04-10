@@ -10,7 +10,6 @@ from pyecsca.ec.point import Point
 
 
 class RegressionTests(TestCase):
-
     def test_issue_7(self):
         secp128r1 = get_params("secg", "secp128r1", "projective")
         base = secp128r1.generator
@@ -18,7 +17,9 @@ class RegressionTests(TestCase):
         add = coords.formulas["add-1998-cmo"]
         dbl = coords.formulas["dbl-1998-cmo"]
         scl = coords.formulas["z"]
-        mult = LTRMultiplier(add, dbl, scl, always=False, complete=False, short_circuit=True)
+        mult = LTRMultiplier(
+            add, dbl, scl, always=False, complete=False, short_circuit=True
+        )
         mult.init(secp128r1, base)
         pt = mult.multiply(13613624287328732)
         self.assertIsInstance(pt.coords["X"], Mod)
@@ -44,7 +45,9 @@ class RegressionTests(TestCase):
         coords = model.coordinates["xz"]
         p = 19
         neutral = Point(coords, X=Mod(1, p), Z=Mod(0, p))
-        curve = EllipticCurve(model, coords, p, neutral, {"a": Mod(8, p), "b": Mod(1, p)})
+        curve = EllipticCurve(
+            model, coords, p, neutral, {"a": Mod(8, p), "b": Mod(1, p)}
+        )
         base = Point(coords, X=Mod(12, p), Z=Mod(1, p))
         formula = coords.formulas["dbl-1987-m-2"]
         res = formula(p, base, **curve.parameters)[0]
@@ -60,13 +63,13 @@ class RegressionTests(TestCase):
         model = EdwardsModel()
         coords = model.coordinates["yz"]
         coords_sqr = model.coordinates["yzsquared"]
-        p = 0x1d
+        p = 0x1D
         c = Mod(1, p)
-        d = Mod(0x1c, p)
+        d = Mod(0x1C, p)
         r = d.sqrt()
         neutral = Point(coords, Y=c * r, Z=Mod(1, p))
         curve = EllipticCurve(model, coords, p, neutral, {"c": c, "d": d, "r": r})
         neutral_affine = Point(AffineCoordinateModel(model), x=Mod(0, p), y=c)
         self.assertEqual(neutral, neutral_affine.to_model(coords, curve))
-        neutral_sqr = Point(coords_sqr, Y=c**2 * r, Z=Mod(1, p))
+        neutral_sqr = Point(coords_sqr, Y=c ** 2 * r, Z=Mod(1, p))
         self.assertEqual(neutral_sqr, neutral_affine.to_model(coords_sqr, curve))

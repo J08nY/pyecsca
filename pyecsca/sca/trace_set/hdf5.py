@@ -22,6 +22,7 @@ from .. import Trace
 @public
 class HDF5Meta(MutableMapping):
     """Metadata mapping that is HDF5-compatible (items are picklable)."""
+
     _dataset: h5py.AttributeManager
 
     def __init__(self, attrs: h5py.AttributeManager):
@@ -55,12 +56,18 @@ class HDF5Meta(MutableMapping):
 @public
 class HDF5TraceSet(TraceSet):
     """A traceset based on the HDF5 (Hierarchical Data Format)."""
+
     _file: Optional[h5py.File]
     _ordering: List[str]
     # _meta: Optional[HDF5Meta]
 
-    def __init__(self, *traces: Trace, _file: Optional[h5py.File] = None,
-                 _ordering: Optional[List[str]] = None, **kwargs):
+    def __init__(
+        self,
+        *traces: Trace,
+        _file: Optional[h5py.File] = None,
+        _ordering: Optional[List[str]] = None,
+        **kwargs,
+    ):
         # self._meta = HDF5Meta(_file.attrs) if _file is not None else None
         self._file = _file
         if _ordering is None:
@@ -76,7 +83,9 @@ class HDF5TraceSet(TraceSet):
         else:
             raise TypeError
         kwargs = dict(hdf5.attrs)
-        kwargs["_ordering"] = list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
+        kwargs["_ordering"] = (
+            list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
+        )
         traces = []
         for k in kwargs["_ordering"]:
             meta = dict(HDF5Meta(hdf5[k].attrs))
@@ -94,7 +103,9 @@ class HDF5TraceSet(TraceSet):
         else:
             raise TypeError
         kwargs = dict(hdf5.attrs)
-        kwargs["_ordering"] = list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
+        kwargs["_ordering"] = (
+            list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
+        )
         traces = []
         for k in kwargs["_ordering"]:
             meta = HDF5Meta(hdf5[k].attrs)
@@ -182,5 +193,11 @@ class HDF5TraceSet(TraceSet):
                 fname = self._file.filename
             else:
                 status = "(closed)"
-        args = ", ".join([f"{key}={getattr(self, key)!r}" for key in self._keys if not key.startswith("_")])
+        args = ", ".join(
+            [
+                f"{key}={getattr(self, key)!r}"
+                for key in self._keys
+                if not key.startswith("_")
+            ]
+        )
         return f"HDF5TraceSet('{fname}'{status}, {args})"

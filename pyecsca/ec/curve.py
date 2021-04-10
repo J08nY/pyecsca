@@ -16,6 +16,7 @@ from .point import Point, InfinityPoint
 @public
 class EllipticCurve(object):
     """An elliptic curve."""
+
     model: CurveModel
     """The model of the curve."""
     coordinate_model: CoordinateModel
@@ -27,11 +28,23 @@ class EllipticCurve(object):
     neutral: Point
     """The neutral point on the curve."""
 
-    def __init__(self, model: CurveModel, coordinate_model: CoordinateModel,
-                 prime: int, neutral: Point, parameters: MutableMapping[str, Union[Mod, int]]):
-        if coordinate_model not in model.coordinates.values() and not isinstance(coordinate_model, AffineCoordinateModel):
+    def __init__(
+        self,
+        model: CurveModel,
+        coordinate_model: CoordinateModel,
+        prime: int,
+        neutral: Point,
+        parameters: MutableMapping[str, Union[Mod, int]],
+    ):
+        if coordinate_model not in model.coordinates.values() and not isinstance(
+            coordinate_model, AffineCoordinateModel
+        ):
             raise ValueError
-        if set(model.parameter_names).union(coordinate_model.parameters).symmetric_difference(parameters.keys()):
+        if (
+            set(model.parameter_names)
+            .union(coordinate_model.parameters)
+            .symmetric_difference(parameters.keys())
+        ):
             raise ValueError
         self.model = model
         self.coordinate_model = coordinate_model
@@ -52,8 +65,11 @@ class EllipticCurve(object):
                 raise ValueError("Coordinate model of point is not affine.")
             if point.coordinate_model.curve_model != self.model:
                 raise ValueError("Curve model of point does not match the curve.")
-        locls = {var + str(i + 1): point.coords[var]
-                 for i, point in enumerate(points) for var in point.coords}
+        locls = {
+            var + str(i + 1): point.coords[var]
+            for i, point in enumerate(points)
+            for var in point.coords
+        }
         locls.update(self.parameters)
         for line in formulas:
             exec(compile(line, "", mode="exec"), None, locls)
@@ -228,7 +244,9 @@ class EllipticCurve(object):
             else:
                 raise NotImplementedError
         else:
-            raise ValueError(f"Wrong encoding type: {hex(encoded[0])}, should be one of 0x04, 0x06, 0x02, 0x03 or 0x00")
+            raise ValueError(
+                f"Wrong encoding type: {hex(encoded[0])}, should be one of 0x04, 0x06, 0x02, 0x03 or 0x00"
+            )
 
     def affine_random(self) -> Point:
         """Generate a random affine point on the curve."""
@@ -246,7 +264,12 @@ class EllipticCurve(object):
     def __eq__(self, other):
         if not isinstance(other, EllipticCurve):
             return False
-        return self.model == other.model and self.coordinate_model == other.coordinate_model and self.prime == other.prime and self.parameters == other.parameters
+        return (
+            self.model == other.model
+            and self.coordinate_model == other.coordinate_model
+            and self.prime == other.prime
+            and self.parameters == other.parameters
+        )
 
     def __str__(self):
         return "EllipticCurve"

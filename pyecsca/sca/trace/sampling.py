@@ -20,8 +20,15 @@ def downsample_average(trace: Trace, factor: int = 2) -> Trace:
     :param factor:
     :return:
     """
-    resized = np.resize(trace.samples, len(trace.samples) - (len(trace.samples) % factor))
-    result_samples = cast(np.ndarray, resized.reshape(-1, factor).mean(axis=1).astype(trace.samples.dtype, copy=False))
+    resized = np.resize(
+        trace.samples, len(trace.samples) - (len(trace.samples) % factor)
+    )
+    result_samples = cast(
+        np.ndarray,
+        resized.reshape(-1, factor)
+        .mean(axis=1)
+        .astype(trace.samples.dtype, copy=False),
+    )
     return trace.with_samples(result_samples)
 
 
@@ -49,8 +56,13 @@ def downsample_max(trace: Trace, factor: int = 2) -> Trace:
     :param factor:
     :return:
     """
-    resized = np.resize(trace.samples, len(trace.samples) - (len(trace.samples) % factor))
-    result_samples = cast(np.ndarray, resized.reshape(-1, factor).max(axis=1).astype(trace.samples.dtype, copy=False))
+    resized = np.resize(
+        trace.samples, len(trace.samples) - (len(trace.samples) % factor)
+    )
+    result_samples = cast(
+        np.ndarray,
+        resized.reshape(-1, factor).max(axis=1).astype(trace.samples.dtype, copy=False),
+    )
     return trace.with_samples(result_samples)
 
 
@@ -64,8 +76,13 @@ def downsample_min(trace: Trace, factor: int = 2) -> Trace:
     :param factor:
     :return:
     """
-    resized = np.resize(trace.samples, len(trace.samples) - (len(trace.samples) % factor))
-    result_samples = cast(np.ndarray, resized.reshape(-1, factor).min(axis=1).astype(trace.samples.dtype, copy=False))
+    resized = np.resize(
+        trace.samples, len(trace.samples) - (len(trace.samples) % factor)
+    )
+    result_samples = cast(
+        np.ndarray,
+        resized.reshape(-1, factor).min(axis=1).astype(trace.samples.dtype, copy=False),
+    )
     return trace.with_samples(result_samples)
 
 

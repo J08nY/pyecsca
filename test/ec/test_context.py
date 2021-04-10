@@ -1,7 +1,15 @@
 from unittest import TestCase
 
-from pyecsca.ec.context import (local, DefaultContext, NullContext, getcontext,
-                                setcontext, resetcontext, Tree, PathContext)
+from pyecsca.ec.context import (
+    local,
+    DefaultContext,
+    NullContext,
+    getcontext,
+    setcontext,
+    resetcontext,
+    Tree,
+    PathContext,
+)
 from pyecsca.ec.key_generation import KeygenAction, KeyGeneration
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import RandomModAction
@@ -9,7 +17,6 @@ from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
 
 
 class TreeTests(TestCase):
-
     def test_walk_by_key(self):
         tree = Tree()
         tree["a"] = Tree()
@@ -46,14 +53,16 @@ class TreeTests(TestCase):
 
 
 class ContextTests(TestCase):
-
     def setUp(self):
         self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.base = self.secp128r1.generator
         self.coords = self.secp128r1.curve.coordinate_model
-        self.mult = LTRMultiplier(self.coords.formulas["add-1998-cmo"],
-                                  self.coords.formulas["dbl-1998-cmo"], self.coords.formulas["z"],
-                                  always=True)
+        self.mult = LTRMultiplier(
+            self.coords.formulas["add-1998-cmo"],
+            self.coords.formulas["dbl-1998-cmo"],
+            self.coords.formulas["z"],
+            always=True,
+        )
         self.mult.init(self.secp128r1, self.base)
 
     def test_null(self):

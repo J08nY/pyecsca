@@ -6,7 +6,6 @@ from pyecsca.ec.mult import LTRMultiplier
 
 
 class KeyGenerationTests(TestCase):
-
     def setUp(self):
         self.secp128r1 = get_params("secg", "secp128r1", "projective")
         self.add = self.secp128r1.curve.coordinate_model.formulas["add-2007-bl"]

@@ -14,6 +14,7 @@ from .coordinates import EFDCoordinateModel, CoordinateModel
 @public
 class CurveModel(object):
     """A model(form) of an elliptic curve."""
+
     name: str
     shortname: str
     coordinates: MutableMapping[str, CoordinateModel]
@@ -134,6 +135,7 @@ class MontgomeryModel(EFDCurveModel):
 
        B y^2 = x^3 + A x^2 + x
     """
+
     def __init__(self):
         super().__init__("montgom")
 

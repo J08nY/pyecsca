@@ -43,7 +43,9 @@ def match_pattern(trace: Trace, pattern: Trace, threshold: float = 0.8) -> List[
 
 
 @public
-def match_part(trace: Trace, offset: int, length: int, threshold: float = 0.8) -> List[int]:
+def match_part(
+    trace: Trace, offset: int, length: int, threshold: float = 0.8
+) -> List[int]:
     """
     Match a part of a `trace` starting at `offset` of `length` to the `trace`. Returns indices where the pattern matches
     , e.g. those where correlation of the two traces has peaks larger than `threshold`. Uses the

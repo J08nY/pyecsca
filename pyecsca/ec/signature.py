@@ -18,12 +18,20 @@ from .point import Point
 @public
 class SignatureResult(object):
     """An ECDSA signature result (r, s)."""
+
     r: int
     s: int
 
-    def __init__(self, r: int, s: int, data: Optional[bytes] = None, digest: Optional[bytes] = None,
-                 nonce: Optional[int] = None, privkey: Optional[Mod] = None,
-                 pubkey: Optional[Point] = None):
+    def __init__(
+        self,
+        r: int,
+        s: int,
+        data: Optional[bytes] = None,
+        digest: Optional[bytes] = None,
+        nonce: Optional[int] = None,
+        privkey: Optional[Mod] = None,
+        pubkey: Optional[Point] = None,
+    ):
         self.r = r
         self.s = s
 
@@ -55,12 +63,12 @@ class SignatureResult(object):
 @public
 class ECDSAAction(Action):
     """An ECDSA action base class."""
+
     params: DomainParameters
     hash_algo: Optional[Any]
     msg: bytes
 
-    def __init__(self, params: DomainParameters, hash_algo: Optional[Any],
-                 msg: bytes):
+    def __init__(self, params: DomainParameters, hash_algo: Optional[Any], msg: bytes):
         super().__init__()
         self.params = params
         self.hash_algo = hash_algo
@@ -73,10 +81,16 @@ class ECDSAAction(Action):
 @public
 class ECDSASignAction(ECDSAAction):
     """An ECDSA signing."""
+
     privkey: Mod
 
-    def __init__(self, params: DomainParameters, hash_algo: Optional[Any], msg: bytes,
-                 privkey: Mod):
+    def __init__(
+        self,
+        params: DomainParameters,
+        hash_algo: Optional[Any],
+        msg: bytes,
+        privkey: Mod,
+    ):
         super().__init__(params, hash_algo, msg)
         self.privkey = privkey
 
@@ -87,11 +101,18 @@ class ECDSASignAction(ECDSAAction):
 @public
 class ECDSAVerifyAction(ECDSAAction):
     """An ECDSA verification."""
+
     signature: SignatureResult
     pubkey: Point
 
-    def __init__(self, params: DomainParameters, hash_algo: Optional[Any], msg: bytes,
-                 signature: SignatureResult, pubkey: Point):
+    def __init__(
+        self,
+        params: DomainParameters,
+        hash_algo: Optional[Any],
+        msg: bytes,
+        signature: SignatureResult,
+        pubkey: Point,
+    ):
         super().__init__(params, hash_algo, msg)
         self.signature = signature
         self.pubkey = pubkey
@@ -103,6 +124,7 @@ class ECDSAVerifyAction(ECDSAAction):
 @public
 class Signature(object):
     """An EC based signature primitive. (ECDSA)"""
+
     mult: ScalarMultiplier
     params: DomainParameters
     add: Optional[AdditionFormula]
@@ -110,10 +132,15 @@ class Signature(object):
     privkey: Optional[Mod]
     hash_algo: Optional[Any]
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None,
-                 hash_algo: Optional[Any] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+        hash_algo: Optional[Any] = None,
+    ):
         if pubkey is None and privkey is None:
             raise ValueError
         if add is None:
@@ -153,8 +180,9 @@ class Signature(object):
         affine_point = point.to_affine()
         r = Mod(int(affine_point.x), self.params.order)
         s = nonce.inverse() * (Mod(z, self.params.order) + r * self.privkey)
-        return SignatureResult(int(r), int(s), digest=digest, nonce=int(nonce),
-                               privkey=self.privkey)
+        return SignatureResult(
+            int(r), int(s), digest=digest, nonce=int(nonce), privkey=self.privkey
+        )
 
     def sign_hash(self, digest: bytes, nonce: Optional[int] = None) -> SignatureResult:
         """Sign already hashed data."""
@@ -203,7 +231,9 @@ class Signature(object):
         """Verify data."""
         if not self.can_verify or self.pubkey is None:
             raise RuntimeError("This instance cannot verify.")
-        with ECDSAVerifyAction(self.params, self.hash_algo, data, signature, self.pubkey):
+        with ECDSAVerifyAction(
+            self.params, self.hash_algo, data, signature, self.pubkey
+        ):
             if self.hash_algo is None:
                 digest = data
             else:
@@ -215,9 +245,14 @@ class Signature(object):
 class ECDSA_NONE(Signature):
     """ECDSA with raw message input."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+    ):
         super().__init__(mult, params, add, pubkey, privkey)
 
 
@@ -225,9 +260,14 @@ class ECDSA_NONE(Signature):
 class ECDSA_SHA1(Signature):
     """ECDSA with SHA1."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+    ):
         super().__init__(mult, params, add, pubkey, privkey, hashlib.sha1)
 
 
@@ -235,9 +275,14 @@ class ECDSA_SHA1(Signature):
 class ECDSA_SHA224(Signature):
     """ECDSA with SHA224."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+    ):
         super().__init__(mult, params, add, pubkey, privkey, hashlib.sha224)
 
 
@@ -245,9 +290,14 @@ class ECDSA_SHA224(Signature):
 class ECDSA_SHA256(Signature):
     """ECDSA with SHA256."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+    ):
         super().__init__(mult, params, add, pubkey, privkey, hashlib.sha256)
 
 
@@ -255,9 +305,14 @@ class ECDSA_SHA256(Signature):
 class ECDSA_SHA384(Signature):
     """ECDSA with SHA384."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+    ):
         super().__init__(mult, params, add, pubkey, privkey, hashlib.sha384)
 
 
@@ -265,7 +320,12 @@ class ECDSA_SHA384(Signature):
 class ECDSA_SHA512(Signature):
     """ECDSA with SHA512."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters,
-                 add: Optional[AdditionFormula] = None,
-                 pubkey: Optional[Point] = None, privkey: Optional[Mod] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        add: Optional[AdditionFormula] = None,
+        pubkey: Optional[Point] = None,
+        privkey: Optional[Mod] = None,
+    ):
         super().__init__(mult, params, add, pubkey, privkey, hashlib.sha512)

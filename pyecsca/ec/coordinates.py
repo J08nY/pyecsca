@@ -8,14 +8,23 @@ from typing import List, Any, MutableMapping
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
-from .formula import (Formula, EFDFormula, AdditionEFDFormula, DoublingEFDFormula,
-                      TriplingEFDFormula, DifferentialAdditionEFDFormula, LadderEFDFormula,
-                      ScalingEFDFormula, NegationEFDFormula)
+from .formula import (
+    Formula,
+    EFDFormula,
+    AdditionEFDFormula,
+    DoublingEFDFormula,
+    TriplingEFDFormula,
+    DifferentialAdditionEFDFormula,
+    LadderEFDFormula,
+    ScalingEFDFormula,
+    NegationEFDFormula,
+)
 
 
 @public
 class CoordinateModel(object):
     """A coordinate system for a particular model(form) of an elliptic curve."""
+
     name: str
     """Name of the coordinate model"""
     full_name: str
@@ -37,7 +46,7 @@ class CoordinateModel(object):
     """Formulas available on the coordinate system."""
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(\"{self.name}\" on {self.curve_model.name})"
+        return f'{self.__class__.__name__}("{self.name}" on {self.curve_model.name})'
 
 
 @public
@@ -61,7 +70,6 @@ class AffineCoordinateModel(CoordinateModel):
 
 
 class EFDCoordinateModel(CoordinateModel):
-
     def __init__(self, dir_path: str, name: str, curve_model: Any):
         self.name = name
         self.curve_model = curve_model
@@ -89,7 +97,7 @@ class EFDCoordinateModel(CoordinateModel):
                 "diffadd": DifferentialAdditionEFDFormula,
                 "ladder": LadderEFDFormula,
                 "scaling": ScalingEFDFormula,
-                "negation": NegationEFDFormula
+                "negation": NegationEFDFormula,
             }
             cls = formula_types.get(formula_type, EFDFormula)
             self.formulas[fname] = cls(join(dir_path, fname), fname, self)
@@ -118,7 +126,8 @@ class EFDCoordinateModel(CoordinateModel):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
                     self.assumptions.append(
-                            parse(line[7:].replace("^", "**"), mode="exec"))
+                        parse(line[7:].replace("^", "**"), mode="exec")
+                    )
                 line = f.readline().decode("ascii").rstrip()
 
     def __eq__(self, other):

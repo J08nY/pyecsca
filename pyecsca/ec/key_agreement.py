@@ -16,12 +16,19 @@ from .point import Point
 @public
 class ECDHAction(ResultAction):
     """An ECDH key exchange."""
+
     params: DomainParameters
     hash_algo: Optional[Any]
     privkey: Mod
     pubkey: Point
 
-    def __init__(self, params: DomainParameters, hash_algo: Optional[Any], privkey: Mod, pubkey: Point):
+    def __init__(
+        self,
+        params: DomainParameters,
+        hash_algo: Optional[Any],
+        privkey: Mod,
+        pubkey: Point,
+    ):
         super().__init__()
         self.params = params
         self.hash_algo = hash_algo
@@ -35,14 +42,21 @@ class ECDHAction(ResultAction):
 @public
 class KeyAgreement(object):
     """An EC based key agreement primitive. (ECDH)"""
+
     mult: ScalarMultiplier
     params: DomainParameters
     pubkey: Point
     privkey: Mod
     hash_algo: Optional[Any]
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point, privkey: Mod,
-                 hash_algo: Optional[Any] = None):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+        hash_algo: Optional[Any] = None,
+    ):
         self.mult = mult
         self.params = params
         self.pubkey = pubkey
@@ -65,7 +79,9 @@ class KeyAgreement(object):
 
         :return: The shared secret.
         """
-        with ECDHAction(self.params, self.hash_algo, self.privkey, self.pubkey) as action:
+        with ECDHAction(
+            self.params, self.hash_algo, self.privkey, self.pubkey
+        ) as action:
             affine_point = self.perform_raw()
             x = int(affine_point.x)
             p = self.params.curve.prime
@@ -80,8 +96,13 @@ class KeyAgreement(object):
 class ECDH_NONE(KeyAgreement):
     """Raw x-coordinate ECDH."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point,
-                 privkey: Mod):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+    ):
         super().__init__(mult, params, pubkey, privkey)
 
 
@@ -89,8 +110,13 @@ class ECDH_NONE(KeyAgreement):
 class ECDH_SHA1(KeyAgreement):
     """ECDH with SHA1 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point,
-                 privkey: Mod):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+    ):
         super().__init__(mult, params, pubkey, privkey, hashlib.sha1)
 
 
@@ -98,8 +124,13 @@ class ECDH_SHA1(KeyAgreement):
 class ECDH_SHA224(KeyAgreement):
     """ECDH with SHA224 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point,
-                 privkey: Mod):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+    ):
         super().__init__(mult, params, pubkey, privkey, hashlib.sha224)
 
 
@@ -107,8 +138,13 @@ class ECDH_SHA224(KeyAgreement):
 class ECDH_SHA256(KeyAgreement):
     """ECDH with SHA256 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point,
-                 privkey: Mod):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+    ):
         super().__init__(mult, params, pubkey, privkey, hashlib.sha256)
 
 
@@ -116,8 +152,13 @@ class ECDH_SHA256(KeyAgreement):
 class ECDH_SHA384(KeyAgreement):
     """ECDH with SHA384 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point,
-                 privkey: Mod):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+    ):
         super().__init__(mult, params, pubkey, privkey, hashlib.sha384)
 
 
@@ -125,6 +166,11 @@ class ECDH_SHA384(KeyAgreement):
 class ECDH_SHA512(KeyAgreement):
     """ECDH with SHA512 of x-coordinate."""
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, pubkey: Point,
-                 privkey: Mod):
+    def __init__(
+        self,
+        mult: ScalarMultiplier,
+        params: DomainParameters,
+        pubkey: Point,
+        privkey: Mod,
+    ):
         super().__init__(mult, params, pubkey, privkey, hashlib.sha512)

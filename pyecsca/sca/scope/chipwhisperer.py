@@ -27,18 +27,29 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     def channels(self) -> Sequence[str]:
         return []
 
-    def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
+    def setup_frequency(
+        self, frequency: int, pretrig: int, posttrig: int
+    ) -> Tuple[int, int]:
         if pretrig != 0:
             raise ValueError("ChipWhisperer does not support pretrig samples.")
         self.scope.clock.clkgen_freq = frequency
         self.scope.samples = posttrig
         return self.scope.clock.freq_ctr, self.scope.samples
 
-    def setup_channel(self, channel: str, coupling: str, range: float, offset: float, enable: bool) -> None:
+    def setup_channel(
+        self, channel: str, coupling: str, range: float, offset: float, enable: bool
+    ) -> None:
         pass
 
-    def setup_trigger(self, channel: str, threshold: float, direction: str, delay: int,
-                      timeout: int, enable: bool) -> None:
+    def setup_trigger(
+        self,
+        channel: str,
+        threshold: float,
+        direction: str,
+        delay: int,
+        timeout: int,
+        enable: bool,
+    ) -> None:
         if enable:
             self.triggers.add(channel)
         elif channel in self.triggers:
@@ -55,11 +66,16 @@ class ChipWhispererScope(Scope):  # pragma: no cover
     def capture(self, timeout: Optional[int] = None) -> bool:
         return not self.scope.capture()
 
-    def retrieve(self, channel: str, type: SampleType, dtype=np.float16) -> Optional[Trace]:
+    def retrieve(
+        self, channel: str, type: SampleType, dtype=np.float16
+    ) -> Optional[Trace]:
         data = self.scope.get_last_trace()
         if data is None:
             return None
-        return Trace(np.array(data, dtype=dtype), {"sampling_frequency": self.scope.clock.clkgen_freq, "channel": channel})
+        return Trace(
+            np.array(data, dtype=dtype),
+            {"sampling_frequency": self.scope.clock.clkgen_freq, "channel": channel},
+        )
 
     def stop(self) -> None:
         pass

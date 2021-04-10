@@ -5,7 +5,6 @@ from pyecsca.ec.transformations import M2SW, M2TE, TE2M, SW2M, SW2TE
 
 
 class TransformationTests(TestCase):
-
     def test_montgomery(self):
         curve25519 = get_params("other", "Curve25519", "affine")
         sw = M2SW(curve25519)

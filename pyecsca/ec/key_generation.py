@@ -15,6 +15,7 @@ from .point import Point
 @public
 class KeygenAction(ResultAction):
     """A key generation."""
+
     params: DomainParameters
 
     def __init__(self, params: DomainParameters):
@@ -28,11 +29,14 @@ class KeygenAction(ResultAction):
 @public
 class KeyGeneration(object):
     """Key generator."""
+
     mult: ScalarMultiplier
     params: DomainParameters
     affine: bool
 
-    def __init__(self, mult: ScalarMultiplier, params: DomainParameters, affine: bool = False):
+    def __init__(
+        self, mult: ScalarMultiplier, params: DomainParameters, affine: bool = False
+    ):
         """
         :param mult: The scalar multiplier to use during key generation.
         :param params: The domain parameters over which to generate the keypair.

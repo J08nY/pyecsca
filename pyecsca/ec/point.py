@@ -19,11 +19,14 @@ if TYPE_CHECKING:
 @public
 class CoordinateMappingAction(ResultAction):
     """A mapping of a point from one coordinate system to another one, usually one is an affine one."""
+
     model_from: CoordinateModel
     model_to: CoordinateModel
     point: "Point"
 
-    def __init__(self, model_from: CoordinateModel, model_to: CoordinateModel, point: "Point"):
+    def __init__(
+        self, model_from: CoordinateModel, model_to: CoordinateModel, point: "Point"
+    ):
         super().__init__()
         self.model_from = model_from
         self.model_to = model_to
@@ -36,6 +39,7 @@ class CoordinateMappingAction(ResultAction):
 @public
 class Point(object):
     """A point with coordinates in a coordinate model."""
+
     coordinate_model: CoordinateModel
     coords: Mapping[str, Mod]
     field: int
@@ -51,7 +55,9 @@ class Point(object):
                 field = value.n
             else:
                 if field != value.n:
-                    raise ValueError(f"Mismatched coordinate field of definition, {field} vs {value.n}.")
+                    raise ValueError(
+                        f"Mismatched coordinate field of definition, {field} vs {value.n}."
+                    )
         self.field = field if field is not None else 0
 
     def __getattribute__(self, name):
@@ -65,7 +71,9 @@ class Point(object):
     def to_affine(self) -> "Point":
         """Convert this point into the affine coordinate model, if possible."""
         affine_model = AffineCoordinateModel(self.coordinate_model.curve_model)
-        with CoordinateMappingAction(self.coordinate_model, affine_model, self) as action:
+        with CoordinateMappingAction(
+            self.coordinate_model, affine_model, self
+        ) as action:
             if isinstance(self.coordinate_model, AffineCoordinateModel):
                 return action.exit(copy(self))
             ops = []
@@ -91,11 +99,15 @@ class Point(object):
                     result[op.result] = locls[op.result]
             return action.exit(Point(affine_model, **result))
 
-    def to_model(self, coordinate_model: CoordinateModel, curve: "EllipticCurve") -> "Point":
+    def to_model(
+        self, coordinate_model: CoordinateModel, curve: "EllipticCurve"
+    ) -> "Point":
         """Convert an affine point into a given coordinate model, if possible."""
         if not isinstance(self.coordinate_model, AffineCoordinateModel):
             raise ValueError
-        with CoordinateMappingAction(self.coordinate_model, coordinate_model, self) as action:
+        with CoordinateMappingAction(
+            self.coordinate_model, coordinate_model, self
+        ) as action:
             ops = []
             for s in coordinate_model.satisfying:
                 try:
@@ -114,7 +126,10 @@ class Point(object):
                     result[var] = locls[var]
                 elif var == "X":
                     result[var] = self.coords["x"]
-                    if isinstance(coordinate_model, EFDCoordinateModel) and coordinate_model.name == "inverted":
+                    if (
+                        isinstance(coordinate_model, EFDCoordinateModel)
+                        and coordinate_model.name == "inverted"
+                    ):
                         result[var] = result[var].inverse()
                 elif var == "Y":
                     result[var] = self.coords["y"]
@@ -124,11 +139,13 @@ class Point(object):
                         elif coordinate_model.name == "yz":
                             result[var] = result[var] * curve.parameters["r"]
                         elif coordinate_model.name == "yzsquared":
-                            result[var] = result[var]**2 * curve.parameters["r"]
+                            result[var] = result[var] ** 2 * curve.parameters["r"]
                 elif var.startswith("Z"):
                     result[var] = Mod(1, curve.prime)
                 elif var == "T":
-                    result[var] = Mod(int(self.coords["x"] * self.coords["y"]), curve.prime)
+                    result[var] = Mod(
+                        int(self.coords["x"] * self.coords["y"]), curve.prime
+                    )
                 else:
                     raise NotImplementedError
             return action.exit(Point(coordinate_model, **result))
@@ -201,7 +218,9 @@ class InfinityPoint(Point):
     def to_affine(self) -> "InfinityPoint":
         return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
 
-    def to_model(self, coordinate_model: CoordinateModel, curve: "EllipticCurve") -> "InfinityPoint":
+    def to_model(
+        self, coordinate_model: CoordinateModel, curve: "EllipticCurve"
+    ) -> "InfinityPoint":
         return InfinityPoint(coordinate_model)
 
     def equals_affine(self, other: "Point") -> bool:

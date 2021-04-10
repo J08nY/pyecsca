@@ -13,6 +13,8 @@ pyecsca [pɪɛtska]
 .. image:: https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov
    :target: https://codecov.io/gh/J08nY/pyecsca
 .. image:: https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen
+.. image:: https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true
+   :target: https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge
 
 **Py**\ thon **E**\ lliptic **C**\ urve cryptography **S**\ ide-**C**\ hannel **A**\ nalysis toolkit.
 
@@ -107,6 +109,8 @@ Testing
  - coverage_
  - interrogate_
  - pyinstrument_
+ - pre-commit_
+ - black_
 
 Docs
 ----
@@ -169,6 +173,8 @@ this support is very appreciated.
 .. _coverage: https://coverage.readthedocs.io/
 .. _interrogate: https://interrogate.readthedocs.io/
 .. _pyinstrument: https://github.com/joerick/pyinstrument/
+.. _pre-commit: https://pre-commit.com
+.. _black: https://github.com/psf/black
 .. _sphinx: https://www.sphinx-doc.org/
 .. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
 .. _nbsphinx: https://nbsphinx.readthedocs.io/

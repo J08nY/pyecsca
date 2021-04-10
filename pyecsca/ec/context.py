@@ -23,6 +23,7 @@ from public import public
 @public
 class Action(object):
     """An Action."""
+
     inside: bool
 
     def __init__(self):
@@ -41,6 +42,7 @@ class Action(object):
 @public
 class ResultAction(Action):
     """An action that has a result."""
+
     _result: Any = None
     _has_result: bool = False
 
@@ -60,7 +62,12 @@ class ResultAction(Action):
         return result
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if not self._has_result and exc_type is None and exc_val is None and exc_tb is None:
+        if (
+            not self._has_result
+            and exc_type is None
+            and exc_val is None
+            and exc_tb is None
+        ):
             raise RuntimeError("Result unset on action exit")
         super().__exit__(exc_type, exc_val, exc_tb)
 
@@ -167,6 +174,7 @@ class NullContext(Context):
 @public
 class DefaultContext(Context):
     """A context that traces executions of actions in a tree."""
+
     actions: Tree
     current: List[Action]
 
@@ -190,6 +198,7 @@ class DefaultContext(Context):
 @public
 class PathContext(Context):
     """A context that traces targeted actions."""
+
     path: List[int]
     current: List[int]
     current_depth: int
@@ -212,7 +221,7 @@ class PathContext(Context):
         else:
             self.current[self.current_depth] += 1
         self.current_depth += 1
-        if self.path == self.current[:self.current_depth]:
+        if self.path == self.current[: self.current_depth]:
             self.value = action
 
     def exit_action(self, action: Action) -> None:
@@ -221,10 +230,14 @@ class PathContext(Context):
         self.current_depth -= 1
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.current!r}, depth={self.current_depth!r})"
+        return (
+            f"{self.__class__.__name__}({self.current!r}, depth={self.current_depth!r})"
+        )
 
 
-_actual_context: ContextVar[Context] = ContextVar("operational_context", default=NullContext())
+_actual_context: ContextVar[Context] = ContextVar(
+    "operational_context", default=NullContext()
+)
 
 
 class _ContextManager(object):

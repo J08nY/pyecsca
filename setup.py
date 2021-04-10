@@ -48,7 +48,7 @@ setup(
         "chipwhisperer": ["chipwhisperer"],
         "smartcard": ["pyscard"],
         "gmp": ["gmpy2"],
-        "dev": ["mypy", "flake8", "interrogate", "pyinstrument"],
+        "dev": ["mypy", "flake8", "interrogate", "pyinstrument", "black"],
         "test": ["nose2", "parameterized", "coverage"],
         "doc": ["sphinx", "sphinx-autodoc-typehints", "nbsphinx"]
     }

@@ -39,20 +39,31 @@ class PicoScopeAlt(Scope):  # pragma: no cover
     def channels(self) -> Sequence[str]:
         return list(self.ps.CHANNELS.keys())
 
-    def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
+    def setup_frequency(
+        self, frequency: int, pretrig: int, posttrig: int
+    ) -> Tuple[int, int]:
         samples = pretrig + posttrig
         actual_frequency, max_samples = self.ps.setSamplingFrequency(frequency, samples)
         if max_samples < samples:
-            self.trig_ratio = (pretrig / samples)
+            self.trig_ratio = pretrig / samples
             samples = max_samples
         self.frequency = actual_frequency
         return actual_frequency, samples
 
-    def setup_channel(self, channel: str, coupling: str, range: float, offset: float, enable: bool) -> None:
+    def setup_channel(
+        self, channel: str, coupling: str, range: float, offset: float, enable: bool
+    ) -> None:
         self.ps.setChannel(channel, coupling, range, offset, enable)
 
-    def setup_trigger(self, channel: str, threshold: float, direction: str, delay: int,
-                      timeout: int, enable: bool) -> None:
+    def setup_trigger(
+        self,
+        channel: str,
+        threshold: float,
+        direction: str,
+        delay: int,
+        timeout: int,
+        enable: bool,
+    ) -> None:
         self.ps.setSimpleTrigger(channel, threshold, direction, delay, timeout, enable)
 
     def setup_capture(self, channel: str, enable: bool) -> None:
@@ -69,14 +80,23 @@ class PicoScopeAlt(Scope):  # pragma: no cover
                 return False
         return True
 
-    def retrieve(self, channel: str, type: SampleType, dtype=np.float32) -> Optional[Trace]:
+    def retrieve(
+        self, channel: str, type: SampleType, dtype=np.float32
+    ) -> Optional[Trace]:
         if type == SampleType.Raw:
             data = self.ps.getDataRaw(channel).astype(dtype=dtype, copy=False)
         else:
             data = self.ps.getDataV(channel, dtype=dtype)
         if data is None:
             return None
-        return Trace(data, {"sampling_frequency": self.frequency, "channel": channel, "sample_type": type})
+        return Trace(
+            data,
+            {
+                "sampling_frequency": self.frequency,
+                "channel": channel,
+                "sample_type": type,
+            },
+        )
 
     def stop(self) -> None:
         self.ps.stop()

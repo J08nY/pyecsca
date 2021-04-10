@@ -40,10 +40,12 @@ def plot_traces(*traces: Trace, **kwargs):  # pragma: no cover
         ["orange", "darkorange"],
         ["plum", "deeppink"],
         ["peru", "chocolate"],
-        ["cyan", "darkcyan"]
+        ["cyan", "darkcyan"],
     ]
     dss = []
     for i, trace in enumerate(traces):
-        line = hv.Curve((range(len(trace)), trace.samples), kdims="x", vdims="y", **kwargs)
+        line = hv.Curve(
+            (range(len(trace)), trace.samples), kdims="x", vdims="y", **kwargs
+        )
         dss.append(datashade(line, normalization="log", cmap=_cmaps[i % len(_cmaps)]))
     return reduce(lambda x, y: x * y, dss)

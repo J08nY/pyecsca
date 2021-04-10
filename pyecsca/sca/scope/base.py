@@ -12,6 +12,7 @@ from ..trace import Trace
 @public
 class SampleType(Enum):
     """The sample unit."""
+
     Raw = auto()
     Volt = auto()
 
@@ -29,7 +30,9 @@ class Scope(object):
         """A list of channels available on this scope."""
         raise NotImplementedError
 
-    def setup_frequency(self, frequency: int, pretrig: int, posttrig: int) -> Tuple[int, int]:
+    def setup_frequency(
+        self, frequency: int, pretrig: int, posttrig: int
+    ) -> Tuple[int, int]:
         """
         Setup the frequency and sample count for the measurement. The scope might not support
         the requested values and will adjust them to get the next best frequency and the largest
@@ -42,8 +45,9 @@ class Scope(object):
         """
         raise NotImplementedError
 
-    def setup_channel(self, channel: str, coupling: str, range: float, offset: float,
-                      enable: bool) -> None:
+    def setup_channel(
+        self, channel: str, coupling: str, range: float, offset: float, enable: bool
+    ) -> None:
         """
         Setup a channel to use the coupling method and measure the given voltage range.
 
@@ -55,8 +59,15 @@ class Scope(object):
         """
         raise NotImplementedError
 
-    def setup_trigger(self, channel: str, threshold: float, direction: str, delay: int,
-                      timeout: int, enable: bool) -> None:
+    def setup_trigger(
+        self,
+        channel: str,
+        threshold: float,
+        direction: str,
+        delay: int,
+        timeout: int,
+        enable: bool,
+    ) -> None:
         """
         Setup a trigger on a particular `channel`, the channel has to be set up and enabled.
         The trigger will fire based on the `threshold` and `direction`, if enabled,  the trigger

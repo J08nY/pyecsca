@@ -25,7 +25,7 @@ class SampleCoding(IntEnum):
 
     def dtype(self):
         char = "f" if self.value & 0x10 else "i"
-        return np.dtype("<{}{}".format(char, self.value & 0x0f))
+        return np.dtype("<{}{}".format(char, self.value & 0x0F))
 
 
 @public
@@ -107,37 +107,44 @@ class InspectorTraceSet(TraceSet):
     _tag_parsers: dict = {
         0x41: ("num_traces", 4, Parsers.read_int, Parsers.write_int),
         0x42: ("num_samples", 4, Parsers.read_int, Parsers.write_int),
-        0x43: ("sample_coding", 1,
-               lambda bytes: SampleCoding(Parsers.read_int(bytes)),
-               lambda coding, length: Parsers.write_int(coding.value,
-                                                        length=length)),
+        0x43: (
+            "sample_coding",
+            1,
+            lambda bytes: SampleCoding(Parsers.read_int(bytes)),
+            lambda coding, length: Parsers.write_int(coding.value, length=length),
+        ),
         0x44: ("data_space", 2, Parsers.read_int, Parsers.write_int),
         0x45: ("title_space", 1, Parsers.read_int, Parsers.write_int),
         0x46: ("global_title", None, Parsers.read_str, Parsers.write_str),
         0x47: ("description", None, Parsers.read_str, Parsers.write_str),
         0x48: ("x_offset", None, Parsers.read_int, Parsers.write_int),
         0x49: ("x_label", None, Parsers.read_str, Parsers.write_str),
-        0x4a: ("y_label", None, Parsers.read_str, Parsers.write_str),
-        0x4b: ("x_scale", 4, Parsers.read_float, Parsers.write_float),
-        0x4c: ("y_scale", 4, Parsers.read_float, Parsers.write_float),
-        0x4d: ("trace_offset", 4, Parsers.read_int, Parsers.write_int),
-        0x4e: ("log_scale", 1, Parsers.read_int, Parsers.write_int),
+        0x4A: ("y_label", None, Parsers.read_str, Parsers.write_str),
+        0x4B: ("x_scale", 4, Parsers.read_float, Parsers.write_float),
+        0x4C: ("y_scale", 4, Parsers.read_float, Parsers.write_float),
+        0x4D: ("trace_offset", 4, Parsers.read_int, Parsers.write_int),
+        0x4E: ("log_scale", 1, Parsers.read_int, Parsers.write_int),
         0x55: ("scope_range", 4, Parsers.read_float, Parsers.write_float),
         0x56: ("scope_coupling", 4, Parsers.read_int, Parsers.write_int),
         0x57: ("scope_offset", 4, Parsers.read_float, Parsers.write_float),
         0x58: ("scope_impedance", 4, Parsers.read_float, Parsers.write_float),
         0x59: ("scope_id", None, Parsers.read_str, Parsers.write_str),
-        0x5a: ("filter_type", 4, Parsers.read_int, Parsers.write_int),
-        0x5b: ("filter_frequency", 4, Parsers.read_float, Parsers.write_float),
-        0x5c: ("filter_range", 4, Parsers.read_float, Parsers.read_float),
+        0x5A: ("filter_type", 4, Parsers.read_int, Parsers.write_int),
+        0x5B: ("filter_frequency", 4, Parsers.read_float, Parsers.write_float),
+        0x5C: ("filter_range", 4, Parsers.read_float, Parsers.read_float),
         0x60: ("external_clock", 1, Parsers.read_bool, Parsers.write_bool),
         0x61: ("external_clock_threshold", 4, Parsers.read_float, Parsers.write_float),
         0x62: ("external_clock_multiplier", 4, Parsers.read_int, Parsers.write_int),
         0x63: ("external_clock_phase_shift", 4, Parsers.read_int, Parsers.write_int),
         0x64: ("external_clock_resampler_mask", 4, Parsers.read_int, Parsers.write_int),
-        0x65: ("external_clock_resampler_enabled", 1, Parsers.read_bool, Parsers.write_bool),
+        0x65: (
+            "external_clock_resampler_enabled",
+            1,
+            Parsers.read_bool,
+            Parsers.write_bool,
+        ),
         0x66: ("external_clock_frequency", 4, Parsers.read_float, Parsers.write_float),
-        0x67: ("external_clock_time_base", 4, Parsers.read_int, Parsers.write_int)
+        0x67: ("external_clock_time_base", 4, Parsers.read_int, Parsers.write_int),
     }
 
     @classmethod
@@ -171,28 +178,33 @@ class InspectorTraceSet(TraceSet):
             tag = ord(file.read(1))
             length = ord(file.read(1))
             if length & 0x80:
-                length = Parsers.read_int(file.read(length & 0x7f))
+                length = Parsers.read_int(file.read(length & 0x7F))
             value = file.read(length)
             if tag in InspectorTraceSet._tag_parsers:
                 tag_name, tag_len, tag_reader, _ = InspectorTraceSet._tag_parsers[tag]
                 if tag_len is None or length == tag_len:
                     tags[tag_name] = tag_reader(value)
-            elif tag == 0x5f and length == 0:
+            elif tag == 0x5F and length == 0:
                 break
             else:
                 continue
         result = []
         for _ in range(tags["num_traces"]):
-            title = None if "title_space" not in tags else Parsers.read_str(
-                    file.read(tags["title_space"]))
+            title = (
+                None
+                if "title_space" not in tags
+                else Parsers.read_str(file.read(tags["title_space"]))
+            )
             data = None if "data_space" not in tags else file.read(tags["data_space"])
             dtype = tags["sample_coding"].dtype()
             try:
                 samples = np.fromfile(file, dtype, tags["num_samples"])
             except UnsupportedOperation:
                 samples = np.frombuffer(
-                        file.read(dtype.itemsize * tags["num_samples"]), dtype,
-                        tags["num_samples"])
+                    file.read(dtype.itemsize * tags["num_samples"]),
+                    dtype,
+                    tags["num_samples"],
+                )
             result.append(Trace(samples, {"title": title, "data": data}))
         return result, tags
 
@@ -222,12 +234,13 @@ class InspectorTraceSet(TraceSet):
             tag_byte = Parsers.write_int(tag, length=1)
             value_bytes = tag_writer(getattr(self, tag_name), tag_len)
             length = len(value_bytes)
-            if length <= 0x7f:
+            if length <= 0x7F:
                 length_bytes = Parsers.write_int(length, length=1)
             else:
-                length_data = Parsers.write_int(length, length=(length.bit_length() + 7) // 8)
-                length_bytes = Parsers.write_int(
-                        0x80 | len(length_data)) + length_data
+                length_data = Parsers.write_int(
+                    length, length=(length.bit_length() + 7) // 8
+                )
+                length_bytes = Parsers.write_int(0x80 | len(length_data)) + length_data
             file.write(tag_byte)
             file.write(length_bytes)
             file.write(value_bytes)
@@ -238,7 +251,9 @@ class InspectorTraceSet(TraceSet):
                 file.write(Parsers.write_str(trace.meta["title"]))
             if self.data_space != 0 and trace.meta["data"] is not None:
                 file.write(trace.meta["data"])
-            unscaled = InspectorTraceSet.__unscale(trace.samples, self.y_scale, self.sample_coding)
+            unscaled = InspectorTraceSet.__unscale(
+                trace.samples, self.y_scale, self.sample_coding
+            )
             try:
                 unscaled.tofile(file)
             except UnsupportedOperation:

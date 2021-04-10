@@ -25,10 +25,16 @@ typecheck-all:
 	mypy pyecsca test --ignore-missing-imports --show-error-codes
 
 codestyle:
-	flake8 --ignore=E501,F405,F403,F401,E126 pyecsca
+	flake8 --extend-ignore=E501,F405,F403,F401,E126,E203 pyecsca
 
 codestyle-all:
-	flake8 --ignore=E501,F405,F403,F401,E126 pyecsca test
+	flake8 --extend-ignore=E501,F405,F403,F401,E126,E203 pyecsca test
+
+black:
+	black pyecsca
+
+black-all:
+	black pyecsca test
 
 perf: ${PERF_SCRIPTS}
 	mkdir -p .perf
@@ -41,4 +47,22 @@ docs:
 	$(MAKE) -C docs apidoc
 	$(MAKE) -C docs html
 
-.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all perf doc-coverage docs
+help:
+	@echo "pyecsca, Python Elliptic Curve cryptography Side-Channel Analysis toolkit."
+	@echo
+	@echo "Available targets:"
+	@echo " - test: Test pyecsca."
+	@echo " - test-plots: Test pyecsca and produce debugging plots."
+	@echo " - test-all: Test pyecsca but also run slow (and disabled) tests."
+	@echo " - typecheck: Use mypy to verify the use of types in pyecsca."
+	@echo " - typecheck-all: Use mypy to verify the use of types in pyecsca and in tests."
+	@echo " - codestyle: Use flake8 to check codestyle in pyecsca."
+	@echo " - codestyle-all: Use flake8 to check codestyle in pyecsca and in tests."
+	@echo " - black: Run black on pyecsca sources (will transform them inplace)."
+	@echo " - black-all: Run black on pyecsca sources and tests (will transform them inplace)."
+	@echo " - perf: Run performance measurements (prints results and stores them in .perf/)."
+	@echo " - doc-coverage: Use interrogate to check documentation coverage of public API."
+	@echo " - docs: Build docs using sphinx."
+	@echo " - help: Show this help."
+
+.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all black black-all perf doc-coverage docs

@@ -17,8 +17,13 @@ from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
 from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod
-from .model import (CurveModel, ShortWeierstrassModel, MontgomeryModel, EdwardsModel,
-                    TwistedEdwardsModel)
+from .model import (
+    CurveModel,
+    ShortWeierstrassModel,
+    MontgomeryModel,
+    EdwardsModel,
+    TwistedEdwardsModel,
+)
 from .point import Point, InfinityPoint
 from ..misc.cfg import getconfig
 
@@ -26,6 +31,7 @@ from ..misc.cfg import getconfig
 @public
 class DomainParameters(object):
     """Domain parameters which specify a subgroup on an elliptic curve."""
+
     curve: EllipticCurve
     generator: Point
     order: int
@@ -33,8 +39,15 @@ class DomainParameters(object):
     name: Optional[str]
     category: Optional[str]
 
-    def __init__(self, curve: EllipticCurve, generator: Point, order: int,
-                 cofactor: int, name: Optional[str] = None, category: Optional[str] = None):
+    def __init__(
+        self,
+        curve: EllipticCurve,
+        generator: Point,
+        order: int,
+        cofactor: int,
+        name: Optional[str] = None,
+        category: Optional[str] = None,
+    ):
         self.curve = curve
         self.generator = generator
         self.order = order
@@ -45,7 +58,12 @@ class DomainParameters(object):
     def __eq__(self, other):
         if not isinstance(other, DomainParameters):
             return False
-        return self.curve == other.curve and self.generator == other.generator and self.order == other.order and self.cofactor == other.cofactor
+        return (
+            self.curve == other.curve
+            and self.generator == other.generator
+            and self.order == other.order
+            and self.cofactor == other.cofactor
+        )
 
     def __get_name(self):
         if self.name and self.category:
@@ -69,6 +87,7 @@ class DomainParameters(object):
 @public
 class DomainParameterCategory(object):
     """A category of domain parameters."""
+
     name: str
     description: str
     curves: List[DomainParameters]
@@ -119,7 +138,9 @@ def _create_params(curve, coords, infty):
         param_names = ["a", "d"]
     else:
         raise ValueError("Unknown curve model.")
-    params = {name: Mod(int(curve["params"][name]["raw"], 16), field) for name in param_names}
+    params = {
+        name: Mod(int(curve["params"][name]["raw"], 16), field) for name in param_names
+    }
 
     # Check coordinate model name and assumptions
     coord_model: CoordinateModel
@@ -139,8 +160,10 @@ def _create_params(curve, coords, infty):
                 exec(compiled, None, alocals)
                 for param, value in alocals.items():
                     if params[param] != value:
-                        raise_unsatisified_assumption(getconfig().ec.unsatisfied_coordinate_assumption_action,
-                                                      f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).")
+                        raise_unsatisified_assumption(
+                            getconfig().ec.unsatisfied_coordinate_assumption_action,
+                            f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (= {value}).",
+                        )
             except NameError:
                 k = FF(field)
                 assumption_string = unparse(assumption)
@@ -148,15 +171,23 @@ def _create_params(curve, coords, infty):
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in params.items():
                     expr = expr.subs(curve_param, k(value))
-                if len(expr.free_symbols) > 1 or (param := str(expr.free_symbols.pop())) not in coord_model.parameters:
-                    raise ValueError(f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string}).")
+                if (
+                    len(expr.free_symbols) > 1
+                    or (param := str(expr.free_symbols.pop()))
+                    not in coord_model.parameters
+                ):
+                    raise ValueError(
+                        f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string})."
+                    )
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots.keys():
                     params[param] = Mod(int(root), field)
                     break
                 else:
-                    raise UnsatisfiedAssumptionError(f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr}).")
+                    raise UnsatisfiedAssumptionError(
+                        f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
+                    )
 
     # Construct the point at infinity
     infinity: Point
@@ -170,26 +201,35 @@ def _create_params(curve, coords, infty):
         infinity_coords = {}
         for coordinate in coord_model.variables:
             if coordinate not in ilocals:
-                raise ValueError(f"Coordinate model {coord_model} requires infty option.")
+                raise ValueError(
+                    f"Coordinate model {coord_model} requires infty option."
+                )
             value = ilocals[coordinate]
             if isinstance(value, int):
                 value = Mod(value, field)
             infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
-    affine = Point(AffineCoordinateModel(model),
-                   x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
-                   y=Mod(int(curve["generator"]["y"]["raw"], 16), field))
+    affine = Point(
+        AffineCoordinateModel(model),
+        x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
+        y=Mod(int(curve["generator"]["y"]["raw"], 16), field),
+    )
     if not isinstance(coord_model, AffineCoordinateModel):
         generator = affine.to_model(coord_model, elliptic_curve)
     else:
         generator = affine
-    return DomainParameters(elliptic_curve, generator, order, cofactor, curve["name"], curve["category"])
+    return DomainParameters(
+        elliptic_curve, generator, order, cofactor, curve["name"], curve["category"]
+    )
 
 
 @public
-def load_category(file: Union[str, Path, BinaryIO], coords: Union[str, Callable[[str], str]],
-                  infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
+def load_category(
+    file: Union[str, Path, BinaryIO],
+    coords: Union[str, Callable[[str], str]],
+    infty: Union[bool, Callable[[str], bool]] = True,
+) -> DomainParameterCategory:
     """
     Load a category of domain parameters containing several curves from a JSON file.
 
@@ -223,7 +263,9 @@ def load_category(file: Union[str, Path, BinaryIO], coords: Union[str, Callable[
 
 
 @public
-def load_params(file: Union[str, Path, BinaryIO], coords: str, infty: bool = True) -> DomainParameters:
+def load_params(
+    file: Union[str, Path, BinaryIO], coords: str, infty: bool = True
+) -> DomainParameters:
     """
     Load a curve from a JSON file.
 
@@ -245,8 +287,11 @@ def load_params(file: Union[str, Path, BinaryIO], coords: str, infty: bool = Tru
 
 
 @public
-def get_category(category: str, coords: Union[str, Callable[[str], str]],
-                 infty: Union[bool, Callable[[str], bool]] = True) -> DomainParameterCategory:
+def get_category(
+    category: str,
+    coords: Union[str, Callable[[str], str]],
+    infty: Union[bool, Callable[[str], bool]] = True,
+) -> DomainParameterCategory:
     """
     Retrieve a category from the std-curves database at https://github.com/J08nY/std-curves.
 
@@ -259,7 +304,9 @@ def get_category(category: str, coords: Union[str, Callable[[str], str]],
     :return: The category.
     """
     listing = resource_listdir(__name__, "std")
-    categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
+    categories = list(
+        entry for entry in listing if resource_isdir(__name__, join("std", entry))
+    )
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
     json_path = join("std", category, "curves.json")
@@ -268,7 +315,9 @@ def get_category(category: str, coords: Union[str, Callable[[str], str]],
 
 
 @public
-def get_params(category: str, name: str, coords: str, infty: bool = True) -> DomainParameters:
+def get_params(
+    category: str, name: str, coords: str, infty: bool = True
+) -> DomainParameters:
     """
     Retrieve a curve from a set of stored parameters. Uses the std-curves database at
     https://github.com/J08nY/std-curves.
@@ -281,7 +330,9 @@ def get_params(category: str, name: str, coords: str, infty: bool = True) -> Dom
     :return: The curve.
     """
     listing = resource_listdir(__name__, "std")
-    categories = list(entry for entry in listing if resource_isdir(__name__, join("std", entry)))
+    categories = list(
+        entry for entry in listing if resource_isdir(__name__, join("std", entry))
+    )
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
     json_path = join("std", category, "curves.json")

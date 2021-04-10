@@ -12,6 +12,7 @@ from ..trace import Trace
 @public
 class TraceSet(object):
     """A set of traces with some metadata."""
+
     _traces: List[Trace]
     _keys: List
 
@@ -46,6 +47,7 @@ class TraceSet(object):
         raise NotImplementedError
 
     def __repr__(self):
-        args = ", ".join(["{}={!r}".format(key, getattr(self, key)) for key in
-                          self._keys])
+        args = ", ".join(
+            ["{}={!r}".format(key, getattr(self, key)) for key in self._keys]
+        )
         return "TraceSet({})".format(args)

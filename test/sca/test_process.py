@@ -1,11 +1,20 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca.sca import Trace, absolute, invert, threshold, rolling_mean, offset, recenter, normalize, normalize_wl
+from pyecsca.sca import (
+    Trace,
+    absolute,
+    invert,
+    threshold,
+    rolling_mean,
+    offset,
+    recenter,
+    normalize,
+    normalize_wl,
+)
 
 
 class ProcessTests(TestCase):
-
     def setUp(self):
         self._trace = Trace(np.array([30, -60, 145, 247], dtype=np.dtype("i2")), None)
 
@@ -36,7 +45,9 @@ class ProcessTests(TestCase):
     def test_offset(self):
         result = offset(self._trace, 5)
         self.assertIsNotNone(result)
-        np.testing.assert_equal(result.samples, np.array([35, -55, 150, 252], dtype=np.dtype("i2")))
+        np.testing.assert_equal(
+            result.samples, np.array([35, -55, 150, 252], dtype=np.dtype("i2"))
+        )
 
     def test_recenter(self):
         self.assertIsNotNone(recenter(self._trace))

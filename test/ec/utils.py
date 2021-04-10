@@ -46,12 +46,21 @@ class Profiler(object):
             raise ValueError
         if self._output_directory is None or self._benchmark_name is None:
             return
-        git_commit = run(["git", "rev-parse", "--short", "HEAD"], stdout=PIPE, stderr=DEVNULL).stdout.strip().decode()
-        git_dirty = run(["git", "diff", "--quiet"], stdout=DEVNULL, stderr=DEVNULL).returncode != 0
+        git_commit = (
+            run(["git", "rev-parse", "--short", "HEAD"], stdout=PIPE, stderr=DEVNULL)
+            .stdout.strip()
+            .decode()
+        )
+        git_dirty = (
+            run(["git", "diff", "--quiet"], stdout=DEVNULL, stderr=DEVNULL).returncode
+            != 0
+        )
         version = git_commit + ("-dirty" if git_dirty else "")
         output_path = Path(self._output_directory) / (self._benchmark_name + ".csv")
         with output_path.open("a") as f:
-            f.write(f"{version},{'.'.join(map(str, sys.version_info[:3]))},{self.get_time()}\n")
+            f.write(
+                f"{version},{'.'.join(map(str, sys.version_info[:3]))},{self.get_time()}\n"
+            )
 
     def output(self):
         if self._state != "out":

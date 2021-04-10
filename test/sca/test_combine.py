@@ -1,11 +1,20 @@
 from unittest import TestCase
 
 import numpy as np
-from pyecsca.sca import Trace, CombinedTrace, average, conditional_average, standard_deviation, variance, average_and_variance, add, subtract
+from pyecsca.sca import (
+    Trace,
+    CombinedTrace,
+    average,
+    conditional_average,
+    standard_deviation,
+    variance,
+    average_and_variance,
+    add,
+    subtract,
+)
 
 
 class CombineTests(TestCase):
-
     def setUp(self):
         self.a = Trace(np.array([20, 80], dtype=np.dtype("i1")), {"data": b"\xff"})
         self.b = Trace(np.array([30, 42], dtype=np.dtype("i1")), {"data": b"\xff"})
@@ -21,8 +30,12 @@ class CombineTests(TestCase):
         self.assertEqual(result.samples[1], 61)
 
     def test_conditional_average(self):
-        result = conditional_average(self.a, self.b, self.c,
-                                     condition=lambda trace: trace.meta["data"] == b"\xff")
+        result = conditional_average(
+            self.a,
+            self.b,
+            self.c,
+            condition=lambda trace: trace.meta["data"] == b"\xff",
+        )
         self.assertIsInstance(result, CombinedTrace)
         self.assertEqual(len(result.samples), 2)
         self.assertEqual(result.samples[0], 25)

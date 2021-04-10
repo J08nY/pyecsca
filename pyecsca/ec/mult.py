@@ -8,8 +8,15 @@ from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
 from public import public
 
 from .context import ResultAction, Action
-from .formula import (Formula, AdditionFormula, DoublingFormula, DifferentialAdditionFormula,
-                      ScalingFormula, LadderFormula, NegationFormula)
+from .formula import (
+    Formula,
+    AdditionFormula,
+    DoublingFormula,
+    DifferentialAdditionFormula,
+    ScalingFormula,
+    LadderFormula,
+    NegationFormula,
+)
 from .naf import naf, wnaf
 from .params import DomainParameters
 from .point import Point
@@ -18,6 +25,7 @@ from .point import Point
 @public
 class ScalarMultiplicationAction(ResultAction):
     """A scalar multiplication of a point on a curve by a scalar."""
+
     point: Point
     scalar: int
 
@@ -33,6 +41,7 @@ class ScalarMultiplicationAction(ResultAction):
 @public
 class PrecomputationAction(Action):
     """A precomputation of a point in scalar multiplication."""
+
     params: DomainParameters
     point: Point
 
@@ -51,6 +60,7 @@ class ScalarMultiplier(ABC):
                           of the point at infinity.
     :param formulas: Formulas this instance will use.
     """
+
     requires: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
     """The set of formulas that the multiplier requires."""
     optionals: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
@@ -64,8 +74,16 @@ class ScalarMultiplier(ABC):
     _initialized: bool = False
 
     def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
-        if len(set(formula.coordinate_model for formula in formulas.values() if
-                   formula is not None)) != 1:
+        if (
+            len(
+                set(
+                    formula.coordinate_model
+                    for formula in formulas.values()
+                    if formula is not None
+                )
+            )
+            != 1
+        ):
             raise ValueError
         self.short_circuit = short_circuit
         self.formulas = {k: v for k, v in formulas.items() if v is not None}
@@ -78,7 +96,9 @@ class ScalarMultiplier(ABC):
                 return copy(other)
             if other == self._params.curve.neutral:
                 return copy(one)
-        return self.formulas["add"](self._params.curve.prime, one, other, **self._params.curve.parameters)[0]
+        return self.formulas["add"](
+            self._params.curve.prime, one, other, **self._params.curve.parameters
+        )[0]
 
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
@@ -86,12 +106,16 @@ class ScalarMultiplier(ABC):
         if self.short_circuit:
             if point == self._params.curve.neutral:
                 return copy(point)
-        return self.formulas["dbl"](self._params.curve.prime, point, **self._params.curve.parameters)[0]
+        return self.formulas["dbl"](
+            self._params.curve.prime, point, **self._params.curve.parameters
+        )[0]
 
     def _scl(self, point: Point) -> Point:
         if "scl" not in self.formulas:
             raise NotImplementedError
-        return self.formulas["scl"](self._params.curve.prime, point, **self._params.curve.parameters)[0]
+        return self.formulas["scl"](
+            self._params.curve.prime, point, **self._params.curve.parameters
+        )[0]
 
     def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, ...]:
         if "ladd" not in self.formulas:
@@ -101,7 +125,13 @@ class ScalarMultiplier(ABC):
                 return to_dbl, to_add
             if to_add == self._params.curve.neutral:
                 return self._dbl(to_dbl), to_dbl
-        return self.formulas["ladd"](self._params.curve.prime, start, to_dbl, to_add, **self._params.curve.parameters)
+        return self.formulas["ladd"](
+            self._params.curve.prime,
+            start,
+            to_dbl,
+            to_add,
+            **self._params.curve.parameters,
+        )
 
     def _dadd(self, start: Point, one: Point, other: Point) -> Point:
         if "dadd" not in self.formulas:
@@ -111,12 +141,16 @@ class ScalarMultiplier(ABC):
                 return copy(other)
             if other == self._params.curve.neutral:
                 return copy(one)
-        return self.formulas["dadd"](self._params.curve.prime, start, one, other, **self._params.curve.parameters)[0]
+        return self.formulas["dadd"](
+            self._params.curve.prime, start, one, other, **self._params.curve.parameters
+        )[0]
 
     def _neg(self, point: Point) -> Point:
         if "neg" not in self.formulas:
             raise NotImplementedError
-        return self.formulas["neg"](self._params.curve.prime, point, **self._params.curve.parameters)[0]
+        return self.formulas["neg"](
+            self._params.curve.prime, point, **self._params.curve.parameters
+        )[0]
 
     def init(self, params: DomainParameters, point: Point):
         """
@@ -129,7 +163,10 @@ class ScalarMultiplier(ABC):
         :param point: The point to initialize the multiplier with.
         """
         coord_model = set(self.formulas.values()).pop().coordinate_model
-        if params.curve.coordinate_model != coord_model or point.coordinate_model != coord_model:
+        if (
+            params.curve.coordinate_model != coord_model
+            or point.coordinate_model != coord_model
+        ):
             raise ValueError
         self._params = params
         self._point = point
@@ -156,14 +193,21 @@ class LTRMultiplier(ScalarMultiplier):
 
     The `always` parameter determines whether the double and add always method is used.
     """
+
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     always: bool
     complete: bool
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 scl: ScalingFormula = None, always: bool = False, complete: bool = True,
-                 short_circuit: bool = True):
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: ScalingFormula = None,
+        always: bool = False,
+        complete: bool = True,
+        short_circuit: bool = True,
+    ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
         self.complete = complete
@@ -201,12 +245,19 @@ class RTLMultiplier(ScalarMultiplier):
 
     The `always` parameter determines whether the double and add always method is used.
     """
+
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     always: bool
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 scl: ScalingFormula = None, always: bool = False, short_circuit: bool = True):
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: ScalingFormula = None,
+        always: bool = False,
+        short_circuit: bool = True,
+    ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
 
@@ -240,11 +291,17 @@ class CoronMultiplier(ScalarMultiplier):
 
     https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
     """
+
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
-                 short_circuit: bool = True):
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: ScalingFormula = None,
+        short_circuit: bool = True,
+    ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
 
     def multiply(self, scalar: int) -> Point:
@@ -270,12 +327,19 @@ class LadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using a three input, two output ladder formula.
     """
+
     requires = {LadderFormula}
     optionals = {DoublingFormula, ScalingFormula}
     complete: bool
 
-    def __init__(self, ladd: LadderFormula, dbl: DoublingFormula = None, scl: ScalingFormula = None,
-                 complete: bool = True, short_circuit: bool = True):
+    def __init__(
+        self,
+        ladd: LadderFormula,
+        dbl: DoublingFormula = None,
+        scl: ScalingFormula = None,
+        complete: bool = True,
+        short_circuit: bool = True,
+    ):
         super().__init__(short_circuit=short_circuit, ladd=ladd, dbl=dbl, scl=scl)
         self.complete = complete
         if (not complete or short_circuit) and dbl is None:
@@ -311,12 +375,19 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using addition and doubling formulas.
     """
+
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     complete: bool
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula, scl: ScalingFormula = None,
-                 complete: bool = True, short_circuit: bool = True):
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: ScalingFormula = None,
+        complete: bool = True,
+        short_circuit: bool = True,
+    ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.complete = complete
 
@@ -349,12 +420,19 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using differential addition and doubling formulas.
     """
+
     requires = {DifferentialAdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     complete: bool
 
-    def __init__(self, dadd: DifferentialAdditionFormula, dbl: DoublingFormula,
-                 scl: ScalingFormula = None, complete: bool = True, short_circuit: bool = True):
+    def __init__(
+        self,
+        dadd: DifferentialAdditionFormula,
+        dbl: DoublingFormula,
+        scl: ScalingFormula = None,
+        complete: bool = True,
+        short_circuit: bool = True,
+    ):
         super().__init__(short_circuit=short_circuit, dadd=dadd, dbl=dbl, scl=scl)
         self.complete = complete
 
@@ -388,13 +466,22 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     """
     Binary NAF (Non Adjacent Form) multiplier, left-to-right.
     """
+
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
     _point_neg: Point
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 neg: NegationFormula, scl: ScalingFormula = None, short_circuit: bool = True):
-        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        neg: NegationFormula,
+        scl: ScalingFormula = None,
+        short_circuit: bool = True,
+    ):
+        super().__init__(
+            short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
+        )
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
@@ -425,6 +512,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
     """
     Window NAF (Non Adjacent Form) multiplier, left-to-right.
     """
+
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
     _points: MutableMapping[int, Point]
@@ -432,10 +520,19 @@ class WindowNAFMultiplier(ScalarMultiplier):
     precompute_negation: bool = False
     width: int
 
-    def __init__(self, add: AdditionFormula, dbl: DoublingFormula,
-                 neg: NegationFormula, width: int, scl: ScalingFormula = None,
-                 precompute_negation: bool = False, short_circuit: bool = True):
-        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl)
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        neg: NegationFormula,
+        width: int,
+        scl: ScalingFormula = None,
+        precompute_negation: bool = False,
+        short_circuit: bool = True,
+    ):
+        super().__init__(
+            short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
+        )
         self.width = width
         self.precompute_negation = precompute_negation
 

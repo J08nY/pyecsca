@@ -13,6 +13,7 @@ from .serial import SerialTarget
 @public
 class SimpleSerialMessage(object):
     """A SimpleSerial message consisting of a starting character and a hexadecimal string."""
+
     char: str
     data: str
 
@@ -60,7 +61,9 @@ class SimpleSerialTarget(SerialTarget):
             result[msg.char] = msg
         return result
 
-    def send_cmd(self, cmd: SimpleSerialMessage, timeout: int) -> Mapping[str, SimpleSerialMessage]:
+    def send_cmd(
+        self, cmd: SimpleSerialMessage, timeout: int
+    ) -> Mapping[str, SimpleSerialMessage]:
         """
         Send a :py:class:`SimpleSerialMessage` and receive the response messages that the command produces,
         within a `timeout`.
@@ -71,7 +74,7 @@ class SimpleSerialTarget(SerialTarget):
         """
         data = bytes(cmd)
         for i in range(0, len(data), 64):
-            chunk = data[i:i + 64]
+            chunk = data[i : i + 64]
             sleep(0.010)
             self.write(chunk)
         self.write(b"\n")

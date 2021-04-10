@@ -6,17 +6,24 @@ from unittest import TestCase
 
 import numpy as np
 
-from pyecsca.sca import (TraceSet, InspectorTraceSet, ChipWhispererTraceSet, PickleTraceSet,
-                         HDF5TraceSet, Trace)
+from pyecsca.sca import (
+    TraceSet,
+    InspectorTraceSet,
+    ChipWhispererTraceSet,
+    PickleTraceSet,
+    HDF5TraceSet,
+    Trace,
+)
 
-EXAMPLE_TRACES = [Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")), {"something": 5}),
-                  Trace(np.array([1, 2, 3, 4, 5], dtype=np.dtype("i1"))),
-                  Trace(np.array([6, 7, 8, 9, 10], dtype=np.dtype("i1")))]
+EXAMPLE_TRACES = [
+    Trace(np.array([20, 40, 50, 50, 10], dtype=np.dtype("i1")), {"something": 5}),
+    Trace(np.array([1, 2, 3, 4, 5], dtype=np.dtype("i1"))),
+    Trace(np.array([6, 7, 8, 9, 10], dtype=np.dtype("i1"))),
+]
 EXAMPLE_KWARGS = {"num_traces": 3, "thingy": "abc"}
 
 
 class TraceSetTests(TestCase):
-
     def test_create(self):
         self.assertIsNotNone(TraceSet())
         self.assertIsNotNone(InspectorTraceSet())
@@ -26,7 +33,6 @@ class TraceSetTests(TestCase):
 
 
 class InspectorTraceSetTests(TestCase):
-
     def test_load_fname(self):
         result = InspectorTraceSet.read("test/data/example.trs")
         self.assertIsNotNone(result)
@@ -55,7 +61,6 @@ class InspectorTraceSetTests(TestCase):
 
 
 class ChipWhispererTraceSetTests(TestCase):
-
     def test_load_fname(self):
         result = ChipWhispererTraceSet.read("test/data/config_chipwhisperer_.cfg")
         self.assertIsNotNone(result)
@@ -63,7 +68,6 @@ class ChipWhispererTraceSetTests(TestCase):
 
 
 class PickleTraceSetTests(TestCase):
-
     def test_load_fname(self):
         result = PickleTraceSet.read("test/data/test.pickle")
         self.assertIsNotNone(result)
@@ -82,7 +86,6 @@ class PickleTraceSetTests(TestCase):
 
 
 class HDF5TraceSetTests(TestCase):
-
     def test_load_fname(self):
         result = HDF5TraceSet.read("test/data/test.h5")
         self.assertIsNotNone(result)
@@ -97,8 +100,12 @@ class HDF5TraceSetTests(TestCase):
             shutil.copy("test/data/test.h5", path)
             trace_set = HDF5TraceSet.inplace(path)
             self.assertIsNotNone(trace_set)
-            test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
-            other_trace = Trace(np.array([15, 7], dtype=np.dtype("i1")), meta={"a": "b"})
+            test_trace = Trace(
+                np.array([6, 7], dtype=np.dtype("i1")), meta={"thing": "ring"}
+            )
+            other_trace = Trace(
+                np.array([15, 7], dtype=np.dtype("i1")), meta={"a": "b"}
+            )
             trace_set.append(test_trace)
             self.assertEqual(len(trace_set), 4)
             trace_set.append(other_trace)

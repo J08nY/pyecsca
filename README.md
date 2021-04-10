@@ -1,6 +1,6 @@
 # ![](docs/_static/logo_black_full.png)
 
-[![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) ![Test](https://github.com/J08nY/pyecsca/workflows/Test/badge.svg) ![Lint](https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) ![](https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen)
+[![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) ![Test](https://github.com/J08nY/pyecsca/workflows/Test/badge.svg) ![Lint](https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) ![](https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen) [![DeepSource](https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
@@ -60,6 +60,8 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
 
 ### Testing & Development
 
+See the [Makefile](Makefile) for tests, performance measurement, codestyle and type checking commands.
+
  - [nose2](https://nose2.readthedocs.io)
  - [green](https://github.com/CleanCut/green)
  - [mypy](http://mypy-lang.org/)
@@ -69,6 +71,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
  - [interrogate](https://interrogate.readthedocs.io/)
  - [pyinstrument](https://github.com/joerick/pyinstrument/)
  - [pre-commit](https://pre-commit.com/) at `.pre-commit-config.yaml`
+ - [black](https://github.com/psf/black)
 
 ### Docs
 

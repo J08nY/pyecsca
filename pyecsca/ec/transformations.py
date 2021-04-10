@@ -22,8 +22,12 @@ def __M_map(params, param_names, map_parameters, map_point, model):
     else:
         neutral = map_point(param_one, param_other, params.curve.neutral, aff)
     curve = EllipticCurve(model, aff, params.curve.prime, neutral, parameters)
-    return DomainParameters(curve, map_point(param_one, param_other, params.generator, aff), params.order,
-                            params.cofactor)
+    return DomainParameters(
+        curve,
+        map_point(param_one, param_other, params.generator, aff),
+        params.order,
+        params.cofactor,
+    )
 
 
 @public
@@ -35,7 +39,8 @@ def M2SW(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, MontgomeryModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel):
+        params.curve.coordinate_model, AffineCoordinateModel
+    ):
         raise ValueError
 
     def map_parameters(A, B):
@@ -48,7 +53,9 @@ def M2SW(params: DomainParameters) -> DomainParameters:
         v = pt.y / B
         return Point(aff, x=u, y=v)
 
-    return __M_map(params, ("a", "b"), map_parameters, map_point, ShortWeierstrassModel())
+    return __M_map(
+        params, ("a", "b"), map_parameters, map_point, ShortWeierstrassModel()
+    )
 
 
 @public
@@ -60,7 +67,8 @@ def M2TE(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, MontgomeryModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel):
+        params.curve.coordinate_model, AffineCoordinateModel
+    ):
         raise ValueError
 
     def map_parameters(A, B):
@@ -85,7 +93,8 @@ def TE2M(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, TwistedEdwardsModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel):
+        params.curve.coordinate_model, AffineCoordinateModel
+    ):
         raise ValueError
 
     def map_parameters(a, d):
@@ -110,16 +119,25 @@ def SW2M(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, ShortWeierstrassModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel):
+        params.curve.coordinate_model, AffineCoordinateModel
+    ):
         raise ValueError
     ax = symbols("α")
     field = FF(params.curve.prime)
-    rhs = Poly(ax ** 3 + field(int(params.curve.parameters["a"])) * ax + field(int(params.curve.parameters["b"])), ax, domain=field)
+    rhs = Poly(
+        ax ** 3
+        + field(int(params.curve.parameters["a"])) * ax
+        + field(int(params.curve.parameters["b"])),
+        ax,
+        domain=field,
+    )
     roots = rhs.ground_roots()
     if not roots:
-        raise ValueError("Curve cannot be transformed to Montgomery model (x^3 + ax + b has no root).")
+        raise ValueError(
+            "Curve cannot be transformed to Montgomery model (x^3 + ax + b has no root)."
+        )
     alpha = Mod(int(next(iter(roots.keys()))), params.curve.prime)
-    beta = (3 * alpha**2 + params.curve.parameters["a"]).sqrt()
+    beta = (3 * alpha ** 2 + params.curve.parameters["a"]).sqrt()
 
     def map_parameters(a, b):
         A = (3 * alpha) / beta
@@ -143,16 +161,25 @@ def SW2TE(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, ShortWeierstrassModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel):
+        params.curve.coordinate_model, AffineCoordinateModel
+    ):
         raise ValueError
     ax = symbols("α")
     field = FF(params.curve.prime)
-    rhs = Poly(ax ** 3 + field(int(params.curve.parameters["a"])) * ax + field(int(params.curve.parameters["b"])), ax, domain=field)
+    rhs = Poly(
+        ax ** 3
+        + field(int(params.curve.parameters["a"])) * ax
+        + field(int(params.curve.parameters["b"])),
+        ax,
+        domain=field,
+    )
     roots = rhs.ground_roots()
     if not roots:
-        raise ValueError("Curve cannot be transformed to Montgomery model (x^3 + ax + b has no root).")
+        raise ValueError(
+            "Curve cannot be transformed to Montgomery model (x^3 + ax + b has no root)."
+        )
     alpha = Mod(int(next(iter(roots.keys()))), params.curve.prime)
-    beta = (3 * alpha**2 + params.curve.parameters["a"]).sqrt()
+    beta = (3 * alpha ** 2 + params.curve.parameters["a"]).sqrt()
 
     def map_parameters(a, b):
         a = 3 * alpha + 2 * beta

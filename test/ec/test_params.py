@@ -21,15 +21,17 @@ class DomainParameterTests(TestCase):
     def test_str(self):
         self.assertEqual(str(self.secp128r1), "DomainParameters(secg/secp128r1)")
 
-    @parameterized.expand([
-        ("secg/secp128r1", "projective"),
-        ("secg/secp256r1", "projective"),
-        ("secg/secp521r1", "projective"),
-        ("other/Curve25519", "xz"),
-        ("other/Ed25519", "projective"),
-        ("other/Ed448", "projective"),
-        ("other/E-222", "projective")
-    ])
+    @parameterized.expand(
+        [
+            ("secg/secp128r1", "projective"),
+            ("secg/secp256r1", "projective"),
+            ("secg/secp521r1", "projective"),
+            ("other/Curve25519", "xz"),
+            ("other/Ed25519", "projective"),
+            ("other/Ed448", "projective"),
+            ("other/E-222", "projective"),
+        ]
+    )
     def test_get_params(self, name, coords):
         params = get_params(*name.split("/"), coords)
         try:
@@ -37,10 +39,15 @@ class DomainParameterTests(TestCase):
         except NotImplementedError:
             pass
 
-    @parameterized.expand([
-        ("anssi", "projective"),
-        ("brainpool", lambda name: "projective" if name.endswith("r1") else "jacobian")
-    ])
+    @parameterized.expand(
+        [
+            ("anssi", "projective"),
+            (
+                "brainpool",
+                lambda name: "projective" if name.endswith("r1") else "jacobian",
+            ),
+        ]
+    )
     def test_get_category(self, name, coords):
         get_category(name, coords)
 
@@ -55,11 +62,13 @@ class DomainParameterTests(TestCase):
         category = load_category("test/data/curves.json", "yz")
         self.assertEqual(len(category), 1)
 
-    @parameterized.expand([
-        ("no_category/some", "else"),
-        ("secg/no_curve", "else"),
-        ("secg/secp128r1", "some")
-    ])
+    @parameterized.expand(
+        [
+            ("no_category/some", "else"),
+            ("secg/no_curve", "else"),
+            ("secg/secp128r1", "some"),
+        ]
+    )
     def test_unknown(self, name, coords):
         with self.assertRaises(ValueError):
             get_params(*name.split("/"), coords)

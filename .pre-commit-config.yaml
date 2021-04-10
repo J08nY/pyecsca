@@ -19,4 +19,4 @@ repos:
     rev: 3.9.0
     hooks:
     -   id: flake8
-        args: ["--ignore=E501,F405,F403,F401,E126"]
+        args: ["--extend-ignore=E501,F405,F403,F401,E126,E203"]

@@ -61,8 +61,14 @@ def rolling_mean(trace: Trace, window: int) -> Trace:
     :param window:
     :return:
     """
-    return trace.with_samples(cast(np.ndarray, np.mean(_rolling_window(trace.samples, window), -1).astype(
-            dtype=trace.samples.dtype, copy=False)))
+    return trace.with_samples(
+        cast(
+            np.ndarray,
+            np.mean(_rolling_window(trace.samples, window), -1).astype(
+                dtype=trace.samples.dtype, copy=False
+            ),
+        )
+    )
 
 
 @public
@@ -101,7 +107,9 @@ def normalize(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    return trace.with_samples((trace.samples - np.mean(trace.samples)) / np.std(trace.samples))
+    return trace.with_samples(
+        (trace.samples - np.mean(trace.samples)) / np.std(trace.samples)
+    )
 
 
 @public
@@ -112,5 +120,7 @@ def normalize_wl(trace: Trace) -> Trace:
     :param trace:
     :return:
     """
-    return trace.with_samples((trace.samples - np.mean(trace.samples)) / (
-            np.std(trace.samples) * len(trace.samples)))
+    return trace.with_samples(
+        (trace.samples - np.mean(trace.samples))
+        / (np.std(trace.samples) * len(trace.samples))
+    )

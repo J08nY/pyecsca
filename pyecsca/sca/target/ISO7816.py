@@ -14,6 +14,7 @@ from .base import Target
 @dataclass
 class CommandAPDU(object):  # pragma: no cover
     """A command APDU that can be sent to an ISO7816-4 target."""
+
     cls: int
     ins: int
     p1: int
@@ -28,30 +29,61 @@ class CommandAPDU(object):  # pragma: no cover
                 return bytes([self.cls, self.ins, self.p1, self.p2])
             elif self.ne <= 256:
                 # Case 2s
-                return bytes([self.cls, self.ins, self.p1, self.p2, self.ne if self.ne != 256 else 0])
+                return bytes(
+                    [
+                        self.cls,
+                        self.ins,
+                        self.p1,
+                        self.p2,
+                        self.ne if self.ne != 256 else 0,
+                    ]
+                )
             else:
                 # Case 2e
-                return bytes([self.cls, self.ins, self.p1, self.p2]) + (self.ne.to_bytes(2, "big") if self.ne != 65536 else bytes([0, 0]))
+                return bytes([self.cls, self.ins, self.p1, self.p2]) + (
+                    self.ne.to_bytes(2, "big") if self.ne != 65536 else bytes([0, 0])
+                )
         elif self.ne is None or self.ne == 0:
             if len(self.data) <= 255:
                 # Case 3s
-                return bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)]) + self.data
+                return (
+                    bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)])
+                    + self.data
+                )
             else:
                 # Case 3e
-                return bytes([self.cls, self.ins, self.p1, self.p2, 0]) + len(self.data).to_bytes(2, "big") + self.data
+                return (
+                    bytes([self.cls, self.ins, self.p1, self.p2, 0])
+                    + len(self.data).to_bytes(2, "big")
+                    + self.data
+                )
         else:
             if len(self.data) <= 255 and self.ne <= 256:
                 # Case 4s
-                return bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)]) + self.data + bytes([self.ne if self.ne != 256 else 0])
+                return (
+                    bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)])
+                    + self.data
+                    + bytes([self.ne if self.ne != 256 else 0])
+                )
             else:
                 # Case 4e
-                return bytes([self.cls, self.ins, self.p1, self.p2, 0]) + len(self.data).to_bytes(2, "big") + self.data + (self.ne.to_bytes(2, "big") if self.ne != 65536 else bytes([0, 0]))
+                return (
+                    bytes([self.cls, self.ins, self.p1, self.p2, 0])
+                    + len(self.data).to_bytes(2, "big")
+                    + self.data
+                    + (
+                        self.ne.to_bytes(2, "big")
+                        if self.ne != 65536
+                        else bytes([0, 0])
+                    )
+                )
 
 
 @public
 @dataclass
 class ResponseAPDU(object):
     """A response APDU that can be received from an ISO7816-4 target."""
+
     data: bytes
     sw: int
 
@@ -90,6 +122,7 @@ class ISO7816Target(Target, ABC):
 @public
 class ISO7816:
     """A bunch of ISO7816-4 constants (status words)."""
+
     SW_FILE_FULL = 0x6A84
     SW_UNKNOWN = 0x6F00
     SW_CLA_NOT_SUPPORTED = 0x6E00

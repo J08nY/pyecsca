@@ -11,8 +11,9 @@ from .process import normalize
 from .trace import Trace
 
 
-def _align_reference(reference: Trace, *traces: Trace,
-                     align_func: Callable[[Trace], Tuple[bool, int]]) -> Tuple[List[Trace], List[int]]:
+def _align_reference(
+    reference: Trace, *traces: Trace, align_func: Callable[[Trace], Tuple[bool, int]]
+) -> Tuple[List[Trace], List[int]]:
     result = [deepcopy(reference)]
     offsets = [0]
     for trace in traces:
@@ -25,18 +26,23 @@ def _align_reference(reference: Trace, *traces: Trace,
         else:
             result_samples = np.zeros(len(trace.samples), dtype=trace.samples.dtype)
             if offset > 0:
-                result_samples[:length - offset] = trace.samples[offset:]
+                result_samples[: length - offset] = trace.samples[offset:]
             else:
-                result_samples[-offset:] = trace.samples[:length + offset]
+                result_samples[-offset:] = trace.samples[: length + offset]
         result.append(trace.with_samples(result_samples))
         offsets.append(offset)
     return result, offsets
 
 
 @public
-def align_correlation(reference: Trace, *traces: Trace,
-                      reference_offset: int, reference_length: int,
-                      max_offset: int, min_correlation: float = 0.5) -> Tuple[List[Trace], List[int]]:
+def align_correlation(
+    reference: Trace,
+    *traces: Trace,
+    reference_offset: int,
+    reference_length: int,
+    max_offset: int,
+    min_correlation: float = 0.5
+) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace`. Using the cross-correlation of a part of the reference
     trace starting at `reference_offset` with `reference_length` and try to match it to a part of
@@ -54,14 +60,19 @@ def align_correlation(reference: Trace, *traces: Trace,
     """
     reference_centered = normalize(reference)
     reference_part = reference_centered.samples[
-                     reference_offset:reference_offset + reference_length]
+        reference_offset : reference_offset + reference_length
+    ]
 
     def align_func(trace):
         length = len(trace.samples)
         correlation_start = max(reference_offset - max_offset, 0)
-        correlation_end = min(reference_offset + reference_length + max_offset, length - 1)
+        correlation_end = min(
+            reference_offset + reference_length + max_offset, length - 1
+        )
         trace_part = trace.samples[correlation_start:correlation_end]
-        trace_part = (trace_part - np.mean(trace_part)) / (np.std(trace_part) * len(trace_part))
+        trace_part = (trace_part - np.mean(trace_part)) / (
+            np.std(trace_part) * len(trace_part)
+        )
         correlation = np.correlate(trace_part, reference_part, "same")
         max_correlation_offset = correlation.argmax(axis=0)
         max_correlation = correlation[max_correlation_offset]
@@ -76,8 +87,13 @@ def align_correlation(reference: Trace, *traces: Trace,
 
 
 @public
-def align_peaks(reference: Trace, *traces: Trace,
-                reference_offset: int, reference_length: int, max_offset: int) -> Tuple[List[Trace], List[int]]:
+def align_peaks(
+    reference: Trace,
+    *traces: Trace,
+    reference_offset: int,
+    reference_length: int,
+    max_offset: int
+) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace` so that the maximum value within the reference trace
     window from `reference_offset` of `reference_length` aligns with the maximum
@@ -90,14 +106,16 @@ def align_peaks(reference: Trace, *traces: Trace,
     :param max_offset:
     :return:
     """
-    reference_part = reference.samples[reference_offset: reference_offset + reference_length]
+    reference_part = reference.samples[
+        reference_offset : reference_offset + reference_length
+    ]
     reference_peak = np.argmax(reference_part)
 
     def align_func(trace):
         length = len(trace.samples)
         window_start = max(reference_offset - max_offset, 0)
         window_end = min(reference_offset + reference_length + max_offset, length - 1)
-        window = trace.samples[window_start: window_end]
+        window = trace.samples[window_start:window_end]
         window_peak = np.argmax(window)
         left_space = min(max_offset, reference_offset)
         return True, int(window_peak - reference_peak - left_space)
@@ -106,9 +124,15 @@ def align_peaks(reference: Trace, *traces: Trace,
 
 
 @public
-def align_offset(reference: Trace, *traces: Trace,
-                 reference_offset: int, reference_length: int, max_offset: int,
-                 dist_func: Callable[[np.ndarray, np.ndarray], float], max_dist: float = float("inf")) -> Tuple[List[Trace], List[int]]:
+def align_offset(
+    reference: Trace,
+    *traces: Trace,
+    reference_offset: int,
+    reference_length: int,
+    max_offset: int,
+    dist_func: Callable[[np.ndarray, np.ndarray], float],
+    max_dist: float = float("inf")
+) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace` so that the value of the `dist_func` is minimized
     between the reference trace window from `reference_offset` of `reference_length` and the trace
@@ -122,7 +146,9 @@ def align_offset(reference: Trace, *traces: Trace,
     :param dist_func:
     :return:
     """
-    reference_part = reference.samples[reference_offset: reference_offset + reference_length]
+    reference_part = reference.samples[
+        reference_offset : reference_offset + reference_length
+    ]
 
     def align_func(trace):
         length = len(trace.samples)
@@ -142,12 +168,18 @@ def align_offset(reference: Trace, *traces: Trace,
             return True, best_offset
         else:
             return False, 0
+
     return _align_reference(reference, *traces, align_func=align_func)
 
 
 @public
-def align_sad(reference: Trace, *traces: Trace,
-              reference_offset: int, reference_length: int, max_offset: int) -> Tuple[List[Trace], List[int]]:
+def align_sad(
+    reference: Trace,
+    *traces: Trace,
+    reference_offset: int,
+    reference_length: int,
+    max_offset: int
+) -> Tuple[List[Trace], List[int]]:
     """
     Align `traces` to the reference `trace` so that the Sum Of Absolute Differences between the
     reference trace window from `reference_offset` of `reference_length` and the trace being aligned
@@ -160,17 +192,24 @@ def align_sad(reference: Trace, *traces: Trace,
     :param max_offset:
     :return:
     """
+
     def sad(reference_part, trace_part):
         return float(np.sum(np.abs(reference_part - trace_part)))
 
-    return align_offset(reference, *traces,
-                        reference_offset=reference_offset, reference_length=reference_length,
-                        max_offset=max_offset, dist_func=sad)
+    return align_offset(
+        reference,
+        *traces,
+        reference_offset=reference_offset,
+        reference_length=reference_length,
+        max_offset=max_offset,
+        dist_func=sad
+    )
 
 
 @public
-def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
-                    fast: bool = True) -> List[Trace]:
+def align_dtw_scale(
+    reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True
+) -> List[Trace]:
     """
     Align `traces` to the `reference` trace.
     Using fastdtw (Dynamic Time Warping) with scaling as per:
@@ -206,7 +245,9 @@ def align_dtw_scale(reference: Trace, *traces: Trace, radius: int = 1,
 
 
 @public
-def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True) -> List[Trace]:
+def align_dtw(
+    reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True
+) -> List[Trace]:
     """
     Align `traces` to the `reference` trace. Using fastdtw (Dynamic Time Warping) as per:
 
@@ -228,9 +269,13 @@ def align_dtw(reference: Trace, *traces: Trace, radius: int = 1, fast: bool = Tr
             dist, path = fastdtw(reference_samples, trace.samples, radius=radius)
         else:
             dist, path = dtw(reference_samples, trace.samples)
-        result_samples = np.zeros(max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype)
-        pairs = np.array(np.array(path, dtype=np.dtype("int,int")),
-                         dtype=np.dtype([("x", "int"), ("y", "int")]))
+        result_samples = np.zeros(
+            max((len(trace.samples), len(reference_samples))), dtype=trace.samples.dtype
+        )
+        pairs = np.array(
+            np.array(path, dtype=np.dtype("int,int")),
+            dtype=np.dtype([("x", "int"), ("y", "int")]),
+        )
         result_samples[pairs["x"]] = trace.samples[pairs["y"]]
         del pairs
         del path

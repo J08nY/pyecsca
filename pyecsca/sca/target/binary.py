@@ -13,11 +13,14 @@ from .serial import SerialTarget
 @public
 class BinaryTarget(SerialTarget):
     """A binary target that is runnable on the host and communicates using the stdin/stdout streams."""
+
     binary: List[str]
     process: Optional[Popen] = None
     debug_output: bool
 
-    def __init__(self, binary: Union[str, List[str]], debug_output: bool = False, **kwargs):
+    def __init__(
+        self, binary: Union[str, List[str]], debug_output: bool = False, **kwargs
+    ):
         super().__init__()
         if not isinstance(binary, (str, list)):
             raise TypeError
@@ -27,8 +30,13 @@ class BinaryTarget(SerialTarget):
         self.debug_output = debug_output
 
     def connect(self):
-        self.process = Popen(self.binary, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                             text=True, bufsize=1)
+        self.process = Popen(
+            self.binary,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
 
     def write(self, data: bytes) -> None:
         if self.process is None:

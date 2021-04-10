@@ -12,8 +12,9 @@ from .combine import average_and_variance
 from .edit import trim
 
 
-def _ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
-                equal_var: bool) -> Optional[CombinedTrace]:
+def _ttest_func(
+    first_set: Sequence[Trace], second_set: Sequence[Trace], equal_var: bool
+) -> Optional[CombinedTrace]:
     if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
         return None
     first_stack = np.stack([first.samples for first in first_set])
@@ -23,7 +24,12 @@ def _ttest_func(first_set: Sequence[Trace], second_set: Sequence[Trace],
 
 
 @public
-def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bool = False, p_value: bool = False) -> Optional[Tuple[CombinedTrace, ...]]:
+def welch_ttest(
+    first_set: Sequence[Trace],
+    second_set: Sequence[Trace],
+    dof: bool = False,
+    p_value: bool = False,
+) -> Optional[Tuple[CombinedTrace, ...]]:
     """
     Perform the Welch's t-test sample wise on two sets of traces `first_set` and `second_set`.
     Useful for Test Vector Leakage Analysis (TVLA).
@@ -51,8 +57,8 @@ def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bo
     tval = (mean_0.samples - mean_1.samples) / np.sqrt(varn_0 + varn_1)
     result = [CombinedTrace(tval)]
     if dof or p_value:
-        top = (varn_0 + varn_1)**2
-        bot = (varn_0**2 / (n0 - 1)) + (varn_1**2 / (n1 - 1))
+        top = (varn_0 + varn_1) ** 2
+        bot = (varn_0 ** 2 / (n0 - 1)) + (varn_1 ** 2 / (n1 - 1))
         df = top / bot
         del top
         del bot
@@ -66,8 +72,9 @@ def welch_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace], dof: bo
 
 
 @public
-def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Optional[
-        CombinedTrace]:
+def student_ttest(
+    first_set: Sequence[Trace], second_set: Sequence[Trace]
+) -> Optional[CombinedTrace]:
     """
     Perform the Students's t-test sample wise on two sets of traces `first_set` and `second_set`.
     Useful for Test Vector Leakage Analysis (TVLA).
@@ -80,7 +87,9 @@ def student_ttest(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Op
 
 
 @public
-def ks_test(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> Optional[CombinedTrace]:
+def ks_test(
+    first_set: Sequence[Trace], second_set: Sequence[Trace]
+) -> Optional[CombinedTrace]:
     """
     Perform the Kolmogorov-Smirnov two sample test on equality of distributions sample wise on
     two sets of traces `first_set` and `second_set`.

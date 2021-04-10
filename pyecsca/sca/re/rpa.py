@@ -7,8 +7,15 @@ This module provides functionality inspired by the Refined-Power Analysis attack
 from public import public
 from typing import MutableMapping, Optional
 
-from ...ec.formula import FormulaAction, DoublingFormula, AdditionFormula, TriplingFormula, NegationFormula, \
-    DifferentialAdditionFormula, LadderFormula
+from ...ec.formula import (
+    FormulaAction,
+    DoublingFormula,
+    AdditionFormula,
+    TriplingFormula,
+    NegationFormula,
+    DifferentialAdditionFormula,
+    LadderFormula,
+)
 from ...ec.mult import ScalarMultiplicationAction, PrecomputationAction
 from ...ec.point import Point
 from ...ec.context import Context, Action
@@ -17,6 +24,7 @@ from ...ec.context import Context, Action
 @public
 class MultipleContext(Context):
     """A context that traces the multiples of points computed."""
+
     base: Optional[Point]
     points: MutableMapping[Point, int]
     inside: bool
@@ -51,7 +59,7 @@ class MultipleContext(Context):
             elif isinstance(action.formula, NegationFormula):
                 inp = action.input_points[0]
                 out = action.output_points[0]
-                self.points[out] = - self.points[inp]
+                self.points[out] = -self.points[inp]
             elif isinstance(action.formula, DifferentialAdditionFormula):
                 diff, one, other = action.input_points
                 out = action.output_points[0]

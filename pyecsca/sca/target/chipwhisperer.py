@@ -22,7 +22,9 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
     using ChipWhisperer-Lite/Pro.
     """
 
-    def __init__(self, target: SimpleSerial, scope: ScopeTemplate, programmer, **kwargs):
+    def __init__(
+        self, target: SimpleSerial, scope: ScopeTemplate, programmer, **kwargs
+    ):
         super().__init__()
         self.target = target
         self.scope = scope

@@ -1,8 +1,23 @@
 """
 This module provides a class for a code operation.
 """
-from ast import (Module, walk, Name, BinOp, UnaryOp, Constant, Mult, Div, Add, Sub, Pow, Assign,
-                 operator as ast_operator, unaryop as ast_unaryop, USub)
+from ast import (
+    Module,
+    walk,
+    Name,
+    BinOp,
+    UnaryOp,
+    Constant,
+    Mult,
+    Div,
+    Add,
+    Sub,
+    Pow,
+    Assign,
+    operator as ast_operator,
+    unaryop as ast_unaryop,
+    USub,
+)
 from enum import Enum
 from types import CodeType
 from typing import FrozenSet, cast, Any, Optional, Union
@@ -15,6 +30,7 @@ from .mod import Mod
 @public
 class OpType(Enum):
     """A type of binary and unary operators."""
+
     Add = (2, "+")
     Sub = (2, "-")
     Neg = (1, "-")
@@ -33,6 +49,7 @@ class OpType(Enum):
 @public
 class CodeOp(object):
     """An operation that can be executed."""
+
     result: str
     """The result variable of the operation (e.g. the `r` in `r = 2*a`)."""
     parameters: FrozenSet[str]
@@ -90,7 +107,9 @@ class CodeOp(object):
         else:
             return None
 
-    def __to_op(self, op: Optional[Union[ast_operator, ast_unaryop]], left: Any, right: Any) -> OpType:
+    def __to_op(
+        self, op: Optional[Union[ast_operator, ast_unaryop]], left: Any, right: Any
+    ) -> OpType:
         if isinstance(op, Mult):
             return OpType.Mult
         elif isinstance(op, Div):
