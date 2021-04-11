@@ -1,6 +1,4 @@
-"""
-This module provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...).
-"""
+"""This module provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...)."""
 from typing import Sequence, Optional, Tuple
 
 import numpy as np
@@ -31,7 +29,8 @@ def welch_ttest(
     p_value: bool = False,
 ) -> Optional[Tuple[CombinedTrace, ...]]:
     """
-    Perform the Welch's t-test sample wise on two sets of traces `first_set` and `second_set`.
+    Perform the Welch's t-test sample wise on two sets of traces :paramref:`~.welch_ttest.first_set` and :paramref:`~.welch_ttest.second_set`.
+
     Useful for Test Vector Leakage Analysis (TVLA).
 
     :param first_set:
@@ -76,7 +75,8 @@ def student_ttest(
     first_set: Sequence[Trace], second_set: Sequence[Trace]
 ) -> Optional[CombinedTrace]:
     """
-    Perform the Students's t-test sample wise on two sets of traces `first_set` and `second_set`.
+    Perform the Students's t-test sample wise on two sets of traces :paramref:`~.student_ttest.first_set` and :paramref:`~.student_ttest.second_set`.
+
     Useful for Test Vector Leakage Analysis (TVLA).
 
     :param first_set:
@@ -91,8 +91,7 @@ def ks_test(
     first_set: Sequence[Trace], second_set: Sequence[Trace]
 ) -> Optional[CombinedTrace]:
     """
-    Perform the Kolmogorov-Smirnov two sample test on equality of distributions sample wise on
-    two sets of traces `first_set` and `second_set`.
+    Perform the Kolmogorov-Smirnov two sample test on equality of distributions sample wise on two sets of traces :paramref:`~.ks_test.first_set` and :paramref:`~.ks_test.second_set`.
 
     :param first_set:
     :param second_set:

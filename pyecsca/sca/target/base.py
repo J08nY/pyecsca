@@ -1,6 +1,4 @@
-"""
-This module provides an abstract base class for targets.
-"""
+"""This module provides an abstract base class for targets."""
 from abc import ABC, abstractmethod
 
 from public import public

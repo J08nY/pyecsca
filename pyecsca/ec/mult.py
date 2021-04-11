@@ -1,6 +1,4 @@
-"""
-This module provides several classes implementing different scalar multiplication algorithms.
-"""
+"""This module provides several classes implementing different scalar multiplication algorithms."""
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
@@ -154,7 +152,7 @@ class ScalarMultiplier(ABC):
 
     def init(self, params: DomainParameters, point: Point):
         """
-        Initialize the scalar multiplier with params and a point.
+        Initialize the scalar multiplier with :paramref:`~.init.params` and a :paramref:`~.init.point`.
 
         .. warning::
             The point is not verified to be on the curve represented in the domain parameters.
@@ -191,7 +189,7 @@ class LTRMultiplier(ScalarMultiplier):
     """
     Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb).
 
-    The `always` parameter determines whether the double and add always method is used.
+    :param always: Whether the double and add always method is used.
     """
 
     requires = {AdditionFormula, DoublingFormula}
@@ -214,7 +212,7 @@ class LTRMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -243,7 +241,7 @@ class RTLMultiplier(ScalarMultiplier):
     """
     Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb).
 
-    The `always` parameter determines whether the double and add always method is used.
+    :param always: Whether the double and add always method is used.
     """
 
     requires = {AdditionFormula, DoublingFormula}
@@ -263,7 +261,7 @@ class RTLMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -285,9 +283,10 @@ class RTLMultiplier(ScalarMultiplier):
 @public
 class CoronMultiplier(ScalarMultiplier):
     """
-    Coron's double and add resistant against SPA, from:
+    Coron's double and add resistant against SPA.
 
-    Resistance against Differential Power Analysis for Elliptic Curve Cryptosystems
+    From:
+    **Resistance against Differential Power Analysis for Elliptic Curve Cryptosystems**
 
     https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
     """
@@ -306,7 +305,7 @@ class CoronMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -324,9 +323,7 @@ class CoronMultiplier(ScalarMultiplier):
 
 @public
 class LadderMultiplier(ScalarMultiplier):
-    """
-    Montgomery ladder multiplier, using a three input, two output ladder formula.
-    """
+    """Montgomery ladder multiplier, using a three input, two output ladder formula."""
 
     requires = {LadderFormula}
     optionals = {DoublingFormula, ScalingFormula}
@@ -347,7 +344,7 @@ class LadderMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -372,9 +369,7 @@ class LadderMultiplier(ScalarMultiplier):
 
 @public
 class SimpleLadderMultiplier(ScalarMultiplier):
-    """
-    Montgomery ladder multiplier, using addition and doubling formulas.
-    """
+    """Montgomery ladder multiplier, using addition and doubling formulas."""
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
@@ -393,7 +388,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -417,9 +412,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
 
 @public
 class DifferentialLadderMultiplier(ScalarMultiplier):
-    """
-    Montgomery ladder multiplier, using differential addition and doubling formulas.
-    """
+    """Montgomery ladder multiplier, using differential addition and doubling formulas."""
 
     requires = {DifferentialAdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
@@ -438,7 +431,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -463,9 +456,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
 
 @public
 class BinaryNAFMultiplier(ScalarMultiplier):
-    """
-    Binary NAF (Non Adjacent Form) multiplier, left-to-right.
-    """
+    """Binary NAF (Non Adjacent Form) multiplier, left-to-right."""
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
@@ -490,7 +481,7 @@ class BinaryNAFMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
@@ -509,9 +500,7 @@ class BinaryNAFMultiplier(ScalarMultiplier):
 
 @public
 class WindowNAFMultiplier(ScalarMultiplier):
-    """
-    Window NAF (Non Adjacent Form) multiplier, left-to-right.
-    """
+    """Window NAF (Non Adjacent Form) multiplier, left-to-right."""
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
@@ -551,7 +540,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
-            raise ValueError("ScalaMultiplier not initialized.")
+            raise ValueError("ScalarMultiplier not initialized.")
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))

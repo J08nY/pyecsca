@@ -98,8 +98,11 @@ Requirements
 It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
 
 
-Testing
--------
+Testing & Development
+---------------------
+
+See the Makefile for tests, performance measurement, codestyle and type checking commands.
+Use black_ for code-formatting.
 
  - nose2_
  - green_
@@ -118,6 +121,7 @@ Docs
  - sphinx_
  - sphinx-autodoc-typehints_
  - nbsphinx_
+ - sphinx-paramlinks_
 
 License
 =======
@@ -178,5 +182,6 @@ this support is very appreciated.
 .. _sphinx: https://www.sphinx-doc.org/
 .. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
 .. _nbsphinx: https://nbsphinx.readthedocs.io/
+.. _sphinx-paramlinks: https://pypi.org/project/sphinx-paramlinks/
 .. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
 .. _Riscure: https://www.riscure.com/

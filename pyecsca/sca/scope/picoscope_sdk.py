@@ -1,7 +1,4 @@
-"""
-This module provides an oscilloscope class for PicoScope branded oscilloscopes using
-the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_.
-"""
+"""This module provides an oscilloscope class for PicoScope branded oscilloscopes using the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_."""
 import ctypes
 from math import log2, floor
 from time import time_ns, sleep
@@ -46,7 +43,7 @@ def adc2volt(
     :param adc: Either a single value (:py:class:`ctypes.c_int16`) or an array (:py:class:`np.ndarray`) of those to convert.
     :param volt_range: The voltage range used for collecting the samples.
     :param adc_minmax:
-    :param dtype: The numpy `dtype` of the output.
+    :param dtype: The numpy ``dtype`` of the output.
     :return: The converted values.
     """
     if isinstance(adc, ctypes.c_int16):
@@ -65,7 +62,7 @@ def volt2adc(
     :param volt: Either a single value (:py:class:`float`) or an array (:py:class:`np.ndarray`) of those to convert.
     :param volt_range: The voltage range used for collecting the samples.
     :param adc_minmax:
-    :param dtype: The numpy `dtype` of the output.
+    :param dtype: The numpy ``dtype`` of the output.
     :return: The converted values.
     """
     if isinstance(volt, float):
@@ -77,7 +74,7 @@ def volt2adc(
 
 @public
 class PicoScopeSdk(Scope):  # pragma: no cover
-    """A PicoScope based scope."""
+    """PicoScope based scope."""
 
     MODULE: Library
     PREFIX: str
@@ -348,7 +345,7 @@ if isinstance(ps3000, CannotFindPicoSDKError):
 
     @public
     class PS3000Scope(PicoScopeSdk):  # pragma: no cover
-        """A PicoScope 3000 series oscilloscope is not available. (Install `libps3000`)."""
+        """PicoScope 3000 series oscilloscope is not available (Install `libps3000`)."""
 
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
@@ -359,7 +356,7 @@ else:  # pragma: no cover
 
     @public
     class PS3000Scope(PicoScopeSdk):  # type: ignore
-        """A PicoScope 3000 series oscilloscope."""
+        """PicoScope 3000 series oscilloscope."""
 
         MODULE = ps3000
         PREFIX = "ps3000"
@@ -415,7 +412,7 @@ if isinstance(ps4000, CannotFindPicoSDKError):
 
     @public
     class PS4000Scope(PicoScopeSdk):  # pragma: no cover
-        """A PicoScope 4000 series oscilloscope is not available. (Install `libps4000`)."""
+        """PicoScope 4000 series oscilloscope is not available (Install `libps4000`)."""
 
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
@@ -426,7 +423,7 @@ else:  # pragma: no cover
 
     @public
     class PS4000Scope(PicoScopeSdk):  # type: ignore
-        """A PicoScope 4000 series oscilloscope."""
+        """PicoScope 4000 series oscilloscope."""
 
         MODULE = ps4000
         PREFIX = "ps4000"
@@ -478,7 +475,7 @@ if isinstance(ps5000, CannotFindPicoSDKError):
 
     @public
     class PS5000Scope(PicoScopeSdk):  # pragma: no cover
-        """A PicoScope 5000 series oscilloscope is not available. (Install `libps5000`)."""
+        """PicoScope 5000 series oscilloscope is not available (Install `libps5000`)."""
 
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
@@ -489,7 +486,7 @@ else:  # pragma: no cover
 
     @public
     class PS5000Scope(PicoScopeSdk):  # type: ignore
-        """A PicoScope 5000 series oscilloscope."""
+        """PicoScope 5000 series oscilloscope."""
 
         MODULE = ps5000
         PREFIX = "ps5000"
@@ -530,7 +527,7 @@ if isinstance(ps6000, CannotFindPicoSDKError):
 
     @public
     class PS6000Scope(PicoScopeSdk):  # pragma: no cover
-        """A PicoScope 6000 series oscilloscope is not available. (Install `libps6000`)."""
+        """PicoScope 6000 series oscilloscope is not available (Install `libps6000`)."""
 
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
@@ -541,7 +538,7 @@ else:  # pragma: no cover
 
     @public
     class PS6000Scope(PicoScopeSdk):  # type: ignore
-        """A PicoScope 6000 series oscilloscope."""
+        """PicoScope 6000 series oscilloscope."""
 
         MODULE = ps6000
         PREFIX = "ps6000"

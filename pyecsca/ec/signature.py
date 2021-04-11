@@ -1,6 +1,4 @@
-"""
-This module provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm).
-"""
+"""This module provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm)."""
 import hashlib
 from typing import Optional, Any
 
@@ -17,21 +15,12 @@ from .point import Point
 
 @public
 class SignatureResult(object):
-    """An ECDSA signature result (r, s)."""
+    """ECDSA signature result (r, s)."""
 
     r: int
     s: int
 
-    def __init__(
-        self,
-        r: int,
-        s: int,
-        data: Optional[bytes] = None,
-        digest: Optional[bytes] = None,
-        nonce: Optional[int] = None,
-        privkey: Optional[Mod] = None,
-        pubkey: Optional[Point] = None,
-    ):
+    def __init__(self, r: int, s: int):
         self.r = r
         self.s = s
 
@@ -80,7 +69,7 @@ class ECDSAAction(Action):
 
 @public
 class ECDSASignAction(ECDSAAction):
-    """An ECDSA signing."""
+    """ECDSA signing."""
 
     privkey: Mod
 
@@ -100,7 +89,7 @@ class ECDSASignAction(ECDSAAction):
 
 @public
 class ECDSAVerifyAction(ECDSAAction):
-    """An ECDSA verification."""
+    """ECDSA verification."""
 
     signature: SignatureResult
     pubkey: Point
@@ -123,7 +112,7 @@ class ECDSAVerifyAction(ECDSAAction):
 
 @public
 class Signature(object):
-    """An EC based signature primitive. (ECDSA)"""
+    """EC based signature primitive (ECDSA)."""
 
     mult: ScalarMultiplier
     params: DomainParameters
@@ -180,9 +169,7 @@ class Signature(object):
         affine_point = point.to_affine()
         r = Mod(int(affine_point.x), self.params.order)
         s = nonce.inverse() * (Mod(z, self.params.order) + r * self.privkey)
-        return SignatureResult(
-            int(r), int(s), digest=digest, nonce=int(nonce), privkey=self.privkey
-        )
+        return SignatureResult(int(r), int(s))
 
     def sign_hash(self, digest: bytes, nonce: Optional[int] = None) -> SignatureResult:
         """Sign already hashed data."""

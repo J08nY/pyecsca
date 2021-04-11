@@ -1,6 +1,7 @@
 """
-This module provides a traceset implemented on top of the Hierarchical Data Format (HDF5). This traceset
-can be loaded "inplace" which means that it is not fully loaded into memory, and only parts of traces that
+This module provides a traceset implemented on top of the Hierarchical Data Format (HDF5).
+
+This traceset can be loaded "inplace" which means that it is not fully loaded into memory, and only parts of traces that
 are operated on are in memory. This is very useful for working with huge sets of traces that do not fit in memory.
 """
 import pickle
@@ -55,7 +56,7 @@ class HDF5Meta(MutableMapping):
 
 @public
 class HDF5TraceSet(TraceSet):
-    """A traceset based on the HDF5 (Hierarchical Data Format)."""
+    """Traceset based on the HDF5 (Hierarchical Data Format)."""
 
     _file: Optional[h5py.File]
     _ordering: List[str]

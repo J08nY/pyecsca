@@ -1,6 +1,7 @@
 """
-This module provides functions for runtime configuration of the toolkit, such as how errors are handled, or which
-:py:class:`Mod` implementation is used.
+This module provides functions for runtime configuration of the toolkit.
+
+This includes how errors are handled, or which :py:class:`~pyecsca.ec.mod.Mod` implementation is used.
 """
 from copy import deepcopy
 from contextvars import ContextVar, Token
@@ -21,11 +22,14 @@ class ECConfig(object):
     @property
     def no_inverse_action(self) -> str:
         """
-        The action to take when a non-invertible element is to be inverted. One of:
+        Return or set the action to take when a non-invertible element is to be inverted.
 
-         - `"error"`: Raise :py:class:`pyecsca.ec.error.NonInvertibleError`.
-         - `"warning"`: Raise :py:class:`pyecsca.ec.error.NonInvertibleWarning`.
-         - `"ignore"`: Ignore the event and compute as if nothing happened."""
+        One of:
+
+         - ``"error"``: Raise :py:class:`pyecsca.ec.error.NonInvertibleError`.
+         - ``"warning"``: Raise :py:class:`pyecsca.ec.error.NonInvertibleWarning`.
+         - ``"ignore"``: Ignore the event and compute as if nothing happened.
+        """
         return self._no_inverse_action
 
     @no_inverse_action.setter
@@ -37,11 +41,14 @@ class ECConfig(object):
     @property
     def non_residue_action(self) -> str:
         """
-        The action to take when a the square-root of a non-residue is to be computed. One of:
+        Return or set the action to take when a the square-root of a non-residue is to be computed.
 
-         - `"error"`: Raise :py:class:`pyecsca.ec.error.NonResidueError`.
-         - `"warning"`: Raise :py:class:`pyecsca.ec.error.NonResidueWarning`.
-         - `"ignore"`: Ignore the event and compute as if nothing happened."""
+        One of:
+
+         - ``"error"``: Raise :py:class:`pyecsca.ec.error.NonResidueError`.
+         - ``"warning"``: Raise :py:class:`pyecsca.ec.error.NonResidueWarning`.
+         - ``"ignore"``: Ignore the event and compute as if nothing happened.
+        """
         return self._non_residue_action
 
     @non_residue_action.setter
@@ -53,15 +60,16 @@ class ECConfig(object):
     @property
     def unsatisfied_formula_assumption_action(self) -> str:
         """
-        The action to take when a formula assumption is unsatisfied during execution.
+        Return or set the action to take when a formula assumption is unsatisfied during execution.
+
         This works for assumption that can be ignored without a fatal error,
         which are those that are not used to compute a value of an undefined parameter.
-        For example, things of the form `Z1 = 1`.
+        For example, things of the form ``Z1 = 1``.
         One of:
 
-         - `"error"`: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionError`.
-         - `"warning"`: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionWarning`.
-         - `"ignore"`: Ignore the event and compute as if nothing happened.
+         - ``"error"``: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionError`.
+         - ``"warning"``: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionWarning`.
+         - ``"ignore"``: Ignore the event and compute as if nothing happened.
         """
         return self._unsatisfied_formula_assumption_action
 
@@ -74,15 +82,16 @@ class ECConfig(object):
     @property
     def unsatisfied_coordinate_assumption_action(self) -> str:
         """
-        The action to take when a coordinate assumption is unsatisfied during curve creation.
+        Return or set the action to take when a coordinate assumption is unsatisfied during curve creation.
+
         This works for assumption that can be ignored without a fatal error,
         which are those that are not used to compute a value of an undefined parameter.
-        For example, things of the form `a = -1`.
+        For example, things of the form ``a = -1``.
         One of:
 
-         - `"error"`: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionError`.
-         - `"warning"`: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionWarning`.
-         - `"ignore"`: Ignore the event and compute as if nothing happened.
+         - ``"error"``: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionError`.
+         - ``"warning"``: Raise :py:class:`pyecsca.ec.error.UnsatisfiedAssumptionWarning`.
+         - ``"ignore"``: Ignore the event and compute as if nothing happened.
         """
         return self._unsatisfied_coordinate_assumption_action
 
@@ -95,10 +104,12 @@ class ECConfig(object):
     @property
     def mod_implementation(self) -> str:
         """
-        The selected :py:class:`pyecsca.ec.mod.Mod` implementation. One of:
+        Return or set the selected :py:class:`pyecsca.ec.mod.Mod` implementation.
 
-         - `"gmp"`: Requires the GMP library and `gmpy2` package.
-         - `"python"`: Doesn't require anything.
+        One of:
+
+         - ``"gmp"``: Requires the GMP library and `gmpy2` package.
+         - ``"python"``: Doesn't require anything.
         """
         return self._mod_implementation
 
@@ -111,7 +122,7 @@ class ECConfig(object):
 
 @public
 class Config(object):
-    """A runtime configuration for the library."""
+    """Runtime configuration for the library."""
 
     ec: ECConfig
     """Configuration for the :py:mod:`pyecsca.ec` package."""
@@ -157,7 +168,9 @@ def resetconfig(token: Token) -> None:
 @public
 class TemporaryConfig(object):
     """
-    A temporary config context manager, can be entered as follows:
+    Temporary config context manager.
+
+    Can be entered as follows:
 
     .. code-block:: python
 

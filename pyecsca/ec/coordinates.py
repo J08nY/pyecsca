@@ -1,6 +1,4 @@
-"""
-This module provides a coordinate model class.
-"""
+"""This module provides a coordinate model class."""
 from ast import parse, Module
 from os.path import join
 from typing import List, Any, MutableMapping

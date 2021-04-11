@@ -1,6 +1,7 @@
 """
-This module provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_
-repository. It also provides a domain parameter class and a class for a whole category of domain parameters.
+This module provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_ repository.
+
+It also provides a domain parameter class and a class for a whole category of domain parameters.
 """
 import json
 from sympy import Poly, FF, symbols, sympify
@@ -319,8 +320,9 @@ def get_params(
     category: str, name: str, coords: str, infty: bool = True
 ) -> DomainParameters:
     """
-    Retrieve a curve from a set of stored parameters. Uses the std-curves database at
-    https://github.com/J08nY/std-curves.
+    Retrieve a curve from a set of stored parameters.
+
+    Uses the std-curves database at https://github.com/J08nY/std-curves.
 
     :param category: The category of the curve.
     :param name: The name of the curve.

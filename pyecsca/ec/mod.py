@@ -1,5 +1,7 @@
 """
-This module provides several implementations of an element of ℤₙ. The base class :py:class:`Mod` dynamically
+This module provides several implementations of an element of ℤₙ.
+
+The base class :py:class:`Mod` dynamically
 dispatches to the implementation chosen by the runtime configuration of the library
 (see :py:class:`pyecsca.misc.cfg.Config`). A Python integer based implementation is available under
 :py:class:`RawMod`. A symbolic implementation based on sympy is available under :py:class:`SymbolicMod`. If
@@ -599,7 +601,6 @@ if has_gmp:
             return GMPMod(res, self.n)
 
         def is_residue(self) -> bool:
-            """Whether this element is a quadratic residue (only implemented for prime modulus)."""
             if not _is_prime(self.n):
                 raise NotImplementedError
             if self.x == 0:
@@ -609,11 +610,6 @@ if has_gmp:
             return gmpy2.legendre(self.x, self.n) == 1
 
         def sqrt(self) -> "GMPMod":
-            """
-            The modular square root of this element (only implemented for prime modulus).
-
-            Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
-            """
             if not _is_prime(self.n):
                 raise NotImplementedError
             if self.x == 0:

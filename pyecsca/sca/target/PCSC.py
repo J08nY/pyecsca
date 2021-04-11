@@ -1,6 +1,4 @@
-"""
-This module provides a smartcard target communicating via PC/SC (Personal Computer/Smart Card).
-"""
+"""This module provides a smartcard target communicating via PC/SC (Personal Computer/Smart Card)."""
 from typing import Union
 
 from public import public
@@ -14,7 +12,7 @@ from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816
 
 @public
 class PCSCTarget(ISO7816Target):  # pragma: no cover
-    """A smartcard target communicating via PCSC."""
+    """Smartcard target communicating via PCSC."""
 
     def __init__(self, reader: Union[str, PCSCReader]):
         if isinstance(reader, str):

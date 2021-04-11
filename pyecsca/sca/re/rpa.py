@@ -1,5 +1,5 @@
 """
-This module provides functionality inspired by the Refined-Power Analysis attack by Goubin:
+This module provides functionality inspired by the Refined-Power Analysis attack by Goubin.
 
   A Refined Power-Analysis Attack on Elliptic Curve Cryptosystems, Louis Goubin, PKC '03
   `<https://dl.acm.org/doi/10.5555/648120.747060>`_
@@ -23,7 +23,7 @@ from ...ec.context import Context, Action
 
 @public
 class MultipleContext(Context):
-    """A context that traces the multiples of points computed."""
+    """Context that traces the multiples of points computed."""
 
     base: Optional[Point]
     points: MutableMapping[Point, int]

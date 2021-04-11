@@ -1,6 +1,4 @@
-"""
-This module provides an abstract base class for oscilloscopes.
-"""
+"""This module provides an abstract base class for oscilloscopes."""
 from enum import Enum, auto
 from typing import Tuple, Sequence, Optional
 
@@ -34,9 +32,11 @@ class Scope(object):
         self, frequency: int, pretrig: int, posttrig: int
     ) -> Tuple[int, int]:
         """
-        Setup the frequency and sample count for the measurement. The scope might not support
-        the requested values and will adjust them to get the next best frequency and the largest
-        supported number of samples (or the number of samples requested).
+        Setup the frequency and sample count for the measurement.
+
+        The scope might not support the requested values and will adjust them to get
+        the next best frequency and the largest supported number of samples
+        (or the number of samples requested).
 
         :param frequency: The requested frequency in Hz.
         :param pretrig: The requested number of samples to measure before the trigger.
@@ -70,6 +70,7 @@ class Scope(object):
     ) -> None:
         """
         Setup a trigger on a particular `channel`, the channel has to be set up and enabled.
+
         The trigger will fire based on the `threshold` and `direction`, if enabled,  the trigger
         will capture after `delay` ticks pass. If trigger conditions do not hold it will fire
         automatically after `timeout` milliseconds.

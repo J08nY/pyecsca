@@ -1,6 +1,4 @@
-"""
-This module provides a class for a code operation.
-"""
+"""This module provides a class for a code operation."""
 from ast import (
     Module,
     walk,
@@ -29,7 +27,7 @@ from .mod import Mod
 
 @public
 class OpType(Enum):
-    """A type of binary and unary operators."""
+    """Type of binary and unary operators."""
 
     Add = (2, "+")
     Sub = (2, "-")
@@ -48,7 +46,7 @@ class OpType(Enum):
 
 @public
 class CodeOp(object):
-    """An operation that can be executed."""
+    """Operation that can be executed."""
 
     result: str
     """The result variable of the operation (e.g. the `r` in `r = 2*a`)."""
@@ -135,6 +133,6 @@ class CodeOp(object):
         return f"CodeOp({self.result} = f(params={self.parameters}, vars={self.variables}, consts={self.constants}))"
 
     def __call__(self, *args, **kwargs: Mod) -> Mod:
-        """Execute this operation with kwargs."""
+        """Execute this operation with :paramref:`.__call__.kwargs`."""
         exec(self.compiled, {}, kwargs)
         return kwargs[self.result]

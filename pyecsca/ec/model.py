@@ -1,6 +1,4 @@
-"""
-This module provides curve model classes for the supported curve models.
-"""
+"""This module provides curve model classes for the supported curve models."""
 from ast import parse, Expression, Module
 from os.path import join
 from typing import List, MutableMapping
@@ -13,7 +11,7 @@ from .coordinates import EFDCoordinateModel, CoordinateModel
 
 @public
 class CurveModel(object):
-    """A model(form) of an elliptic curve."""
+    """Model(form) of an elliptic curve."""
 
     name: str
     shortname: str
@@ -115,7 +113,7 @@ class EFDCurveModel(CurveModel):
 @public
 class ShortWeierstrassModel(EFDCurveModel):
     """
-    A short-Weierstrass curve model, with the equation:
+    Short-Weierstrass curve model.
 
     .. math::
 
@@ -129,7 +127,7 @@ class ShortWeierstrassModel(EFDCurveModel):
 @public
 class MontgomeryModel(EFDCurveModel):
     """
-    A Montgomery curve model, with the equation:
+    Montgomery curve model.
 
     .. math::
 
@@ -143,7 +141,7 @@ class MontgomeryModel(EFDCurveModel):
 @public
 class EdwardsModel(EFDCurveModel):
     """
-    An Edwards curve model, with the equation:
+    Edwards curve model.
 
     .. math::
 
@@ -157,7 +155,7 @@ class EdwardsModel(EFDCurveModel):
 @public
 class TwistedEdwardsModel(EFDCurveModel):
     """
-    A twisted-Edwards curve model, with the equation:
+    Twisted-Edwards curve model.
 
     .. math::
 

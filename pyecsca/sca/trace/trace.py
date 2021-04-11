@@ -1,6 +1,4 @@
-"""
-This module provides the Trace class.
-"""
+"""This module provides the Trace class."""
 import weakref
 from typing import Any, Mapping, Sequence
 from copy import copy, deepcopy
@@ -12,7 +10,7 @@ from public import public
 
 @public
 class Trace(object):
-    """A trace, which has some samples and metadata."""
+    """Trace, which has some samples and metadata."""
 
     meta: Mapping[str, Any]
     samples: ndarray
@@ -51,18 +49,14 @@ class Trace(object):
 
     @property
     def trace_set(self) -> Any:
-        """
-        The trace set this trace is contained in, if any.
-        """
+        """Return the trace set this trace is contained in, if any."""
         if self._trace_set is None:
             return None
         return self._trace_set()
 
     @trace_set.setter
     def trace_set(self, trace_set: Any):
-        """
-        Set the trace set of this trace.
-        """
+        """Set the trace set of this trace."""
         if trace_set is None:
             self._trace_set = None
         else:
@@ -107,7 +101,7 @@ class Trace(object):
 
 @public
 class CombinedTrace(Trace):
-    """A trace that was combined from other traces, `parents`."""
+    """Trace that was combined from other traces, :paramref:`~.CombinedTrace.parents`."""
 
     def __init__(
         self,

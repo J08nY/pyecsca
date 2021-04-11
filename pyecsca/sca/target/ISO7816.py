@@ -1,6 +1,4 @@
-"""
-This module provides classes for working with ISO7816-4 APDUs and an abstract base class for an ISO7816-4 based target.
-"""
+"""This module provides classes for working with ISO7816-4 APDUs and an abstract base class for an ISO7816-4 based target."""
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional
@@ -13,7 +11,7 @@ from .base import Target
 @public
 @dataclass
 class CommandAPDU(object):  # pragma: no cover
-    """A command APDU that can be sent to an ISO7816-4 target."""
+    """Command APDU that can be sent to an ISO7816-4 target."""
 
     cls: int
     ins: int
@@ -82,7 +80,7 @@ class CommandAPDU(object):  # pragma: no cover
 @public
 @dataclass
 class ResponseAPDU(object):
-    """A response APDU that can be received from an ISO7816-4 target."""
+    """Response APDU that can be received from an ISO7816-4 target."""
 
     data: bytes
     sw: int
@@ -90,18 +88,18 @@ class ResponseAPDU(object):
 
 @public
 class ISO7816Target(Target, ABC):
-    """An ISO7816-4 target."""
+    """ISO7816-4 target."""
 
     @property
     @abstractmethod
     def atr(self) -> bytes:
-        """The ATR (Answer To Reset) of the target."""
+        """Return the ATR (Answer To Reset) of the target."""
         raise NotImplementedError
 
     @abstractmethod
     def select(self, aid: bytes) -> bool:
         """
-        Select an applet with `aid`.
+        Select an applet with :paramref:`~.select.aid`.
 
         :param aid: The AID of the applet to select.
         :return: Whether the selection was successful.
@@ -121,7 +119,7 @@ class ISO7816Target(Target, ABC):
 
 @public
 class ISO7816:
-    """A bunch of ISO7816-4 constants (status words)."""
+    """Bunch of ISO7816-4 constants (status words)."""
 
     SW_FILE_FULL = 0x6A84
     SW_UNKNOWN = 0x6F00

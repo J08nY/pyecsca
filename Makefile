@@ -30,6 +30,9 @@ codestyle:
 codestyle-all:
 	flake8 --extend-ignore=E501,F405,F403,F401,E126,E203 pyecsca test
 
+docstyle:
+	pydocstyle pyecsca --ignore=D1,D203,D212 -e --count
+
 black:
 	black pyecsca
 
@@ -58,6 +61,7 @@ help:
 	@echo " - typecheck-all: Use mypy to verify the use of types in pyecsca and in tests."
 	@echo " - codestyle: Use flake8 to check codestyle in pyecsca."
 	@echo " - codestyle-all: Use flake8 to check codestyle in pyecsca and in tests."
+	@echo " - docstyle: Use pydocstyle to check format of docstrings."
 	@echo " - black: Run black on pyecsca sources (will transform them inplace)."
 	@echo " - black-all: Run black on pyecsca sources and tests (will transform them inplace)."
 	@echo " - perf: Run performance measurements (prints results and stores them in .perf/)."
@@ -65,4 +69,4 @@ help:
 	@echo " - docs: Build docs using sphinx."
 	@echo " - help: Show this help."
 
-.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all black black-all perf doc-coverage docs
+.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all docstyle black black-all perf doc-coverage docs

@@ -1,6 +1,4 @@
-"""
-This module provides functions for transforming curves to different models.
-"""
+"""This module provides functions for transforming curves to different models."""
 from public import public
 from sympy import FF, symbols, Poly
 

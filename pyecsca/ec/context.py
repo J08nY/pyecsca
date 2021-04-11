@@ -1,7 +1,8 @@
 """
-This module provides classes for tracing the execution of operations (key generation, scalar multiplication, formula
-execution, operation evaluation). These operations are traced in `Context` classes using `Actions`. Different contexts
-trace actions differently.
+This module provides classes for tracing the execution of operations.
+
+The operations include key generation, scalar multiplication, formula execution and individual operation evaluation.
+These operations are traced in `Context` classes using `Actions`. Different contexts trace actions differently.
 
 A :py:class:`DefaultContext` traces actions into a tree as they are executed (a scalar
 multiplication actions has as its children an ordered list of the individual formula executions it has done).
@@ -95,8 +96,9 @@ class Tree(OrderedDict):
 
     def get_by_index(self, path: List[int]) -> Tuple[Any, Any]:
         """
-        Get the key and value in the tree at a position given by the path of indices
-        (the nodes inside a level of a tree are ordered by insertion order).
+        Get the key and value in the tree at a position given by the path of indices.
+
+        The nodes inside a level of a tree are ordered by insertion order.
 
         :param path: The path to get.
         :return: The key and value.
@@ -134,8 +136,11 @@ class Tree(OrderedDict):
 
 @public
 class Context(ABC):
-    """A context is an object that traces actions which happen. There is always one
-    context active, see functions :py:func:`getcontext`, :py:func:`setcontext` and :py:func:`resetcontext`.
+    """
+    Context is an object that traces actions which happen.
+
+    There is always one context active, see functions :py:func:`getcontext`,
+    :py:func:`setcontext` and :py:func:`resetcontext`.
     """
 
     @abstractmethod
@@ -162,7 +167,7 @@ class Context(ABC):
 
 @public
 class NullContext(Context):
-    """A context that does not trace any actions."""
+    """Context that does not trace any actions."""
 
     def enter_action(self, action: Action) -> None:
         pass
@@ -173,7 +178,7 @@ class NullContext(Context):
 
 @public
 class DefaultContext(Context):
-    """A context that traces executions of actions in a tree."""
+    """Context that traces executions of actions in a tree."""
 
     actions: Tree
     current: List[Action]
@@ -197,7 +202,7 @@ class DefaultContext(Context):
 
 @public
 class PathContext(Context):
-    """A context that traces targeted actions."""
+    """Context that traces targeted actions."""
 
     path: List[int]
     current: List[int]

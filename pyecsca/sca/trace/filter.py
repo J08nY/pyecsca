@@ -1,6 +1,4 @@
-"""
-This module provides functions for filtering traces using digital (low/high/band)-pass and bandstop filters.
-"""
+"""This module provides functions for filtering traces using digital (low/high/band)-pass and bandstop filters."""
 from public import public
 from scipy.signal import butter, lfilter
 from typing import Union, Tuple
@@ -31,8 +29,7 @@ def _filter_any(
 @public
 def filter_lowpass(trace: Trace, sampling_frequency: int, cutoff: int) -> Trace:
     """
-    Apply a lowpass digital filter (Butterworth) to `trace`, given `sampling_frequency` and
-    `cutoff` frequency.
+    Apply a lowpass digital filter (Butterworth) to `trace`, given `sampling_frequency` and `cutoff` frequency.
 
     :param trace:
     :param sampling_frequency:
@@ -45,8 +42,7 @@ def filter_lowpass(trace: Trace, sampling_frequency: int, cutoff: int) -> Trace:
 @public
 def filter_highpass(trace: Trace, sampling_frequency: int, cutoff: int) -> Trace:
     """
-    Apply a highpass digital filter (Butterworth) to `trace`, given `sampling_frequency` and
-    `cutoff` frequency.
+    Apply a highpass digital filter (Butterworth) to `trace`, given `sampling_frequency` and `cutoff` frequency.
 
     :param trace:
     :param sampling_frequency:
@@ -61,8 +57,7 @@ def filter_bandpass(
     trace: Trace, sampling_frequency: int, low: int, high: int
 ) -> Trace:
     """
-    Apply a bandpass digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the
-    passband from `low` to `high`.
+    Apply a bandpass digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the passband from `low` to `high`.
 
     :param trace:
     :param sampling_frequency:
@@ -78,8 +73,7 @@ def filter_bandstop(
     trace: Trace, sampling_frequency: int, low: int, high: int
 ) -> Trace:
     """
-    Apply a bandstop digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the
-    stopband from `low` to `high`.
+    Apply a bandstop digital filter (Butterworth) to `trace`, given `sampling_frequency`, with the stopband from `low` to `high`.
 
     :param trace:
     :param sampling_frequency:

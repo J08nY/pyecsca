@@ -1,6 +1,4 @@
-"""
-This module provides a key generator for elliptic curve keypairs.
-"""
+"""This module provides a key generator for elliptic curve keypairs."""
 from typing import Tuple
 
 from public import public
@@ -28,7 +26,13 @@ class KeygenAction(ResultAction):
 
 @public
 class KeyGeneration(object):
-    """Key generator."""
+    """
+    Key generator.
+
+    :param mult: The scalar multiplier to use during key generation.
+    :param params: The domain parameters over which to generate the keypair.
+    :param affine: Whether to transform the public key point to the affine form during key generation.
+    """
 
     mult: ScalarMultiplier
     params: DomainParameters
@@ -37,11 +41,6 @@ class KeyGeneration(object):
     def __init__(
         self, mult: ScalarMultiplier, params: DomainParameters, affine: bool = False
     ):
-        """
-        :param mult: The scalar multiplier to use during key generation.
-        :param params: The domain parameters over which to generate the keypair.
-        :param affine: Whether to transform the public key point to the affine form during key generation.
-        """
         self.mult = mult
         self.params = params
         self.mult.init(self.params, self.params.generator)

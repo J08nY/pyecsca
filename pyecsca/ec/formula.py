@@ -1,6 +1,4 @@
-"""
-This module provides an abstract base class of a formula along with concrete instantiations.
-"""
+"""This module provides an abstract base class of a formula along with concrete instantiations."""
 from abc import ABC, abstractmethod
 from ast import parse, Expression
 from astunparse import unparse
@@ -20,7 +18,7 @@ from ..misc.cfg import getconfig
 
 @public
 class OpResult(object):
-    """A result of an operation."""
+    """Result of an operation."""
 
     parents: Tuple
     op: OpType
@@ -44,7 +42,7 @@ class OpResult(object):
 
 @public
 class FormulaAction(ResultAction):
-    """An execution of a formula, on some input points and parameters, with some outputs."""
+    """Execution of a formula, on some input points and parameters, with some outputs."""
 
     formula: "Formula"
     """The formula that was executed."""
@@ -96,7 +94,7 @@ class FormulaAction(ResultAction):
 
 @public
 class Formula(ABC):
-    """A formula operating on points."""
+    """Formula operating on points."""
 
     name: str
     """Name of the formula."""
@@ -247,67 +245,67 @@ class Formula(ABC):
     @property
     @abstractmethod
     def input_index(self):
-        """The starting index where this formula reads its inputs."""
+        """Return the starting index where this formula reads its inputs."""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def output_index(self) -> int:
-        """The starting index where this formula stores its outputs."""
+        """Return the starting index where this formula stores its outputs."""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def inputs(self) -> Set[str]:
-        """The input variables of the formula."""
+        """Return the input variables of the formula."""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def outputs(self) -> Set[str]:
-        """The output variables of the formula."""
+        """Return the output variables of the formula."""
         raise NotImplementedError
 
     @property
     def num_operations(self) -> int:
-        """Number of operations."""
+        """Return the number of operations."""
         return len(list(filter(lambda op: op.operator is not None, self.code)))
 
     @property
     def num_multiplications(self) -> int:
-        """Number of multiplications."""
+        """Return the number of multiplications."""
         return len(list(filter(lambda op: op.operator == OpType.Mult, self.code)))
 
     @property
     def num_divisions(self) -> int:
-        """Number of divisions."""
+        """Return the number of divisions."""
         return len(list(filter(lambda op: op.operator == OpType.Div, self.code)))
 
     @property
     def num_inversions(self) -> int:
-        """Number of inversions."""
+        """Return the number of inversions."""
         return len(list(filter(lambda op: op.operator == OpType.Inv, self.code)))
 
     @property
     def num_powers(self) -> int:
-        """Number of powers."""
+        """Return the number of powers."""
         return len(list(filter(lambda op: op.operator == OpType.Pow, self.code)))
 
     @property
     def num_squarings(self) -> int:
-        """Number of squarings."""
+        """Return the number of squarings."""
         return len(list(filter(lambda op: op.operator == OpType.Sqr, self.code)))
 
     @property
     def num_addsubs(self) -> int:
-        """Number of additions and subtractions."""
+        """Return the number of additions and subtractions."""
         return len(
             list(filter(lambda op: op.operator in (OpType.Add, OpType.Sub), self.code))
         )
 
 
 class EFDFormula(Formula):
-    """A formula from the `Explicit-Formulas Database <https://www.hyperelliptic.org/EFD/>`_."""
+    """Formula from the `Explicit-Formulas Database <https://www.hyperelliptic.org/EFD/>`_."""
 
     def __init__(self, path: str, name: str, coordinate_model: Any):
         self.name = name
@@ -386,7 +384,7 @@ class EFDFormula(Formula):
 
 @public
 class AdditionFormula(Formula, ABC):
-    """A formula that adds two points."""
+    """Formula that adds two points."""
 
     shortname = "add"
     num_inputs = 2
@@ -400,7 +398,7 @@ class AdditionEFDFormula(AdditionFormula, EFDFormula):
 
 @public
 class DoublingFormula(Formula, ABC):
-    """A formula that doubles a point."""
+    """Formula that doubles a point."""
 
     shortname = "dbl"
     num_inputs = 1
@@ -414,7 +412,7 @@ class DoublingEFDFormula(DoublingFormula, EFDFormula):
 
 @public
 class TriplingFormula(Formula, ABC):
-    """A formula that triples a point."""
+    """Formula that triples a point."""
 
     shortname = "tpl"
     num_inputs = 1
@@ -428,7 +426,7 @@ class TriplingEFDFormula(TriplingFormula, EFDFormula):
 
 @public
 class NegationFormula(Formula, ABC):
-    """A formula that negates a point."""
+    """Formula that negates a point."""
 
     shortname = "neg"
     num_inputs = 1
@@ -442,7 +440,7 @@ class NegationEFDFormula(NegationFormula, EFDFormula):
 
 @public
 class ScalingFormula(Formula, ABC):
-    """A formula that somehow scales the point (to a given representative of a projective class)."""
+    """Formula that somehow scales the point (to a given representative of a projective class)."""
 
     shortname = "scl"
     num_inputs = 1
@@ -457,7 +455,8 @@ class ScalingEFDFormula(ScalingFormula, EFDFormula):
 @public
 class DifferentialAdditionFormula(Formula, ABC):
     """
-    A differential addition formula that adds two points with a known difference.
+    Differential addition formula that adds two points with a known difference.
+
     The first input point is the difference of the third input and the second input (`P[0] = P[2] - P[1]`).
     """
 
@@ -474,7 +473,8 @@ class DifferentialAdditionEFDFormula(DifferentialAdditionFormula, EFDFormula):
 @public
 class LadderFormula(Formula, ABC):
     """
-    A ladder formula for simultaneous addition of two points and doubling of the one of them, with a known difference.
+    Ladder formula for simultaneous addition of two points and doubling of the one of them, with a known difference.
+
     The first input point is the difference of the third input and the second input (`P[0] = P[2] - P[1]`).
     The first output point is the doubling of the second input point (`O[0] = 2 * P[1]`).
     The second output point is the addition of the second and third input points (`O[1] = P[1] + P[2]`).

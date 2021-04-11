@@ -1,6 +1,4 @@
-"""
-This module provides an elliptic curve class.
-"""
+"""This module provides an elliptic curve class."""
 from ast import Module
 from copy import copy
 from typing import MutableMapping, Union, List, Optional
@@ -15,7 +13,7 @@ from .point import Point, InfinityPoint
 
 @public
 class EllipticCurve(object):
-    """An elliptic curve."""
+    """Elliptic curve."""
 
     model: CurveModel
     """The model of the curve."""
@@ -82,6 +80,7 @@ class EllipticCurve(object):
     def affine_add(self, one: Point, other: Point) -> Point:
         """
         Add two affine points using the affine addition formula.
+
         Handles the case of point at infinity gracefully (short-circuits).
 
         :param one: One point.
@@ -99,6 +98,7 @@ class EllipticCurve(object):
     def affine_double(self, one: Point) -> Point:
         """
         Double an affine point using the affine doubling formula.
+
         Handles the case of point at infinity gracefully (short-circuits).
 
         :param one: A point.
@@ -111,6 +111,7 @@ class EllipticCurve(object):
     def affine_negate(self, one: Point) -> Point:
         """
         Negate an affine point using the affine negation formula.
+
         Handles the case of point at infinity gracefully (short-circuits).
 
         :param one: A point.
@@ -123,6 +124,7 @@ class EllipticCurve(object):
     def affine_multiply(self, point: Point, scalar: int) -> Point:
         """
         Multiply an affine point by a scalar using the affine doubling and addition formulas.
+
         Handles the case of point at infinity gracefully (short-circuits).
 
         :param point: The point to multiply.
@@ -147,9 +149,9 @@ class EllipticCurve(object):
     @property
     def affine_neutral(self) -> Optional[Point]:
         """
-        Get the neutral point in affine form, if it has one, otherwise `None`.
+        Get the neutral point in affine form, if it has one, otherwise ``None``.
 
-        :return: The affine neutral point or `None`.
+        :return: The affine neutral point or ``None``.
         """
         if not self.neutral_is_affine:
             return None
@@ -168,7 +170,8 @@ class EllipticCurve(object):
         return bool(self.model.base_neutral)
 
     def is_neutral(self, point: Point) -> bool:
-        """Check whether the point is the neutral point.
+        """
+        Check whether the point is the neutral point.
 
         :param point: The point to test.
         :return: Whether it is the neutral point.
@@ -203,8 +206,10 @@ class EllipticCurve(object):
 
     def decode_point(self, encoded: bytes) -> Point:
         """
-        Decode a point encoded as a sequence of bytes (ANSI X9.62). This decoding is the same as ANSI X9.63 for
-        the affine coordinate system and for others it only implements the uncompressed variant.
+        Decode a point encoded as a sequence of bytes (ANSI X9.62).
+
+        This decoding is the same as ANSI X9.63 for the affine coordinate system and for others it
+        only implements the uncompressed variant.
 
         .. warning::
             The point is not validated to be on the curve (if the uncompressed encoding is used).

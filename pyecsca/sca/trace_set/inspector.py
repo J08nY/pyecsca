@@ -1,6 +1,4 @@
-"""
-This module provides a traceset implementation based on Riscure's Inspector traceset format (`.trs`).
-"""
+"""This module provides a traceset implementation based on Riscure's Inspector traceset format (``.trs``)."""
 import struct
 from enum import IntEnum
 from io import BytesIO, RawIOBase, BufferedIOBase, UnsupportedOperation
@@ -270,7 +268,7 @@ class InspectorTraceSet(TraceSet):
 
     @property
     def sampling_frequency(self) -> int:
-        """The sampling frequency of the trace set."""
+        """Return the sampling frequency of the trace set."""
         return int(1 / self.x_scale)
 
     def __repr__(self):

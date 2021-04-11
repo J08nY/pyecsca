@@ -1,6 +1,4 @@
-"""
-This module provides downsampling functions for traces.
-"""
+"""This module provides downsampling functions for traces."""
 from typing import cast
 
 import numpy as np
@@ -13,8 +11,7 @@ from .trace import Trace
 @public
 def downsample_average(trace: Trace, factor: int = 2) -> Trace:
     """
-    Downsample samples of `trace` by `factor` by averaging `factor` consecutive samples in
-    non-intersecting windows.
+    Downsample samples of `trace` by `factor` by averaging `factor` consecutive samples in non-intersecting windows.
 
     :param trace:
     :param factor:
@@ -49,8 +46,7 @@ def downsample_pick(trace: Trace, factor: int = 2, offset: int = 0) -> Trace:
 @public
 def downsample_max(trace: Trace, factor: int = 2) -> Trace:
     """
-    Downsample samples of `trace` by `factor` by taking the maximum out of `factor` consecutive samples in
-    non-intersecting windows.
+    Downsample samples of `trace` by `factor` by taking the maximum out of `factor` consecutive samples in non-intersecting windows.
 
     :param trace:
     :param factor:
@@ -69,8 +65,7 @@ def downsample_max(trace: Trace, factor: int = 2) -> Trace:
 @public
 def downsample_min(trace: Trace, factor: int = 2) -> Trace:
     """
-    Downsample samples of `trace` by `factor` by taking the minimum out of `factor` consecutive samples in
-    non-intersecting windows.
+    Downsample samples of `trace` by `factor` by taking the minimum out of `factor` consecutive samples in non-intersecting windows.
 
     :param trace:
     :param factor:

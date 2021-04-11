@@ -1,6 +1,4 @@
-"""
-This module provides a binary target class which represents a target that is a runnable binary on the host.
-"""
+"""This module provides a binary target class which represents a target that is a runnable binary on the host."""
 import subprocess
 from subprocess import Popen
 from typing import Optional, Union, List
@@ -12,7 +10,7 @@ from .serial import SerialTarget
 
 @public
 class BinaryTarget(SerialTarget):
-    """A binary target that is runnable on the host and communicates using the stdin/stdout streams."""
+    """Binary target that is runnable on the host and communicates using the stdin/stdout streams."""
 
     binary: List[str]
     process: Optional[Popen] = None

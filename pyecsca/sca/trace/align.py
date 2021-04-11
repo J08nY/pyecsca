@@ -1,6 +1,4 @@
-"""
-This module provides functions for aligning traces in a trace set to a reference trace within it.
-"""
+"""This module provides functions for aligning traces in a trace set to a reference trace within it."""
 import numpy as np
 from copy import deepcopy
 from fastdtw import fastdtw, dtw
@@ -44,19 +42,21 @@ def align_correlation(
     min_correlation: float = 0.5
 ) -> Tuple[List[Trace], List[int]]:
     """
-    Align `traces` to the reference `trace`. Using the cross-correlation of a part of the reference
+    Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using correlation.
+
+    Use the cross-correlation of a part of the reference
     trace starting at `reference_offset` with `reference_length` and try to match it to a part of
     the trace being matched that is at most `max_offset` mis-aligned from the reference, pick the
     alignment offset with the largest cross-correlation. If the maximum cross-correlation of the
     trace parts being matched is below `min_correlation`, do not include the trace.
 
-    :param reference:
-    :param traces:
-    :param reference_offset:
-    :param reference_length:
-    :param max_offset:
-    :param min_correlation:
-    :return:
+    :param reference: Trace to align to.
+    :param traces: Traces to align.
+    :param reference_offset: Offset into the reference trace to start the aligning from.
+    :param reference_length: Length of the part of the reference trace to align.
+    :param max_offset: Maximum offset to try to align the traces by.
+    :param min_correlation: Minimal correlation between the aligned trace and the reference trace.
+    :return: A tuple of: the list of the aligned traces (with the reference) and offsets used in alignment.
     """
     reference_centered = normalize(reference)
     reference_part = reference_centered.samples[
@@ -95,16 +95,18 @@ def align_peaks(
     max_offset: int
 ) -> Tuple[List[Trace], List[int]]:
     """
-    Align `traces` to the reference `trace` so that the maximum value within the reference trace
+    Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using peaks.
+
+    Align so that the maximum value within the reference trace
     window from `reference_offset` of `reference_length` aligns with the maximum
     value of the trace being aligned within `max_offset` of the reference window.
 
-    :param reference:
-    :param traces:
-    :param reference_offset:
-    :param reference_length:
-    :param max_offset:
-    :return:
+    :param reference: Trace to align to.
+    :param traces: Traces to align.
+    :param reference_offset: Offset into the reference trace to start the aligning from.
+    :param reference_length: Length of the part of the reference trace to align.
+    :param max_offset: Maximum offset to try to align the traces by.
+    :return: A tuple of: the list of the aligned traces (with the reference) and offsets used in alignment.
     """
     reference_part = reference.samples[
         reference_offset : reference_offset + reference_length
@@ -134,17 +136,20 @@ def align_offset(
     max_dist: float = float("inf")
 ) -> Tuple[List[Trace], List[int]]:
     """
-    Align `traces` to the reference `trace` so that the value of the `dist_func` is minimized
+    Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using a distance function.
+
+    Align so that the value of the `dist_func` is minimized
     between the reference trace window from `reference_offset` of `reference_length` and the trace
     being aligned within `max_offset` of the reference window.
 
-    :param reference:
-    :param traces:
-    :param reference_offset:
-    :param reference_length:
-    :param max_offset:
-    :param dist_func:
-    :return:
+    :param reference: Trace to align to.
+    :param traces: Traces to align.
+    :param reference_offset: Offset into the reference trace to start the aligning from.
+    :param reference_length: Length of the part of the reference trace to align.
+    :param max_offset: Maximum offset to try to align the traces by.
+    :param dist_func: Distance function to use.
+    :param max_dist: Maximum distance between the aligned trace and the reference trace.
+    :return: A tuple of: the list of the aligned traces (with the reference) and offsets used in alignment.
     """
     reference_part = reference.samples[
         reference_offset : reference_offset + reference_length
@@ -181,16 +186,18 @@ def align_sad(
     max_offset: int
 ) -> Tuple[List[Trace], List[int]]:
     """
-    Align `traces` to the reference `trace` so that the Sum Of Absolute Differences between the
+    Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using Sum of Absolute Differences.
+
+    Align so that the Sum Of Absolute Differences between the
     reference trace window from `reference_offset` of `reference_length` and the trace being aligned
     within `max_offset` of the reference window is maximized.
 
-    :param reference:
-    :param traces:
-    :param reference_offset:
-    :param reference_length:
-    :param max_offset:
-    :return:
+    :param reference: Trace to align to.
+    :param traces: Traces to align.
+    :param reference_offset: Offset into the reference trace to start the aligning from.
+    :param reference_length: Length of the part of the reference trace to align.
+    :param max_offset: Maximum offset to try to align the traces by.
+    :return: A tuple of: the list of the aligned traces (with the reference) and offsets used in alignment.
     """
 
     def sad(reference_part, trace_part):
@@ -211,19 +218,20 @@ def align_dtw_scale(
     reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True
 ) -> List[Trace]:
     """
-    Align `traces` to the `reference` trace.
-    Using fastdtw (Dynamic Time Warping) with scaling as per:
+    Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace.
+
+    Use fastdtw (Dynamic Time Warping) with scaling as per:
 
     Jasper G. J. van Woudenberg, Marc F. Witteman, Bram Bakker:
-    Improving Differential Power Analysis by Elastic Alignment
+    **Improving Differential Power Analysis by Elastic Alignment**
 
     https://pdfs.semanticscholar.org/aceb/7c307098a414d7c384d6189226e4375cf02d.pdf
 
-    :param reference:
-    :param traces:
+    :param reference: Trace to align to.
+    :param traces: Traces to align.
     :param radius:
     :param fast:
-    :return:
+    :return: List of the aligned traces (with the reference).
     """
     result = [deepcopy(reference)]
     reference_samples = reference.samples
@@ -249,18 +257,20 @@ def align_dtw(
     reference: Trace, *traces: Trace, radius: int = 1, fast: bool = True
 ) -> List[Trace]:
     """
-    Align `traces` to the `reference` trace. Using fastdtw (Dynamic Time Warping) as per:
+    Align `traces` to the `reference` trace.
+
+    Use fastdtw (Dynamic Time Warping) as per:
 
     Stan Salvador, Philip Chan:
-    FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space
+    **FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space**
 
     https://cs.fit.edu/~pkc/papers/tdm04.pdf
 
-    :param reference:
-    :param traces:
+    :param reference: Trace to align to.
+    :param traces: Traces to align.
     :param radius:
     :param fast:
-    :return:
+    :return: List of the aligned traces (with the reference).
     """
     result = [deepcopy(reference)]
     reference_samples = reference.samples

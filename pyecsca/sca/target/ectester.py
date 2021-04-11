@@ -1,6 +1,4 @@
-"""
-This module provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class.
-"""
+"""This module provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class."""
 from abc import ABC
 from binascii import hexlify
 from enum import IntEnum, IntFlag
@@ -511,10 +509,7 @@ class InfoResponse(Response):  # pragma: no cover
 
 @public
 class ECTesterTarget(PCSCTarget):  # pragma: no cover
-    """
-    A smartcard target which communicates with the `ECTester <https://github.com/crocs-muni/ECTester>`_
-    applet on smartcards of the JavaCard platform using PCSC.
-    """
+    """Smartcard target which communicates with the `ECTester <https://github.com/crocs-muni/ECTester>`_ sapplet on smartcards of the JavaCard platform using PCSC."""
 
     CLA_ECTESTER = 0xB0
     AID_PREFIX = bytes([0x45, 0x43, 0x54, 0x65, 0x73, 0x74, 0x65, 0x72])

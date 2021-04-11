@@ -61,6 +61,7 @@ It also supports working with [Riscure](https://www.riscure.com) Inspector trace
 ### Testing & Development
 
 See the [Makefile](Makefile) for tests, performance measurement, codestyle and type checking commands.
+Use [black](https://github.com/psf/black) for code-formatting.
 
  - [nose2](https://nose2.readthedocs.io)
  - [green](https://github.com/CleanCut/green)
@@ -78,6 +79,7 @@ See the [Makefile](Makefile) for tests, performance measurement, codestyle and t
  - [sphinx](https://www.sphinx-doc.org/)
  - [sphinx-autodoc-typehints](https://pypi.org/project/sphinx-autodoc-typehints/)
  - [nbsphinx](https://nbsphinx.readthedocs.io/)
+ - [sphinx-paramlinks](https://pypi.org/project/sphinx-paramlinks/)
 
 
 ## License

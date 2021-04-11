@@ -1,6 +1,4 @@
-"""
-This module provides a `Point` class and a special `InfinityPoint` class for the point at infinity.
-"""
+"""This module provides a :py:class:`.Point` class and a special :py:class:`.InfinityPoint` class for the point at infinity."""
 from copy import copy
 from typing import Mapping, TYPE_CHECKING
 
@@ -151,7 +149,7 @@ class Point(object):
             return action.exit(Point(coordinate_model, **result))
 
     def equals_affine(self, other: "Point") -> bool:
-        """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""
+        """Test whether this point is equal to :paramref:`~.equals_affine.other` irrespective of the coordinate model (in the affine sense)."""
         if not isinstance(other, Point) or isinstance(other, InfinityPoint):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
@@ -160,8 +158,9 @@ class Point(object):
 
     def equals_scaled(self, other: "Point") -> bool:
         """
-        Test whether this point is equal to `other` using the "z" scaling formula,
-        which maps the projective class to a single representative.
+        Test whether this point is equal to :paramref:`~.equals_scaled.other` using the "z" scaling formula.
+
+        The "z" scalig formula maps the projective class to a single representative.
 
         :param other: The point to compare
         :raises ValueError: If the "z" formula is not available for the coordinate system.

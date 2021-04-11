@@ -1,6 +1,4 @@
-"""
-This module provides functions for matching a pattern within a trace to it.
-"""
+"""This module provides functions for matching a pattern within a trace to it."""
 import numpy as np
 from scipy.signal import find_peaks
 from public import public
@@ -14,12 +12,15 @@ from .trace import Trace
 @public
 def match_pattern(trace: Trace, pattern: Trace, threshold: float = 0.8) -> List[int]:
     """
-    Match a `pattern` to a `trace`. Returns indices where the pattern matches, e.g. those where correlation
-    of the two traces has peaks larger than `threshold`. Uses the :py:func:`scipy.signal.find_peaks` function.
+    Match a :paramref:`~.match_pattern.pattern` to a :paramref:`~.match_pattern.trace`.
+
+    Return the indices where the pattern matches, e.g. those where correlation
+    of the two traces has peaks larger than :paramref:`~.match_pattern.threshold`.
+    Uses the :py:func:`scipy.signal.find_peaks` function.
 
     :param trace: The trace to match into.
     :param pattern: The pattern to match.
-    :param threshold: The threshold passed to :py:func:`scipy.signal.find_peaks` as a `prominence` value.
+    :param threshold: The threshold passed to :py:func:`scipy.signal.find_peaks` as a ``prominence`` value.
     :return: Indices where the pattern matches.
     """
     normalized = normalize(trace)
@@ -47,14 +48,16 @@ def match_part(
     trace: Trace, offset: int, length: int, threshold: float = 0.8
 ) -> List[int]:
     """
-    Match a part of a `trace` starting at `offset` of `length` to the `trace`. Returns indices where the pattern matches
-    , e.g. those where correlation of the two traces has peaks larger than `threshold`. Uses the
-    :py:func:`scipy.signal.find_peaks` function.
+    Match a part of a :paramref:`~.match_part.trace` starting at :paramref:`~.match_part.offset` of :paramref:`~.match_part.length` to the :paramref:`~.match_part.trace`.
+
+    Returns indices where the pattern matches, e.g. those where correlation of the two
+    traces has peaks larger than :paramref:`~.match_part.threshold`.
+    Uses the :py:func:`scipy.signal.find_peaks` function.
 
     :param trace: The trace to match into.
     :param offset: The start of the pattern in the trace to match.
     :param length: The length of the pattern in the trace to match.
-    :param threshold: The threshold passed to :py:func:`scipy.signal.find_peaks` as a `prominence` value.
+    :param threshold: The threshold passed to :py:func:`scipy.signal.find_peaks` as a ``prominence`` value.
     :return: Indices where the part of the trace matches matches.
     """
     return match_pattern(trace, trim(trace, offset, offset + length), threshold)

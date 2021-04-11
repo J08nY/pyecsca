@@ -1,6 +1,4 @@
-"""
-This module provides an implementation of ECDH (Elliptic Curve Diffie-Hellman).
-"""
+"""This module provides an implementation of ECDH (Elliptic Curve Diffie-Hellman)."""
 import hashlib
 from typing import Optional, Any
 
@@ -15,7 +13,7 @@ from .point import Point
 
 @public
 class ECDHAction(ResultAction):
-    """An ECDH key exchange."""
+    """ECDH key exchange."""
 
     params: DomainParameters
     hash_algo: Optional[Any]
@@ -41,7 +39,7 @@ class ECDHAction(ResultAction):
 
 @public
 class KeyAgreement(object):
-    """An EC based key agreement primitive. (ECDH)"""
+    """EC based key agreement primitive (ECDH)."""
 
     mult: ScalarMultiplier
     params: DomainParameters
