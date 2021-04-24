@@ -8,7 +8,7 @@ from ..trace import Trace
 
 
 @public
-class TraceSet(object):
+class TraceSet:
     """Set of traces with some metadata."""
 
     _traces: List[Trace]

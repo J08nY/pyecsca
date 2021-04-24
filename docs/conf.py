@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../notebook/'))
 # -- Project information -----------------------------------------------------
 
 project = 'pyecsca'
-copyright = '2018-2020, Jan Jancar'
+copyright = '2018-2021, Jan Jancar'
 author = 'Jan Jancar'
 
 sys.path.append(os.path.abspath('..'))

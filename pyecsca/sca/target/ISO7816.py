@@ -10,7 +10,7 @@ from .base import Target
 
 @public
 @dataclass
-class CommandAPDU(object):  # pragma: no cover
+class CommandAPDU:  # pragma: no cover
     """Command APDU that can be sent to an ISO7816-4 target."""
 
     cls: int
@@ -79,7 +79,7 @@ class CommandAPDU(object):  # pragma: no cover
 
 @public
 @dataclass
-class ResponseAPDU(object):
+class ResponseAPDU:
     """Response APDU that can be received from an ISO7816-4 target."""
 
     data: bytes

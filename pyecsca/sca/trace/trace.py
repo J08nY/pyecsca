@@ -9,7 +9,7 @@ from public import public
 
 
 @public
-class Trace(object):
+class Trace:
     """Trace, which has some samples and metadata."""
 
     meta: Mapping[str, Any]

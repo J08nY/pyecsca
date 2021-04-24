@@ -25,7 +25,7 @@ class KeygenAction(ResultAction):
 
 
 @public
-class KeyGeneration(object):
+class KeyGeneration:
     """
     Key generator.
 

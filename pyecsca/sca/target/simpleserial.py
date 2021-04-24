@@ -8,7 +8,7 @@ from .serial import SerialTarget
 
 
 @public
-class SimpleSerialMessage(object):
+class SimpleSerialMessage:
     """A SimpleSerial message consisting of a starting character and a hexadecimal string."""
 
     char: str

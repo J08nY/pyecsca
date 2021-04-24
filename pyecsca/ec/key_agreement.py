@@ -38,7 +38,7 @@ class ECDHAction(ResultAction):
 
 
 @public
-class KeyAgreement(object):
+class KeyAgreement:
     """EC based key agreement primitive (ECDH)."""
 
     mult: ScalarMultiplier

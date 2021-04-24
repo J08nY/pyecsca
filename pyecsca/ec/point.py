@@ -35,7 +35,7 @@ class CoordinateMappingAction(ResultAction):
 
 
 @public
-class Point(object):
+class Point:
     """A point with coordinates in a coordinate model."""
 
     coordinate_model: CoordinateModel

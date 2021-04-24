@@ -10,7 +10,7 @@ from public import public
 
 
 @public
-class ECConfig(object):
+class ECConfig:
     """Configuration for the :py:mod:`pyecsca.ec` package."""
 
     _no_inverse_action: str = "error"
@@ -121,7 +121,7 @@ class ECConfig(object):
 
 
 @public
-class Config(object):
+class Config:
     """Runtime configuration for the library."""
 
     ec: ECConfig
@@ -166,7 +166,7 @@ def resetconfig(token: Token) -> None:
 
 
 @public
-class TemporaryConfig(object):
+class TemporaryConfig:
     """
     Temporary config context manager.
 
@@ -180,6 +180,7 @@ class TemporaryConfig(object):
     """
 
     def __init__(self):
+        self.token = None
         self.new_config = deepcopy(getconfig())
 
     def __enter__(self) -> Config:

@@ -142,7 +142,7 @@ _mod_classes: Dict[str, Type] = {}
 
 
 @public
-class Mod(object):
+class Mod:
     """An element x of ℤₙ."""
 
     x: Any

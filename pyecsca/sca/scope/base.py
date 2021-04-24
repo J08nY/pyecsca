@@ -16,7 +16,7 @@ class SampleType(Enum):
 
 
 @public
-class Scope(object):
+class Scope:
     """An oscilloscope."""
 
     def open(self) -> None:

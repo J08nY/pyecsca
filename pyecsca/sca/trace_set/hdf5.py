@@ -181,8 +181,8 @@ class HDF5TraceSet(TraceSet):
             dset = hdf5.create_dataset(k, data=trace.samples)
             if trace.meta:
                 meta = HDF5Meta(dset.attrs)
-                for k, v in trace.meta.items():
-                    meta[k] = v
+                for key, val in trace.meta.items():
+                    meta[key] = val
         hdf5.close()
 
     def __repr__(self):

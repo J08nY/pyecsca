@@ -14,7 +14,7 @@ from .point import Point
 
 
 @public
-class SignatureResult(object):
+class SignatureResult:
     """ECDSA signature result (r, s)."""
 
     r: int
@@ -111,7 +111,7 @@ class ECDSAVerifyAction(ECDSAAction):
 
 
 @public
-class Signature(object):
+class Signature:
     """EC based signature primitive (ECDSA)."""
 
     mult: ScalarMultiplier

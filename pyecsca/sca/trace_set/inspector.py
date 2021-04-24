@@ -27,7 +27,7 @@ class SampleCoding(IntEnum):
 
 
 @public
-class Parsers(object):
+class Parsers:
     @staticmethod
     def read_int(bytes):
         return int.from_bytes(bytes, byteorder="little")

@@ -45,7 +45,7 @@ class OpType(Enum):
 
 
 @public
-class CodeOp(object):
+class CodeOp:
     """Operation that can be executed."""
 
     result: str

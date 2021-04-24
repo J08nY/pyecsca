@@ -1,4 +1,3 @@
-import ast
 from ast import parse
 from unittest import TestCase
 

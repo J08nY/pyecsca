@@ -12,7 +12,7 @@ from .point import Point, InfinityPoint
 
 
 @public
-class EllipticCurve(object):
+class EllipticCurve:
     """Elliptic curve."""
 
     model: CurveModel

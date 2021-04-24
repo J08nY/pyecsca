@@ -96,7 +96,7 @@ class RandomMod(EnumDefine):
 
 @public
 @dataclass(frozen=True)
-class Configuration(object):
+class Configuration:
     """An ECC implementation configuration."""
 
     model: CurveModel

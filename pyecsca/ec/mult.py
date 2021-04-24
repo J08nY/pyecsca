@@ -485,9 +485,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
-            bnaf = naf(scalar)
+            scalar_naf = naf(scalar)
             q = copy(self._params.curve.neutral)
-            for val in bnaf:
+            for val in scalar_naf:
                 q = self._dbl(q)
                 if val == 1:
                     q = self._add(q, self._point)
@@ -544,9 +544,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
-            naf = wnaf(scalar, self.width)
+            scalar_naf = wnaf(scalar, self.width)
             q = copy(self._params.curve.neutral)
-            for val in naf:
+            for val in scalar_naf:
                 q = self._dbl(q)
                 if val > 0:
                     q = self._add(q, self._points[val])

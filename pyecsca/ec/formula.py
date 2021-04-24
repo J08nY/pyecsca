@@ -17,7 +17,7 @@ from ..misc.cfg import getconfig
 
 
 @public
-class OpResult(object):
+class OpResult:
     """Result of an operation."""
 
     parents: Tuple

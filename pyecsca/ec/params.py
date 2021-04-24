@@ -30,7 +30,7 @@ from ..misc.cfg import getconfig
 
 
 @public
-class DomainParameters(object):
+class DomainParameters:
     """Domain parameters which specify a subgroup on an elliptic curve."""
 
     curve: EllipticCurve
@@ -86,7 +86,7 @@ class DomainParameters(object):
 
 
 @public
-class DomainParameterCategory(object):
+class DomainParameterCategory:
     """A category of domain parameters."""
 
     name: str

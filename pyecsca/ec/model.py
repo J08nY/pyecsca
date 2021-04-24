@@ -10,7 +10,7 @@ from .coordinates import EFDCoordinateModel, CoordinateModel
 
 
 @public
-class CurveModel(object):
+class CurveModel:
     """Model(form) of an elliptic curve."""
 
     name: str

@@ -20,7 +20,7 @@ from .formula import (
 
 
 @public
-class CoordinateModel(object):
+class CoordinateModel:
     """A coordinate system for a particular model(form) of an elliptic curve."""
 
     name: str

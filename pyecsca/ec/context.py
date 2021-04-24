@@ -22,7 +22,7 @@ from public import public
 
 
 @public
-class Action(object):
+class Action:
     """An Action."""
 
     inside: bool
@@ -245,7 +245,7 @@ _actual_context: ContextVar[Context] = ContextVar(
 )
 
 
-class _ContextManager(object):
+class _ContextManager:
     def __init__(self, new_context):
         self.new_context = deepcopy(new_context)
 
