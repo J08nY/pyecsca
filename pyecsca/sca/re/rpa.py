@@ -36,8 +36,15 @@ class MultipleContext(Context):
 
     def enter_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
-            self.base = action.point
-            self.points = {self.base: 1}
+            if self.base:
+                # If we already did some computation with this context try to see if we are building on top of it.
+                if self.base != action.point:
+                    # If we are not building on top of it we have to forget stuff and set a new base and mapping.
+                    self.base = action.point
+                    self.points = {self.base: 1}
+            else:
+                self.base = action.point
+                self.points = {self.base: 1}
             self.inside = True
 
     def exit_action(self, action: Action) -> None:
