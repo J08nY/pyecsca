@@ -30,7 +30,6 @@ class ConfigurationTests(TestCase):
         j = 0
         for _ in all_configurations(model=ShortWeierstrassModel()):
             j += 1
-        print(j)
 
     def test_weierstrass_projective(self):
         model = ShortWeierstrassModel()

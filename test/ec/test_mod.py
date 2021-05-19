@@ -1,3 +1,4 @@
+import warnings
 from sympy import FF, symbols
 from unittest import TestCase
 
@@ -61,10 +62,12 @@ class ModTests(TestCase):
         with self.assertRaises(NonInvertibleError):
             Mod(5, 10).inverse()
         getconfig().ec.no_inverse_action = "warning"
-        with self.assertRaises(NonInvertibleWarning):
+        with warnings.catch_warnings(record=True) as w:
             Mod(0, p).inverse()
-        with self.assertRaises(NonInvertibleWarning):
+            self.assertTrue(issubclass(w[0].category, NonInvertibleWarning))
+        with warnings.catch_warnings(record=True) as w:
             Mod(5, 10).inverse()
+            self.assertTrue(issubclass(w[0].category, NonInvertibleWarning))
         getconfig().ec.no_inverse_action = "ignore"
         Mod(0, p).inverse()
         Mod(5, 10).inverse()
@@ -92,21 +95,23 @@ class ModTests(TestCase):
                 0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
             ).sqrt()
         getconfig().ec.non_residue_action = "warning"
-        with self.assertRaises(NonResidueWarning):
+        with warnings.catch_warnings(record=True) as w:
             Mod(
                 0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
             ).sqrt()
+            self.assertTrue(issubclass(w[0].category, NonResidueWarning))
         getconfig().ec.non_residue_action = "ignore"
         Mod(
             0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
         ).sqrt()
         with TemporaryConfig() as cfg:
             cfg.ec.non_residue_action = "warning"
-            with self.assertRaises(NonResidueWarning):
+            with warnings.catch_warnings(record=True) as w:
                 Mod(
                     0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1,
                     p,
                 ).sqrt()
+                self.assertTrue(issubclass(w[0].category, NonResidueWarning))
         self.assertEqual(Mod(0, p).sqrt(), Mod(0, p))
         q = 0x75D44FEE9A71841AE8403C0C251FBAD
         self.assertIn(

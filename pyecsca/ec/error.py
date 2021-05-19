@@ -1,4 +1,5 @@
 """This module contains exceptions and warnings used in the library."""
+import warnings
 from public import public
 from ..misc.cfg import getconfig
 
@@ -27,7 +28,7 @@ def raise_non_invertible():
     if cfg.ec.no_inverse_action == "error":
         raise NonInvertibleError("Element not invertible.")
     elif cfg.ec.no_inverse_action == "warning":
-        raise NonInvertibleWarning("Element not invertible.")
+        warnings.warn(NonInvertibleWarning("Element not invertible."))
 
 
 @public
@@ -54,7 +55,7 @@ def raise_non_residue():
     if cfg.ec.non_residue_action == "error":
         raise NonResidueError("No square root exists.")
     elif cfg.ec.non_residue_action == "warning":
-        raise NonResidueWarning("No square root exists.")
+        warnings.warn(NonResidueWarning("No square root exists."))
 
 
 @public
@@ -80,4 +81,4 @@ def raise_unsatisified_assumption(action: str, msg: str):
     if action == "error":
         raise UnsatisfiedAssumptionError(msg)
     elif action == "warning":
-        raise UnsatisfiedAssumptionWarning(msg)
+        warnings.warn(UnsatisfiedAssumptionWarning(msg))
