@@ -11,7 +11,7 @@ from sympy import sympify, FF, symbols, Poly, Rational
 
 from .context import ResultAction, getcontext, NullContext
 from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
-from .mod import Mod
+from .mod import Mod, SymbolicMod
 from .op import CodeOp, OpType
 from ..misc.cfg import getconfig
 
@@ -139,6 +139,8 @@ class Formula(ABC):
 
     def __validate_assumptions(self, field, params):
         # Validate assumptions and compute formula parameters.
+        # TODO: Should this also validate coordinate assumptions and compute their parameters?
+        is_symbolic = any(isinstance(x, SymbolicMod) for x in params.values())
         for assumption in self.assumptions:
             assumption_string = unparse(assumption)[1:-2]
             lhs, rhs = assumption_string.split(" == ")
@@ -153,6 +155,16 @@ class Formula(ABC):
                         getconfig().ec.unsatisfied_formula_assumption_action,
                         f"Unsatisfied assumption in the formula ({assumption_string}).",
                     )
+            elif lhs in self.parameters and is_symbolic:
+                # Handle a symbolic assignment to a new parameter.
+                k = FF(field)
+                expr = sympify(rhs, evaluate=False)
+                for curve_param, value in params.items():
+                    if isinstance(value, SymbolicMod):
+                        expr = expr.subs(curve_param, value.x)
+                    else:
+                        expr = expr.subs(curve_param, k(value))
+                params[lhs] = SymbolicMod(expr, field)
             else:
                 k = FF(field)
                 expr = sympify(f"{rhs} - {lhs}", evaluate=False)

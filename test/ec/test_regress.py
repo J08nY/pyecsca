@@ -1,10 +1,11 @@
 from typing import cast
 from unittest import TestCase
+from sympy import symbols
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, SymbolicMod
 from pyecsca.ec.model import MontgomeryModel, EdwardsModel
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mult import LTRMultiplier
@@ -75,3 +76,18 @@ class RegressionTests(TestCase):
         self.assertEqual(neutral, neutral_affine.to_model(coords, curve))
         neutral_sqr = Point(coords_sqr, Y=c ** 2 * r, Z=Mod(1, p))
         self.assertEqual(neutral_sqr, neutral_affine.to_model(coords_sqr, curve))
+
+    def test_issue_13(self):
+        model = EdwardsModel()
+        coords = model.coordinates["yz"]
+        c, r, d = symbols("c r d")
+        p = 53
+        c = SymbolicMod(c, p)
+        r = SymbolicMod(r, p)
+        d = SymbolicMod(d, p)
+        yd, zd, yp, zp, yq, zq = symbols("yd zd yp zp yq zq")
+        PmQ = Point(coords, Y=SymbolicMod(yd, p), Z=SymbolicMod(zd, p))
+        P = Point(coords, Y=SymbolicMod(yp, p), Z=SymbolicMod(zp, p))
+        Q = Point(coords, Y=SymbolicMod(yq, p), Z=SymbolicMod(zq, p))
+        formula = coords.formulas["dadd-2006-g-2"]
+        formula(p, PmQ, P, Q, c=c, r=r, d=d)
