@@ -66,10 +66,9 @@ class MultipleContextTests(TestCase):
 
     def test_window(self):
         mult = WindowNAFMultiplier(self.add, self.dbl, self.neg, 3, precompute_negation=True)
-        with local(MultipleContext()) as ctx:
+        with local(MultipleContext()):
             mult.init(self.secp128r1, self.base)
             mult.multiply(5)
-        print(ctx.points.values())
 
     def test_ladder(self):
         curve25519 = get_params("other", "Curve25519", "xz")

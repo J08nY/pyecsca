@@ -200,7 +200,8 @@ class Formula(ABC):
                     break
                 else:
                     raise UnsatisfiedAssumptionError(
-                        f"Unsatisfied assumption in the formula ({assumption_string})."
+                        f"Unsatisfied assumption in the formula ({assumption_string}).\n"
+                        f"'{expr}' has no roots in the base field {k}."
                     )
 
     def __call__(self, field: int, *points: Any, **params: Mod) -> Tuple[Any, ...]:
