@@ -43,6 +43,9 @@ perf: ${PERF_SCRIPTS}
 	mkdir -p .perf
 	echo $^ | env DIR=".perf" xargs -n 1 python
 
+perf-plots:
+	python test/plots/plot_perf.py -d .perf
+
 doc-coverage:
 	interrogate -vv -nmps -e pyecsca/ec/std/.github/ -f 55 pyecsca
 
@@ -65,6 +68,7 @@ help:
 	@echo " - black: Run black on pyecsca sources (will transform them inplace)."
 	@echo " - black-all: Run black on pyecsca sources and tests (will transform them inplace)."
 	@echo " - perf: Run performance measurements (prints results and stores them in .perf/)."
+	@echo " - perf-plots: Plot performance measurements (stores the plots in .perf/)."
 	@echo " - doc-coverage: Use interrogate to check documentation coverage of public API."
 	@echo " - docs: Build docs using sphinx."
 	@echo " - help: Show this help."
