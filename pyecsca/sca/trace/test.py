@@ -43,8 +43,8 @@ def welch_ttest(
         return None
     n0 = len(first_set)
     n1 = len(second_set)
-    mean_0, var_0 = average_and_variance(*first_set)
-    mean_1, var_1 = average_and_variance(*second_set)
+    mean_0, var_0 = average_and_variance(*first_set)  # type: ignore
+    mean_1, var_1 = average_and_variance(*second_set)  # type: ignore
     if len(mean_0) < len(mean_1):
         mean_1 = trim(mean_1, end=len(mean_0))
         var_1 = trim(var_1, end=len(mean_0))
