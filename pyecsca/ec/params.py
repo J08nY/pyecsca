@@ -9,7 +9,7 @@ from astunparse import unparse
 from io import RawIOBase, BufferedIOBase
 from os.path import join
 from pathlib import Path
-from typing import Optional, Dict, Union, BinaryIO, List, Callable
+from typing import Optional, Dict, Union, BinaryIO, List, Callable, IO
 
 from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
@@ -227,7 +227,7 @@ def _create_params(curve, coords, infty):
 
 @public
 def load_category(
-    file: Union[str, Path, BinaryIO],
+    file: Union[str, Path, BinaryIO, IO[bytes]],
     coords: Union[str, Callable[[str], str]],
     infty: Union[bool, Callable[[str], bool]] = True,
 ) -> DomainParameterCategory:
