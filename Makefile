@@ -34,10 +34,10 @@ docstyle:
 	pydocstyle pyecsca --ignore=D1,D203,D212 -e --count
 
 black:
-	black pyecsca
+	black --exclude pyecsca/ec/{std,efd} pyecsca
 
 black-all:
-	black pyecsca test
+	black --exclude pyecsca/ec/{std,efd} pyecsca test
 
 perf: ${PERF_SCRIPTS}
 	mkdir -p .perf

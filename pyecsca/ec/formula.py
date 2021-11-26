@@ -169,7 +169,10 @@ class Formula(ABC):
                 k = FF(field)
                 expr = sympify(f"{rhs} - {lhs}", evaluate=False)
                 for curve_param, value in params.items():
-                    expr = expr.subs(curve_param, k(value))
+                    if isinstance(value, SymbolicMod):
+                        expr = expr.subs(curve_param, value.x)
+                    else:
+                        expr = expr.subs(curve_param, k(value))
                 if (
                     len(expr.free_symbols) > 1
                     or (param := str(expr.free_symbols.pop())) not in self.parameters
