@@ -187,8 +187,8 @@ class Formula(ABC):
                     args = []
                     for arg in expression.args:
                         if isinstance(arg, Rational):
-                            a = arg.numerator()
-                            b = arg.denominator()
+                            a = arg.p
+                            b = arg.q
                             arg = k(a) / k(b)
                         else:
                             arg = resolve(arg)
