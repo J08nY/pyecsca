@@ -65,7 +65,9 @@ class MultipleContextTests(TestCase):
         self.assertListEqual(muls, [1, 2, 3, 5])
 
     def test_window(self):
-        mult = WindowNAFMultiplier(self.add, self.dbl, self.neg, 3, precompute_negation=True)
+        mult = WindowNAFMultiplier(
+            self.add, self.dbl, self.neg, 3, precompute_negation=True
+        )
         with local(MultipleContext()):
             mult.init(self.secp128r1, self.base)
             mult.multiply(5)

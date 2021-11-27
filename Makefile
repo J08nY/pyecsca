@@ -7,7 +7,7 @@ sca.test_sampling sca.test_target sca.test_test sca.test_trace sca.test_traceset
 
 TESTS = ${EC_TESTS} ${SCA_TESTS}
 
-PERF_SCRIPTS = test/ec/perf_mod.py test/ec/perf_formula.py test/ec/perf_mult.py
+PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test/ec/perf_mult.py
 
 test:
 	nose2 -s test -E "not slow and not disabled" -C -v ${TESTS}
@@ -41,7 +41,7 @@ black-all:
 
 perf: ${PERF_SCRIPTS}
 	mkdir -p .perf
-	echo $^ | env DIR=".perf" xargs -n 1 python
+	echo $^ | env DIR=".perf" xargs -n 1 python -m
 
 perf-plots:
 	python test/plots/plot_perf.py -d .perf

@@ -3,7 +3,7 @@ import click
 
 from pyecsca.ec.mod import Mod, has_gmp
 from pyecsca.misc.cfg import TemporaryConfig
-from utils import Profiler
+from test.utils import Profiler
 
 
 @click.command()

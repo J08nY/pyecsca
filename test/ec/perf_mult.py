@@ -5,7 +5,7 @@ from pyecsca.ec.mod import has_gmp
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import get_params
 from pyecsca.misc.cfg import TemporaryConfig
-from utils import Profiler
+from test.utils import Profiler
 
 
 @click.command()

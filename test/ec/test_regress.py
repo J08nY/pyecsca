@@ -103,7 +103,7 @@ class RegressionTests(TestCase):
         c = Mod(2, p)
         d = Mod(10, p)
         curve = EllipticCurve(model, coords, p, InfinityPoint(coords), {"c": c, "d": d})
-        Paff = Point(affine, x=Mod(0xd, p), y=Mod(0x9, p))
+        Paff = Point(affine, x=Mod(0xD, p), y=Mod(0x9, p))
         P = Paff.to_model(coords, curve)
         Qaff = Point(affine, x=Mod(0x4, p), y=Mod(0x12, p))
         Q = Qaff.to_model(coords, curve)
