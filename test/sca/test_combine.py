@@ -10,7 +10,7 @@ from pyecsca.sca import (
     variance,
     average_and_variance,
     add,
-    subtract,
+    subtract, avg,
 )
 
 
@@ -28,6 +28,9 @@ class CombineTests(TestCase):
         self.assertEqual(len(result.samples), 2)
         self.assertEqual(result.samples[0], 25)
         self.assertEqual(result.samples[1], 61)
+        resb = avg(self.a, self.b)
+        print(result)
+        print(resb)
 
     def test_conditional_average(self):
         result = conditional_average(

@@ -29,6 +29,22 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
 
 
 @public
+def avg(*traces: Trace) -> Optional[CombinedTrace]:
+    """
+    Average :paramref:`~.average.traces`, sample-wise.
+
+    :param traces:
+    :return:
+    """
+    if not traces:
+        return None
+    if len(traces) == 1:
+        return CombinedTrace(traces[0].samples.copy())
+    min_samples = min(map(len, traces))
+    return CombinedTrace(np.mean(np.stack([t.samples[:min_samples] for t in traces]), axis=0))
+
+
+@public
 def conditional_average(
     *traces: Trace, condition: Callable[[Trace], bool]
 ) -> Optional[CombinedTrace]:

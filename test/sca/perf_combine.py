@@ -4,7 +4,7 @@ import click
 from test.utils import Profiler
 from pyecsca.sca import (
     InspectorTraceSet,
-    average,
+    average, avg,
     variance,
     standard_deviation,
     add,
@@ -28,6 +28,9 @@ def main(profiler, operations, directory):
     with Profiler(profiler, directory, f"combine_average_example_{operations}"):
         for _ in range(operations):
             average(*traces)
+    with Profiler(profiler, directory, f"combine_avg_example_{operations}"):
+        for _ in range(operations):
+            avg(*traces)
     with Profiler(profiler, directory, f"combine_condavg_example_{operations}"):
         for _ in range(operations):
             conditional_average(*traces, condition=lambda trace: trace[0] > 0)
