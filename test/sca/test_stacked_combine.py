@@ -30,3 +30,17 @@ class StackedCombineTests(TestCase):
             (self.samples.shape[0], min_len)
         )
         self.assertTrue((stacked.samples, self.samples[:,:min_len]).all())
+
+    # def test_average():
+    #     samples = np.random.rand(4 * TPB, 8 * TPB)
+    #     ts = StackedTraces.fromarray(np.array(samples))
+    #     res = GPUTraceManager.average(ts)
+    #     check_res = samples.sum(0) / ts.traces.shape[0]
+    #     print(all(check_res == res))
+
+    # def test_standard_deviation():
+    #     samples: np.ndarray = np.random.rand(4 * TPB, 8 * TPB)
+    #     ts = StackedTraces.fromarray(np.array(samples))
+    #     res = GPUTraceManager.standard_deviation(ts)
+    #     check_res = samples.std(0, dtype=samples.dtype)
+    #     print(all(np.isclose(res, check_res)))

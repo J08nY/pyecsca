@@ -1,8 +1,8 @@
-from numba import cuda, float32
+from numba import cuda
 import numpy as np
 from public import public
-from typing import Any, Iterable, Mapping, MutableSequence, Optional
-from math import ceil, sqrt
+from typing import Any, Mapping, MutableSequence
+from math import sqrt
 
 TPB = 128
 
@@ -81,11 +81,6 @@ class GPUTraceManager:
 
 @cuda.jit(device=True)
 def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
-    # col = cuda.grid(1)
-
-    # if col >= samples.shape[1]:
-    #     return
-    
     acc = 0.
     for row in range(samples.shape[0]):
         acc += samples[row, col]
@@ -113,23 +108,8 @@ def _gpu_var_from_avg(col: int, samples: np.ndarray, averages: np.ndarray, resul
 
 @cuda.jit(device=True)
 def _gpu_variance(col: int, samples: np.ndarray, result: np.ndarray):
-    # col = cuda.grid(1)
-    
-    # if col >= samples.shape[1]:
-    #     return
-
-    # avg = 0.
-    # for row in range(samples.shape[0]):
-    #     avg += samples[row, col]
-    # avg /= samples.shape[0]
-
     _gpu_average(col, samples, result)
     _gpu_var_from_avg(col, samples, result, result)
-    # var = 0.
-    # for row in range(samples.shape[0]):
-    #     current = samples[row, col] - result[col]
-    #     var += current * current
-    # result[col] = var / samples.shape[0]
 
 
 @cuda.jit
@@ -138,17 +118,6 @@ def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
 
     if col >= samples.shape[1]:
         return
-
-    # avg = 0.
-    # for row in range(samples.shape[0]):
-    #     avg += samples[row, col]
-    # avg /= samples.shape[0]
-
-    # var = 0.
-    # for row in range(samples.shape[0]):
-    #     current = samples[row, col] - result[col]
-    #     var += current * current
-    # result[col] = sqrt(var / samples.shape[0])
 
     _gpu_variance(col, samples, result)
 
@@ -172,20 +141,9 @@ def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
 
     if col >= samples.shape[1]:
         return
-    
-    # avg = 0.
-    # for row in range(samples.shape[0]):
-    #     avg += samples[row, col]
-    # avg /= samples.shape[0]
 
     _gpu_average(samples, result_avg)
     _gpu_var_from_avg(col, samples, result_avg, result_var)
-
-    # var = 0.
-    # for row in range(samples.shape[0]):
-    #     current = samples[row, col] - result_avg[col]
-    #     var += current * current
-    # result_var[col] = var / samples.shape[0]
 
 
 @cuda.jit
@@ -210,24 +168,3 @@ def gpu_subtract(samples_one: np.ndarray, samples_other: np.ndarray,
         return
     
     result[col] = samples_one[col] - samples_other[col]
-
-
-def test_average():
-    samples = np.random.rand(4 * TPB, 8 * TPB)
-    ts = StackedTraces.fromarray(np.array(samples))
-    res = GPUTraceManager.average(ts)
-    check_res = samples.sum(0) / ts.traces.shape[0]
-    print(all(check_res == res))
-
-
-def test_standard_deviation():
-    samples: np.ndarray = np.random.rand(4 * TPB, 8 * TPB)
-    ts = StackedTraces.fromarray(np.array(samples))
-    res = GPUTraceManager.standard_deviation(ts)
-    check_res = samples.std(0, dtype=samples.dtype)
-    print(all(np.isclose(res, check_res)))
-
-
-if __name__ == '__main__':
-    test_average()
-    test_standard_deviation()
