@@ -1,10 +1,10 @@
 from numba import cuda
 import numpy as np
 from public import public
-from typing import Any, Mapping, MutableSequence
+from typing import Any, Mapping, MutableSequence, Tuple
 from math import sqrt
 
-TPB = 128
+from pyecsca.pyecsca.sca.trace.trace import CombinedTrace
 
 
 @public
@@ -46,37 +46,61 @@ class StackedTraces:
         yield from self.traces
 
 
+TPB = Tuple[int, ...]
+BPG = Tuple[int, ...]
+Samples = cuda.devicearray.DeviceNDArray
+Output = cuda.devicearray.DeviceNDArray
+CudaCTX = Tuple[Samples, Tuple[Output, ...], BPG]
+
+
 @public
 class GPUTraceManager:
     @staticmethod
-    def average(traces: StackedTraces) -> np.ndarray:
+    def setup(traces: StackedTraces, tpb: int, output_count: int) -> CudaCTX:
+        if tpb % 32 != 0:
+            raise ValueError('Threads per block should be a multiple of 32')
+
         samples = traces.samples
         samples_global = cuda.to_device(samples)
-        device_result = cuda.device_array(samples.shape[1])
-
-        tpb = TPB
+        device_output = tuple((cuda.device_array(samples.shape[1]) for _ in range(output_count)))
         bpg = (samples.size + (tpb - 1)) // tpb
 
-        gpu_average[bpg, tpb](samples_global, device_result)
-        res = device_result.copy_to_host()
-        return res
+        return samples_global, device_output, bpg
+
+    @staticmethod
+    def average(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
+        samples_global, (device_output,), bpg = GPUTraceManager.setup(traces, tpb, 1)
+
+        gpu_average[bpg, tpb](samples_global, device_output)
+        return CombinedTrace(device_output.copy_to_host(), traces.meta)
     
     @staticmethod
-    def conditional_average(traces: StackedTraces) -> np.ndarray:
+    def conditional_average(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
         raise NotImplementedError
     
     @staticmethod
-    def standard_deviation(traces: StackedTraces) -> np.ndarray:
-        samples = traces.samples
-        samples_global = cuda.to_device(samples)
-        device_result = cuda.device_array(samples.shape[1])
+    def standard_deviation(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
+        samples_global, (device_output,), bpg = GPUTraceManager.setup(traces, tpb, 1)
 
-        tpb = TPB
-        bpg = (samples.size + (tpb - 1)) // tpb
+        gpu_std_dev[bpg, tpb](samples_global, device_output)
+        return CombinedTrace(device_output.copy_to_host(), traces.meta)
+    
+    @staticmethod
+    def variance(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
+        samples_global, (device_output,), bpg = GPUTraceManager.setup(traces, tpb, 1)
 
-        gpu_std_dev[bpg, tpb](samples_global, device_result)
-        res = device_result.copy_to_host()
-        return res
+        gpu_variance[bpg, tpb](samples_global, device_output)
+        return CombinedTrace(device_output.copy_to_host(), traces.meta)
+    
+    @staticmethod
+    def average_and_variance(traces: StackedTraces, tpb: int = 128) -> Tuple[CombinedTrace, CombinedTrace]:
+        samples_global, (device_avg, device_var), bpg = GPUTraceManager.setup(traces, tpb, 2)
+
+        gpu_avg_var[bpg, tpb](samples_global, device_avg, device_var)
+        return (
+            CombinedTrace(device_avg.copy_to_host(), traces.meta),
+            CombinedTrace(device_var.copy_to_host(), traces.meta)
+        )
 
 
 @cuda.jit(device=True)
@@ -168,3 +192,25 @@ def gpu_subtract(samples_one: np.ndarray, samples_other: np.ndarray,
         return
     
     result[col] = samples_one[col] - samples_other[col]
+
+
+TEST_TPB = 128
+
+def test_average():
+    samples = np.random.rand(4 * TEST_TPB, 8 * TEST_TPB)
+    ts = StackedTraces.fromarray(np.array(samples))
+    res = GPUTraceManager.average(ts, TEST_TPB)
+    check_res = samples.sum(0) / ts.samples.shape[0]
+    print(all(check_res == res))
+
+def test_standard_deviation():
+    samples: np.ndarray = np.random.rand(4 * TEST_TPB, 8 * TEST_TPB)
+    ts = StackedTraces.fromarray(np.array(samples))
+    res = GPUTraceManager.standard_deviation(ts, TEST_TPB)
+    check_res = samples.std(0, dtype=samples.dtype)
+    print(all(np.isclose(res, check_res)))
+
+
+if __name__ == '__main__':
+    test_average()
+    test_standard_deviation()
