@@ -15,13 +15,13 @@ class StackedTraces:
     samples: np.ndarray
 
     def __init__(
-                 self, samples: np.ndarray,
-                 meta: Mapping[str, Any] = None) -> None:
+            self, samples: np.ndarray,
+            meta: Mapping[str, Any] = None) -> None:
         if meta is None:
             meta = dict()
         self.meta = meta
         self.samples = samples
-    
+
     @classmethod
     def fromarray(cls, traces: MutableSequence[np.ndarray],
                   meta: Mapping[str, Any] = None) -> 'StackedTraces':
@@ -30,31 +30,30 @@ class StackedTraces:
             traces[i] = t[:min_samples]
         stacked = np.stack(traces)
         return cls(stacked, meta)
-    
+
     @classmethod
     def fromtraceset(cls, traceset) -> 'StackedTraces':
         traces = [t.samples for t in traceset]
         return cls.fromarray(traces)
-    
+
     def __len__(self):
         return self.traces.shape[0]
 
     def __getitem__(self, index):
         return self.traces
-    
+
     def __iter__(self):
         yield from self.traces
 
 
-TPB = Tuple[int, ...]
-BPG = Tuple[int, ...]
-Samples = cuda.devicearray.DeviceNDArray
-Output = cuda.devicearray.DeviceNDArray
-CudaCTX = Tuple[Samples, Tuple[Output, ...], BPG]
-
-
 @public
 class GPUTraceManager:
+    TPB = Union[int, Tuple[int, ...]]
+    BPG = Union[int, Tuple[int, ...]]
+    Samples = cuda.devicearray.DeviceNDArray
+    Output = cuda.devicearray.DeviceNDArray
+    CudaCTX = Tuple[Samples, Tuple[Output, ...], BPG]
+
     @staticmethod
     def setup(traces: StackedTraces, tpb: int, output_count: int) -> CudaCTX:
         if tpb % 32 != 0:
@@ -69,17 +68,18 @@ class GPUTraceManager:
         bpg = (samples.size + (tpb - 1)) // tpb
 
         return samples_global, device_output, bpg
-    
+
     @staticmethod
     def _gpu_combine(func, traces: StackedTraces,
                      tpb: int = 128,
                      output_count: int = 1) \
-                        -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
+            -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
         samples_global, device_outputs, bpg = GPUTraceManager.setup(
             traces, tpb, output_count
         )
 
         func[bpg, tpb](samples_global, *device_outputs)
+
         if len(device_outputs) == 1:
             return CombinedTrace(
                 device_outputs[0].copy_to_host(),
@@ -92,28 +92,28 @@ class GPUTraceManager:
         )
 
     @staticmethod
-    def average(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
+    def average(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_average, traces, tpb, 1)
-    
+
     @staticmethod
     def conditional_average(traces: StackedTraces, tpb: int = 128) \
-                                -> CombinedTrace:
+            -> CombinedTrace:
         raise NotImplementedError
-    
+
     @staticmethod
     def standard_deviation(traces: StackedTraces, tpb: int = 128) \
-                            -> CombinedTrace:
+            -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_std_dev, traces, tpb, 1)
-    
+
     @staticmethod
-    def variance(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
+    def variance(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_variance, traces, tpb, 1)
-    
+
     @staticmethod
     def average_and_variance(traces: StackedTraces, tpb: int = 128) \
-                                -> Tuple[CombinedTrace, CombinedTrace]:
+            -> Tuple[CombinedTrace, CombinedTrace]:
         return GPUTraceManager._gpu_combine(gpu_avg_var, traces, tpb, 2)
-    
+
     @staticmethod
     def add(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_add, traces, tpb, 1)
@@ -193,7 +193,7 @@ def gpu_add(samples: np.ndarray, result: np.ndarray):
 
     if col >= samples.shape[1]:
         return
-    
+
     res = 0.
     for row in range(samples.shape[0]):
         res += samples[row, col]
