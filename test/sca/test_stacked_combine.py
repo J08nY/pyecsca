@@ -36,8 +36,8 @@ class StackedCombineTests(TestCase):
             stacked.samples.shape,
             (self.samples.shape[0], min_len)
         )
-        self.assertTrue((stacked.samples == self.samples[:,:min_len]).all())
-    
+        self.assertTrue((stacked.samples == self.samples[:, :min_len]).all())
+
     def test_fromtraceset(self):
         max_len = self.samples.shape[1]
         min_len = max_len // 2
@@ -55,8 +55,8 @@ class StackedCombineTests(TestCase):
             stacked.samples.shape,
             (self.samples.shape[0], min_len)
         )
-        self.assertTrue((stacked.samples == self.samples[:,:min_len]).all())
-    
+        self.assertTrue((stacked.samples == self.samples[:, :min_len]).all())
+
     def test_average(self):
         avg_trace = GPUTraceManager.average(self.stacked_ts)
         avg_cmp: np.ndarray = np.average(self.samples, 0)
@@ -67,7 +67,7 @@ class StackedCombineTests(TestCase):
             avg_cmp.shape
         )
         self.assertTrue(all(np.isclose(avg_trace.samples, avg_cmp)))
-    
+
     def test_standard_deviation(self):
         std_trace = GPUTraceManager.standard_deviation(self.stacked_ts)
         std_cmp: np.ndarray = np.std(self.samples, 0)
@@ -78,7 +78,7 @@ class StackedCombineTests(TestCase):
             std_cmp.shape
         )
         self.assertTrue(all(np.isclose(std_trace.samples, std_cmp)))
-    
+
     def test_variance(self):
         var_trace = GPUTraceManager.variance(self.stacked_ts)
         var_cmp: np.ndarray = np.var(self.samples, 0)
@@ -91,7 +91,8 @@ class StackedCombineTests(TestCase):
         self.assertTrue(all(np.isclose(var_trace.samples, var_cmp)))
 
     def test_average_and_variance(self):
-        avg_trace, var_trace = GPUTraceManager.average_and_variance(self.stacked_ts)
+        avg_trace, var_trace = GPUTraceManager.average_and_variance(
+            self.stacked_ts)
         avg_cmp: np.ndarray = np.average(self.samples, 0)
         var_cmp: np.ndarray = np.var(self.samples, 0)
 
