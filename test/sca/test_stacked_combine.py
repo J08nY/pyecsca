@@ -10,10 +10,14 @@ from pyecsca.sca import (
     CombinedTrace
 )
 
+TPB = 128
+TRACE_COUNT = 32
+TRACE_LEN = 4 * TPB
+
 
 class StackedCombineTests(TestCase):
     def setUp(self):
-        self.samples = np.random.rand(16, 32)
+        self.samples = np.random.rand(TRACE_COUNT, TRACE_LEN)
         self.stacked_ts = StackedTraces(self.samples)
 
     def test_fromarray(self):
