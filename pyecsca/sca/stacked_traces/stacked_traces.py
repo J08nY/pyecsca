@@ -18,7 +18,7 @@ class StackedTraces:
             self, samples: np.ndarray,
             meta: Mapping[str, Any] = None) -> None:
         if meta is None:
-            meta = dict()
+            meta = {}
         self.meta = meta
         self.samples = samples
 

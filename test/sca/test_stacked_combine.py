@@ -1,5 +1,4 @@
 from unittest import TestCase
-import unittest
 
 import numpy as np
 from pyecsca.sca import (
