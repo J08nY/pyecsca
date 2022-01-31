@@ -1,7 +1,7 @@
 from numba import cuda
 import numpy as np
 from public import public
-from typing import Any, Mapping, MutableSequence, Tuple
+from typing import Any, Mapping, MutableSequence, Tuple, Union
 from math import sqrt
 
 from pyecsca.sca.trace.trace import CombinedTrace
@@ -62,45 +62,61 @@ class GPUTraceManager:
 
         samples = traces.samples
         samples_global = cuda.to_device(samples)
-        device_output = tuple((cuda.device_array(samples.shape[1]) for _ in range(output_count)))
+        device_output = tuple((
+            cuda.device_array(samples.shape[1])
+            for _ in range(output_count)
+        ))
         bpg = (samples.size + (tpb - 1)) // tpb
 
         return samples_global, device_output, bpg
+    
+    @staticmethod
+    def _gpu_combine(func, traces: StackedTraces,
+                     tpb: int = 128,
+                     output_count: int = 1) \
+                        -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
+        samples_global, device_outputs, bpg = GPUTraceManager.setup(
+            traces, tpb, output_count
+        )
+
+        func[bpg, tpb](samples_global, *device_outputs)
+        if len(device_outputs) == 1:
+            return CombinedTrace(
+                device_outputs[0].copy_to_host(),
+                traces.meta
+            )
+        return (
+            CombinedTrace(device_output.copy_to_host(), traces.meta)
+            for device_output
+            in device_outputs
+        )
 
     @staticmethod
     def average(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
-        samples_global, (device_output,), bpg = GPUTraceManager.setup(traces, tpb, 1)
-
-        gpu_average[bpg, tpb](samples_global, device_output)
-        return CombinedTrace(device_output.copy_to_host(), traces.meta)
+        return GPUTraceManager._gpu_combine(gpu_average, traces, tpb, 1)
     
     @staticmethod
-    def conditional_average(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
+    def conditional_average(traces: StackedTraces, tpb: int = 128) \
+                                -> CombinedTrace:
         raise NotImplementedError
     
     @staticmethod
-    def standard_deviation(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
-        samples_global, (device_output,), bpg = GPUTraceManager.setup(traces, tpb, 1)
-
-        gpu_std_dev[bpg, tpb](samples_global, device_output)
-        return CombinedTrace(device_output.copy_to_host(), traces.meta)
+    def standard_deviation(traces: StackedTraces, tpb: int = 128) \
+                            -> CombinedTrace:
+        return GPUTraceManager._gpu_combine(gpu_std_dev, traces, tpb, 1)
     
     @staticmethod
     def variance(traces: StackedTraces, tpb: int = 128)-> CombinedTrace:
-        samples_global, (device_output,), bpg = GPUTraceManager.setup(traces, tpb, 1)
-
-        gpu_variance[bpg, tpb](samples_global, device_output)
-        return CombinedTrace(device_output.copy_to_host(), traces.meta)
+        return GPUTraceManager._gpu_combine(gpu_variance, traces, tpb, 1)
     
     @staticmethod
-    def average_and_variance(traces: StackedTraces, tpb: int = 128) -> Tuple[CombinedTrace, CombinedTrace]:
-        samples_global, (device_avg, device_var), bpg = GPUTraceManager.setup(traces, tpb, 2)
-
-        gpu_avg_var[bpg, tpb](samples_global, device_avg, device_var)
-        return (
-            CombinedTrace(device_avg.copy_to_host(), traces.meta),
-            CombinedTrace(device_var.copy_to_host(), traces.meta)
-        )
+    def average_and_variance(traces: StackedTraces, tpb: int = 128) \
+                                -> Tuple[CombinedTrace, CombinedTrace]:
+        return GPUTraceManager._gpu_combine(gpu_avg_var, traces, tpb, 2)
+    
+    @staticmethod
+    def add(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
+        return GPUTraceManager._gpu_combine(gpu_add, traces, tpb, 1)
 
 
 @cuda.jit(device=True)
@@ -122,7 +138,8 @@ def gpu_average(samples: np.ndarray, result: np.ndarray):
 
 
 @cuda.jit(device=True)
-def _gpu_var_from_avg(col: int, samples: np.ndarray, averages: np.ndarray, result: np.ndarray):
+def _gpu_var_from_avg(col: int, samples: np.ndarray,
+                      averages: np.ndarray, result: np.ndarray):
     var = 0.
     for row in range(samples.shape[0]):
         current = samples[row, col] - averages[col]
@@ -186,31 +203,4 @@ def gpu_add(samples: np.ndarray, result: np.ndarray):
 @cuda.jit
 def gpu_subtract(samples_one: np.ndarray, samples_other: np.ndarray,
                  result: np.ndarray):
-    col = cuda.grid(1)
-
-    if col >= samples_one.shape[1]:
-        return
-    
-    result[col] = samples_one[col] - samples_other[col]
-
-
-TEST_TPB = 128
-
-def test_average():
-    samples = np.random.rand(4 * TEST_TPB, 8 * TEST_TPB)
-    ts = StackedTraces.fromarray(np.array(samples))
-    res = GPUTraceManager.average(ts, TEST_TPB)
-    check_res = samples.sum(0) / ts.samples.shape[0]
-    print(all(check_res == res))
-
-def test_standard_deviation():
-    samples: np.ndarray = np.random.rand(4 * TEST_TPB, 8 * TEST_TPB)
-    ts = StackedTraces.fromarray(np.array(samples))
-    res = GPUTraceManager.standard_deviation(ts, TEST_TPB)
-    check_res = samples.std(0, dtype=samples.dtype)
-    print(all(np.isclose(res, check_res)))
-
-
-if __name__ == '__main__':
-    test_average()
-    test_standard_deviation()
+    raise NotImplementedError
