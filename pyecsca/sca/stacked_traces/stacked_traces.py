@@ -4,7 +4,7 @@ from public import public
 from typing import Any, Mapping, MutableSequence, Tuple
 from math import sqrt
 
-from pyecsca.pyecsca.sca.trace.trace import CombinedTrace
+from pyecsca.sca.trace.trace import CombinedTrace
 
 
 @public
@@ -166,7 +166,7 @@ def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
     if col >= samples.shape[1]:
         return
 
-    _gpu_average(samples, result_avg)
+    _gpu_average(col, samples, result_avg)
     _gpu_var_from_avg(col, samples, result_avg, result_var)
 
 

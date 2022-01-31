@@ -2,7 +2,7 @@ from unittest import TestCase
 import unittest
 
 import numpy as np
-from pyecsca.pyecsca.sca import (
+from pyecsca.sca import (
     Trace,
     StackedTraces,
     GPUTraceManager,
@@ -32,7 +32,7 @@ class StackedCombineTests(TestCase):
             stacked.samples.shape,
             (self.samples.shape[0], min_len)
         )
-        self.assertTrue((stacked.samples, self.samples[:,:min_len]).all())
+        self.assertTrue((stacked.samples == self.samples[:,:min_len]).all())
     
     def test_fromtraceset(self):
         max_len = self.samples.shape[1]
@@ -42,7 +42,7 @@ class StackedCombineTests(TestCase):
             for t
             in self.samples
         ]
-        tset = TraceSet(traces)
+        tset = TraceSet(*traces)
         min_len = min(map(len, traces))
         stacked = StackedTraces.fromtraceset(tset)
 
@@ -103,22 +103,3 @@ class StackedCombineTests(TestCase):
         )
         self.assertTrue(all(np.isclose(avg_trace.samples, avg_cmp)))
         self.assertTrue(all(np.isclose(var_trace.samples, var_cmp)))
-
-
-    # def test_average():
-    #     samples = np.random.rand(4 * TPB, 8 * TPB)
-    #     ts = StackedTraces.fromarray(np.array(samples))
-    #     res = GPUTraceManager.average(ts)
-    #     check_res = samples.sum(0) / ts.traces.shape[0]
-    #     print(all(check_res == res))
-
-    # def test_standard_deviation():
-    #     samples: np.ndarray = np.random.rand(4 * TPB, 8 * TPB)
-    #     ts = StackedTraces.fromarray(np.array(samples))
-    #     res = GPUTraceManager.standard_deviation(ts)
-    #     check_res = samples.std(0, dtype=samples.dtype)
-    #     print(all(np.isclose(res, check_res)))
-
-
-if __name__ == '__main__':
-    unittest.main()
