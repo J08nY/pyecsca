@@ -54,10 +54,22 @@ CudaCTX = Tuple[
     Union[int, Tuple[int, ...]]
 ]
 
+
 @public
 class GPUTraceManager:
     @staticmethod
-    def setup1D(traces: StackedTraces, tpb: TPB, output_count: int) -> CudaCTX:
+    def _setup1D(
+        traces: StackedTraces, tpb: TPB, output_count: int
+    ) -> CudaCTX:
+        """
+        Creates context for 1D GPU CUDA functions
+
+        :param traces: The input stacked traces.
+        :param tpb: Threads per block to invoke the kernel with.
+        :param output_count: Number of outputs expected from the GPU function.
+        :return: Created context of input and output arrays and calculated
+                 blocks per grid dimensions.
+        """
         assert isinstance(tpb, int)
         if tpb % 32 != 0:
             raise ValueError('Threads per block should be a multiple of 32')
@@ -73,12 +85,23 @@ class GPUTraceManager:
         return samples_global, device_output, bpg
 
     @staticmethod
-    def _gpu_combine(func, traces: StackedTraces,
-                     tpb: TPB = 128,
-                     output_count: int = 1) \
-            -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
+    def _gpu_combine1D(
+        func,
+        traces: StackedTraces,
+        tpb: TPB = 128,
+        output_count: int = 1
+    ) -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
+        """
+        Runs GPU Cuda StackedTrace 1D combine function
+
+        :param func: Function to run.
+        :param traces: Stacked traces to provide as input to the function.
+        :param tpb: Threads per block to invoke the kernel with
+        :param output_count: Number of outputs expected from the GPU function.
+        :return: Combined trace output from the GPU function
+        """
         assert isinstance(tpb, int)
-        samples_global, device_outputs, bpg = GPUTraceManager.setup1D(
+        samples_global, device_outputs, bpg = GPUTraceManager._setup1D(
             traces, tpb, output_count
         )
 
@@ -97,35 +120,77 @@ class GPUTraceManager:
 
     @staticmethod
     def average(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
-        return GPUTraceManager._gpu_combine(gpu_average, traces, tpb, 1)
+        """
+        Average :paramref:`~.average.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        return GPUTraceManager._gpu_combine1D(gpu_average, traces, tpb, 1)
 
     @staticmethod
     def conditional_average(traces: StackedTraces, tpb: TPB = 128) \
             -> CombinedTrace:
+        """
+        Not implemented due to the nature of GPU functions.
+
+        Use sca.trace.combine.conditional_average instead.
+        """
         raise NotImplementedError
 
     @staticmethod
     def standard_deviation(traces: StackedTraces, tpb: TPB = 128) \
             -> CombinedTrace:
-        return GPUTraceManager._gpu_combine(gpu_std_dev, traces, tpb, 1)
+        """
+        Compute the sample standard-deviation of the :paramref:`~.standard_deviation.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        return GPUTraceManager._gpu_combine1D(gpu_std_dev, traces, tpb, 1)
 
     @staticmethod
     def variance(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
-        return GPUTraceManager._gpu_combine(gpu_variance, traces, tpb, 1)
+        """
+        Compute the sample variance of the :paramref:`~.variance.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        return GPUTraceManager._gpu_combine1D(gpu_variance, traces, tpb, 1)
 
     @staticmethod
     def average_and_variance(traces: StackedTraces, tpb: TPB = 128) \
             -> Tuple[CombinedTrace, CombinedTrace]:
-        averages, variances = GPUTraceManager._gpu_combine(gpu_avg_var, traces, tpb, 2)
+        """
+        Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        averages, variances = GPUTraceManager._gpu_combine1D(gpu_avg_var, traces, tpb, 2)
         return averages, variances
 
     @staticmethod
     def add(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
-        return GPUTraceManager._gpu_combine(gpu_add, traces, tpb, 1)
+        """
+        Add :paramref:`~.add.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        return GPUTraceManager._gpu_combine1D(gpu_add, traces, tpb, 1)
 
 
 @cuda.jit(device=True)
 def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
+    """
+    Cuda device thread function computing the average of a sample of stacked traces.
+
+    :param col: Index of the sample.
+    :param samples: Shared array of the samples of stacked traces.
+    :param result: Result output array.
+    """
     acc = 0.
     for row in range(samples.shape[0]):
         acc += samples[row, col]
@@ -134,6 +199,12 @@ def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
 
 @cuda.jit
 def gpu_average(samples: np.ndarray, result: np.ndarray):
+    """
+    Sample average of stacked traces, sample-wise.
+
+    :param samples: Stacked traces' samples.
+    :param result: Result output array.
+    """
     col = cuda.grid(1)
 
     if col >= samples.shape[1]:
@@ -145,6 +216,14 @@ def gpu_average(samples: np.ndarray, result: np.ndarray):
 @cuda.jit(device=True)
 def _gpu_var_from_avg(col: int, samples: np.ndarray,
                       averages: np.ndarray, result: np.ndarray):
+    """
+    Cuda device thread function computing the variance from the average of a sample of stacked traces.
+
+    :param col: Index of the sample.
+    :param samples: Shared array of the samples of stacked traces.
+    :param averages: Array of averages of samples.
+    :param result: Result output array.
+    """
     var = 0.
     for row in range(samples.shape[0]):
         current = samples[row, col] - averages[col]
@@ -154,12 +233,25 @@ def _gpu_var_from_avg(col: int, samples: np.ndarray,
 
 @cuda.jit(device=True)
 def _gpu_variance(col: int, samples: np.ndarray, result: np.ndarray):
+    """
+    Cuda device thread function computing the variance of a sample of stacked traces.
+
+    :param col: Index of the sample.
+    :param samples: Shared array of the samples of stacked traces.
+    :param result: Result output array.
+    """
     _gpu_average(col, samples, result)
     _gpu_var_from_avg(col, samples, result, result)
 
 
 @cuda.jit
 def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
+    """
+    Sample standard deviation of stacked traces, sample-wise.
+
+    :param samples: Stacked traces' samples.
+    :param result: Result output array.
+    """
     col = cuda.grid(1)
 
     if col >= samples.shape[1]:
@@ -172,6 +264,12 @@ def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
 
 @cuda.jit
 def gpu_variance(samples: np.ndarray, result: np.ndarray):
+    """
+    Sample variance of stacked traces, sample-wise.
+
+    :param samples: Stacked traces' samples.
+    :param result: Result output array.
+    """
     col = cuda.grid(1)
 
     if col >= samples.shape[1]:
@@ -183,6 +281,12 @@ def gpu_variance(samples: np.ndarray, result: np.ndarray):
 @cuda.jit
 def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
                 result_var: np.ndarray):
+    """
+    Sample average and variance of stacked traces, sample-wise.
+
+    :param samples: Stacked traces' samples.
+    :param result: Result output array.
+    """
     col = cuda.grid(1)
 
     if col >= samples.shape[1]:
@@ -194,6 +298,12 @@ def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
 
 @cuda.jit
 def gpu_add(samples: np.ndarray, result: np.ndarray):
+    """
+    Add samples of stacked traces, sample-wise.
+
+    :param samples: Stacked traces' samples.
+    :param result: Result output array.
+    """
     col = cuda.grid(1)
 
     if col >= samples.shape[1]:
@@ -203,9 +313,3 @@ def gpu_add(samples: np.ndarray, result: np.ndarray):
     for row in range(samples.shape[0]):
         res += samples[row, col]
     result[col] = res
-
-
-@cuda.jit
-def gpu_subtract(samples_one: np.ndarray, samples_other: np.ndarray,
-                 result: np.ndarray):
-    raise NotImplementedError
