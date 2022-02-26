@@ -1,7 +1,7 @@
 from numba import cuda
 import numpy as np
 from public import public
-from typing import Any, Mapping, MutableSequence, Tuple, Union
+from typing import Any, Mapping, Sequence, Tuple, Union
 from math import sqrt
 
 from pyecsca.sca.trace.trace import CombinedTrace
@@ -23,12 +23,13 @@ class StackedTraces:
         self.samples = samples
 
     @classmethod
-    def fromarray(cls, traces: MutableSequence[np.ndarray],
+    def fromarray(cls, traces: Sequence[np.ndarray],
                   meta: Mapping[str, Any] = None) -> 'StackedTraces':
-        min_samples = min(map(len, traces))
-        for i, t in enumerate(traces):
-            traces[i] = t[:min_samples]
-        stacked = np.stack(traces)
+        ts = list(traces)
+        min_samples = min(map(len, ts))
+        for i, t in enumerate(ts):
+            ts[i] = t[:min_samples]
+        stacked = np.stack(ts)
         return cls(stacked, meta)
 
     @classmethod
@@ -37,25 +38,27 @@ class StackedTraces:
         return cls.fromarray(traces)
 
     def __len__(self):
-        return self.traces.shape[0]
+        return self.samples.shape[0]
 
     def __getitem__(self, index):
-        return self.traces
+        return self.samples[index]
 
     def __iter__(self):
-        yield from self.traces
+        yield from self.samples
 
+
+TPB = Union[int, Tuple[int, ...]]
+CudaCTX = Tuple[
+    cuda.devicearray.DeviceNDArray,
+    Tuple[cuda.devicearray.DeviceNDArray, ...],
+    Union[int, Tuple[int, ...]]
+]
 
 @public
 class GPUTraceManager:
-    TPB = Union[int, Tuple[int, ...]]
-    BPG = Union[int, Tuple[int, ...]]
-    Samples = cuda.devicearray.DeviceNDArray
-    Output = cuda.devicearray.DeviceNDArray
-    CudaCTX = Tuple[Samples, Tuple[Output, ...], BPG]
-
     @staticmethod
-    def setup(traces: StackedTraces, tpb: int, output_count: int) -> CudaCTX:
+    def setup1D(traces: StackedTraces, tpb: TPB, output_count: int) -> CudaCTX:
+        assert isinstance(tpb, int)
         if tpb % 32 != 0:
             raise ValueError('Threads per block should be a multiple of 32')
 
@@ -71,10 +74,11 @@ class GPUTraceManager:
 
     @staticmethod
     def _gpu_combine(func, traces: StackedTraces,
-                     tpb: int = 128,
+                     tpb: TPB = 128,
                      output_count: int = 1) \
             -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
-        samples_global, device_outputs, bpg = GPUTraceManager.setup(
+        assert isinstance(tpb, int)
+        samples_global, device_outputs, bpg = GPUTraceManager.setup1D(
             traces, tpb, output_count
         )
 
@@ -92,30 +96,31 @@ class GPUTraceManager:
         )
 
     @staticmethod
-    def average(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
+    def average(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_average, traces, tpb, 1)
 
     @staticmethod
-    def conditional_average(traces: StackedTraces, tpb: int = 128) \
+    def conditional_average(traces: StackedTraces, tpb: TPB = 128) \
             -> CombinedTrace:
         raise NotImplementedError
 
     @staticmethod
-    def standard_deviation(traces: StackedTraces, tpb: int = 128) \
+    def standard_deviation(traces: StackedTraces, tpb: TPB = 128) \
             -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_std_dev, traces, tpb, 1)
 
     @staticmethod
-    def variance(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
+    def variance(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_variance, traces, tpb, 1)
 
     @staticmethod
-    def average_and_variance(traces: StackedTraces, tpb: int = 128) \
+    def average_and_variance(traces: StackedTraces, tpb: TPB = 128) \
             -> Tuple[CombinedTrace, CombinedTrace]:
-        return GPUTraceManager._gpu_combine(gpu_avg_var, traces, tpb, 2)
+        averages, variances = GPUTraceManager._gpu_combine(gpu_avg_var, traces, tpb, 2)
+        return averages, variances
 
     @staticmethod
-    def add(traces: StackedTraces, tpb: int = 128) -> CombinedTrace:
+    def add(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
         return GPUTraceManager._gpu_combine(gpu_add, traces, tpb, 1)
 
 
