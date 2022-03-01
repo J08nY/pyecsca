@@ -8,7 +8,7 @@ from pyinstrument import Profiler as PyProfiler
 from cProfile import Profile as cProfiler
 
 
-class Profiler(object):
+class Profiler:
     def __init__(self, prof_type, output_directory, benchmark_name):
         self._prof = PyProfiler() if prof_type == "py" else cProfiler()
         self._prof_type = prof_type
