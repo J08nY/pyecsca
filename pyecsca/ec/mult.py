@@ -101,9 +101,11 @@ class ScalarMultiplier(ABC):
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
             raise NotImplementedError
-        if self.short_circuit:
-            if point == self._params.curve.neutral:
-                return copy(point)
+        if (
+            self.short_circuit
+            and point == self._params.curve.neutral
+        ):
+            return copy(point)
         return self.formulas["dbl"](
             self._params.curve.prime, point, **self._params.curve.parameters
         )[0]
