@@ -220,13 +220,11 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
 
     for model_cls in leaf_subclasses(CurveModel):
         model = model_cls()
-        if "model" in kwargs:
-            if model != kwargs["model"]:
-                continue
+        if "model" in kwargs and model != kwargs["model"]:
+            continue
         for coords in model.coordinates.values():
-            if "coords" in kwargs:
-                if coords != kwargs["coords"]:
-                    continue
+            if "coords" in kwargs and coords != kwargs["coords"]:
+                continue
             coords_formulas = coords.formulas.values()
             mult_classes = leaf_subclasses(ScalarMultiplier)
             if "scalarmult" in kwargs:
