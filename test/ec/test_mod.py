@@ -184,8 +184,11 @@ class ModTests(TestCase):
             elif k in ("__eq__", "__ne__"):
                 assert not meth(u, *args)
             else:
-                with self.assertRaises(NotImplementedError):
-                    meth(u, *args)
+                try:
+                    res = meth(u, *args)
+                    self.assertEqual(res, NotImplemented)
+                except NotImplementedError:
+                    pass
 
     def test_implementation(self):
         if not has_gmp:

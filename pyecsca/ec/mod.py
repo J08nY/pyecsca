@@ -251,7 +251,7 @@ class Mod:
             return action.exit(cls(secrets.randbelow(n), n))
 
     def __pow__(self, n) -> "Mod":
-        raise NotImplementedError
+        return NotImplemented
 
     def __str__(self):
         return str(self.x)
@@ -376,16 +376,16 @@ class Undefined(Mod):
         self.n = None
 
     def __add__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __radd__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __sub__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __rsub__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __neg__(self):
         raise NotImplementedError
@@ -403,25 +403,25 @@ class Undefined(Mod):
         raise NotImplementedError
 
     def __mul__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __rmul__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __truediv__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __rtruediv__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __floordiv__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __rfloordiv__(self, other):
-        raise NotImplementedError
+        return NotImplemented
 
     def __divmod__(self, divisor):
-        raise NotImplementedError
+        return NotImplemented
 
     def __bytes__(self):
         raise NotImplementedError
@@ -442,7 +442,7 @@ class Undefined(Mod):
         return hash("Undefined") + 1
 
     def __pow__(self, n):
-        raise NotImplementedError
+        return NotImplemented
 
 
 @lru_cache
@@ -536,7 +536,7 @@ class SymbolicMod(Mod):
         return ~self * other
 
     def __divmod__(self, divisor) -> "SymbolicMod":
-        raise NotImplementedError
+        return NotImplemented
 
     def __bytes__(self):
         return int(self.x).to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")
