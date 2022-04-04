@@ -70,7 +70,8 @@ class GPUTraceManager:
         :return: Created context of input and output arrays and calculated
                  blocks per grid dimensions.
         """
-        assert isinstance(tpb, int)
+        if not isinstance(tpb, int):
+            raise TypeError("tpb is not an int")
         if tpb % 32 != 0:
             raise ValueError('Threads per block should be a multiple of 32')
 
@@ -100,7 +101,8 @@ class GPUTraceManager:
         :param output_count: Number of outputs expected from the GPU function.
         :return: Combined trace output from the GPU function
         """
-        assert isinstance(tpb, int)
+        if not isinstance(tpb, int):
+            raise TypeError("tpb is not an int")
         samples_global, device_outputs, bpg = GPUTraceManager._setup1D(
             traces, tpb, output_count
         )
@@ -168,7 +170,9 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        averages, variances = GPUTraceManager._gpu_combine1D(gpu_avg_var, traces, tpb, 2)
+        averages, variances = GPUTraceManager._gpu_combine1D(
+            gpu_avg_var, traces, tpb, 2
+        )
         return averages, variances
 
     @staticmethod
@@ -285,7 +289,8 @@ def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
     Sample average and variance of stacked traces, sample-wise.
 
     :param samples: Stacked traces' samples.
-    :param result: Result output array.
+    :param result_avg: Result average output array.
+    :param result_var: Result variance output array.
     """
     col = cuda.grid(1)
 
