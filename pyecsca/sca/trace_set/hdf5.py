@@ -6,7 +6,7 @@ are operated on are in memory. This is very useful for working with huge sets of
 """
 import pickle
 import uuid
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from io import RawIOBase, BufferedIOBase
 from pathlib import Path
 from typing import Union, Optional, List, BinaryIO
