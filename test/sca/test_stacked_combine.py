@@ -1,4 +1,5 @@
 from unittest import TestCase
+from numba import cuda
 
 import numpy as np
 from pyecsca.sca import (
@@ -16,6 +17,8 @@ TRACE_LEN = 4 * TPB
 
 class StackedCombineTests(TestCase):
     def setUp(self):
+        if not cuda.is_available():
+            self.skipTest("CUDA not available")
         self.samples = np.random.rand(TRACE_COUNT, TRACE_LEN)
         self.stacked_ts = StackedTraces(self.samples)
 
