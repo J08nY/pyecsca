@@ -21,6 +21,7 @@ class StackedCombineTests(TestCase):
             self.skipTest("CUDA not available")
         self.samples = np.random.rand(TRACE_COUNT, TRACE_LEN)
         self.stacked_ts = StackedTraces(self.samples)
+        self.gpu_manager = GPUTraceManager(self.stacked_ts, TPB)
 
     def test_fromarray(self):
         max_len = self.samples.shape[1]
@@ -60,7 +61,7 @@ class StackedCombineTests(TestCase):
         self.assertTrue((stacked.samples == self.samples[:, :min_len]).all())
 
     def test_average(self):
-        avg_trace = GPUTraceManager.average(self.stacked_ts)
+        avg_trace = self.gpu_manager.average()
         avg_cmp: np.ndarray = np.average(self.samples, 0)
 
         self.assertIsInstance(avg_trace, CombinedTrace)
@@ -71,7 +72,7 @@ class StackedCombineTests(TestCase):
         self.assertTrue(all(np.isclose(avg_trace.samples, avg_cmp)))
 
     def test_standard_deviation(self):
-        std_trace = GPUTraceManager.standard_deviation(self.stacked_ts)
+        std_trace = self.gpu_manager.standard_deviation()
         std_cmp: np.ndarray = np.std(self.samples, 0)
 
         self.assertIsInstance(std_trace, CombinedTrace)
@@ -82,7 +83,7 @@ class StackedCombineTests(TestCase):
         self.assertTrue(all(np.isclose(std_trace.samples, std_cmp)))
 
     def test_variance(self):
-        var_trace = GPUTraceManager.variance(self.stacked_ts)
+        var_trace = self.gpu_manager.variance()
         var_cmp: np.ndarray = np.var(self.samples, 0)
 
         self.assertIsInstance(var_trace, CombinedTrace)
@@ -93,8 +94,7 @@ class StackedCombineTests(TestCase):
         self.assertTrue(all(np.isclose(var_trace.samples, var_cmp)))
 
     def test_average_and_variance(self):
-        avg_trace, var_trace = GPUTraceManager.average_and_variance(
-            self.stacked_ts)
+        avg_trace, var_trace = self.gpu_manager.average_and_variance()
         avg_cmp: np.ndarray = np.average(self.samples, 0)
         var_cmp: np.ndarray = np.var(self.samples, 0)
 

@@ -1,4 +1,5 @@
 from numba import cuda
+from numba.cuda import devicearray
 import numpy as np
 from public import public
 from typing import Any, Mapping, Sequence, Tuple, Union
@@ -49,18 +50,32 @@ class StackedTraces:
 
 TPB = Union[int, Tuple[int, ...]]
 CudaCTX = Tuple[
-    cuda.devicearray.DeviceNDArray,
-    Tuple[cuda.devicearray.DeviceNDArray, ...],
+    Tuple[devicearray.DeviceNDArray, ...],
     Union[int, Tuple[int, ...]]
 ]
 
 
 @public
 class GPUTraceManager:
-    @staticmethod
-    def _setup1D(
-        traces: StackedTraces, tpb: TPB, output_count: int
-    ) -> CudaCTX:
+    """Manager for operations with stacked traces on GPU"""
+
+    traces: StackedTraces
+    _tpb: TPB
+    _samples_global: devicearray.DeviceNDArray
+
+    def __init__(self, traces: StackedTraces, tpb: TPB = 128) -> None:
+        if isinstance(tpb, int) and tpb % 32 != 0:
+            raise ValueError('TPB should be a multiple of 32')
+        if isinstance(tpb, tuple) and any(t % 32 != 0 for t in tpb):
+            raise ValueError(
+                'TPB should be a multiple of 32 in each dimension'
+            )
+
+        self.traces = traces
+        self.tpb = tpb
+        self._samples_global = cuda.to_device(self.traces.samples)
+
+    def _setup1D(self, output_count: int) -> CudaCTX:
         """
         Creates context for 1D GPU CUDA functions
 
@@ -70,28 +85,19 @@ class GPUTraceManager:
         :return: Created context of input and output arrays and calculated
                  blocks per grid dimensions.
         """
-        if not isinstance(tpb, int):
-            raise TypeError("tpb is not an int")
-        if tpb % 32 != 0:
-            raise ValueError('Threads per block should be a multiple of 32')
+        if not isinstance(self.tpb, int):
+            raise TypeError("tpb is not an int for a 1D kernel")
 
-        samples = traces.samples
-        samples_global = cuda.to_device(samples)
         device_output = tuple((
-            cuda.device_array(samples.shape[1])
+            cuda.device_array(self.traces.samples.shape[1])
             for _ in range(output_count)
         ))
-        bpg = (samples.size + (tpb - 1)) // tpb
+        bpg = (self.traces.samples.size + (self.tpb - 1)) // self.tpb
 
-        return samples_global, device_output, bpg
+        return device_output, bpg
 
-    @staticmethod
-    def _gpu_combine1D(
-        func,
-        traces: StackedTraces,
-        tpb: TPB = 128,
-        output_count: int = 1
-    ) -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
+    def _gpu_combine1D(self, func, output_count: int = 1) \
+            -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
         """
         Runs GPU Cuda StackedTrace 1D combine function
 
@@ -101,38 +107,31 @@ class GPUTraceManager:
         :param output_count: Number of outputs expected from the GPU function.
         :return: Combined trace output from the GPU function
         """
-        if not isinstance(tpb, int):
-            raise TypeError("tpb is not an int")
-        samples_global, device_outputs, bpg = GPUTraceManager._setup1D(
-            traces, tpb, output_count
-        )
+        device_outputs, bpg = self._setup1D(output_count)
 
-        func[bpg, tpb](samples_global, *device_outputs)
+        func[bpg, self.tpb](self._samples_global, *device_outputs)
 
         if len(device_outputs) == 1:
             return CombinedTrace(
                 device_outputs[0].copy_to_host(),
-                traces.meta
+                self.traces.meta
             )
         return (
-            CombinedTrace(device_output.copy_to_host(), traces.meta)
+            CombinedTrace(device_output.copy_to_host(), self.traces.meta)
             for device_output
             in device_outputs
         )
 
-    @staticmethod
-    def average(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
+    def average(self) -> CombinedTrace:
         """
         Average :paramref:`~.average.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_average, traces, tpb, 1)
+        return GPUTraceManager._gpu_combine1D(gpu_average, 1)
 
-    @staticmethod
-    def conditional_average(traces: StackedTraces, tpb: TPB = 128) \
-            -> CombinedTrace:
+    def conditional_average(self) -> CombinedTrace:
         """
         Not implemented due to the nature of GPU functions.
 
@@ -140,50 +139,42 @@ class GPUTraceManager:
         """
         raise NotImplementedError
 
-    @staticmethod
-    def standard_deviation(traces: StackedTraces, tpb: TPB = 128) \
-            -> CombinedTrace:
+    def standard_deviation(self) -> CombinedTrace:
         """
         Compute the sample standard-deviation of the :paramref:`~.standard_deviation.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_std_dev, traces, tpb, 1)
+        return GPUTraceManager._gpu_combine1D(gpu_std_dev, 1)
 
-    @staticmethod
-    def variance(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
+    def variance(self) -> CombinedTrace:
         """
         Compute the sample variance of the :paramref:`~.variance.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_variance, traces, tpb, 1)
+        return GPUTraceManager._gpu_combine1D(gpu_variance, 1)
 
-    @staticmethod
-    def average_and_variance(traces: StackedTraces, tpb: TPB = 128) \
-            -> Tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         """
         Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        averages, variances = GPUTraceManager._gpu_combine1D(
-            gpu_avg_var, traces, tpb, 2
-        )
+        averages, variances = GPUTraceManager._gpu_combine1D(gpu_avg_var, 2)
         return averages, variances
 
-    @staticmethod
-    def add(traces: StackedTraces, tpb: TPB = 128) -> CombinedTrace:
+    def add(self) -> CombinedTrace:
         """
         Add :paramref:`~.add.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_add, traces, tpb, 1)
+        return GPUTraceManager._gpu_combine1D(gpu_add, 1)
 
 
 @cuda.jit(device=True)
