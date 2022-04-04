@@ -12,19 +12,19 @@ jobs:
   lint:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: pip-${{ runner.os }}-${{ hashFiles('setup.py') }}
           restore-keys: |
             pip-${{ runner.os }}-
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.9
+          python-version: "3.9"
       - name: Add picoscope repository
         run: |
           curl "https://labs.picotech.com/debian/dists/picoscope/Release.gpg.key" | sudo apt-key add
