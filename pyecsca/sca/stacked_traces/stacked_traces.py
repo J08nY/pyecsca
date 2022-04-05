@@ -129,7 +129,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_average, 1)
+        return self._gpu_combine1D(gpu_average, 1)
 
     def conditional_average(self) -> CombinedTrace:
         """
@@ -146,7 +146,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_std_dev, 1)
+        return self._gpu_combine1D(gpu_std_dev, 1)
 
     def variance(self) -> CombinedTrace:
         """
@@ -155,7 +155,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_variance, 1)
+        return self._gpu_combine1D(gpu_variance, 1)
 
     def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         """
@@ -164,7 +164,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        averages, variances = GPUTraceManager._gpu_combine1D(gpu_avg_var, 2)
+        averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
         return averages, variances
 
     def add(self) -> CombinedTrace:
@@ -174,7 +174,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return GPUTraceManager._gpu_combine1D(gpu_add, 1)
+        return self._gpu_combine1D(gpu_add, 1)
 
 
 @cuda.jit(device=True)
