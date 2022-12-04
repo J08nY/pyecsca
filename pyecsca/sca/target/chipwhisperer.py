@@ -8,8 +8,8 @@ using ChipWhisperer-Lite or Pro.
 from time import sleep
 
 import chipwhisperer as cw
-from chipwhisperer.capture.scopes.base import ScopeTemplate
-from chipwhisperer.capture.targets import SimpleSerial
+from chipwhisperer.capture.scopes import ScopeTypes
+from chipwhisperer.capture.targets.SimpleSerial import SimpleSerial
 from public import public
 
 from .flash import Flashable
@@ -21,7 +21,7 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
     """ChipWhisperer-based target, using the SimpleSerial protocol and communicating using ChipWhisperer-Lite/Pro."""
 
     def __init__(
-        self, target: SimpleSerial, scope: ScopeTemplate, programmer, **kwargs
+        self, target: SimpleSerial, scope: ScopeTypes, programmer, **kwargs
     ):
         super().__init__()
         self.target = target
