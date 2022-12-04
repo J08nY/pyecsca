@@ -19,10 +19,79 @@ CudaCTX = tuple[
 
 
 @public
-class GPUTraceManager:
-    """Manager for operations with stacked traces on GPU"""
+class BaseTraceManager:
+    """Base class for trace managers"""
 
     traces: StackedTraces
+
+    def __init__(self, traces: StackedTraces) -> None:
+        self.traces = traces
+
+    def average(self) -> CombinedTrace:
+        """
+        Average :paramref:`~.average.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        raise NotImplementedError
+
+    def conditional_average(self, cond: Callable[[np.ndarray], bool]) \
+            -> CombinedTrace:
+        """
+        Average :paramref:`~.conditional_average.traces` for which the
+        :paramref:`~.conditional_average.condition` is ``True``, sample-wise.
+
+        :param traces:
+        :param condition:
+        :return:
+        """
+        raise NotImplementedError
+
+    def standard_deviation(self) -> CombinedTrace:
+        """
+        Compute the sample standard-deviation of the
+        :paramref:`~.standard_deviation.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        raise NotImplementedError
+
+    def variance(self) -> CombinedTrace:
+        """
+        Compute the sample variance of the
+        :paramref:`~.variance.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        raise NotImplementedError
+
+    def average_and_variance(self) -> tuple[CombinedTrace, CombinedTrace]:
+        """
+        Compute the sample average and variance of the
+        :paramref:`~.average_and_variance.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        raise NotImplementedError
+
+    def add(self) -> CombinedTrace:
+        """
+        Add :paramref:`~.add.traces`, sample-wise.
+
+        :param traces:
+        :return:
+        """
+        raise NotImplementedError
+
+
+@public
+class GPUTraceManager(BaseTraceManager):
+    """Manager for operations with stacked traces on GPU"""
+
     _tpb: TPB
     _samples_global: devicearray.DeviceNDArray
 
@@ -37,7 +106,7 @@ class GPUTraceManager:
                 'TPB should be a multiple of 32 in each dimension'
             )
 
-        self.traces = traces
+        super().__init__(traces)
         self.tpb = tpb
         self._samples_global = cuda.to_device(self.traces.samples)
 
@@ -89,58 +158,34 @@ class GPUTraceManager:
         )
 
     def average(self) -> CombinedTrace:
-        """
-        Average :paramref:`~.average.traces`, sample-wise.
+        result = self._gpu_combine1D(gpu_average, 1)
+        assert isinstance(result, CombinedTrace)
+        return result
 
-        :param traces:
-        :return:
-        """
-        return self._gpu_combine1D(gpu_average, 1)
-
-    def conditional_average(self) -> CombinedTrace:
-        """
-        Not implemented due to the nature of GPU functions.
-
-        Use sca.trace.combine.conditional_average instead.
-        """
+    def conditional_average(self, cond: Callable[[np.ndarray], bool]) \
+            -> CombinedTrace:
         raise NotImplementedError()
 
     def standard_deviation(self) -> CombinedTrace:
-        """
-        Compute the sample standard-deviation of the :paramref:`~.standard_deviation.traces`, sample-wise.
-
-        :param traces:
-        :return:
-        """
-        return self._gpu_combine1D(gpu_std_dev, 1)
+        result = self._gpu_combine1D(gpu_std_dev, 1)
+        assert isinstance(result, CombinedTrace)
+        return result
 
     def variance(self) -> CombinedTrace:
-        """
-        Compute the sample variance of the :paramref:`~.variance.traces`, sample-wise.
-
-        :param traces:
-        :return:
-        """
-        return self._gpu_combine1D(gpu_variance, 1)
+        result = self._gpu_combine1D(gpu_variance, 1)
+        assert isinstance(result, CombinedTrace)
+        return result
 
     def average_and_variance(self) -> tuple[CombinedTrace, CombinedTrace]:
-        """
-        Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
-
-        :param traces:
-        :return:
-        """
         averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
+        assert isinstance(averages, CombinedTrace) and \
+            isinstance(variances, CombinedTrace)
         return averages, variances
 
     def add(self) -> CombinedTrace:
-        """
-        Add :paramref:`~.add.traces`, sample-wise.
-
-        :param traces:
-        :return:
-        """
-        return self._gpu_combine1D(gpu_add, 1)
+        result = self._gpu_combine1D(gpu_add, 1)
+        assert isinstance(result, CombinedTrace)
+        return result
 
 
 @cuda.jit(device=True)
