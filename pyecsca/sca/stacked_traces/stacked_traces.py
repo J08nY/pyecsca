@@ -12,9 +12,10 @@ class StackedTraces:
     meta: Mapping[str, Any]
     samples: np.ndarray
 
+    # TODO: Split metadata into common and per-trace
     def __init__(
             self, samples: np.ndarray,
-            meta: Mapping[str, Any] = None) -> None:
+            meta: Mapping[str, Any] = dict()) -> None:
         if meta is None:
             meta = {}
         self.meta = meta
@@ -22,7 +23,7 @@ class StackedTraces:
 
     @classmethod
     def fromarray(cls, traces: Sequence[np.ndarray],
-                  meta: Mapping[str, Any] = None) -> 'StackedTraces':
+                  meta: Mapping[str, Any] = dict()) -> 'StackedTraces':
         ts = list(traces)
         min_samples = min(map(len, ts))
         for i, t in enumerate(ts):
