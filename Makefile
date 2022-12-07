@@ -20,10 +20,10 @@ test-all:
 	nose2 -s test -C -v ${TESTS}
 
 typecheck:
-	mypy pyecsca --ignore-missing-imports --show-error-codes
+	mypy --namespace-packages -p pyecsca --ignore-missing-imports --show-error-codes
 
 typecheck-all:
-	mypy pyecsca test --ignore-missing-imports --show-error-codes
+	mypy --namespace-packages -p pyecsca -p test --ignore-missing-imports --show-error-codes
 
 codestyle:
 	flake8 --extend-ignore=E501,F405,F403,F401,E126,E203 pyecsca
