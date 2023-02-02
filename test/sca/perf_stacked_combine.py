@@ -25,43 +25,68 @@ def _generate_floating(rng: npr.Generator,
                        trace_count: int,
                        trace_length: int,
                        dtype: npt.DTypeLike = np.float32,
+                       distribution: str = "uniform",
                        low: float = 0.0,
-                       high: float = 1.0) -> np.ndarray:
+                       high: float = 1.0,
+                       mean: float = 0.0,
+                       std: float = 0.0) -> np.ndarray:
     if not np.issubdtype(dtype, np.floating):
         raise ValueError("dtype must be a floating point type")
 
     dtype_ = (dtype if (np.issubdtype(dtype, np.float32)
                         or np.issubdtype(dtype, np.float64))
               else np.float32)
-    samples = rng.random((trace_count, trace_length),
-                         dtype=dtype_)  # type: ignore
+    if distribution == "uniform":
+        samples = rng.random((trace_count, trace_length),
+                             dtype=dtype_)  # type: ignore
 
-    if (not np.issubdtype(dtype, np.float32)
-            and not np.issubdtype(dtype, np.float64)):
-        samples = samples.astype(dtype)
-    return (samples * (high - low) + low)
+        if (not np.issubdtype(dtype, np.float32)
+                and not np.issubdtype(dtype, np.float64)):
+            samples = samples.astype(dtype)
+        return (samples * (high - low) + low)
+    elif distribution == "normal":
+        return (rng
+                .normal(mean, std, (trace_count, trace_length))
+                .clip(low, high)
+                .astype(dtype))
+
+    raise ValueError("Unknown distribution")
 
 
 def _generate_integers(rng: npr.Generator,
                        trace_count: int,
                        trace_length: int,
                        dtype: npt.DTypeLike = np.int32,
+                       distribution: str = "uniform",
                        low: int = 0,
-                       high: int = 1) -> np.ndarray:
+                       high: int = 1,
+                       mean: float = 0.0,
+                       std: float = 0.0) -> np.ndarray:
     if not np.issubdtype(dtype, np.integer):
         raise ValueError("dtype must be an integer type")
 
-    return rng.integers(low,
-                        high,
-                        size=(trace_count, trace_length),
-                        dtype=dtype)  # type: ignore
+    if distribution == "uniform":
+        return rng.integers(low,
+                            high,
+                            size=(trace_count, trace_length),
+                            dtype=dtype)  # type: ignore
+    elif distribution == "normal":
+        return (rng
+                .normal(mean, std, (trace_count, trace_length))
+                .astype(dtype)
+                .clip(low, high - 1))
+
+    raise ValueError("Unknown distribution")
 
 
 def generate_dataset(trace_count: int,
                      trace_length: int,
                      dtype: npt.DTypeLike = np.float32,
+                     distribution: str = "uniform",
                      low: float | int = 0,
                      high: float | int = 1,
+                     mean: float | int = 0,
+                     std: float | int = 1,
                      seed: int | None = None) -> np.ndarray:
     """Generate a TraceSet with random samples
 
@@ -89,8 +114,11 @@ def generate_dataset(trace_count: int,
                       trace_count,
                       trace_length,
                       dtype,
+                      distribution,
                       cast_fun(low),  # type: ignore
-                      cast_fun(high))  # type: ignore
+                      cast_fun(high),  # type: ignore
+                      mean,
+                      std)
 
     return samples
 
@@ -119,7 +147,7 @@ def stack_traceset(traceset: TraceSet) -> StackedTraces:
 
 
 def stack_array(dataset: np.ndarray) -> StackedTraces:
-    return StackedTraces.fromarray(dataset)
+    return StackedTraces.fromarray(dataset)  # type: ignore
 
 
 def to_traceset(dataset: np.ndarray) -> TraceSet:
@@ -187,8 +215,19 @@ def _get_parser() -> argparse.ArgumentParser:
         choices=["float16", "float32", "float64", "int8",
                  "int16", "int32", "int64"],
     )
-    dataset.add_argument("--low", type=float, default=0.0)
-    dataset.add_argument("--high", type=float, default=1.0)
+    dataset.add_argument(
+        "--distribution",
+        type=str,
+        default="uniform",
+        choices=["uniform", "normal"])
+    dataset.add_argument("--low", type=float, default=0.0,
+                         help="Inclusive lower bound for generated samples")
+    dataset.add_argument("--high", type=float, default=1.0,
+                         help="Exclusive upper bound for generated samples")
+    dataset.add_argument("--mean", type=float, default=0.0,
+                         help="Mean of the normal distribution")
+    dataset.add_argument("--std", type=float, default=1.0,
+                         help="Standard deviation of the normal distribution")
 
     verbosity = parser.add_mutually_exclusive_group()
     verbosity.add_argument("-v", "--verbose", action="store_true")
@@ -247,8 +286,11 @@ def main(args: argparse.Namespace) -> None:
     dataset = generate_dataset(args.trace_count,
                                args.trace_length,
                                args.dtype,
+                               args.distribution,
                                args.low,
                                args.high,
+                               args.mean,
+                               args.std,
                                args.seed)
 
     # Transform data for operations input
