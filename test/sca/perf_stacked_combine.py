@@ -79,7 +79,8 @@ def _generate_integers(rng: npr.Generator,
     raise ValueError("Unknown distribution")
 
 
-def generate_dataset(trace_count: int,
+def generate_dataset(rng: npr.Generator,
+                     trace_count: int,
                      trace_length: int,
                      dtype: npt.DTypeLike = np.float32,
                      distribution: str = "uniform",
@@ -104,8 +105,6 @@ def generate_dataset(trace_count: int,
     if (not np.issubdtype(dtype, np.integer)
             and not np.issubdtype(dtype, np.floating)):
         raise ValueError("dtype must be an integer or floating point type")
-
-    rng = np.random.default_rng(seed)
 
     gen_fun, cast_fun = ((_generate_integers, int)
                          if np.issubdtype(dtype, np.integer) else
@@ -169,6 +168,8 @@ def stack(dataset: np.ndarray,
 
 def _get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--repetitions", type=int,
+                        default=1, help="Number of repetitions")
     combine = parser.add_argument_group(
         "operations",
         "Operations to perform on the traces"
@@ -176,22 +177,26 @@ def _get_parser() -> argparse.ArgumentParser:
     combine.add_argument(
         "-d", "--device",
         choices=["cpu", "gpu"],
+        help="Device to use for the computation"
     )
     stacking = combine.add_mutually_exclusive_group()
     stacking.add_argument(
         "-s", "--stack",
         action="store_true",
-        default=False
+        default=False,
+        help="Use stacked traces"
     )
     stacking.add_argument(
         "--stack-traceset",
         action="store_true",
-        default=False
+        default=False,
+        help="Perform stacking from a TraceSet"
     )
     combine.add_argument(
         "--time-stack",
         action="store_true",
-        default=False
+        default=False,
+        help="Time the stacking operation"
     )
 
     combine.add_argument(
@@ -199,27 +204,33 @@ def _get_parser() -> argparse.ArgumentParser:
         nargs="*",
         choices=["average", "conditional_average", "standard_deviation",
                  "variance", "average_and_variance", "add"],
+        help="Operations to perform on the traces"
     )
 
     dataset = parser.add_argument_group(
         "data generation",
         "Options for data generation"
     )
-    dataset.add_argument("--trace-count", type=int, default=1000)
-    dataset.add_argument("--trace-length", type=int, default=1000)
-    dataset.add_argument("--seed", type=int, default=None)
+    dataset.add_argument("--trace-count", type=int,
+                         default=1000, help="Number of traces")
+    dataset.add_argument("--trace-length", type=int,
+                         default=1000, help="Number of samples per trace")
+    dataset.add_argument("--seed", type=int, default=None,
+                         help="Seed for the random number generator")
     dataset.add_argument(
         "--dtype",
         type=str,
         default="float32",
         choices=["float16", "float32", "float64", "int8",
                  "int16", "int32", "int64"],
+        help="Data type of the samples"
     )
     dataset.add_argument(
         "--distribution",
         type=str,
         default="uniform",
-        choices=["uniform", "normal"])
+        choices=["uniform", "normal"],
+        help="Distribution of the samples")
     dataset.add_argument("--low", type=float, default=0.0,
                          help="Inclusive lower bound for generated samples")
     dataset.add_argument("--high", type=float, default=1.0,
@@ -260,7 +271,12 @@ def _get_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
     return args
 
 
-def report(time_storage: list[tuple[str, int]]) -> None:
+def report(time_storage: list[tuple[str, int]],
+           total_only: bool = False) -> None:
+    if total_only:
+        print(f"Total: {sum(duration for _, duration in time_storage):,} ns")
+        return
+
     print("Timings:")
     for name, duration in time_storage:
         print(f"{name : <20} | {duration : 15,} ns")
@@ -269,21 +285,16 @@ def report(time_storage: list[tuple[str, int]]) -> None:
           f"{sum(duration for _, duration in time_storage) : 15,} ns")
 
 
-def main(args: argparse.Namespace) -> None:
-    if args.verbose:
-        print(f"Dataset: {args.trace_count} x {args.trace_length} "
-              "(count x length)")
-        print(f"Device: {args.device},",
-              "stacked" if args.stack else "not stacked")
-        print(f"Operations: {', '.join(args.operations)}")
-
+def repetition(args: argparse.Namespace,
+               rng: npr.Generator) -> list[tuple[str, int]]:
     # Prepare time storage
     time_storage: list[tuple[str, int]] | None = []
 
     # Generate data
     if args.verbose:
         print("Generating data...")
-    dataset = generate_dataset(args.trace_count,
+    dataset = generate_dataset(rng,
+                               args.trace_count,
                                args.trace_length,
                                args.dtype,
                                args.distribution,
@@ -307,7 +318,7 @@ def main(args: argparse.Namespace) -> None:
 
     if not args.operations:
         report(time_storage)
-        return
+        return time_storage
 
     if args.verbose:
         print("Performing operations...")
@@ -341,6 +352,29 @@ def main(args: argparse.Namespace) -> None:
     if args.verbose:
         print("------------------------")
     report(time_storage)
+    print("-" * 41 + "\n")
+    return time_storage
+
+
+def main(args: argparse.Namespace) -> None:
+    if args.verbose:
+        print(f"Repetitions: {args.repetitions}")
+        print(f"Dataset: {args.trace_count} x {args.trace_length} "
+              "(count x length)")
+        print(f"Device: {args.device},",
+              "stacked" if args.stack else "not stacked")
+        print(f"Operations: {', '.join(args.operations)}")
+
+    time_storage: list[list[tuple[str, int]]] = []
+    rng = np.random.default_rng(args.seed)
+    for i in range(args.repetitions):
+        print(f"Repetition {i + 1} of {args.repetitions}")
+        time_storage.append(repetition(args, rng))
+
+    total_time = sum(sum(dur for _, dur in rep)
+                     for rep in time_storage)
+    print("\nSummary")
+    print(f"Total: {total_time:,} ns")
 
 
 if __name__ == "__main__":
