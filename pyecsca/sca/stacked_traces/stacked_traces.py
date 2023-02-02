@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from public import public
 from typing import Any, Mapping, Sequence
@@ -15,7 +17,7 @@ class StackedTraces:
     # TODO: Split metadata into common and per-trace
     def __init__(
             self, samples: np.ndarray,
-            meta: Mapping[str, Any] = dict()) -> None:
+            meta: Mapping[str, Any] | None = None) -> None:
         if meta is None:
             meta = {}
         self.meta = meta
@@ -23,7 +25,9 @@ class StackedTraces:
 
     @classmethod
     def fromarray(cls, traces: Sequence[np.ndarray],
-                  meta: Mapping[str, Any] = dict()) -> 'StackedTraces':
+                  meta: Mapping[str, Any] | None = None) -> 'StackedTraces':
+        if meta is None:
+            meta = {}
         ts = list(traces)
         min_samples = min(map(len, ts))
         for i, t in enumerate(ts):
