@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from typing import Any, Callable, List, Tuple
 
 import numpy as np
 import numpy.random as npr
@@ -10,6 +10,8 @@ import numpy.typing as npt
 from pyecsca.sca import (CPUTraceManager, GPUTraceManager, StackedTraces,
                          Trace, TraceSet, add, average, average_and_variance,
                          conditional_average, standard_deviation, variance)
+
+TimeRecord = Tuple[str, int]
 
 traceset_ops = {
     "average": average,
@@ -122,7 +124,7 @@ def generate_dataset(rng: npr.Generator,
     return samples
 
 
-def timed(time_storage: list[tuple[str, int]] | None = None,
+def timed(time_storage: List[TimeRecord] | None = None,
           log: bool = True) \
         -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -156,7 +158,7 @@ def to_traceset(dataset: np.ndarray) -> TraceSet:
 def stack(dataset: np.ndarray,
           from_array: bool,
           time: bool,
-          time_storage: list[tuple[str, int]] | None = None,
+          time_storage: List[TimeRecord] | None = None,
           log: bool = True) -> StackedTraces:
     time_fun = timed(time_storage, log) if time else lambda x: x
     data = (dataset
@@ -271,7 +273,7 @@ def _get_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
     return args
 
 
-def report(time_storage: list[tuple[str, int]],
+def report(time_storage: List[TimeRecord],
            total_only: bool = False) -> None:
     if total_only:
         print(f"Total: {sum(duration for _, duration in time_storage):,} ns")
@@ -286,9 +288,9 @@ def report(time_storage: list[tuple[str, int]],
 
 
 def repetition(args: argparse.Namespace,
-               rng: npr.Generator) -> list[tuple[str, int]]:
+               rng: npr.Generator) -> List[TimeRecord]:
     # Prepare time storage
-    time_storage: list[tuple[str, int]] | None = []
+    time_storage: List[TimeRecord] | None = []
 
     # Generate data
     if args.verbose:
@@ -365,7 +367,7 @@ def main(args: argparse.Namespace) -> None:
               "stacked" if args.stack else "not stacked")
         print(f"Operations: {', '.join(args.operations)}")
 
-    time_storage: list[list[tuple[str, int]]] = []
+    time_storage: List[List[TimeRecord]] = []
     rng = np.random.default_rng(args.seed)
     for i in range(args.repetitions):
         print(f"Repetition {i + 1} of {args.repetitions}")

@@ -6,15 +6,15 @@ import numpy as np
 from math import sqrt
 
 from public import public
-from typing import Callable, Union
+from typing import Callable, Union, Tuple
 
 from pyecsca.sca.trace.trace import CombinedTrace
 from pyecsca.sca.stacked_traces import StackedTraces
 
-TPB = Union[int, tuple[int, ...]]
-CudaCTX = tuple[
-    tuple[devicearray.DeviceNDArray, ...],
-    Union[int, tuple[int, ...]]
+TPB = Union[int, Tuple[int, ...]]
+CudaCTX = Tuple[
+    Tuple[devicearray.DeviceNDArray, ...],
+    Union[int, Tuple[int, ...]]
 ]
 
 
@@ -68,7 +68,7 @@ class BaseTraceManager:
         """
         raise NotImplementedError
 
-    def average_and_variance(self) -> tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         """
         Compute the sample average and variance of the
         :paramref:`~.average_and_variance.traces`, sample-wise.
@@ -132,7 +132,7 @@ class GPUTraceManager(BaseTraceManager):
         return device_output, bpg
 
     def _gpu_combine1D(self, func, output_count: int = 1) \
-            -> Union[CombinedTrace, tuple[CombinedTrace, ...]]:
+            -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
         """
         Runs GPU Cuda StackedTrace 1D combine function
 
@@ -176,7 +176,7 @@ class GPUTraceManager(BaseTraceManager):
         assert isinstance(result, CombinedTrace)
         return result
 
-    def average_and_variance(self) -> tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
         assert isinstance(averages, CombinedTrace) and \
             isinstance(variances, CombinedTrace)
@@ -382,7 +382,7 @@ class CPUTraceManager:
             self.traces.meta
         )
 
-    def average_and_variance(self) -> tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         """
         Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
 
