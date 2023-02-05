@@ -31,8 +31,9 @@ class ChipWhispererScope(Scope):  # pragma: no cover
         if pretrig != 0:
             raise ValueError("ChipWhisperer does not support pretrig samples.")
         self.scope.clock.clkgen_freq = frequency
-        self.scope.samples = posttrig
-        return self.scope.clock.freq_ctr, self.scope.samples
+        self.scope.adc.samples = posttrig
+        # TODO: Fix this, broken with new CW api.
+        return self.scope.clock.freq_ctr, self.scope.adc.samples
 
     def setup_channel(
         self, channel: str, coupling: str, range: float, offset: float, enable: bool

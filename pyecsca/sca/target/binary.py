@@ -62,7 +62,9 @@ class BinaryTarget(SerialTarget):
     def disconnect(self):
         if self.process is None:
             return
-        self.process.stdin.close()
-        self.process.stdout.close()
+        if self.process.stdin is not None:
+            self.process.stdin.close()
+        if self.process.stdout is not None:
+            self.process.stdout.close()
         self.process.terminate()
         self.process.wait()

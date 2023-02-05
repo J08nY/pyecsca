@@ -64,7 +64,7 @@ class ECDSAAction(Action):
         self.msg = msg
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg})"
+        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r})"
 
 
 @public
@@ -84,7 +84,7 @@ class ECDSASignAction(ECDSAAction):
         self.privkey = privkey
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg}, {self.privkey})"
+        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r}, {self.privkey})"
 
 
 @public
@@ -107,7 +107,7 @@ class ECDSAVerifyAction(ECDSAAction):
         self.pubkey = pubkey
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg}, {self.signature}, {self.pubkey})"
+        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r}, {self.signature}, {self.pubkey})"
 
 
 @public

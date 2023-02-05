@@ -5,6 +5,7 @@ This includes how errors are handled, or which :py:class:`~pyecsca.ec.mod.Mod` i
 """
 from copy import deepcopy
 from contextvars import ContextVar, Token
+from typing import Optional
 
 from public import public
 
@@ -178,6 +179,7 @@ class TemporaryConfig:
             cfg.some_property = some_value
             ...
     """
+    token: Optional[Token]
 
     def __init__(self):
         self.token = None
@@ -188,4 +190,5 @@ class TemporaryConfig:
         return self.new_config
 
     def __exit__(self, t, v, tb):
-        resetconfig(self.token)
+        if self.token:
+            resetconfig(self.token)

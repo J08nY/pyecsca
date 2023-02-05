@@ -63,9 +63,8 @@ class EFDCurveModel(CurveModel):
             return parse(line.replace("^", "**"), mode=mode)
 
         with resource_stream(__name__, file_path) as f:
-            line = f.readline()
-            while line:
-                line = line.decode("ascii").rstrip()
+            for raw in f.readlines():
+                line = raw.decode("ascii").rstrip()
                 if line.startswith("name"):
                     cls.name = line[5:]
                 elif line.startswith("parameter"):
@@ -90,7 +89,6 @@ class EFDCurveModel(CurveModel):
                     cls.from_weierstrass.append(format_eq(line[16:]))
                 else:
                     cls.full_weierstrass.append(format_eq(line))
-                line = f.readline()
 
     def __read_coordinate_dir(self, cls, dir_path, name):
         cls.coordinates[name] = EFDCoordinateModel(dir_path, name, self)
