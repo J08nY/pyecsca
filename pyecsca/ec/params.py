@@ -66,6 +66,9 @@ class DomainParameters:
             and self.cofactor == other.cofactor
         )
 
+    def __hash__(self):
+        return hash((self.curve, self.generator, self.order, self.cofactor))
+
     def __get_name(self):
         if self.name and self.category:
             return f"{self.category}/{self.name}"

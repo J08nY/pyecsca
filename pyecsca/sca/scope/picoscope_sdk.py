@@ -526,7 +526,7 @@ else:  # pragma: no cover
 if isinstance(ps6000, CannotFindPicoSDKError):
 
     @public
-    class PS6000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS6000Scope(PicoScopeSdk):  # noqa, pragma: no cover
         """PicoScope 6000 series oscilloscope is not available (Install `libps6000`)."""
 
         def __init__(self, variant: Optional[str] = None):
