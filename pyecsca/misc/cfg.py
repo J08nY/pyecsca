@@ -1,5 +1,5 @@
 """
-This module provides functions for runtime configuration of the toolkit.
+Provides functions for runtime configuration of the toolkit.
 
 This includes how errors are handled, or which :py:class:`~pyecsca.ec.mod.Mod` implementation is used.
 """
@@ -179,6 +179,7 @@ class TemporaryConfig:
             cfg.some_property = some_value
             ...
     """
+
     token: Optional[Token]
 
     def __init__(self):

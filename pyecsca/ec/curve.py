@@ -1,4 +1,4 @@
-"""This module provides an elliptic curve class."""
+"""Provides an elliptic curve class."""
 from ast import Module
 from copy import copy
 from typing import MutableMapping, Union, List, Optional

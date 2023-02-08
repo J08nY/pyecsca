@@ -1,4 +1,4 @@
-"""This module provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class."""
+"""Provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class."""
 from abc import ABC
 from binascii import hexlify
 from enum import IntEnum, IntFlag

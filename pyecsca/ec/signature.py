@@ -1,4 +1,4 @@
-"""This module provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm)."""
+"""Provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm)."""
 import hashlib
 from typing import Optional, Any
 
@@ -41,6 +41,9 @@ class SignatureResult:
         if not isinstance(other, SignatureResult):
             return False
         return self.r == other.r and self.s == other.s
+
+    def __hash__(self):
+        return hash((self.r, self.s)) + 11
 
     def __str__(self):
         return f"(r={self.r}, s={self.s})"

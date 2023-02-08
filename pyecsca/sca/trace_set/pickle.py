@@ -1,5 +1,5 @@
 """
-This module provides a traceset implementation based on Python's pickle format.
+Provides a traceset implementation based on Python's pickle format.
 
 This implementation of the traceset is thus very generic.
 """

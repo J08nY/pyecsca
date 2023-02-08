@@ -1,4 +1,4 @@
-"""This module provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...)."""
+"""Provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...)."""
 from typing import Sequence, Optional, Tuple
 
 import numpy as np

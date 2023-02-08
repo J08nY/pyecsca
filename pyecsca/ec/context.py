@@ -1,5 +1,5 @@
 """
-This module provides classes for tracing the execution of operations.
+Provides classes for tracing the execution of operations.
 
 The operations include key generation, scalar multiplication, formula execution and individual operation evaluation.
 These operations are traced in `Context` classes using `Actions`. Different contexts trace actions differently.
@@ -170,10 +170,10 @@ class NullContext(Context):
     """Context that does not trace any actions."""
 
     def enter_action(self, action: Action) -> None:
-        pass
+        pass  # Nothing to enter as no action is traced.
 
     def exit_action(self, action: Action) -> None:
-        pass
+        pass  # Nothing to exit as no action is traced.
 
 
 @public

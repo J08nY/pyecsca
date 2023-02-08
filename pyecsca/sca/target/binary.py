@@ -1,4 +1,4 @@
-"""This module provides a binary target class which represents a target that is a runnable binary on the host."""
+"""Provides a binary target class which represents a target that is a runnable binary on the host."""
 import subprocess
 from subprocess import Popen
 from typing import Optional, Union, List

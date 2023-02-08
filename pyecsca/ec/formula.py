@@ -1,4 +1,4 @@
-"""This module provides an abstract base class of a formula along with concrete instantiations."""
+"""Provides an abstract base class of a formula along with concrete instantiations."""
 from abc import ABC, abstractmethod
 from ast import parse, Expression
 from astunparse import unparse
@@ -181,7 +181,7 @@ class Formula(ABC):
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
                     )
 
-                def resolve(expression):
+                def resolve(expression, k):
                     if not expression.args:
                         return expression
                     args = []
@@ -189,13 +189,13 @@ class Formula(ABC):
                         if isinstance(arg, Rational):
                             a = arg.p
                             b = arg.q
-                            arg = k(a) / k(b)
+                            res = k(a) / k(b)
                         else:
-                            arg = resolve(arg)
-                        args.append(arg)
+                            res = resolve(arg, k)
+                        args.append(res)
                     return expression.func(*args)
 
-                expr = resolve(expr)
+                expr = resolve(expr, k)
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots:

@@ -1,4 +1,4 @@
-"""This module contains exceptions and warnings used in the library."""
+"""Contains exceptions and warnings used in the library."""
 import warnings
 from public import public
 from ..misc.cfg import getconfig

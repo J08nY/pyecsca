@@ -27,7 +27,7 @@ setup(
     # install_package_data=True,
     python_requires='>=3.8',
     install_requires=[
-        "numpy",
+        "numpy==1.23.5",
         "scipy",
         "sympy>=1.7.1",
         "atpublic",
@@ -40,7 +40,8 @@ setup(
         "matplotlib",
         "datashader",
         "xarray",
-        "astunparse"
+        "astunparse",
+        "numba==0.56.4"
     ],
     extras_require={
         "picoscope_sdk": ["picosdk"],

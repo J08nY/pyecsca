@@ -1,4 +1,4 @@
-"""This module provides classes for working with ISO7816-4 APDUs and an abstract base class for an ISO7816-4 based target."""
+"""Provides classes for working with ISO7816-4 APDUs and an abstract base class for an ISO7816-4 based target."""
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional

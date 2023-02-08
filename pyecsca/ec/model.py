@@ -1,4 +1,4 @@
-"""This module provides curve model classes for the supported curve models."""
+"""Provides curve model classes for the supported curve models."""
 from ast import parse, Expression, Module
 from os.path import join
 from typing import List, MutableMapping

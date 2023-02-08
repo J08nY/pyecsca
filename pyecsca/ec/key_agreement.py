@@ -1,4 +1,4 @@
-"""This module provides an implementation of ECDH (Elliptic Curve Diffie-Hellman)."""
+"""Provides an implementation of ECDH (Elliptic Curve Diffie-Hellman)."""
 import hashlib
 from typing import Optional, Any
 

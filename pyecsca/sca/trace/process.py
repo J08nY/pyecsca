@@ -1,4 +1,4 @@
-"""This module provides functions for sample-wise processing of single traces."""
+"""Provides functions for sample-wise processing of single traces."""
 from typing import cast
 
 import numpy as np

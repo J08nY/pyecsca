@@ -1,4 +1,4 @@
-"""This module provides an oscilloscope class for PicoScope branded oscilloscopes using the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_."""
+"""Provides an oscilloscope class for PicoScope branded oscilloscopes using the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_."""
 import ctypes
 from math import log2, floor
 from time import time_ns, sleep
@@ -344,7 +344,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
 if isinstance(ps3000, CannotFindPicoSDKError):
 
     @public
-    class PS3000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS3000Scope(PicoScopeSdk):  # noqa, pragma: no cover
         """PicoScope 3000 series oscilloscope is not available (Install `libps3000`)."""
 
         def __init__(self, variant: Optional[str] = None):
@@ -411,7 +411,7 @@ else:  # pragma: no cover
 if isinstance(ps4000, CannotFindPicoSDKError):
 
     @public
-    class PS4000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS4000Scope(PicoScopeSdk):  # noqa, pragma: no cover
         """PicoScope 4000 series oscilloscope is not available (Install `libps4000`)."""
 
         def __init__(self, variant: Optional[str] = None):
@@ -474,7 +474,7 @@ else:  # pragma: no cover
 if isinstance(ps5000, CannotFindPicoSDKError):
 
     @public
-    class PS5000Scope(PicoScopeSdk):  # pragma: no cover
+    class PS5000Scope(PicoScopeSdk):  # noqa, pragma: no cover
         """PicoScope 5000 series oscilloscope is not available (Install `libps5000`)."""
 
         def __init__(self, variant: Optional[str] = None):

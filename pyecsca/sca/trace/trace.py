@@ -1,4 +1,4 @@
-"""This module provides the Trace class."""
+"""Provides the Trace class."""
 import weakref
 from typing import Any, Mapping, Sequence, Optional
 from copy import copy, deepcopy
@@ -75,6 +75,10 @@ class Trace:
         if not isinstance(other, Trace):
             return False
         return np.array_equal(self.samples, other.samples) and self.meta == other.meta
+
+    def __hash__(self):
+        # This will have collisions, but those can be sorted out by the equality check above.
+        return hash(str(self.samples)) + hash(self.meta)
 
     def with_samples(self, samples: ndarray) -> "Trace":
         """

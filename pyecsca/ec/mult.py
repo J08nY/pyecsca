@@ -1,4 +1,4 @@
-"""This module provides several classes implementing different scalar multiplication algorithms."""
+"""Provides several classes implementing different scalar multiplication algorithms."""
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type

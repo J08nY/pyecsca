@@ -1,4 +1,4 @@
-"""This module provides a mix-in class of a flashable target (e.g. one where the code gets flashed to it before running)."""
+"""Provides a mix-in class of a flashable target (e.g. one where the code gets flashed to it before running)."""
 from public import public
 from abc import ABC, abstractmethod
 

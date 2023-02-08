@@ -1,4 +1,4 @@
-"""This module provides a :py:class:`.Point` class and a special :py:class:`.InfinityPoint` class for the point at infinity."""
+"""Provides a :py:class:`.Point` class and a special :py:class:`.InfinityPoint` class for the point at infinity."""
 from copy import copy
 from typing import Mapping, TYPE_CHECKING
 

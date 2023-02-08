@@ -1,5 +1,5 @@
 """
-This module provides several implementations of an element of ℤₙ.
+Provides several implementations of an element of ℤₙ.
 
 The base class :py:class:`Mod` dynamically
 dispatches to the implementation chosen by the runtime configuration of the library
@@ -35,7 +35,7 @@ def gcd(a, b):
         return gcd(b, a)
 
     while abs(b) > 0:
-        q, r = divmod(a, b)
+        _, r = divmod(a, b)
         a, b = b, r
 
     return a
@@ -43,9 +43,9 @@ def gcd(a, b):
 
 @public
 def extgcd(a, b):
-    """Extended Euclid's greatest common denominator algorithm."""
+    """Compute the extended Euclid's greatest common denominator algorithm."""
     if abs(b) > abs(a):
-        (x, y, d) = extgcd(b, a)
+        x, y, d = extgcd(b, a)
         return y, x, d
 
     if abs(b) == 0:
@@ -198,7 +198,7 @@ class Mod:
 
     def sqrt(self) -> "Mod":
         """
-        The modular square root of this element (only implemented for prime modulus).
+        Compute the modular square root of this element (only implemented for prime modulus).
 
         Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
         """
@@ -274,7 +274,7 @@ class RawMod(Mod):
     def inverse(self) -> "RawMod":
         if self.x == 0:
             raise_non_invertible()
-        x, y, d = extgcd(self.x, self.n)
+        x, _, d = extgcd(self.x, self.n)
         if d != 1:
             raise_non_invertible()
         return RawMod(x, self.n)

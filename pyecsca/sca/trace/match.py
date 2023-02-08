@@ -1,4 +1,4 @@
-"""This module provides functions for matching a pattern within a trace to it."""
+"""Provides functions for matching a pattern within a trace to it."""
 import numpy as np
 from scipy.signal import find_peaks
 from public import public

@@ -1,5 +1,5 @@
 """
-This module provides a `ChipWhisperer <https://github.com/newaetech/chipwhisperer/>`_ target class.
+Provides a `ChipWhisperer <https://github.com/newaetech/chipwhisperer/>`_ target class.
 
 ChipWhisperer is a side-channel analysis tool and framework. A ChipWhisperer target is one
 that uses the ChipWhisperer's SimpleSerial communication protocol and is communicated with

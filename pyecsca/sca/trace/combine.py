@@ -1,4 +1,4 @@
-"""This module provides functions for combining traces sample-wise."""
+"""Provides functions for combining traces sample-wise."""
 from typing import Callable, Optional, Tuple
 
 import numpy as np
