@@ -1,6 +1,8 @@
 """Provides an abstract base class of a formula along with concrete instantiations."""
 from abc import ABC, abstractmethod
 from ast import parse, Expression
+from functools import cached_property
+
 from astunparse import unparse
 from itertools import product
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
@@ -114,6 +116,10 @@ class Formula(ABC):
     unified: bool
     """Whether the formula is specifies that it is unified."""
 
+    @cached_property
+    def assumptions_str(self):
+        return [unparse(assumption)[1:-2] for assumption in self.assumptions]
+
     def __validate_params(self, field, params):
         for key, value in params.items():
             if not isinstance(value, Mod) or value.n != field:
@@ -138,8 +144,7 @@ class Formula(ABC):
         # Validate assumptions and compute formula parameters.
         # TODO: Should this also validate coordinate assumptions and compute their parameters?
         is_symbolic = any(isinstance(x, SymbolicMod) for x in params.values())
-        for assumption in self.assumptions:
-            assumption_string = unparse(assumption)[1:-2]
+        for assumption, assumption_string in zip(self.assumptions, self.assumptions_str):
             lhs, rhs = assumption_string.split(" == ")
             if lhs in params:
                 # Handle an assumption check on value of input points.
