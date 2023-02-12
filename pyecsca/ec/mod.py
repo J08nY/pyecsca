@@ -10,7 +10,7 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 import random
 import secrets
 from functools import wraps, lru_cache
-from typing import Type, Dict, Any, Tuple
+from typing import Type, Dict, Any, Tuple, Union
 
 from public import public
 from sympy import Expr, FF
@@ -584,9 +584,9 @@ if has_gmp:
         def __new__(cls, *args, **kwargs):
             return object.__new__(cls)
 
-        def __init__(self, x: int, n: int):
-            self.x = gmpy2.mpz(x % n)
-            self.n = gmpy2.mpz(n)
+        def __init__(self, x: Union[int, gmpy2.mpz], n: Union[int, gmpy2.mpz]):
+            self.n = gmpy2.mpz(n) if not isinstance(n, gmpy2.mpz) else n
+            self.x = gmpy2.mpz(x % self.n) if not isinstance(x, gmpy2.mpz) else x % self.n
 
         def inverse(self) -> "GMPMod":
             if self.x == 0:
