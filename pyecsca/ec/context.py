@@ -240,9 +240,7 @@ class PathContext(Context):
         )
 
 
-_actual_context: ContextVar[Context] = ContextVar(
-    "operational_context", default=NullContext()
-)
+_actual_context: Context = NullContext()
 
 
 class _ContextManager:
@@ -260,7 +258,7 @@ class _ContextManager:
 @public
 def getcontext() -> Context:
     """Get the current thread/task context."""
-    return _actual_context.get()
+    return _actual_context
 
 
 @public
@@ -271,7 +269,10 @@ def setcontext(ctx: Context) -> Token:
     :param ctx: A context to set.
     :return: A token to restore previous context.
     """
-    return _actual_context.set(ctx)
+    global _actual_context
+    old = _actual_context
+    _actual_context = ctx
+    return old
 
 
 @public
@@ -281,7 +282,8 @@ def resetcontext(token: Token):
 
     :param token: A token to restore.
     """
-    _actual_context.reset(token)
+    global _actual_context
+    _actual_context = token
 
 
 @public
