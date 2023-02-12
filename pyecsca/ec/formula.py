@@ -9,7 +9,8 @@ from pkg_resources import resource_stream
 from public import public
 from sympy import sympify, FF, symbols, Poly, Rational
 
-from .context import ResultAction, getcontext, NullContext
+from .context import ResultAction
+from . import context
 from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod, SymbolicMod
 from .op import CodeOp, OpType
@@ -67,8 +68,6 @@ class FormulaAction(ResultAction):
         self.output_points = []
 
     def add_operation(self, op: CodeOp, value: Mod):
-        if isinstance(getcontext(), NullContext):
-            return
         parents: List[Union[Mod, OpResult]] = []
         for parent in {*op.variables, *op.parameters}:
             if parent in self.intermediates:
@@ -79,8 +78,6 @@ class FormulaAction(ResultAction):
         li.append(OpResult(op.result, value, op.operator, *parents))
 
     def add_result(self, point: Any, **outputs: Mod):
-        if isinstance(getcontext(), NullContext):
-            return
         for k in outputs:
             self.outputs[k] = self.intermediates[k][-1]
         self.output_points.append(point)
@@ -234,7 +231,8 @@ class Formula(ABC):
                     )
                 if not isinstance(op_result, Mod):
                     op_result = Mod(op_result, field)
-                action.add_operation(op, op_result)
+                if context.current is not None:
+                    action.add_operation(op, op_result)
                 params[op.result] = op_result
             result = []
             # Go over the outputs and construct the resulting points.
@@ -248,7 +246,8 @@ class Formula(ABC):
                     full_resulting[full_variable] = params[full_variable]
                 point = Point(self.coordinate_model, **resulting)
 
-                action.add_result(point, **full_resulting)
+                if context.current is not None:
+                    action.add_result(point, **full_resulting)
                 result.append(point)
             return action.exit(tuple(result))
 

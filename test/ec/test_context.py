@@ -3,12 +3,8 @@ from unittest import TestCase
 from pyecsca.ec.context import (
     local,
     DefaultContext,
-    NullContext,
-    getcontext,
-    setcontext,
-    resetcontext,
     Tree,
-    PathContext,
+    PathContext
 )
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.params import get_params
@@ -68,18 +64,14 @@ class ContextTests(TestCase):
     def test_null(self):
         with local() as ctx:
             self.mult.multiply(59)
-        self.assertIsInstance(ctx, NullContext)
+        self.assertIs(ctx, None)
 
     def test_default(self):
-        token = setcontext(DefaultContext())
-        self.addCleanup(resetcontext, token)
-
         with local(DefaultContext()) as ctx:
             result = self.mult.multiply(59)
         self.assertEqual(len(ctx.actions), 1)
         action = next(iter(ctx.actions.keys()))
         self.assertIsInstance(action, ScalarMultiplicationAction)
-        self.assertEqual(len(getcontext().actions), 0)
         self.assertEqual(result, action.result)
 
     def test_default_no_enter(self):
@@ -100,6 +92,5 @@ class ContextTests(TestCase):
             self.mult.multiply(59)
         str(default)
         str(default.actions)
-        with local(NullContext()) as null:
+        with local(None):
             self.mult.multiply(59)
-        str(null)
