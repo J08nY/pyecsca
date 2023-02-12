@@ -147,6 +147,7 @@ class Mod:
 
     x: Any
     n: Any
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         if cls != Mod:
@@ -263,6 +264,7 @@ class RawMod(Mod):
 
     x: int
     n: int
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
@@ -367,6 +369,7 @@ _mod_classes["python"] = RawMod
 @public
 class Undefined(Mod):
     """A special undefined element."""
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
@@ -472,6 +475,7 @@ class SymbolicMod(Mod):
 
     x: Expr
     n: int
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
@@ -580,6 +584,7 @@ if has_gmp:
 
         x: gmpy2.mpz
         n: gmpy2.mpz
+        __slots__ = ("x", "n")
 
         def __new__(cls, *args, **kwargs):
             return object.__new__(cls)
