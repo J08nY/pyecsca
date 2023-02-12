@@ -10,7 +10,7 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 import random
 import secrets
 from functools import wraps, lru_cache
-from typing import Type, Dict, Any, Tuple
+from typing import Type, Dict, Any, Tuple, Union
 
 from public import public
 from sympy import Expr, FF
@@ -116,9 +116,8 @@ def _check(func):
     def method(self, other):
         if type(self) is not type(other):
             other = self.__class__(other, self.n)
-        else:
-            if self.n != other.n:
-                raise ValueError
+        elif self.n != other.n:
+            raise ValueError
         return func(self, other)
 
     return method
@@ -147,6 +146,7 @@ class Mod:
 
     x: Any
     n: Any
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         if cls != Mod:
@@ -263,6 +263,7 @@ class RawMod(Mod):
 
     x: int
     n: int
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
@@ -367,6 +368,7 @@ _mod_classes["python"] = RawMod
 @public
 class Undefined(Mod):
     """A special undefined element."""
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
@@ -472,6 +474,7 @@ class SymbolicMod(Mod):
 
     x: Expr
     n: int
+    __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
@@ -580,25 +583,30 @@ if has_gmp:
 
         x: gmpy2.mpz
         n: gmpy2.mpz
+        __slots__ = ("x", "n")
 
         def __new__(cls, *args, **kwargs):
             return object.__new__(cls)
 
-        def __init__(self, x: int, n: int):
-            self.x = gmpy2.mpz(x % n)
-            self.n = gmpy2.mpz(n)
+        def __init__(self, x: Union[int, gmpy2.mpz], n: Union[int, gmpy2.mpz], ensure: bool = True):
+            if ensure:
+                self.n = gmpy2.mpz(n)
+                self.x = gmpy2.mpz(x % self.n)
+            else:
+                self.n = n
+                self.x = x
 
         def inverse(self) -> "GMPMod":
             if self.x == 0:
                 raise_non_invertible()
             if self.x == 1:
-                return GMPMod(1, self.n)
+                return GMPMod(gmpy2.mpz(1), self.n, ensure=False)
             try:
                 res = gmpy2.invert(self.x, self.n)
             except ZeroDivisionError:
                 raise_non_invertible()
-                res = 0
-            return GMPMod(res, self.n)
+                res = gmpy2.mpz(0)
+            return GMPMod(res, self.n, ensure=False)
 
         def is_residue(self) -> bool:
             if not _is_prime(self.n):
@@ -613,7 +621,7 @@ if has_gmp:
             if not _is_prime(self.n):
                 raise NotImplementedError
             if self.x == 0:
-                return GMPMod(0, self.n)
+                return GMPMod(gmpy2.mpz(0), self.n, ensure=False)
             if not self.is_residue():
                 raise_non_residue()
             if self.n % 4 == 3:
@@ -624,12 +632,12 @@ if has_gmp:
                 q //= 2
                 s += 1
 
-            z = 2
-            while GMPMod(z, self.n).is_residue():
+            z = gmpy2.mpz(2)
+            while GMPMod(z, self.n, ensure=False).is_residue():
                 z += 1
 
             m = s
-            c = GMPMod(z, self.n) ** int(q)
+            c = GMPMod(z, self.n, ensure=False) ** int(q)
             t = self ** int(q)
             r_exp = (q + 1) // 2
             r = self ** int(r_exp)
@@ -639,17 +647,32 @@ if has_gmp:
                 while not (t ** (2 ** i)) == 1:
                     i += 1
                 two_exp = m - (i + 1)
-                b = c ** int(GMPMod(2, self.n) ** two_exp)
-                m = int(GMPMod(i, self.n))
+                b = c ** int(GMPMod(gmpy2.mpz(2), self.n, ensure=False) ** two_exp)
+                m = int(GMPMod(gmpy2.mpz(i), self.n, ensure=False))
                 c = b ** 2
                 t *= c
                 r *= b
             return r
 
         @_check
+        def __add__(self, other) -> "GMPMod":
+            return GMPMod((self.x + other.x) % self.n, self.n, ensure=False)
+
+        @_check
+        def __sub__(self, other) -> "GMPMod":
+            return GMPMod((self.x - other.x) % self.n, self.n, ensure=False)
+
+        def __neg__(self) -> "GMPMod":
+            return GMPMod(self.n - self.x, self.n, ensure=False)
+
+        @_check
+        def __mul__(self, other) -> "GMPMod":
+            return GMPMod((self.x * other.x) % self.n, self.n, ensure=False)
+
+        @_check
         def __divmod__(self, divisor) -> Tuple["GMPMod", "GMPMod"]:
             q, r = gmpy2.f_divmod(self.x, divisor.x)
-            return GMPMod(q, self.n), GMPMod(r, self.n)
+            return GMPMod(q, self.n, ensure=False), GMPMod(r, self.n, ensure=False)
 
         def __bytes__(self):
             return int(self.x).to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")
@@ -677,11 +700,11 @@ if has_gmp:
             if type(n) not in (int, gmpy2.mpz):
                 raise TypeError
             if n == 0:
-                return GMPMod(1, self.n)
+                return GMPMod(gmpy2.mpz(1), self.n, ensure=False)
             if n < 0:
                 return self.inverse() ** (-n)
             if n == 1:
-                return GMPMod(self.x, self.n)
-            return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n)
+                return GMPMod(self.x, self.n, ensure=False)
+            return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n, ensure=False)
 
     _mod_classes["gmp"] = GMPMod
