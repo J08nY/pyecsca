@@ -585,8 +585,10 @@ if has_gmp:
             return object.__new__(cls)
 
         def __init__(self, x: Union[int, gmpy2.mpz], n: Union[int, gmpy2.mpz]):
-            self.n = gmpy2.mpz(n) if not isinstance(n, gmpy2.mpz) else n
-            self.x = gmpy2.mpz(x % self.n) if not isinstance(x, gmpy2.mpz) else x % self.n
+            self.n = gmpy2.mpz(n) if not type(n) is gmpy2.mpz else n
+            self.x = gmpy2.mpz(x % self.n) if not type(x) is gmpy2.mpz else x % self.n
+            # self.x = gmpy2.mpz(x % n)
+            # self.n = gmpy2.mpz(n)
 
         def inverse(self) -> "GMPMod":
             if self.x == 0:
