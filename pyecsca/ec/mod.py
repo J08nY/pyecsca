@@ -116,9 +116,8 @@ def _check(func):
     def method(self, other):
         if type(self) is not type(other):
             other = self.__class__(other, self.n)
-        else:
-            if self.n != other.n:
-                raise ValueError
+        elif self.n != other.n:
+            raise ValueError
         return func(self, other)
 
     return method

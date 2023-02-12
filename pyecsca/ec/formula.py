@@ -222,7 +222,8 @@ class Formula(ABC):
 
         self.__validate_params(field, params)
         self.__validate_points(field, points, params)
-        self.__validate_assumptions(field, params)
+        if self.assumptions:
+            self.__validate_assumptions(field, params)
         # Execute the actual formula.
         with FormulaAction(self, *points, **params) as action:
             for op in self.code:
