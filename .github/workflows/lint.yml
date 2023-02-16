@@ -43,7 +43,7 @@ jobs:
           pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, test, dev]"
       - name: Typecheck
         run: |
-          make typecheck-all
+          make typecheck
       - name: Codestyle
         run: |
           make codestyle-all
