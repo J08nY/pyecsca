@@ -11,6 +11,7 @@ from .base import Target
 
 @public
 class CardConnectionException(Exception):
+    """Card could not be connected."""
     pass
 
 
@@ -105,6 +106,11 @@ class ISO7816Target(Target, ABC):
 
     @abstractmethod
     def connect(self, protocol: Optional[CardProtocol] = None):
+        """
+        Connect to the card.
+
+        :param protocol: CardProtocol to use.
+        """
         raise NotImplementedError
 
     @property

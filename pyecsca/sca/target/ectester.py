@@ -989,6 +989,7 @@ if has_pyscard:
 
     @public
     class ECTesterTargetPCSC(ECTesterTarget, PCSCTarget):
+        """An ECTester-applet-based target that is connected via a PCSC-compatible reader."""
         pass
 
 if has_leia:
@@ -996,4 +997,5 @@ if has_leia:
 
     @public
     class ECTesterTargetLEIA(ECTesterTarget, LEIATarget):
+        """An ECTester-applet-based target that is connected via the LEIA board."""
         pass
