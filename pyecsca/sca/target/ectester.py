@@ -10,8 +10,7 @@ from typing import Optional, Mapping, List, Union
 from public import public
 
 from .ISO7816 import CommandAPDU, ResponseAPDU, ISO7816, ISO7816Target, CardProtocol, CardConnectionException
-from .leia import LEIATarget
-from .PCSC import PCSCTarget
+from . import has_leia, has_pyscard
 from ...ec.model import ShortWeierstrassModel
 from ...ec.params import DomainParameters
 from ...ec.point import Point
@@ -985,11 +984,16 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return RunModeResponse(resp)
 
 
-@public
-class ECTesterTargetPCSC(ECTesterTarget, PCSCTarget):
-    pass
+if has_pyscard:
+    from .PCSC import PCSCTarget
 
+    @public
+    class ECTesterTargetPCSC(ECTesterTarget, PCSCTarget):
+        pass
 
-@public
-class ECTesterTargetLEIA(ECTesterTarget, LEIATarget):
-    pass
+if has_leia:
+    from .leia import LEIATarget
+
+    @public
+    class ECTesterTargetLEIA(ECTesterTarget, LEIATarget):
+        pass

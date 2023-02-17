@@ -50,8 +50,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip setuptools wheel
-          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, test, dev]"; fi
-          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, test, dev]"; fi
+          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, leia, gmp, test, dev]"; fi
+          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, leia, test, dev]"; fi
       - name: Test
         run: |
           make test

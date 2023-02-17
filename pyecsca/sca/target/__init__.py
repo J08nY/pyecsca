@@ -7,8 +7,9 @@ from .simpleserial import *
 from .binary import *
 from .flash import *
 
-has_chipwhisperer = False
-has_pyscard = False
+has_chipwhisperer: bool = False
+has_pyscard: bool = False
+has_leia: bool = False
 
 try:
     import chipwhisperer
@@ -24,9 +25,20 @@ try:
 except ImportError:  # pragma: no cover
     pass
 
+try:
+    import smartleia
+
+    has_leia = True
+except ImportError:  # pragma: no cover
+    pass
+
+from .ectester import ECTesterTarget  # noqa
+
 if has_pyscard:
     from .PCSC import *
-    from .ectester import ECTesterTarget
+
+if has_leia:
+    from .leia import *
 
 if has_chipwhisperer:
     from .chipwhisperer import *
