@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable, List, Tuple
+import json
+import sys
+from typing import Any, Callable, Dict, List, TextIO, Tuple
 
 import numpy as np
 import numpy.random as npr
@@ -11,7 +13,9 @@ from pyecsca.sca import (CPUTraceManager, GPUTraceManager, StackedTraces,
                          Trace, TraceSet, add, average, average_and_variance,
                          conditional_average, standard_deviation, variance)
 
-TimeRecord = Tuple[str, int]
+Operation = str
+Duration = int
+TimeRecord = Tuple[Operation, Duration]
 
 traceset_ops = {
     "average": average,
@@ -172,6 +176,12 @@ def _get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--repetitions", type=int,
                         default=1, help="Number of repetitions")
+    parser.add_argument(
+        "-o", "--output",
+        type=argparse.FileType("w"),
+        default=sys.stdout,
+        help="Output file"
+    )
     combine = parser.add_argument_group(
         "operations",
         "Operations to perform on the traces"
@@ -287,6 +297,95 @@ def report(time_storage: List[TimeRecord],
           f"{sum(duration for _, duration in time_storage) : 15,} ns")
 
 
+def group_times_by_operation(time_storage: List[List[TimeRecord]]) \
+        -> Dict[Operation, List[Duration]]:
+    result: Dict[Operation, List[Duration]] = {}
+    for times in time_storage:
+        for operation, duration in times:
+            if operation.startswith("stack"):
+                operation = "stack"
+            result.setdefault(operation, []).append(duration)
+
+    return result
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
+
+def export_report(time_storage: List[List[TimeRecord]],
+                  args: argparse.Namespace,
+                  output: TextIO) -> None:
+    by_operation = group_times_by_operation(time_storage)
+    data: Dict[str, Any] = {}
+    data["config"] = {
+        "repetitions": args.repetitions,
+        "operations": {
+            "device": args.device,
+            "operations": args.operations,
+            "stack": args.stack,
+            "stack_traceset": args.stack_traceset,
+        },
+        "dataset": {
+            "seed": args.seed,
+            "trace_count": args.trace_count,
+            "trace_length": args.trace_length,
+            "data_type": args.dtype,
+            "distribution": args.distribution,
+            "low": args.low,
+            "high": args.high,
+            "mean": args.mean,
+            "std_dev": args.std,
+        }
+    }
+    data["timing"] = [
+        {
+            "repetition": rep_num + 1,
+            "timings": {
+                ("stack"
+                 if name.startswith("stack")
+                 else name): duration
+                for name, duration
+                in rep
+            }
+        }
+        for rep_num, rep
+        in enumerate(time_storage)
+    ]
+
+    operations = []
+    if args.time_stack:
+        operations.append("stack")
+    operations.extend(args.operations)
+
+    data["summary"] = {
+        op: {
+            "sum": np.sum(by_operation[op]),
+            "average": np.mean(by_operation[op]),
+            "min": np.min(by_operation[op]),
+            "max": np.max(by_operation[op]),
+            "std_dev": np.std(by_operation[op]),
+            "variance": np.var(by_operation[op]),
+            "median": np.median(by_operation[op]),
+            "q25": np.quantile(by_operation[op], 0.25),
+            "q75": np.quantile(by_operation[op], 0.75),
+        }
+        for op in operations
+    }
+
+    json.dump(data,
+              output,
+              cls=NumpyEncoder,
+              indent=4)
+
+
 def repetition(args: argparse.Namespace,
                rng: npr.Generator) -> List[TimeRecord]:
     # Prepare time storage
@@ -377,6 +476,7 @@ def main(args: argparse.Namespace) -> None:
                      for rep in time_storage)
     print("\nSummary")
     print(f"Total: {total_time:,} ns")
+    export_report(time_storage, args, args.output)
 
 
 if __name__ == "__main__":
