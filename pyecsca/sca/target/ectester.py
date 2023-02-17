@@ -514,6 +514,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
     AID_CURRENT_VERSION = bytes([0x30, 0x33, 0x33])  # Version v0.3.3
     AID_SUFFIX_221 = bytes([0x62])
     AID_SUFFIX_222 = bytes([0x78])
+    AID_SUFFIX_304 = bytes([0x94])
 
     chunking: bool
 
@@ -561,13 +562,10 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         """
         version_bytes = bytearray(latest_version)
         for _ in range(count_back):
-            aid_222 = self.AID_PREFIX + version_bytes + self.AID_SUFFIX_222
-            if self.select(aid_222):
-                break
-            else:
-                aid_221 = self.AID_PREFIX + version_bytes + self.AID_SUFFIX_221
-                if self.select(aid_221):
-                    break
+            for aid_suffix in (self.AID_SUFFIX_304, self.AID_SUFFIX_222, self.AID_SUFFIX_221):
+                aid = self.AID_PREFIX + version_bytes + aid_suffix
+                if self.select(aid):
+                    return True
             # Count down by versions
             if version_bytes[2] == 0x30:
                 if version_bytes[1] == 0x30:

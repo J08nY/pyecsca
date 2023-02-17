@@ -16,6 +16,10 @@ class LEIATarget(ISO7816Target):  # pragma: no cover
     def atr(self) -> bytes:
         return self.leia.get_ATR().normalized()
 
+    @property
+    def card_present(self) -> bool:
+        return self.leia.is_card_inserted()
+
     def select(self, aid: bytes) -> bool:
         apdu = CommandAPDU(0x00, 0xA4, 0x04, 0x00, aid)
         resp = self.send_apdu(apdu)
