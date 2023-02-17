@@ -48,6 +48,7 @@ setup(
         "picoscope_alt": ["picoscope"],
         "chipwhisperer": ["chipwhisperer"],
         "smartcard": ["pyscard"],
+        "leia": ["smartleia"],
         "gmp": ["gmpy2"],
         "dev": ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"],
         "test": ["nose2", "parameterized", "coverage"],
