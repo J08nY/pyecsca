@@ -2,7 +2,7 @@ from numba import cuda
 from numba.cuda import devicearray
 import numpy as np
 from public import public
-from typing import Any, Mapping, Sequence, Tuple, Union
+from typing import Any, Mapping, Sequence, Tuple, Union, Optional
 from math import sqrt
 
 from pyecsca.sca.trace.trace import CombinedTrace
@@ -17,7 +17,7 @@ class StackedTraces:
 
     def __init__(
             self, samples: np.ndarray,
-            meta: Mapping[str, Any] = None) -> None:
+            meta: Optional[Mapping[str, Any]] = None) -> None:
         if meta is None:
             meta = {}
         self.meta = meta
@@ -25,7 +25,7 @@ class StackedTraces:
 
     @classmethod
     def fromarray(cls, traces: Sequence[np.ndarray],
-                  meta: Mapping[str, Any] = None) -> 'StackedTraces':
+                  meta: Optional[Mapping[str, Any]] = None) -> 'StackedTraces':
         ts = list(traces)
         min_samples = min(map(len, ts))
         for i, t in enumerate(ts):
@@ -97,7 +97,7 @@ class GPUTraceManager:
         return device_output, bpg
 
     def _gpu_combine1D(self, func, output_count: int = 1) \
-            -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
+            -> Tuple[CombinedTrace, ...]:
         """
         Runs GPU Cuda StackedTrace 1D combine function
 
@@ -111,12 +111,7 @@ class GPUTraceManager:
 
         func[bpg, self.tpb](self._samples_global, *device_outputs)
 
-        if len(device_outputs) == 1:
-            return CombinedTrace(
-                device_outputs[0].copy_to_host(),
-                self.traces.meta
-            )
-        return (
+        return tuple(
             CombinedTrace(device_output.copy_to_host(), self.traces.meta)
             for device_output
             in device_outputs
@@ -129,7 +124,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return self._gpu_combine1D(gpu_average, 1)
+        return self._gpu_combine1D(gpu_average, 1)[0]
 
     def conditional_average(self) -> CombinedTrace:
         """
@@ -146,7 +141,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return self._gpu_combine1D(gpu_std_dev, 1)
+        return self._gpu_combine1D(gpu_std_dev, 1)[0]
 
     def variance(self) -> CombinedTrace:
         """
@@ -155,7 +150,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return self._gpu_combine1D(gpu_variance, 1)
+        return self._gpu_combine1D(gpu_variance, 1)[0]
 
     def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         """
@@ -174,7 +169,7 @@ class GPUTraceManager:
         :param traces:
         :return:
         """
-        return self._gpu_combine1D(gpu_add, 1)
+        return self._gpu_combine1D(gpu_add, 1)[0]
 
 
 @cuda.jit(device=True)
