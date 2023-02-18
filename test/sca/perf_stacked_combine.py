@@ -214,8 +214,7 @@ def _get_parser() -> argparse.ArgumentParser:
     combine.add_argument(
         "--operations",
         nargs="*",
-        choices=["average", "conditional_average", "standard_deviation",
-                 "variance", "average_and_variance", "add"],
+        choices=traceset_ops.keys(),
         help="Operations to perform on the traces"
     )
 
@@ -224,9 +223,9 @@ def _get_parser() -> argparse.ArgumentParser:
         "Options for data generation"
     )
     dataset.add_argument("--trace-count", type=int,
-                         default=1000, help="Number of traces")
+                         default=1024, help="Number of traces")
     dataset.add_argument("--trace-length", type=int,
-                         default=1000, help="Number of samples per trace")
+                         default=1024, help="Number of samples per trace")
     dataset.add_argument("--seed", type=int, default=None,
                          help="Seed for the random number generator")
     dataset.add_argument(
@@ -359,6 +358,19 @@ def export_report(time_storage: List[List[TimeRecord]],
         for rep_num, rep
         in enumerate(time_storage)
     ]
+    data["timing"].append({
+        "repetition": "total",
+        "timings": {
+            name: sum(durations)
+            for name, durations
+            in by_operation.items()
+        },
+    })
+    data["timing"][-1]["total"] = sum(
+        duration
+        for duration
+        in data["timing"][-1]["timings"].values()
+    )
 
     operations = []
     if args.time_stack:
