@@ -21,6 +21,7 @@ It is currently in an alpha stage of development and thus only provides:
  - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see [notebook/measurement](https://neuromancer.sk/pyecsca/notebook/measurement.html))
  - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning ([pyecsca.sca](https://neuromancer.sk/pyecsca/api/pyecsca.sca.html))
  - Trace visualization using holoviews and datashader (see [notebook/visualization](https://neuromancer.sk/pyecsca/notebook/visualization.html))
+ - Communication via PCSC/LEIA with a smartcard target (see [notebook/smartcards](https://neuromancer.sk/pyecsca/notebook/smartcards.html))
 
 **pyecsca** consists of three packages:
  - the core: https://github.com/J08nY/pyecsca
@@ -49,6 +50,8 @@ It is currently in an alpha stage of development and thus only provides:
      - [chipwhisperer](https://github.com/newaetech/chipwhisperer)
    - **Smartcard support:**
      - [pyscard](https://pyscard.sourceforge.io/)
+   - **LEIA support:**
+     - [smartleia](https://pypi.org/project/smartleia/)
    - **Faster arithmetic:**
      - [gmpy2](https://gmpy2.readthedocs.io/) (and also GMP library)
 
@@ -80,13 +83,14 @@ Use [black](https://github.com/psf/black) for code-formatting.
  - [sphinx-autodoc-typehints](https://pypi.org/project/sphinx-autodoc-typehints/)
  - [nbsphinx](https://nbsphinx.readthedocs.io/)
  - [sphinx-paramlinks](https://pypi.org/project/sphinx-paramlinks/)
+ - [sphinx-design](https://sphinx-design.readthedocs.io/)
 
 
 ## License
 
     MIT License
 
-    Copyright (c) 2018-2021 Jan Jancar
+    Copyright (c) 2018-2023 Jan Jancar
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -107,5 +111,4 @@ Use [black](https://github.com/psf/black) for code-formatting.
     SOFTWARE.
 
 
-*Development is supported by the Masaryk University grant [MUNI/C/1701/2018](https://www.muni.cz/en/research/projects/46834),
-this support is very appreciated.*
+*Development was supported by the Masaryk University grant [MUNI/C/1701/2018](https://www.muni.cz/en/research/projects/46834).*

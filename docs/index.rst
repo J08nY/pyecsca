@@ -25,24 +25,62 @@ is to be able to reverse engineer the curve model, coordinate system, addition f
 multiplier and even finite-field implementation details.
 
 It is currently in an alpha stage of development and thus only provides:
- - Enumeration of millions of possible ECC implementation configurations (see :doc:`notebook/configuration_space`)
- - Simulation and execution tracing of key generation, ECDH and ECDSA (see :doc:`notebook/simulation`)
- - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`)
- - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see :doc:`notebook/measurement`)
- - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning (:doc:`api/pyecsca.sca`)
- - Trace visualization using holoviews and datashader (see :doc:`notebook/visualization`)
 
-**pyecsca** consists of three packages:
- - the core: https://github.com/J08nY/pyecsca
- - the codegen package: https://github.com/J08nY/pyecsca-codegen
- - the notebook package: https://github.com/J08nY/pyecsca-notebook
+.. card:: Enumeration
 
-Notebooks
-=========
+    Enumeration of millions of possible ECC implementation configurations (see :doc:`notebook/configuration_space`)
+
+.. card:: Simulation
+
+    Simulation and execution tracing of key generation, ECDH and ECDSA (see :doc:`notebook/simulation`)
+
+.. card:: Code generation
+
+    Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`)
+
+.. card:: Trace acquisition
+
+    Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see :doc:`notebook/measurement`)
+
+.. card:: Trace processing
+
+    Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning (:doc:`api/pyecsca.sca`)
+
+.. card:: Trace visualization
+
+    Trace visualization using holoviews and datashader (see :doc:`notebook/visualization`)
+
+.. card:: Smartcard communication
+
+    Communication via PCSC/LEIA with a smartcard target (see :doc:`notebook/smartcards`)
+
+**pyecsca** consists of three repositories:
+
+.. grid:: 3
+
+    .. grid-item-card::  Core
+
+        The `core <https://github.com/J08nY/pyecsca>`_ package contains the core of the
+        functionality, except the code generation and notebooks.
+
+    .. grid-item-card::  Codegen
+
+    	The `codegen <https://github.com/J08nY/pyecsca-codegen>`_ package contains
+    	the code generation functionality.
+
+    .. grid-item-card::  Notebook
+
+    	The `notebook <https://github.com/J08nY/pyecsca-notebook>`_ repository contains
+    	example notebooks that showcase functionality of the toolkit.
+
+
+:fas:`book` Notebooks
+=========================
 The notebooks below contain a showcase of what is possible using **pyecsca** and
 are the best source of documentation on how to use **pyecsca**.
 
 .. toctree::
+   :caption: Notebooks
    :titlesonly:
    :maxdepth: 1
 
@@ -51,9 +89,10 @@ are the best source of documentation on how to use **pyecsca**.
    notebook/codegen
    notebook/measurement
    notebook/visualization
+   notebook/smartcards
 
-API reference
-=============
+:fas:`code` API reference
+=========================
 
 .. toctree::
    :caption: API reference
@@ -65,70 +104,76 @@ API reference
 Requirements
 ============
 
- - Numpy_
- - Scipy_
- - sympy_
- - atpublic_
- - fastdtw_
- - asn1crypto_
- - h5py_
- - holoviews_
- - bokeh_
- - datashader_
- - matplotlib_
- - xarray_
- - astunparse_
- - **Optionally**:
+.. dropdown:: General
 
-   - **Oscilloscope support:**
+	 - Numpy_
+	 - Scipy_
+	 - sympy_
+	 - atpublic_
+	 - fastdtw_
+	 - asn1crypto_
+	 - h5py_
+	 - holoviews_
+	 - bokeh_
+	 - datashader_
+	 - matplotlib_
+	 - xarray_
+	 - astunparse_
+	 - **Optionally**:
 
-     - picosdk_
-     - picoscope_
-     - chipwhisperer_
-   - **Smartcard support:**
+	   - **Oscilloscope support:**
 
-     - pyscard_
+	     - picosdk_
+	     - picoscope_
+	     - chipwhisperer_
+	   - **Smartcard support:**
 
-   - **Faster arithmetic:**
+	     - pyscard_
+	   - **LEIA support:**
 
-     - gmpy2_ (and also GMP library)
+	     - leia_
+	   - **Faster arithmetic:**
 
-*pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
+	     - gmpy2_ (and also GMP library)
 
-It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
+	*pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
+
+	It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
 
 
-Testing & Development
----------------------
+.. dropdown:: Testing & Development
 
-See the Makefile for tests, performance measurement, codestyle and type checking commands.
-Use black_ for code-formatting.
+	See the Makefile for tests, performance measurement, codestyle and type checking commands.
+	Use black_ for code-formatting.
 
- - nose2_
- - green_
- - parameterized_
- - mypy_
- - flake8_
- - coverage_
- - interrogate_
- - pyinstrument_
- - pre-commit_
- - black_
+	 - nose2_
+	 - green_
+	 - parameterized_
+	 - mypy_
+	 - flake8_
+	 - coverage_
+	 - interrogate_
+	 - pyinstrument_
+	 - pre-commit_
+	 - black_
 
-Docs
-----
 
- - sphinx_
- - sphinx-autodoc-typehints_
- - nbsphinx_
- - sphinx-paramlinks_
+.. dropdown:: Docs
+
+	 - sphinx_
+	 - sphinx-autodoc-typehints_
+	 - nbsphinx_
+	 - sphinx-paramlinks_
+	 - sphinx-design_
 
 License
 =======
 
+.. dropdown:: MIT License
+
     MIT License
 
-    Copyright (c) 2018-2021 Jan Jancar
+    Copyright (c) 2018-2023 Jan Jancar
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -148,8 +193,7 @@ License
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-Development is supported by the Masaryk University grant `MUNI/C/1707/2018 <https://www.muni.cz/en/research/projects/46834>`_,
-this support is very appreciated.
+Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <https://www.muni.cz/en/research/projects/46834>`_.
 
 .. _Numpy: https://www.numpy.org
 .. _Scipy: https://www.scipy.org
@@ -168,6 +212,7 @@ this support is very appreciated.
 .. _picoscope: https://github.com/colinoflynn/pico-python
 .. _chipwhisperer: https://github.com/newaetech/chipwhisperer
 .. _pyscard: https://pyscard.sourceforge.io/
+.. _leia: https://pypi.org/project/smartleia/
 .. _gmpy2: https://gmpy2.readthedocs.io/
 .. _nose2: https://nose2.readthedocs.io
 .. _green: https://github.com/CleanCut/green
@@ -183,5 +228,6 @@ this support is very appreciated.
 .. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
 .. _nbsphinx: https://nbsphinx.readthedocs.io/
 .. _sphinx-paramlinks: https://pypi.org/project/sphinx-paramlinks/
+.. _sphinx-design: https://pypi.org/project/sphinx_design/
 .. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
 .. _Riscure: https://www.riscure.com/

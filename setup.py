@@ -52,6 +52,6 @@ setup(
         "gmp": ["gmpy2"],
         "dev": ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"],
         "test": ["nose2", "parameterized", "coverage"],
-        "doc": ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks"]
+        "doc": ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
     }
 )
