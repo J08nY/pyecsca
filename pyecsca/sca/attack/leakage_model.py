@@ -1,7 +1,26 @@
 import abc
 from typing import Literal, ClassVar
 
+from numpy.random import default_rng
+from public import public
 
+
+@public
+class NormalNoice:
+    """
+    https://www.youtube.com/watch?v=SAfq55aiqPc
+    """
+
+    def __init__(self, mean: float, sdev: float):
+        self.rng = default_rng()
+        self.mean = mean
+        self.sdev = sdev
+
+    def __call__(self, *args, **kwargs) -> float:
+        return args[0] + self.rng.normal(self.mean, self.sdev)
+
+
+@public
 class LeakageModel(abc.ABC):
     num_args: ClassVar[int]
 
@@ -10,6 +29,7 @@ class LeakageModel(abc.ABC):
         raise NotImplementedError
 
 
+@public
 class Identity(LeakageModel):
     num_args = 1
 
@@ -17,6 +37,7 @@ class Identity(LeakageModel):
         return int(args[0])
 
 
+@public
 class Bit(LeakageModel):
     num_args = 1
 
@@ -30,6 +51,7 @@ class Bit(LeakageModel):
         return (int(args[0]) & self.mask) >> self.which  # type: ignore
 
 
+@public
 class Slice(LeakageModel):
     num_args = 1
 
@@ -46,6 +68,7 @@ class Slice(LeakageModel):
         return (int(args[0]) & self.mask) >> self.begin
 
 
+@public
 class HammingWeight(LeakageModel):
     num_args = 1
 
@@ -53,6 +76,7 @@ class HammingWeight(LeakageModel):
         return int(args[0]).bit_count()
 
 
+@public
 class HammingDistance(LeakageModel):
     num_args = 2
 
@@ -60,6 +84,7 @@ class HammingDistance(LeakageModel):
         return (int(args[0]) ^ int(args[1])).bit_count()
 
 
+@public
 class BitLength(LeakageModel):
     num_args = 1
 
