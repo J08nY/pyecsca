@@ -55,6 +55,8 @@ class FormulaAction(ResultAction):
     """The input points."""
     intermediates: MutableMapping[str, List[OpResult]]
     """Intermediates computed during execution."""
+    op_results: List[OpResult]
+    """"""
     outputs: MutableMapping[str, OpResult]
     """The output variables."""
     output_points: List[Any]
@@ -65,6 +67,7 @@ class FormulaAction(ResultAction):
         self.formula = formula
         self.inputs = inputs
         self.intermediates = {}
+        self.op_results = []
         self.outputs = {}
         self.input_points = list(points)
         self.output_points = []
@@ -76,8 +79,10 @@ class FormulaAction(ResultAction):
                 parents.append(self.intermediates[parent][-1])
             elif parent in self.inputs:
                 parents.append(self.inputs[parent])
+        result = OpResult(op.result, value, op.operator, *parents)
         li = self.intermediates.setdefault(op.result, [])
-        li.append(OpResult(op.result, value, op.operator, *parents))
+        li.append(result)
+        self.op_results.append(result)
 
     def add_result(self, point: Any, **outputs: Mod):
         for k in outputs:

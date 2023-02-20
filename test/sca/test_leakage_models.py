@@ -1,6 +1,10 @@
 from unittest import TestCase
 
+from pyecsca.ec.context import local, DefaultContext
+from pyecsca.ec.formula import FormulaAction
 from pyecsca.ec.mod import Mod
+from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.params import get_params
 from pyecsca.sca.attack.leakage_model import Identity, Bit, Slice, HammingWeight, HammingDistance, BitLength
 
 
@@ -46,3 +50,41 @@ class LeakageModelTests(TestCase):
         a = Mod(0b11110000, 0xf00)
         lm = BitLength()
         self.assertEqual(lm(a), 8)
+
+
+class ModelTraceTests(TestCase):
+
+    def setUp(self):
+        self.secp128r1 = get_params("secg", "secp128r1", "projective")
+        self.base = self.secp128r1.generator
+        self.coords = self.secp128r1.curve.coordinate_model
+        self.add = self.coords.formulas["add-1998-cmo"]
+        self.dbl = self.coords.formulas["dbl-1998-cmo"]
+        self.neg = self.coords.formulas["neg"]
+        self.scale = self.coords.formulas["z"]
+
+    def test_mult(self):
+        scalar = 0x123456789
+        mult = LTRMultiplier(
+            self.add,
+            self.dbl,
+            self.scale,
+            always=True,
+            complete=False,
+            short_circuit=True,
+        )
+        with local(DefaultContext()) as ctx:
+            mult.init(self.secp128r1, self.base)
+            mult.multiply(scalar)
+
+        lm = HammingWeight()
+        trace = []
+
+        def callback(action):
+            if isinstance(action, FormulaAction):
+                for intermediate in action.op_results:
+                    leak = lm(intermediate.value)
+                    trace.append(leak)
+
+        ctx.actions.walk(callback)
+        self.assertGreater(len(trace), 0)
