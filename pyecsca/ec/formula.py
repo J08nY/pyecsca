@@ -29,6 +29,8 @@ class OpResult:
     value: Mod
 
     def __init__(self, name: str, value: Mod, op: OpType, *parents: Any):
+        if len(parents) != op.num_inputs:
+            raise ValueError(f"Wrong number of parents ({len(parents)}) to OpResult: {op} ({op.num_inputs}).")
         self.parents = tuple(parents)
         self.name = name
         self.value = value
@@ -56,7 +58,7 @@ class FormulaAction(ResultAction):
     intermediates: MutableMapping[str, List[OpResult]]
     """Intermediates computed during execution."""
     op_results: List[OpResult]
-    """"""
+    """The intermediates but ordered as they were computed."""
     outputs: MutableMapping[str, OpResult]
     """The output variables."""
     output_points: List[Any]
@@ -73,12 +75,15 @@ class FormulaAction(ResultAction):
         self.output_points = []
 
     def add_operation(self, op: CodeOp, value: Mod):
-        parents: List[Union[Mod, OpResult]] = []
-        for parent in {*op.variables, *op.parameters}:
-            if parent in self.intermediates:
-                parents.append(self.intermediates[parent][-1])
-            elif parent in self.inputs:
-                parents.append(self.inputs[parent])
+        parents: List[Union[int, Mod, OpResult]] = []
+        for parent in op.parents:
+            if isinstance(parent, str):
+                if parent in self.intermediates:
+                    parents.append(self.intermediates[parent][-1])
+                elif parent in self.inputs:
+                    parents.append(self.inputs[parent])
+            else:
+                parents.append(parent)
         result = OpResult(op.result, value, op.operator, *parents)
         li = self.intermediates.setdefault(op.result, [])
         li.append(result)

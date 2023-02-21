@@ -1,9 +1,10 @@
 from unittest import TestCase
 
 from pyecsca.ec.context import local, DefaultContext
-from pyecsca.ec.formula import FormulaAction
+from pyecsca.ec.formula import FormulaAction, OpResult
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.op import OpType
 from pyecsca.ec.params import get_params
 from pyecsca.sca.attack.leakage_model import Identity, Bit, Slice, HammingWeight, HammingDistance, BitLength
 
@@ -63,7 +64,7 @@ class ModelTraceTests(TestCase):
         self.neg = self.coords.formulas["neg"]
         self.scale = self.coords.formulas["z"]
 
-    def test_mult(self):
+    def test_mult_hw(self):
         scalar = 0x123456789
         mult = LTRMultiplier(
             self.add,
@@ -85,6 +86,34 @@ class ModelTraceTests(TestCase):
                 for intermediate in action.op_results:
                     leak = lm(intermediate.value)
                     trace.append(leak)
+
+        ctx.actions.walk(callback)
+        self.assertGreater(len(trace), 0)
+
+    def test_mult_hd(self):
+        scalar = 0x123456789
+        mult = LTRMultiplier(
+            self.add,
+            self.dbl,
+            self.scale,
+            always=True,
+            complete=False,
+            short_circuit=True,
+        )
+        with local(DefaultContext()) as ctx:
+            mult.init(self.secp128r1, self.base)
+            mult.multiply(scalar)
+
+        lm = HammingDistance()
+        trace = []
+
+        def callback(action):
+            if isinstance(action, FormulaAction):
+                for intermediate in action.op_results:
+                    if intermediate.op == OpType.Mult:
+                        values = list(map(lambda v: v.value if isinstance(v, OpResult) else v, intermediate.parents))
+                        leak = lm(*values)
+                        trace.append(leak)
 
         ctx.actions.walk(callback)
         self.assertGreater(len(trace), 0)
