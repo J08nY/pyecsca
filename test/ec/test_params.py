@@ -2,10 +2,14 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.point import Point, InfinityPoint
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.error import UnsatisfiedAssumptionError
-from pyecsca.ec.params import get_params, load_params, load_category, get_category
+from pyecsca.ec.params import get_params, load_params, load_category, get_category, DomainParameters
+from pyecsca.ec.model import ShortWeierstrassModel
+from pyecsca.ec.curve import EllipticCurve
 
 
 class DomainParameterTests(TestCase):
@@ -98,3 +102,21 @@ class DomainParameterTests(TestCase):
     def test_affine(self):
         aff = get_params("secg", "secp128r1", "affine")
         self.assertIsInstance(aff.curve.coordinate_model, AffineCoordinateModel)
+
+    def test_custom_params(self):
+        model = ShortWeierstrassModel()
+        coords = model.coordinates["projective"]
+        p = 0xd7d1247f
+        a = Mod(0xa4a44016, p)
+        b = Mod(0x73f76716, p)
+        n = 0xd7d2a475
+        h = 1
+        gx, gy, gz = Mod(0x54eed6d7, p), Mod(0x6f1e55ac, p), Mod(1, p)
+        generator = Point(coords, X=gx, Y=gy, Z=gz)
+        neutral = InfinityPoint(coords)
+
+        curve = EllipticCurve(model, coords, p, neutral, {"a": a, "b": b})
+        params = DomainParameters(curve, generator, n, h)
+        self.assertIsNotNone(params)
+        res = params.curve.affine_double(generator.to_affine())
+        self.assertIsNotNone(res)
