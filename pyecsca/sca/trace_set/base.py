@@ -1,4 +1,4 @@
-"""This module provides a base traceset class."""
+"""Provides a base traceset class."""
 from pathlib import Path
 from typing import List, Union, BinaryIO
 

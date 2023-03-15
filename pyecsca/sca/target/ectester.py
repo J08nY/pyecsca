@@ -1,4 +1,4 @@
-"""This module provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class."""
+"""Provides an `ECTester <https://github.com/crocs-muni/ECTester/>`_ target class."""
 from abc import ABC
 from binascii import hexlify
 from enum import IntEnum, IntFlag
@@ -8,11 +8,9 @@ from operator import or_
 from typing import Optional, Mapping, List, Union
 
 from public import public
-from smartcard.CardConnection import CardConnection
-from smartcard.Exceptions import CardConnectionException
 
-from .ISO7816 import CommandAPDU, ResponseAPDU, ISO7816
-from .PCSC import PCSCTarget
+from .ISO7816 import CommandAPDU, ResponseAPDU, ISO7816, ISO7816Target, CardProtocol, CardConnectionException
+from . import has_leia, has_pyscard
 from ...ec.model import ShortWeierstrassModel
 from ...ec.params import DomainParameters
 from ...ec.point import Point
@@ -247,7 +245,7 @@ class Response(ABC):  # pragma: no cover
         offset = 0
         for i in range(num_sw):
             if len(resp.data) >= offset + 2:
-                self.sws[i] = int.from_bytes(resp.data[offset : offset + 2], "big")
+                self.sws[i] = int.from_bytes(resp.data[offset: offset + 2], "big")
                 offset += 2
                 if self.sws[i] != ISO7816.SW_NO_ERROR:
                     self.success = False
@@ -264,13 +262,13 @@ class Response(ABC):  # pragma: no cover
                 self.success = False
                 self.error = True
                 break
-            param_len = int.from_bytes(resp.data[offset : offset + 2], "big")
+            param_len = int.from_bytes(resp.data[offset: offset + 2], "big")
             offset += 2
             if len(resp.data) < offset + param_len:
                 self.success = False
                 self.error = True
                 break
-            self.params[i] = resp.data[offset : offset + param_len]
+            self.params[i] = resp.data[offset: offset + param_len]
             offset += param_len
 
     def __repr__(self):
@@ -342,11 +340,11 @@ class ExportResponse(Response):  # pragma: no cover
     parameters: ParameterEnum
 
     def __init__(
-        self,
-        resp: ResponseAPDU,
-        keypair: KeypairEnum,
-        key: KeyEnum,
-        params: ParameterEnum,
+            self,
+            resp: ResponseAPDU,
+            keypair: KeypairEnum,
+            key: KeyEnum,
+            params: ParameterEnum,
     ):
         self.keypair = keypair
         self.key = key
@@ -472,31 +470,31 @@ class InfoResponse(Response):  # pragma: no cover
         super().__init__(resp, 1, 0)
 
         offset = 2
-        version_len = int.from_bytes(resp.data[offset : offset + 2], "big")
+        version_len = int.from_bytes(resp.data[offset: offset + 2], "big")
         offset += 2
-        self.version = resp.data[offset : offset + version_len].decode()
+        self.version = resp.data[offset: offset + version_len].decode()
         offset += version_len
         self.base = AppletBaseEnum(
-            int.from_bytes(resp.data[offset : offset + 2], "big")
+            int.from_bytes(resp.data[offset: offset + 2], "big")
         )
         offset += 2
-        system_version = int.from_bytes(resp.data[offset : offset + 2], "big")
+        system_version = int.from_bytes(resp.data[offset: offset + 2], "big")
         system_major = system_version >> 8
         system_minor = system_version & 0xFF
         minor_size = 1 if system_minor == 0 else ceil(log(system_minor, 10))
         self.system_version = system_major + system_minor / (minor_size * 10)
         offset += 2
         self.object_deletion_supported = (
-            int.from_bytes(resp.data[offset : offset + 2], "big") == 1
+                int.from_bytes(resp.data[offset: offset + 2], "big") == 1
         )
         offset += 2
-        self.buf_len = int.from_bytes(resp.data[offset : offset + 2], "big")
+        self.buf_len = int.from_bytes(resp.data[offset: offset + 2], "big")
         offset += 2
-        self.ram1_len = int.from_bytes(resp.data[offset : offset + 2], "big")
+        self.ram1_len = int.from_bytes(resp.data[offset: offset + 2], "big")
         offset += 2
-        self.ram2_len = int.from_bytes(resp.data[offset : offset + 2], "big")
+        self.ram2_len = int.from_bytes(resp.data[offset: offset + 2], "big")
         offset += 2
-        self.apdu_len = int.from_bytes(resp.data[offset : offset + 2], "big")
+        self.apdu_len = int.from_bytes(resp.data[offset: offset + 2], "big")
         offset += 2
 
     def __repr__(self):
@@ -508,7 +506,7 @@ class InfoResponse(Response):  # pragma: no cover
 
 
 @public
-class ECTesterTarget(PCSCTarget):  # pragma: no cover
+class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
     """Smartcard target which communicates with the `ECTester <https://github.com/crocs-muni/ECTester>`_ sapplet on smartcards of the JavaCard platform using PCSC."""
 
     CLA_ECTESTER = 0xB0
@@ -516,18 +514,19 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
     AID_CURRENT_VERSION = bytes([0x30, 0x33, 0x33])  # Version v0.3.3
     AID_SUFFIX_221 = bytes([0x62])
     AID_SUFFIX_222 = bytes([0x78])
+    AID_SUFFIX_304 = bytes([0x94])
 
     chunking: bool
 
-    def connect(self):
+    def connect(self, protocol: Optional[CardProtocol] = None):
         self.chunking = False
         try:
-            self.connection.connect(CardConnection.T1_protocol)
+            super().connect(CardProtocol.T1)
         except CardConnectionException:
-            self.connection.connect(CardConnection.T0_protocol)
+            super().connect(CardProtocol.T0)
             self.chunking = True
 
-    def send_apdu(self, apdu: CommandAPDU) -> ResponseAPDU:
+    def send(self, apdu: CommandAPDU) -> ResponseAPDU:
         if self.chunking:
             data = bytes(apdu)
             num_chunks = (len(data) + 254) // 255
@@ -536,23 +535,23 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
                 chunk_length = 255
                 if chunk_start + chunk_length > len(data):
                     chunk_length = len(data) - chunk_start
-                chunk = data[chunk_start : chunk_start + chunk_length]
+                chunk = data[chunk_start: chunk_start + chunk_length]
                 chunk_apdu = CommandAPDU(
                     self.CLA_ECTESTER, InstructionEnum.INS_BUFFER, 0, 0, chunk
                 )
-                resp = super().send_apdu(chunk_apdu)
+                resp = self.send_apdu(chunk_apdu)
                 if resp.sw != 0x9000:
                     raise ChunkingException()
             apdu = CommandAPDU(self.CLA_ECTESTER, InstructionEnum.INS_PERFORM, 0, 0)
-        resp = super().send_apdu(apdu)
+        resp = self.send_apdu(apdu)
         if resp.sw & 0xFF00 == ISO7816.SW_BYTES_REMAINING_00:
-            resp = super().send_apdu(
+            resp = self.send_apdu(
                 CommandAPDU(0x00, 0xC0, 0x00, 0x00, None, resp.sw & 0xFF)
             )
         return resp
 
     def select_applet(
-        self, latest_version: bytes = AID_CURRENT_VERSION, count_back: int = 10
+            self, latest_version: bytes = AID_CURRENT_VERSION, count_back: int = 10
     ) -> bool:
         """
         Select the *ECTester* applet, with a specified version or older.
@@ -563,13 +562,10 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         """
         version_bytes = bytearray(latest_version)
         for _ in range(count_back):
-            aid_222 = self.AID_PREFIX + version_bytes + self.AID_SUFFIX_222
-            if self.select(aid_222):
-                break
-            else:
-                aid_221 = self.AID_PREFIX + version_bytes + self.AID_SUFFIX_221
-                if self.select(aid_221):
-                    break
+            for aid_suffix in (self.AID_SUFFIX_304, self.AID_SUFFIX_222, self.AID_SUFFIX_221):
+                aid = self.AID_PREFIX + version_bytes + aid_suffix
+                if self.select(aid):
+                    return True
             # Count down by versions
             if version_bytes[2] == 0x30:
                 if version_bytes[1] == 0x30:
@@ -590,7 +586,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
 
     @staticmethod
     def encode_parameters(
-        params: ParameterEnum, obj: Union[DomainParameters, Point, int]
+            params: ParameterEnum, obj: Union[DomainParameters, Point, int]
     ) -> Mapping[ParameterEnum, bytes]:
         """Encode values from `obj` into the byte parameters that the **ECTester** applet expects."""
 
@@ -603,7 +599,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
 
         result = {}
         if isinstance(obj, DomainParameters) and isinstance(
-            obj.curve.model, ShortWeierstrassModel
+                obj.curve.model, ShortWeierstrassModel
         ):
             for param in params & ParameterEnum.DOMAIN_FP:
                 if param == ParameterEnum.G:
@@ -623,7 +619,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
                 result[param] = convert_point(obj)
         elif isinstance(obj, int):
             for param in params & (
-                (ParameterEnum.DOMAIN_FP ^ ParameterEnum.G) | ParameterEnum.S
+                    (ParameterEnum.DOMAIN_FP ^ ParameterEnum.G) | ParameterEnum.S
             ):
                 result[param] = convert_int(obj)
         else:
@@ -637,7 +633,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param ka_type: Which KeyAgreement type to allocate.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ALLOCATE_KA,
@@ -655,7 +651,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param sig_type: Which Signature type to allocate.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ALLOCATE_SIG,
@@ -667,11 +663,11 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return AllocateSigResponse(resp)
 
     def allocate(
-        self,
-        keypair: KeypairEnum,
-        builder: KeyBuildEnum,
-        key_length: int,
-        key_class: KeyClassEnum,
+            self,
+            keypair: KeypairEnum,
+            builder: KeyBuildEnum,
+            key_length: int,
+            key_class: KeyClassEnum,
     ) -> AllocateResponse:
         """
         Send the Allocate KeyPair command.
@@ -682,7 +678,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param key_class: Type of the allocated keypair.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ALLOCATE,
@@ -700,17 +696,17 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param keypair: Which keypair to clear.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(self.CLA_ECTESTER, InstructionEnum.INS_CLEAR, keypair, 0, None)
         )
         return ClearResponse(resp, keypair)
 
     def set(
-        self,
-        keypair: KeypairEnum,
-        curve: CurveEnum,
-        params: ParameterEnum,
-        values: Optional[Mapping[ParameterEnum, bytes]] = None,
+            self,
+            keypair: KeypairEnum,
+            curve: CurveEnum,
+            params: ParameterEnum,
+            values: Optional[Mapping[ParameterEnum, bytes]] = None,
     ) -> SetResponse:
         """
         Send the Set command.
@@ -732,7 +728,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
                 if e == ParameterEnum.S:
                     break
                 e <<= 1
-            resp = self.send_apdu(
+            resp = self.send(
                 CommandAPDU(
                     self.CLA_ECTESTER, InstructionEnum.INS_SET, keypair, curve, payload
                 )
@@ -740,7 +736,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         elif values is not None:
             raise ValueError("Values should be specified only if curve is external.")
         else:
-            resp = self.send_apdu(
+            resp = self.send(
                 CommandAPDU(
                     self.CLA_ECTESTER,
                     InstructionEnum.INS_SET,
@@ -752,11 +748,11 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return SetResponse(resp, keypair)
 
     def transform(
-        self,
-        keypair: KeypairEnum,
-        key: KeyEnum,
-        params: ParameterEnum,
-        transformation: TransformationEnum,
+            self,
+            keypair: KeypairEnum,
+            key: KeyEnum,
+            params: ParameterEnum,
+            transformation: TransformationEnum,
     ) -> TransformResponse:
         """
         Send the Transform command.
@@ -767,7 +763,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param transformation: What transformation to apply.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_TRANSFORM,
@@ -785,7 +781,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param keypair: Which keypair to generate.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER, InstructionEnum.INS_GENERATE, keypair, 0, None
             )
@@ -793,7 +789,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return GenerateResponse(resp, keypair)
 
     def export(
-        self, keypair: KeypairEnum, key: KeyEnum, params: ParameterEnum
+            self, keypair: KeypairEnum, key: KeyEnum, params: ParameterEnum
     ) -> ExportResponse:
         """
         Send the Export command.
@@ -803,7 +799,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param params: Which parameters to export.
         :return: The response, containing the exported parameters.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_EXPORT,
@@ -815,12 +811,12 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return ExportResponse(resp, keypair, key, params)
 
     def ecdh(
-        self,
-        pubkey: KeypairEnum,
-        privkey: KeypairEnum,
-        export: bool,
-        transformation: TransformationEnum,
-        ka_type: KeyAgreementEnum,
+            self,
+            pubkey: KeypairEnum,
+            privkey: KeypairEnum,
+            export: bool,
+            transformation: TransformationEnum,
+            ka_type: KeyAgreementEnum,
     ) -> ECDHResponse:
         """
         Send the ECDH command.
@@ -832,7 +828,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param ka_type: The key-agreement type to use.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ECDH,
@@ -846,12 +842,12 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return ECDHResponse(resp, export)
 
     def ecdh_direct(
-        self,
-        privkey: KeypairEnum,
-        export: bool,
-        transformation: TransformationEnum,
-        ka_type: KeyAgreementEnum,
-        pubkey: bytes,
+            self,
+            privkey: KeypairEnum,
+            export: bool,
+            transformation: TransformationEnum,
+            ka_type: KeyAgreementEnum,
+            pubkey: bytes,
     ) -> ECDHResponse:
         """
         Send the ECDH direct command.
@@ -863,7 +859,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param pubkey: The raw bytes that will be used as a pubkey in the key-agreement.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ECDH_DIRECT,
@@ -878,7 +874,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return ECDHResponse(resp, export)
 
     def ecdsa(
-        self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
+            self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
     ) -> ECDSAResponse:
         """
         Send the ECDSA command.
@@ -889,7 +885,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param data: The data to sign and verify.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ECDSA,
@@ -901,7 +897,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return ECDSAResponse(resp, export)
 
     def ecdsa_sign(
-        self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
+            self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
     ) -> ECDSAResponse:
         """
         Send the ECDSA sign command.
@@ -912,7 +908,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param data: The data to sign.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ECDSA_SIGN,
@@ -924,7 +920,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         return ECDSAResponse(resp, export)
 
     def ecdsa_verify(
-        self, keypair: KeypairEnum, sig_type: SignatureEnum, sig: bytes, data: bytes
+            self, keypair: KeypairEnum, sig_type: SignatureEnum, sig: bytes, data: bytes
     ) -> ECDSAResponse:
         """
         Send the ECDSA verify command.
@@ -935,7 +931,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
         :param data: The data.
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_ECDSA_VERIFY,
@@ -952,7 +948,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
 
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(self.CLA_ECTESTER, InstructionEnum.INS_CLEANUP, 0, 0, None)
         )
         return CleanupResponse(resp)
@@ -963,7 +959,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
 
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(self.CLA_ECTESTER, InstructionEnum.INS_GET_INFO, 0, 0, None)
         )
         return InfoResponse(resp)
@@ -974,7 +970,7 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
 
         :return: The response.
         """
-        resp = self.send_apdu(
+        resp = self.send(
             CommandAPDU(
                 self.CLA_ECTESTER,
                 InstructionEnum.INS_SET_DRY_RUN_MODE,
@@ -984,3 +980,20 @@ class ECTesterTarget(PCSCTarget):  # pragma: no cover
             )
         )
         return RunModeResponse(resp)
+
+
+if has_pyscard:
+    from .PCSC import PCSCTarget
+
+    @public
+    class ECTesterTargetPCSC(ECTesterTarget, PCSCTarget):
+        """An ECTester-applet-based target that is connected via a PCSC-compatible reader."""
+        pass
+
+if has_leia:
+    from .leia import LEIATarget
+
+    @public
+    class ECTesterTargetLEIA(ECTesterTarget, LEIATarget):
+        """An ECTester-applet-based target that is connected via the LEIA board."""
+        pass

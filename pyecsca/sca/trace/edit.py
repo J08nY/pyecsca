@@ -1,13 +1,13 @@
-"""This module provides functions for editing traces as if they were tapes you can trim, reverse, etc."""
+"""Provides functions for editing traces as if they were tapes you can trim, reverse, etc."""
 import numpy as np
 from public import public
-from typing import Union, Tuple, Any
+from typing import Union, Tuple, Any, Optional
 
 from .trace import Trace
 
 
 @public
-def trim(trace: Trace, start: int = None, end: int = None) -> Trace:
+def trim(trace: Trace, start: Optional[int] = None, end: Optional[int] = None) -> Trace:
     """
     Trim the `trace` samples, output contains samples between the `start` and `end` indices.
 

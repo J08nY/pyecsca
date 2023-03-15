@@ -1,4 +1,4 @@
-"""This module provides an abstract base class for oscilloscopes."""
+"""Provides an abstract base class for oscilloscopes."""
 from enum import Enum, auto
 from typing import Tuple, Sequence, Optional
 

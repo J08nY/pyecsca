@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../notebook/'))
 # -- Project information -----------------------------------------------------
 
 project = 'pyecsca'
-copyright = '2018-2021, Jan Jancar'
+copyright = '2018-2023, Jan Jancar'
 author = 'Jan Jancar'
 
 sys.path.append(os.path.abspath('..'))
@@ -47,6 +47,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx_paramlinks',
+    'sphinx_design',
     'nbsphinx'
 ]
 
@@ -67,7 +68,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -108,7 +109,8 @@ html_favicon = "_static/logo_black.png"
 
 html_css_files = [
     'custom.css',
-    'graphik.css'
+    'graphik.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css'
 ]
 
 # Custom sidebar templates, must be a dictionary that maps document names
@@ -212,3 +214,4 @@ autodoc_default_options = {
 autoclass_content = "both"
 
 nbsphinx_allow_errors = True
+nbsphinx_execute = "never"

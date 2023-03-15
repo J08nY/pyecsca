@@ -1,4 +1,4 @@
-"""This module provides several classes implementing different scalar multiplication algorithms."""
+"""Provides several classes implementing different scalar multiplication algorithms."""
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
@@ -203,7 +203,7 @@ class LTRMultiplier(ScalarMultiplier):
         self,
         add: AdditionFormula,
         dbl: DoublingFormula,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         always: bool = False,
         complete: bool = True,
         short_circuit: bool = True,
@@ -254,7 +254,7 @@ class RTLMultiplier(ScalarMultiplier):
         self,
         add: AdditionFormula,
         dbl: DoublingFormula,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         always: bool = False,
         short_circuit: bool = True,
     ):
@@ -300,7 +300,7 @@ class CoronMultiplier(ScalarMultiplier):
         self,
         add: AdditionFormula,
         dbl: DoublingFormula,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
@@ -334,8 +334,8 @@ class LadderMultiplier(ScalarMultiplier):
     def __init__(
         self,
         ladd: LadderFormula,
-        dbl: DoublingFormula = None,
-        scl: ScalingFormula = None,
+        dbl: Optional[DoublingFormula] = None,
+        scl: Optional[ScalingFormula] = None,
         complete: bool = True,
         short_circuit: bool = True,
     ):
@@ -381,7 +381,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
         self,
         add: AdditionFormula,
         dbl: DoublingFormula,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         complete: bool = True,
         short_circuit: bool = True,
     ):
@@ -424,7 +424,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
         self,
         dadd: DifferentialAdditionFormula,
         dbl: DoublingFormula,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         complete: bool = True,
         short_circuit: bool = True,
     ):
@@ -469,7 +469,7 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         add: AdditionFormula,
         dbl: DoublingFormula,
         neg: NegationFormula,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         short_circuit: bool = True,
     ):
         super().__init__(
@@ -517,7 +517,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
         dbl: DoublingFormula,
         neg: NegationFormula,
         width: int,
-        scl: ScalingFormula = None,
+        scl: Optional[ScalingFormula] = None,
         precompute_negation: bool = False,
         short_circuit: bool = True,
     ):

@@ -1,5 +1,5 @@
 """
-This module provides classes for tracing the execution of operations.
+Provides classes for tracing the execution of operations.
 
 The operations include key generation, scalar multiplication, formula execution and individual operation evaluation.
 These operations are traced in `Context` classes using `Actions`. Different contexts trace actions differently.
@@ -14,7 +14,6 @@ A :py:class:`NullContext` does not trace any actions and is the default context.
 """
 from abc import abstractmethod, ABC
 from collections import OrderedDict
-from contextvars import ContextVar, Token
 from copy import deepcopy
 from typing import List, Optional, ContextManager, Any, Tuple, Sequence
 
@@ -31,12 +30,14 @@ class Action:
         self.inside = False
 
     def __enter__(self):
-        getcontext().enter_action(self)
+        if current is not None:
+            current.enter_action(self)
         self.inside = True
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        getcontext().exit_action(self)
+        if current is not None:
+            current.exit_action(self)
         self.inside = False
 
 
@@ -64,10 +65,10 @@ class ResultAction(Action):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if (
-            not self._has_result
-            and exc_type is None
-            and exc_val is None
-            and exc_tb is None
+                not self._has_result
+                and exc_type is None
+                and exc_val is None
+                and exc_tb is None
         ):
             raise RuntimeError("Result unset on action exit")
         super().__exit__(exc_type, exc_val, exc_tb)
@@ -166,17 +167,6 @@ class Context(ABC):
 
 
 @public
-class NullContext(Context):
-    """Context that does not trace any actions."""
-
-    def enter_action(self, action: Action) -> None:
-        pass
-
-    def exit_action(self, action: Action) -> None:
-        pass
-
-
-@public
 class DefaultContext(Context):
     """Context that traces executions of actions in a tree."""
 
@@ -240,48 +230,22 @@ class PathContext(Context):
         )
 
 
-_actual_context: ContextVar[Context] = ContextVar(
-    "operational_context", default=NullContext()
-)
+current: Optional[Context] = None
 
 
 class _ContextManager:
     def __init__(self, new_context):
         self.new_context = deepcopy(new_context)
 
-    def __enter__(self) -> Context:
-        self.token = setcontext(self.new_context)
-        return self.new_context
+    def __enter__(self) -> Optional[Context]:
+        global current
+        self.old_context = current
+        current = self.new_context
+        return current
 
     def __exit__(self, t, v, tb):
-        resetcontext(self.token)
-
-
-@public
-def getcontext() -> Context:
-    """Get the current thread/task context."""
-    return _actual_context.get()
-
-
-@public
-def setcontext(ctx: Context) -> Token:
-    """
-    Set the current thread/task context.
-
-    :param ctx: A context to set.
-    :return: A token to restore previous context.
-    """
-    return _actual_context.set(ctx)
-
-
-@public
-def resetcontext(token: Token):
-    """
-    Reset the context to a previous value.
-
-    :param token: A token to restore.
-    """
-    _actual_context.reset(token)
+        global current
+        current = self.old_context
 
 
 @public
@@ -293,5 +257,5 @@ def local(ctx: Optional[Context] = None) -> ContextManager:
     :return: A context manager.
     """
     if ctx is None:
-        ctx = getcontext()
+        ctx = current
     return _ContextManager(ctx)

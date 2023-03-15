@@ -1,4 +1,4 @@
-"""This module provides an abstract serial target, that communicates by writing and reading a stream of bytes."""
+"""Provides an abstract serial target, that communicates by writing and reading a stream of bytes."""
 from abc import abstractmethod
 
 from public import public

@@ -1,6 +1,6 @@
-"""This module provides the Trace class."""
+"""Provides the Trace class."""
 import weakref
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence, Optional
 from copy import copy, deepcopy
 
 from numpy import ndarray
@@ -16,7 +16,7 @@ class Trace:
     samples: ndarray
 
     def __init__(
-        self, samples: ndarray, meta: Mapping[str, Any] = None, trace_set: Any = None
+        self, samples: ndarray, meta: Optional[Mapping[str, Any]] = None, trace_set: Any = None
     ):
         """
         Construct a new trace.
@@ -76,6 +76,10 @@ class Trace:
             return False
         return np.array_equal(self.samples, other.samples) and self.meta == other.meta
 
+    def __hash__(self):
+        # This will have collisions, but those can be sorted out by the equality check above.
+        return hash(str(self.samples)) + hash(self.meta)
+
     def with_samples(self, samples: ndarray) -> "Trace":
         """
         Construct a copy of this trace, with the same metadata, but samples replaced by `samples`.
@@ -106,9 +110,9 @@ class CombinedTrace(Trace):
     def __init__(
         self,
         samples: ndarray,
-        meta: Mapping[str, Any] = None,
+        meta: Optional[Mapping[str, Any]] = None,
         trace_set: Any = None,
-        parents: Sequence[Trace] = None,
+        parents: Optional[Sequence[Trace]] = None,
     ):
         super().__init__(samples, meta, trace_set=trace_set)
         self.parents = None

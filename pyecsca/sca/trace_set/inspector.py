@@ -1,4 +1,4 @@
-"""This module provides a traceset implementation based on Riscure's Inspector traceset format (``.trs``)."""
+"""Provides a traceset implementation based on Riscure's Inspector traceset format (``.trs``)."""
 import struct
 from enum import IntEnum
 from io import BytesIO, RawIOBase, BufferedIOBase, UnsupportedOperation

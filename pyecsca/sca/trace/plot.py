@@ -1,4 +1,4 @@
-"""This module provides functions for plotting traces."""
+"""Provides functions for plotting traces."""
 from functools import reduce
 
 import holoviews as hv

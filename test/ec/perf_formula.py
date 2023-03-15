@@ -31,7 +31,7 @@ def main(profiler, mod, operations, directory):
         add = coords.formulas["add-2016-rcb"]
         dbl = coords.formulas["dbl-2016-rcb"]
         click.echo(
-            f"Profiling {operations} {p256.curve.prime.bit_length()}-bit doubling formula executions..."
+            f"Profiling {operations} {p256.curve.prime.bit_length()}-bit doubling formula (dbl2016rcb) executions..."
         )
         one_point = p256.generator
         with Profiler(
@@ -40,7 +40,7 @@ def main(profiler, mod, operations, directory):
             for _ in range(operations):
                 one_point = dbl(p256.curve.prime, one_point, **p256.curve.parameters)[0]
         click.echo(
-            f"Profiling {operations} {p256.curve.prime.bit_length()}-bit addition formula executions..."
+            f"Profiling {operations} {p256.curve.prime.bit_length()}-bit addition formula (add2016rcb) executions..."
         )
         other_point = p256.generator
         with Profiler(
@@ -54,7 +54,7 @@ def main(profiler, mod, operations, directory):
         ecoords = ed25519.curve.coordinate_model
         dblg = ecoords.formulas["mdbl-2008-hwcd"]
         click.echo(
-            f"Profiling {operations} {ed25519.curve.prime.bit_length()}-bit doubling formula executions (with assumption)..."
+            f"Profiling {operations} {ed25519.curve.prime.bit_length()}-bit doubling formula (mdbl2008hwcd) executions (with assumption)..."
         )
         eone_point = ed25519.generator
         with Profiler(

@@ -1,6 +1,8 @@
-"""This module provides an abstract base class of a formula along with concrete instantiations."""
+"""Provides an abstract base class of a formula along with concrete instantiations."""
 from abc import ABC, abstractmethod
 from ast import parse, Expression
+from functools import cached_property
+
 from astunparse import unparse
 from itertools import product
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
@@ -9,7 +11,8 @@ from pkg_resources import resource_stream
 from public import public
 from sympy import sympify, FF, symbols, Poly, Rational
 
-from .context import ResultAction, getcontext, NullContext
+from .context import ResultAction
+from . import context
 from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod, SymbolicMod
 from .op import CodeOp, OpType
@@ -67,8 +70,6 @@ class FormulaAction(ResultAction):
         self.output_points = []
 
     def add_operation(self, op: CodeOp, value: Mod):
-        if isinstance(getcontext(), NullContext):
-            return
         parents: List[Union[Mod, OpResult]] = []
         for parent in {*op.variables, *op.parameters}:
             if parent in self.intermediates:
@@ -79,8 +80,6 @@ class FormulaAction(ResultAction):
         li.append(OpResult(op.result, value, op.operator, *parents))
 
     def add_result(self, point: Any, **outputs: Mod):
-        if isinstance(getcontext(), NullContext):
-            return
         for k in outputs:
             self.outputs[k] = self.intermediates[k][-1]
         self.output_points.append(point)
@@ -117,6 +116,10 @@ class Formula(ABC):
     unified: bool
     """Whether the formula is specifies that it is unified."""
 
+    @cached_property
+    def assumptions_str(self):
+        return [unparse(assumption)[1:-2] for assumption in self.assumptions]
+
     def __validate_params(self, field, params):
         for key, value in params.items():
             if not isinstance(value, Mod) or value.n != field:
@@ -141,8 +144,7 @@ class Formula(ABC):
         # Validate assumptions and compute formula parameters.
         # TODO: Should this also validate coordinate assumptions and compute their parameters?
         is_symbolic = any(isinstance(x, SymbolicMod) for x in params.values())
-        for assumption in self.assumptions:
-            assumption_string = unparse(assumption)[1:-2]
+        for assumption, assumption_string in zip(self.assumptions, self.assumptions_str):
             lhs, rhs = assumption_string.split(" == ")
             if lhs in params:
                 # Handle an assumption check on value of input points.
@@ -181,7 +183,7 @@ class Formula(ABC):
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
                     )
 
-                def resolve(expression):
+                def resolve(expression, k):
                     if not expression.args:
                         return expression
                     args = []
@@ -189,13 +191,13 @@ class Formula(ABC):
                         if isinstance(arg, Rational):
                             a = arg.p
                             b = arg.q
-                            arg = k(a) / k(b)
+                            res = k(a) / k(b)
                         else:
-                            arg = resolve(arg)
-                        args.append(arg)
+                            res = resolve(arg, k)
+                        args.append(res)
                     return expression.func(*args)
 
-                expr = resolve(expr)
+                expr = resolve(expr, k)
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots:
@@ -220,7 +222,8 @@ class Formula(ABC):
 
         self.__validate_params(field, params)
         self.__validate_points(field, points, params)
-        self.__validate_assumptions(field, params)
+        if self.assumptions:
+            self.__validate_assumptions(field, params)
         # Execute the actual formula.
         with FormulaAction(self, *points, **params) as action:
             for op in self.code:
@@ -234,7 +237,8 @@ class Formula(ABC):
                     )
                 if not isinstance(op_result, Mod):
                     op_result = Mod(op_result, field)
-                action.add_operation(op, op_result)
+                if context.current is not None:
+                    action.add_operation(op, op_result)
                 params[op.result] = op_result
             result = []
             # Go over the outputs and construct the resulting points.
@@ -248,7 +252,8 @@ class Formula(ABC):
                     full_resulting[full_variable] = params[full_variable]
                 point = Point(self.coordinate_model, **resulting)
 
-                action.add_result(point, **full_resulting)
+                if context.current is not None:
+                    action.add_result(point, **full_resulting)
                 result.append(point)
             return action.exit(tuple(result))
 

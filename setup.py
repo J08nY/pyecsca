@@ -27,7 +27,7 @@ setup(
     # install_package_data=True,
     python_requires='>=3.8',
     install_requires=[
-        "numpy",
+        "numpy==1.23.5",
         "scipy",
         "sympy>=1.7.1",
         "atpublic",
@@ -40,16 +40,18 @@ setup(
         "matplotlib",
         "datashader",
         "xarray",
-        "astunparse"
+        "astunparse",
+        "numba==0.56.4"
     ],
     extras_require={
         "picoscope_sdk": ["picosdk"],
         "picoscope_alt": ["picoscope"],
         "chipwhisperer": ["chipwhisperer"],
         "smartcard": ["pyscard"],
+        "leia": ["smartleia"],
         "gmp": ["gmpy2"],
         "dev": ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"],
         "test": ["nose2", "parameterized", "coverage"],
-        "doc": ["sphinx", "sphinx-autodoc-typehints", "nbsphinx"]
+        "doc": ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
     }
 )

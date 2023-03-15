@@ -1,4 +1,4 @@
-"""This module provides an oscilloscope class using the ChipWhisperer-Lite scope."""
+"""Provides an oscilloscope class using the ChipWhisperer-Lite scope."""
 from typing import Optional, Tuple, Sequence, Set
 
 import numpy as np
@@ -31,13 +31,13 @@ class ChipWhispererScope(Scope):  # pragma: no cover
         if pretrig != 0:
             raise ValueError("ChipWhisperer does not support pretrig samples.")
         self.scope.clock.clkgen_freq = frequency
-        self.scope.samples = posttrig
-        return self.scope.clock.freq_ctr, self.scope.samples
+        self.scope.adc.samples = posttrig
+        return self.scope.clock.clkgen_freq, self.scope.adc.samples
 
     def setup_channel(
         self, channel: str, coupling: str, range: float, offset: float, enable: bool
     ) -> None:
-        pass
+        pass  # Nothing to setup
 
     def setup_trigger(
         self,
@@ -56,7 +56,7 @@ class ChipWhispererScope(Scope):  # pragma: no cover
         self.scope.trigger.triggers = " OR ".join(self.triggers)
 
     def setup_capture(self, channel: str, enable: bool) -> None:
-        pass
+        pass  # Nothing to setup
 
     def arm(self) -> None:
         self.scope.arm()
@@ -76,7 +76,7 @@ class ChipWhispererScope(Scope):  # pragma: no cover
         )
 
     def stop(self) -> None:
-        pass
+        pass  # Nothing to do
 
     def close(self) -> None:
         self.scope.dis()

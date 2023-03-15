@@ -1,4 +1,5 @@
-"""This module provides an abstract target class communicating using the `ChipWhisperer's <https://github.com/newaetech/chipwhisperer/>`_ SimpleSerial protocol."""
+"""Provides an abstract target class communicating using the `ChipWhisperer's <https://github.com/newaetech/chipwhisperer/>`_ SimpleSerial protocol."""
+from abc import ABC
 from time import time_ns, sleep
 from typing import Mapping, Union
 
@@ -35,7 +36,7 @@ class SimpleSerialMessage:
 
 
 @public
-class SimpleSerialTarget(SerialTarget):
+class SimpleSerialTarget(SerialTarget, ABC):
     """A SimpleSerial target, sends and receives SimpleSerial messages over a serial link."""
 
     def recv_msgs(self, timeout: int) -> Mapping[str, SimpleSerialMessage]:

@@ -1,4 +1,4 @@
-"""This module provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm)."""
+"""Provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm)."""
 import hashlib
 from typing import Optional, Any
 
@@ -42,6 +42,9 @@ class SignatureResult:
             return False
         return self.r == other.r and self.s == other.s
 
+    def __hash__(self):
+        return hash((self.r, self.s)) + 11
+
     def __str__(self):
         return f"(r={self.r}, s={self.s})"
 
@@ -64,7 +67,7 @@ class ECDSAAction(Action):
         self.msg = msg
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg})"
+        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r})"
 
 
 @public
@@ -84,7 +87,7 @@ class ECDSASignAction(ECDSAAction):
         self.privkey = privkey
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg}, {self.privkey})"
+        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r}, {self.privkey})"
 
 
 @public
@@ -107,7 +110,7 @@ class ECDSAVerifyAction(ECDSAAction):
         self.pubkey = pubkey
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg}, {self.signature}, {self.pubkey})"
+        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r}, {self.signature}, {self.pubkey})"
 
 
 @public

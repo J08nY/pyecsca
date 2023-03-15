@@ -1,4 +1,4 @@
-"""This module provides functions for aligning traces in a trace set to a reference trace within it."""
+"""Provides functions for aligning traces in a trace set to a reference trace within it."""
 import numpy as np
 from copy import deepcopy
 from fastdtw import fastdtw, dtw
@@ -157,7 +157,7 @@ def align_offset(
 
     def align_func(trace):
         length = len(trace.samples)
-        best_distance = 0
+        best_distance = 0.0
         best_offset = 0
         for offset in range(-max_offset, max_offset):
             start = reference_offset + offset

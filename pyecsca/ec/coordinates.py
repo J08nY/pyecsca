@@ -1,4 +1,4 @@
-"""This module provides a coordinate model class."""
+"""Provides a coordinate model class."""
 from ast import parse, Module
 from os.path import join
 from typing import List, Any, MutableMapping
@@ -65,6 +65,9 @@ class AffineCoordinateModel(CoordinateModel):
         if not isinstance(other, AffineCoordinateModel):
             return False
         return self.curve_model == other.curve_model
+
+    def __hash__(self):
+        return hash(self.curve_model) + hash(self.name)
 
 
 class EFDCoordinateModel(CoordinateModel):

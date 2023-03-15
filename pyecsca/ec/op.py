@@ -1,4 +1,4 @@
-"""This module provides a class for a code operation."""
+"""Provides a class for a code operation."""
 from ast import (
     Module,
     walk,

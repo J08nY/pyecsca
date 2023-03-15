@@ -1,5 +1,5 @@
 """
-This module provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_ repository.
+Provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_ repository.
 
 It also provides a domain parameter class and a class for a whole category of domain parameters.
 """
@@ -65,6 +65,9 @@ class DomainParameters:
             and self.order == other.order
             and self.cofactor == other.cofactor
         )
+
+    def __hash__(self):
+        return hash((self.curve, self.generator, self.order, self.cofactor))
 
     def __get_name(self):
         if self.name and self.category:
@@ -340,6 +343,7 @@ def get_params(
     json_path = join("std", category, "curves.json")
     with resource_stream(__name__, json_path) as f:
         category_json = json.load(f)
+    curve = None
     for curve in category_json["curves"]:
         if curve["name"] == name:
             break

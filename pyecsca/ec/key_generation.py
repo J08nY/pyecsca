@@ -1,4 +1,4 @@
-"""This module provides a key generator for elliptic curve keypairs."""
+"""Provides a key generator for elliptic curve keypairs."""
 from typing import Tuple
 
 from public import public

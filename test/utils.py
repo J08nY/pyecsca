@@ -62,14 +62,14 @@ class Profiler:
         if self._state != "out":
             raise ValueError
         if self._prof_type == "py":
-            print(self._prof.output_text(unicode=True, color=True))
+            print(self._prof.output_text(unicode=True, color=True, show_all=True))
         else:
             self._prof.print_stats("cumtime")
 
-    def get_time(self):
+    def get_time(self) -> float:
         if self._state != "out":
             raise ValueError
         if self._prof_type == "py":
-            return self._root_frame.time()
+            return self._root_frame.time
         else:
-            return pstats.Stats(self._prof).total_tt
+            return pstats.Stats(self._prof).total_tt  # type: ignore

@@ -1,5 +1,5 @@
-"""This module provides a smartcard target communicating via PC/SC (Personal Computer/Smart Card)."""
-from typing import Union
+"""Provides a smartcard target communicating via PC/SC (Personal Computer/Smart Card)."""
+from typing import Union, Optional
 
 from public import public
 from smartcard.CardConnection import CardConnection
@@ -7,7 +7,7 @@ from smartcard.System import readers
 from smartcard.pcsc.PCSCCardConnection import PCSCCardConnection
 from smartcard.pcsc.PCSCReader import PCSCReader
 
-from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816
+from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816, CardProtocol, CardConnectionException
 
 
 @public
@@ -27,8 +27,16 @@ class PCSCTarget(ISO7816Target):  # pragma: no cover
             self.reader = reader
         self.connection: PCSCCardConnection = self.reader.createConnection()
 
-    def connect(self):
-        self.connection.connect(CardConnection.T0_protocol | CardConnection.T1_protocol)
+    def connect(self, protocol: Optional[CardProtocol] = None):
+        proto = CardConnection.T0_protocol | CardConnection.T1_protocol
+        if protocol == CardProtocol.T0:
+            proto = CardConnection.T0_protocol
+        elif protocol == CardProtocol.T1:
+            proto = CardConnection.T1_protocol
+        try:
+            self.connection.connect(proto)
+        except:  # noqa
+            raise CardConnectionException()
 
     @property
     def atr(self) -> bytes:

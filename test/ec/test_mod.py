@@ -176,6 +176,9 @@ class ModTests(TestCase):
                 "__hash__",
                 "__abstractmethods__",
                 "_abc_impl",
+                "__slots__",
+                "x",
+                "n"
             ):
                 continue
             args = [5 for _ in range(meth.__code__.co_argcount - 1)]

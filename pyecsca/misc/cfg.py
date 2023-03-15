@@ -1,10 +1,11 @@
 """
-This module provides functions for runtime configuration of the toolkit.
+Provides functions for runtime configuration of the toolkit.
 
 This includes how errors are handled, or which :py:class:`~pyecsca.ec.mod.Mod` implementation is used.
 """
 from copy import deepcopy
 from contextvars import ContextVar, Token
+from typing import Optional
 
 from public import public
 
@@ -179,6 +180,8 @@ class TemporaryConfig:
             ...
     """
 
+    token: Optional[Token]
+
     def __init__(self):
         self.token = None
         self.new_config = deepcopy(getconfig())
@@ -188,4 +191,5 @@ class TemporaryConfig:
         return self.new_config
 
     def __exit__(self, t, v, tb):
-        resetconfig(self.token)
+        if self.token:
+            resetconfig(self.token)
