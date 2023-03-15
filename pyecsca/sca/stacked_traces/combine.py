@@ -341,10 +341,8 @@ class CPUTraceManager:
         :return:
         """
         # TODO: Consider other ways to implement this
-        samples = self.traces.samples
-        mask = samples[np.apply_along_axis(condition, 1, samples)]
         return CombinedTrace(
-            np.average(samples[mask], 1),
+            np.average(self.traces.samples[np.apply_along_axis(condition, 1, self.traces.samples)], 1),
             self.traces.meta
         )
 
