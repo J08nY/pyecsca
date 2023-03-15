@@ -6,7 +6,7 @@ import numpy as np
 from math import sqrt
 
 from public import public
-from typing import Callable, Union, Tuple
+from typing import Callable, Union, Tuple, cast
 
 from pyecsca.sca.trace.trace import CombinedTrace
 from pyecsca.sca.stacked_traces import StackedTraces
@@ -158,34 +158,24 @@ class GPUTraceManager(BaseTraceManager):
         )
 
     def average(self) -> CombinedTrace:
-        result = self._gpu_combine1D(gpu_average, 1)
-        assert isinstance(result, CombinedTrace)
-        return result
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_average, 1))
 
     def conditional_average(self, cond: Callable[[np.ndarray], bool]) \
             -> CombinedTrace:
         raise NotImplementedError()
 
     def standard_deviation(self) -> CombinedTrace:
-        result = self._gpu_combine1D(gpu_std_dev, 1)
-        assert isinstance(result, CombinedTrace)
-        return result
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_std_dev, 1))
 
     def variance(self) -> CombinedTrace:
-        result = self._gpu_combine1D(gpu_variance, 1)
-        assert isinstance(result, CombinedTrace)
-        return result
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_variance, 1))
 
     def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
         averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
-        assert isinstance(averages, CombinedTrace) and \
-            isinstance(variances, CombinedTrace)
         return averages, variances
 
     def add(self) -> CombinedTrace:
-        result = self._gpu_combine1D(gpu_add, 1)
-        assert isinstance(result, CombinedTrace)
-        return result
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_add, 1))
 
 
 @cuda.jit(device=True)
