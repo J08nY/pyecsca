@@ -178,7 +178,7 @@ class GPUTraceManager(BaseTraceManager):
         return cast(CombinedTrace, self._gpu_combine1D(gpu_add, 1))
 
 
-@cuda.jit(device=True)
+@cuda.jit(device=True, cache=True)
 def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
     """
     Cuda device thread function computing the average of a sample of stacked traces.
@@ -193,7 +193,7 @@ def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
     result[col] = acc / samples.shape[0]
 
 
-@cuda.jit
+@cuda.jit(cache=True)
 def gpu_average(samples: np.ndarray, result: np.ndarray):
     """
     Sample average of stacked traces, sample-wise.
@@ -209,7 +209,7 @@ def gpu_average(samples: np.ndarray, result: np.ndarray):
     _gpu_average(col, samples, result)
 
 
-@cuda.jit(device=True)
+@cuda.jit(device=True, cache=True)
 def _gpu_var_from_avg(col: int, samples: np.ndarray,
                       averages: np.ndarray, result: np.ndarray):
     """
@@ -227,7 +227,7 @@ def _gpu_var_from_avg(col: int, samples: np.ndarray,
     result[col] = var / samples.shape[0]
 
 
-@cuda.jit(device=True)
+@cuda.jit(device=True, cache=True)
 def _gpu_variance(col: int, samples: np.ndarray, result: np.ndarray):
     """
     Cuda device thread function computing the variance of a sample of stacked traces.
@@ -240,7 +240,7 @@ def _gpu_variance(col: int, samples: np.ndarray, result: np.ndarray):
     _gpu_var_from_avg(col, samples, result, result)
 
 
-@cuda.jit
+@cuda.jit(cache=True)
 def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
     """
     Sample standard deviation of stacked traces, sample-wise.
@@ -258,7 +258,7 @@ def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
     result[col] = sqrt(result[col])
 
 
-@cuda.jit
+@cuda.jit(cache=True)
 def gpu_variance(samples: np.ndarray, result: np.ndarray):
     """
     Sample variance of stacked traces, sample-wise.
@@ -274,7 +274,7 @@ def gpu_variance(samples: np.ndarray, result: np.ndarray):
     _gpu_variance(col, samples, result)
 
 
-@cuda.jit
+@cuda.jit(cache=True)
 def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
                 result_var: np.ndarray):
     """
@@ -293,7 +293,7 @@ def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
     _gpu_var_from_avg(col, samples, result_avg, result_var)
 
 
-@cuda.jit
+@cuda.jit(cache=True)
 def gpu_add(samples: np.ndarray, result: np.ndarray):
     """
     Add samples of stacked traces, sample-wise.
