@@ -129,15 +129,23 @@ def generate_dataset(rng: npr.Generator,
 
 
 def timed(time_storage: List[TimeRecord] | None = None,
-          log: bool = True) \
+          log: bool = True,
+          timing_type: str = "perf_counter") \
         -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         import time
+        if timing_type == "perf_counter":
+            time_f = time.perf_counter_ns
+        elif timing_type == "process_time":
+            time_f = time.process_time_ns
+        else:
+            raise ValueError("Unknown timing type")
 
         def timed_func(*args, **kwargs) -> Callable[..., Callable]:
-            start = time.perf_counter_ns()
+            start = time_f()
             result = func(*args, **kwargs)
-            duration = time.perf_counter_ns() - start
+            duration = time_f() - start
+            
             if log:
                 print(f"{func.__name__} took {duration} ns")
             if time_storage is not None:
@@ -162,9 +170,10 @@ def to_traceset(dataset: np.ndarray) -> TraceSet:
 def stack(dataset: np.ndarray,
           from_array: bool,
           time: bool,
+          timing_type: str,
           time_storage: List[TimeRecord] | None = None,
           log: bool = True) -> StackedTraces:
-    time_fun = timed(time_storage, log) if time else lambda x: x
+    time_fun = timed(time_storage, log, timing_type) if time else lambda x: x
     data = (dataset
             if from_array
             else to_traceset(dataset))
@@ -204,18 +213,29 @@ def _get_parser() -> argparse.ArgumentParser:
         default=False,
         help="Perform stacking from a TraceSet"
     )
-    combine.add_argument(
-        "--time-stack",
-        action="store_true",
-        default=False,
-        help="Time the stacking operation"
-    )
 
     combine.add_argument(
         "--operations",
         nargs="*",
         choices=traceset_ops.keys(),
         help="Operations to perform on the traces"
+    )
+
+    timing = parser.add_argument_group(
+        "timing",
+        "Options for timing"
+    )
+    timing.add_argument(
+        "--time-stack",
+        action="store_true",
+        default=False,
+        help="Time the stacking operation"
+    )
+    timing.add_argument(
+        "-t", "--time",
+        choices=["perf_counter", "process_time"],
+        default=["perf_counter"],
+        help="Timing function to use"
     )
 
     dataset = parser.add_argument_group(
@@ -331,6 +351,7 @@ def export_report(time_storage: List[List[TimeRecord]],
             "operations": args.operations,
             "stack": args.stack,
             "stack_traceset": args.stack_traceset,
+            "time_function": args.time,
         },
         "dataset": {
             "seed": args.seed,
@@ -424,6 +445,7 @@ def repetition(args: argparse.Namespace,
         data = stack(dataset,
                      not args.stack_traceset,
                      args.time_stack,
+                     args.time,
                      time_storage,
                      args.verbose)
     else:
@@ -451,7 +473,7 @@ def repetition(args: argparse.Namespace,
             if args.verbose:
                 print(f"Performing {op}...")
             op_func = getattr(trace_manager, op)
-            timed(time_storage, args.verbose)(op_func)()
+            timed(time_storage, args.verbose, args.time)(op_func)()
     else:
         assert isinstance(data, TraceSet)
 
@@ -460,7 +482,7 @@ def repetition(args: argparse.Namespace,
             if args.verbose:
                 print(f"Performing {op}...")
             op_func = traceset_ops[op]
-            timed(time_storage, args.verbose)(op_func)(*data)
+            timed(time_storage, args.verbose, args.time)(op_func)(*data)
 
     if args.verbose:
         print("------------------------")
