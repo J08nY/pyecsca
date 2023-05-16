@@ -37,7 +37,7 @@ class SimpleSerialMessage:
 
 @public
 class SimpleSerialTarget(SerialTarget, ABC):
-    """A SimpleSerial target, sends and receives SimpleSerial messages over a serial link."""
+    """A SimpleSerial-ish target, sends and receives SimpleSerial messages over a serial link."""
 
     def recv_msgs(self, timeout: int) -> Mapping[str, SimpleSerialMessage]:
         """
@@ -48,6 +48,7 @@ class SimpleSerialTarget(SerialTarget, ABC):
         """
         start = time_ns() // 1000000
         buffer = bytes()
+        # Expect "z00" confirmation response, as in SimpleSerial 1.
         while not buffer.endswith(b"z00\n"):
             wait = timeout - ((time_ns() // 1000000) - start)
             if wait <= 0:

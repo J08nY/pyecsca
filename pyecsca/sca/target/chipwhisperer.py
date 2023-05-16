@@ -18,7 +18,7 @@ from .simpleserial import SimpleSerialTarget
 
 @public
 class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
-    """ChipWhisperer-based target, using the SimpleSerial protocol and communicating using ChipWhisperer-Lite/Pro."""
+    """ChipWhisperer-based target, using the SimpleSerial-ish protocol and communicating using ChipWhisperer-Lite/Pro."""
 
     def __init__(
         self, target: SimpleSerial, scope: ScopeTypes, programmer, **kwargs
@@ -29,8 +29,8 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
         self.programmer = programmer
 
     def connect(self):
-        self.target.con(self.scope)
         self.target.baud = 115200
+        self.target.con(self.scope, noflush=True)
         sleep(0.5)
 
     def flash(self, fw_path: str) -> bool:
