@@ -29,8 +29,8 @@ class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
         self.programmer = programmer
 
     def connect(self):
-        self.target.baud = 115200
         self.target.con(self.scope, noflush=True)
+        self.target.baud = 115200
         sleep(0.5)
 
     def flash(self, fw_path: str) -> bool:
