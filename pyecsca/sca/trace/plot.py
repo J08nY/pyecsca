@@ -26,7 +26,7 @@ def save_figure_svg(figure, fname: str):  # pragma: no cover
 @public
 def plot_trace(trace: Trace, **kwargs):  # pragma: no cover
     line = hv.Curve((range(len(trace)), trace.samples), kdims="x", vdims="y", **kwargs)
-    return datashade(line, normalization="log")
+    return datashade(line)
 
 
 @public
@@ -45,5 +45,5 @@ def plot_traces(*traces: Trace, **kwargs):  # pragma: no cover
         line = hv.Curve(
             (range(len(trace)), trace.samples), kdims="x", vdims="y", **kwargs
         )
-        dss.append(datashade(line, normalization="log", cmap=_cmaps[i % len(_cmaps)]))
+        dss.append(datashade(line, cmap=_cmaps[i % len(_cmaps)]))
     return reduce(lambda x, y: x * y, dss)
