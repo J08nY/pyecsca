@@ -182,6 +182,13 @@ class Point:
         """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""
         return self.equals_affine(other)
 
+    def __iter__(self):
+        for k in sorted(self.coords.keys()):
+            yield self.coords[k]
+
+    def __len__(self):
+        return len(self.coords)
+
     def __bytes__(self):
         res = b"\x04"
         for k in sorted(self.coords.keys()):
@@ -230,6 +237,12 @@ class InfinityPoint(Point):
 
     def equals(self, other: "Point") -> bool:
         return self == other
+
+    def __iter__(self):
+        pass
+
+    def __len__(self):
+        return 0
 
     def __bytes__(self):
         return b"\x00"

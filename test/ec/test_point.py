@@ -131,3 +131,14 @@ class PointTests(TestCase):
             b"\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02",
         )
         self.assertEqual(bytes(InfinityPoint(self.coords)), b"\x00")
+
+    def test_iter(self):
+        pt = Point(
+            self.coords,
+            X=Mod(0x4, self.secp128r1.curve.prime),
+            Y=Mod(0x6, self.secp128r1.curve.prime),
+            Z=Mod(2, self.secp128r1.curve.prime),
+        )
+        t = tuple(pt)
+        self.assertEqual(len(t), 3)
+        self.assertEqual(len(pt), 3)
