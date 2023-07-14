@@ -6,26 +6,23 @@ import numpy as np
 from math import sqrt
 
 from public import public
-from typing import Callable, Union, Tuple, cast
+from typing import Callable, Union, Tuple, Optional, cast
 
 from pyecsca.sca.trace.trace import CombinedTrace
 from pyecsca.sca.stacked_traces import StackedTraces
 
 TPB = Union[int, Tuple[int, ...]]
-CudaCTX = Tuple[
-    Tuple[devicearray.DeviceNDArray, ...],
-    Union[int, Tuple[int, ...]]
-]
+CudaCTX = Tuple[devicearray.DeviceNDArray, ...]
 
 
 @public
 class BaseTraceManager:
     """Base class for trace managers"""
 
-    traces: StackedTraces
+    _traces: StackedTraces
 
     def __init__(self, traces: StackedTraces) -> None:
-        self.traces = traces
+        self._traces = traces
 
     def average(self) -> CombinedTrace:
         """
@@ -93,22 +90,42 @@ class GPUTraceManager(BaseTraceManager):
     """Manager for operations with stacked traces on GPU"""
 
     _tpb: TPB
-    _samples_global: devicearray.DeviceNDArray
+    _chunk_size: Optional[int]
 
-    def __init__(self, traces: StackedTraces, tpb: TPB = 128) -> None:
+    def __init__(self,
+                 traces: StackedTraces,
+                 tpb: TPB = 128,
+                 chunk_size: Optional[int] = None) -> None:
         if not cuda.is_available():
             raise RuntimeError("CUDA is not available, "
                                "use CPUTraceManager instead")
-        if isinstance(tpb, int) and tpb % 32 != 0:
-            raise ValueError('TPB should be a multiple of 32')
-        if isinstance(tpb, tuple) and any(t % 32 != 0 for t in tpb):
+        dev = cuda.get_current_device()
+        warp_size = dev.WARP_SIZE
+        max_tpb = dev.MAX_THREADS_PER_BLOCK
+        if isinstance(tpb, int):
+            if tpb % warp_size != 0:
+                raise ValueError(
+                    f'TPB should be a multiple of WARP_SIZE ({warp_size})'
+                )
+            if tpb > max_tpb:
+                raise ValueError(
+                    'TPB should be smaller than '
+                    'MAX_THREADS_PER_BLOCK ({max_tpb})'
+                )
+        if isinstance(tpb, tuple) and any(
+            t > max_tpb or t % warp_size != 0 for t in tpb
+        ):
             raise ValueError(
-                'TPB should be a multiple of 32 in each dimension'
+                f'TPB should be a multiple of WARP_SIZE ({warp_size}) '
+                f'and smaller than MAX_THREADS_PER_BLOCK ({max_tpb})'
+                'in each dimension'
             )
 
         super().__init__(traces)
-        self.tpb = tpb
-        self._samples_global = cuda.to_device(self.traces.samples)
+        self._tpb = tpb
+        self._chunk_size = chunk_size
+        self._combine_func = self._gpu_combine1D_all if chunk_size is None \
+            else self._gpu_combine1D_chunked
 
     def _setup1D(self, output_count: int) -> CudaCTX:
         """
@@ -120,42 +137,88 @@ class GPUTraceManager(BaseTraceManager):
         :return: Created context of input and output arrays and calculated
                  blocks per grid dimensions.
         """
-        if not isinstance(self.tpb, int):
+        if not isinstance(self._tpb, int):
             raise TypeError("tpb is not an int for a 1D kernel")
 
         device_output = tuple((
-            cuda.device_array(self.traces.samples.shape[1])
+            cuda.device_array(self._traces.samples.shape[1])
             for _ in range(output_count)
         ))
-        bpg = (self.traces.samples.size + (self.tpb - 1)) // self.tpb
 
-        return device_output, bpg
+        return device_output
 
     def _gpu_combine1D(self, func, output_count: int = 1) \
             -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
-        """
-        Runs GPU Cuda StackedTrace 1D combine function
+        device_outputs = self._setup1D(output_count)
 
-        :param func: Function to run.
-        :param traces: Stacked traces to provide as input to the function.
-        :param tpb: Threads per block to invoke the kernel with
-        :param output_count: Number of outputs expected from the GPU function.
-        :return: Combined trace output from the GPU function
-        """
-        device_outputs, bpg = self._setup1D(output_count)
-
-        func[bpg, self.tpb](self._samples_global, *device_outputs)
+        self._combine_func(func, device_outputs)
 
         if len(device_outputs) == 1:
             return CombinedTrace(
                 device_outputs[0].copy_to_host(),
-                self.traces.meta
+                self._traces.meta
             )
         return tuple(
-            CombinedTrace(device_output.copy_to_host(), self.traces.meta)
+            CombinedTrace(device_output.copy_to_host(), self._traces.meta)
             for device_output
             in device_outputs
         )
+
+    def _gpu_combine1D_all(self, func, device_outputs: CudaCTX) -> None:
+        """
+        Runs a combination function on the samples column-wise.
+
+        All samples are processed at once.
+        :param func: Function to run.
+        :param output_count: Number of outputs expected from the GPU function.
+        :return: Combined trace output from the GPU function
+        """
+        assert self._chunk_size is None
+        assert isinstance(self._tpb, int)
+
+        device_input = cuda.to_device(self._traces.samples)
+
+        bpg = (self._traces.samples.shape[1] + self._tpb - 1) // self._tpb
+        func[bpg, self._tpb](device_input, *device_outputs)
+
+    def _gpu_combine1D_chunked(self, func, device_outputs: CudaCTX) -> None:
+        """
+        Runs a combination function on the samples column-wise.
+
+        The samples are processed in chunks.
+        :param func: Function to run.
+        :param output_count: Number of outputs expected from the GPU function.
+        :return: Combined trace output from the GPU function
+        """
+        assert self._chunk_size is not None
+        assert isinstance(self._tpb, int)
+
+        chunk_count = (
+            self._traces.samples.shape[1] + self._chunk_size - 1
+        ) // self._chunk_size
+
+        data_stream = cuda.stream()
+        compute_stream = cuda.stream()
+
+        for chunk in range(chunk_count):
+            start = chunk * self._chunk_size
+            end = min((chunk + 1) * self._chunk_size,
+                      self._traces.samples.shape[1])
+
+            device_input = cuda.to_device(
+                self._traces.samples[:, start:end],
+                stream=data_stream
+            )
+
+            bpg = (end - start + self._tpb - 1) // self._tpb
+            func[bpg, self._tpb, compute_stream](
+                device_input, *device_outputs
+            )
+
+            device_input.copy_to_host(stream=data_stream)
+
+        data_stream.synchronize()
+        compute_stream.synchronize()
 
     def average(self) -> CombinedTrace:
         return cast(CombinedTrace, self._gpu_combine1D(gpu_average, 1))
