@@ -145,7 +145,7 @@ def timed(time_storage: List[TimeRecord] | None = None,
             start = time_f()
             result = func(*args, **kwargs)
             duration = time_f() - start
-            
+
             if log:
                 print(f"{func.__name__} took {duration} ns")
             if time_storage is not None:
@@ -204,7 +204,7 @@ def _get_parser() -> argparse.ArgumentParser:
     stacking.add_argument(
         "-s", "--stack",
         action="store_true",
-        default=False,
+        default=True,
         help="Use stacked traces"
     )
     stacking.add_argument(
@@ -213,12 +213,18 @@ def _get_parser() -> argparse.ArgumentParser:
         default=False,
         help="Perform stacking from a TraceSet"
     )
-
     combine.add_argument(
         "--operations",
         nargs="*",
         choices=traceset_ops.keys(),
         help="Operations to perform on the traces"
+    )
+    combine.add_argument(
+        "--chunk-size",
+        help="Chunk size for the operations",
+        type=int,
+        required=False,
+        default=None
     )
 
     timing = parser.add_argument_group(
@@ -234,7 +240,7 @@ def _get_parser() -> argparse.ArgumentParser:
     timing.add_argument(
         "-t", "--time",
         choices=["perf_counter", "process_time"],
-        default=["perf_counter"],
+        default="perf_counter",
         help="Timing function to use"
     )
 
@@ -462,11 +468,10 @@ def repetition(args: argparse.Namespace,
     if args.stack:
         # Initialize trace manager
         assert isinstance(data, StackedTraces)
-        tm_class = (CPUTraceManager
-                    if args.device == "cpu"
-                    else GPUTraceManager)
-
-        trace_manager = tm_class(data)
+        trace_manager = (CPUTraceManager(data)
+                         if args.device == "cpu"
+                         else GPUTraceManager(
+                             data, chunk_size=args.chunk_size))
 
         # Perform operations
         for op in args.operations:
