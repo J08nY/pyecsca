@@ -30,7 +30,7 @@ setup(
     # install_package_data=True,
     python_requires='>=3.8',
     install_requires=[
-        "numpy==1.24.3",
+        "numpy==1.24.4",
         "scipy",
         "sympy>=1.7.1",
         "atpublic",
