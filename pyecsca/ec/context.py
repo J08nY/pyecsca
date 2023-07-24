@@ -15,7 +15,7 @@ A :py:class:`NullContext` does not trace any actions and is the default context.
 from abc import abstractmethod, ABC
 from collections import OrderedDict
 from copy import deepcopy
-from typing import List, Optional, ContextManager, Any, Tuple, Sequence
+from typing import List, Optional, ContextManager, Any, Tuple, Sequence, Callable
 
 from public import public
 
@@ -130,6 +130,17 @@ class Tree(OrderedDict):
             else:
                 result += "\t" * depth + str(key) + ":" + str(value) + "\n"
         return result
+
+    def walk(self, callback: Callable[[Any], None]) -> None:
+        """
+        Walk the tree, depth-first, with the callback.
+
+        :param callback: The callback to call for all values in the tree.
+        """
+        for key, val in self.items():
+            callback(key)
+            if isinstance(val, Tree):
+                val.walk(callback)
 
     def __repr__(self):
         return self.repr()

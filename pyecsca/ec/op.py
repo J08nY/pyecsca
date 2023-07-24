@@ -18,7 +18,7 @@ from ast import (
 )
 from enum import Enum
 from types import CodeType
-from typing import FrozenSet, cast, Any, Optional, Union
+from typing import FrozenSet, cast, Any, Optional, Union, Tuple
 
 from public import public
 
@@ -54,6 +54,8 @@ class CodeOp:
     """The parameters used in the operation (e.g. `a`, `b`)."""
     variables: FrozenSet[str]
     """The variables used in the operation (e.g. `X1`, `Z2`)."""
+    constants: FrozenSet[int]  # TODO: Might not be only int? See issue in Formula eval.
+    """The constants used in the operation."""
     code: Module
     """The code of the operation."""
     operator: OpType
@@ -125,6 +127,15 @@ class CodeOp:
                 return OpType.Sqr
             return OpType.Pow
         return OpType.Id
+
+    @property
+    def parents(self) -> Tuple[Union[str, int]]:
+        if self.operator == OpType.Inv or self.operator == OpType.Neg:
+            return self.right,  # type: ignore
+        elif self.operator == OpType.Sqr or self.operator == OpType.Id:
+            return self.left,  # type: ignore
+        else:
+            return self.left, self.right  # type: ignore
 
     def __str__(self):
         return f"{self.result} = {self.left if self.left is not None else ''}{self.operator.op_str}{self.right if self.right is not None else ''}"
