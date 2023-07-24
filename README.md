@@ -17,7 +17,8 @@ multiplier and even finite-field implementation details.
 It is currently in an alpha stage of development and thus only provides:
  - Enumeration of millions of possible ECC implementation configurations (see [notebook/configuration_space](https://neuromancer.sk/pyecsca/notebook/configuration_space.html))
  - Simulation and execution tracing of key generation, ECDH and ECDSA (see [notebook/simulation](https://neuromancer.sk/pyecsca/notebook/simulation.html))
- - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see [notebook/codegen](https://neuromancer.sk/pyecsca/notebook/codegen.html))
+ - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see [notebook/codegen](https://neuromancer.sk/pyecsca/notebook/codegen.html)),
+   CPU-level simulation of implementations (see [notebook/simulator](https://neuromancer.sk/pyecsca/notebook/simulator.html))
  - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see [notebook/measurement](https://neuromancer.sk/pyecsca/notebook/measurement.html))
  - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning ([pyecsca.sca](https://neuromancer.sk/pyecsca/api/pyecsca.sca.html))
  - Trace visualization using holoviews and datashader (see [notebook/visualization](https://neuromancer.sk/pyecsca/notebook/visualization.html))
@@ -43,6 +44,7 @@ It is currently in an alpha stage of development and thus only provides:
  - [matplotlib](https://matplotlib.org/)
  - [xarray](https://xarray.pydata.org/en/stable/)
  - [astunparse](https://astunparse.readthedocs.io/)
+ - [numba](https://numba.pydata.org/)
  - **Optionally**:
    - **Oscilloscope support:**
      - [picosdk](https://github.com/picotech/picosdk-python-wrappers/)

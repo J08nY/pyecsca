@@ -36,7 +36,8 @@ It is currently in an alpha stage of development and thus only provides:
 
 .. card:: Code generation
 
-    Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`)
+    Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`),
+    CPU-level simulation of implementations (see :doc:`notebook/simulator`)
 
 .. card:: Trace acquisition
 
@@ -87,6 +88,7 @@ are the best source of documentation on how to use **pyecsca**.
    notebook/configuration_space
    notebook/simulation
    notebook/codegen
+   notebook/simulator
    notebook/measurement
    notebook/visualization
    notebook/smartcards
@@ -119,6 +121,7 @@ Requirements
 	 - matplotlib_
 	 - xarray_
 	 - astunparse_
+     - numba_
 	 - **Optionally**:
 
 	   - **Oscilloscope support:**
@@ -208,6 +211,7 @@ Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <htt
 .. _datashader: https://datashader.org
 .. _xarray: https://xarray.pydata.org/en/stable/
 .. _astunparse: https://astunparse.readthedocs.io/
+.. _numba: https://numba.pydata.org/
 .. _picosdk: https://github.com/picotech/picosdk-python-wrappers/
 .. _picoscope: https://github.com/colinoflynn/pico-python
 .. _chipwhisperer: https://github.com/newaetech/chipwhisperer
