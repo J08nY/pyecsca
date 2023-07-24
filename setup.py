@@ -44,7 +44,7 @@ setup(
         "datashader",
         "xarray",
         "astunparse",
-        "numba==0.57.0"
+        "numba==0.57.1"
     ],
     extras_require={
         "picoscope_sdk": ["picosdk"],
