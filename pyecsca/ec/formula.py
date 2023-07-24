@@ -375,15 +375,15 @@ class EFDFormula(Formula):
                 )
                 self.code.append(CodeOp(code_module))
 
-    @property
+    @cached_property
     def input_index(self):
         return 1
 
-    @property
+    @cached_property
     def output_index(self):
         return max(self.num_inputs + 1, 3)
 
-    @property
+    @cached_property
     def inputs(self):
         return {
             var + str(i)
@@ -392,7 +392,7 @@ class EFDFormula(Formula):
             )
         }
 
-    @property
+    @cached_property
     def outputs(self):
         return {
             var + str(i)

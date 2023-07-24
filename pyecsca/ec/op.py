@@ -145,5 +145,5 @@ class CodeOp:
 
     def __call__(self, *args, **kwargs: Mod) -> Mod:
         """Execute this operation with :paramref:`.__call__.kwargs`."""
-        exec(self.compiled, {}, kwargs)
+        exec(self.compiled, None, kwargs)
         return kwargs[self.result]

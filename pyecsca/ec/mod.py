@@ -114,7 +114,7 @@ def miller_rabin(n: int, rounds: int = 50) -> bool:
 def _check(func):
     @wraps(func)
     def method(self, other):
-        if type(self) is not type(other):
+        if self.__class__ is not type(other):
             other = self.__class__(other, self.n)
         elif self.n != other.n:
             raise ValueError
