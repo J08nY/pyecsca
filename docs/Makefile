@@ -16,7 +16,7 @@ apidoc:
 	mkdir -p api/
 	sphinx-apidoc  ../pyecsca/ --implicit-namespaces --ext-autodoc --no-toc -M -f -e -o api/
 	sphinx-apidoc ../../pyecsca-codegen/pyecsca/ --implicit-namespaces --ext-autodoc --no-toc -M -f -e -o api/
-	mv _modules.rst api/modules.rst
+	rm api/pyecsca.rst  #It is jumbled anyway.
 
 .PHONY: help apidoc Makefile
 

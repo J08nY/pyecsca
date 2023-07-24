@@ -121,7 +121,8 @@ Requirements
 	 - matplotlib_
 	 - xarray_
 	 - astunparse_
-     - numba_
+	 - numba_
+
 	 - **Optionally**:
 
 	   - **Oscilloscope support:**

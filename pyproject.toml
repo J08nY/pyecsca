@@ -1,0 +1,67 @@
+[build-system]
+  requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
+  build-backend = "setuptools.build_meta"
+
+[project]
+  name = "pyecsca"
+  version = "0.2.0"
+  authors = [
+    { name = "Jan Jancar", email = "johny@neuromancer.sk" }
+  ]
+  description = "Python Elliptic Curve cryptography Side Channel Analysis toolkit."
+  readme = "README.md"
+  license = { "text" = "MIT" }
+  classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research"
+  ]
+  requires-python = ">=3.8"
+  dependencies = [
+    "numpy==1.24.4",
+    "scipy",
+    "sympy>=1.7.1",
+    "atpublic",
+    "cython",
+    "fastdtw",
+    "asn1crypto",
+    "h5py",
+    "holoviews",
+    "bokeh",
+    "matplotlib",
+    "datashader",
+    "xarray",
+    "astunparse",
+    "numba==0.57.1"
+  ]
+
+[project.urls]
+"Homepage" = "https://https://neuromancer.sk/pyecsca/"
+"Documentation" = "https://https://neuromancer.sk/pyecsca/"
+"Bug Tracker" = "https://github.com/J08nY/pyecsca/issues"
+"Repository" = "https://github.com/J08nY/pyecsca"
+
+[project.optional-dependencies]
+"picoscope_sdk" = ["picosdk"]
+"picoscope_alt" = ["picoscope"]
+"chipwhisperer" = ["chipwhisperer"]
+"smartcard" = ["pyscard"]
+"leia" = ["smartleia"]
+"gmp" = ["gmpy2"]
+"dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"]
+"test" = ["nose2", "parameterized", "coverage"]
+"doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
+
+[tool.setuptools.packages.find]
+include = ["pyecsca*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+pyecsca = ["ec/efd/*/*", "ec/efd/*/*/*", "ec/efd/*/*/*/*", "ec/std/*", "ec/std/*/*"]
