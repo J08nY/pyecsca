@@ -35,7 +35,7 @@ jobs:
           sudo apt-get install -y $PS_PACKAGES $OTHER_PACKAGES $GMP_PACKAGES
       - name: Install numpy
         run: |
-          pip install numpy<1.25.1
+          pip install "numpy<1.25.1"
       - name: Install picoscope bindings
         run: |
           git clone https://github.com/colinoflynn/pico-python && cd pico-python && python setup.py install && cd ..
