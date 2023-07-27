@@ -48,6 +48,9 @@ class PrecomputationAction(Action):
         self.params = params
         self.point = point
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.params}, {self.point})"
+
 
 @public
 class ScalarMultiplier(ABC):
@@ -151,6 +154,9 @@ class ScalarMultiplier(ABC):
         return self.formulas["neg"](
             self._params.curve.prime, point, **self._params.curve.parameters
         )[0]
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit})"
 
     def init(self, params: DomainParameters, point: Point):
         """

@@ -7,6 +7,9 @@ Provides functionality inspired by the Refined-Power Analysis attack by Goubin.
 from public import public
 from typing import MutableMapping, Optional
 
+from sympy import FF, sympify, Poly, symbols
+
+from ...ec.coordinates import AffineCoordinateModel
 from ...ec.formula import (
     FormulaAction,
     DoublingFormula,
@@ -16,7 +19,10 @@ from ...ec.formula import (
     DifferentialAdditionFormula,
     LadderFormula,
 )
+from ...ec.mod import Mod
 from ...ec.mult import ScalarMultiplicationAction, PrecomputationAction
+from ...ec.params import DomainParameters
+from ...ec.model import ShortWeierstrassModel, MontgomeryModel
 from ...ec.point import Point
 from ...ec.context import Context, Action
 
@@ -79,3 +85,41 @@ class MultipleContext(Context):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.base!r}, multiples={self.points.values()!r})"
+
+
+def rpa_point_0y(params: DomainParameters):
+    """Construct a RPA point (0, y) for given domain parameters."""
+    if isinstance(params.curve.model, ShortWeierstrassModel):
+        if not params.curve.parameters["b"].is_residue():
+            return None
+        y = params.curve.parameters["b"].sqrt()
+        # TODO: We can take the negative as well.
+        return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime), y=y)
+    elif isinstance(params.curve.model, MontgomeryModel):
+        return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime),
+                     y=Mod(0, params.curve.prime))
+    else:
+        raise NotImplementedError
+
+
+def rpa_point_x0(params: DomainParameters):
+    """Construct a RPA point (x, 0) for given domain parameters."""
+    if isinstance(params.curve.model, ShortWeierstrassModel):
+        if (params.order * params.cofactor) % 2 != 0:
+            return None
+        k = FF(params.curve.prime)
+        expr = sympify("x^3 + a * x + b", evaluate=False)
+        expr = expr.subs("a", k(int(params.curve.parameters["a"])))
+        expr = expr.subs("b", k(int(params.curve.parameters["b"])))
+        poly = Poly(expr, symbols("x"), domain=k)
+        roots = poly.ground_roots()
+        # TODO: There may be more roots.
+        if not roots:
+            return None
+        x = Mod(int(roots[0]), params.curve.prime)
+        return Point(AffineCoordinateModel(params.curve.model), x=x, y=Mod(0, params.curve.prime))
+    elif isinstance(params.curve.model, MontgomeryModel):
+        return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime),
+                     y=Mod(0, params.curve.prime))
+    else:
+        raise NotImplementedError
