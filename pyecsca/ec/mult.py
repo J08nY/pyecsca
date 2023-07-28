@@ -155,6 +155,9 @@ class ScalarMultiplier(ABC):
             self._params.curve.prime, point, **self._params.curve.parameters
         )[0]
 
+    def __hash__(self):
+        return id(self)
+
     def __eq__(self, other):
         if not isinstance(other, ScalarMultiplier):
             return False
@@ -223,6 +226,9 @@ class LTRMultiplier(ScalarMultiplier):
         self.always = always
         self.complete = complete
 
+    def __hash__(self):
+        return id(self)
+
     def __eq__(self, other):
         if not isinstance(other, LTRMultiplier):
             return False
@@ -277,6 +283,9 @@ class RTLMultiplier(ScalarMultiplier):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
 
+    def __hash__(self):
+        return id(self)
+
     def __eq__(self, other):
         if not isinstance(other, RTLMultiplier):
             return False
@@ -326,6 +335,9 @@ class CoronMultiplier(ScalarMultiplier):
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
 
+    def __hash__(self):
+        return id(self)
+
     def __eq__(self, other):
         if not isinstance(other, CoronMultiplier):
             return False
@@ -369,6 +381,9 @@ class LadderMultiplier(ScalarMultiplier):
         self.complete = complete
         if (not complete or short_circuit) and dbl is None:
             raise ValueError
+
+    def __hash__(self):
+        return id(self)
 
     def __eq__(self, other):
         if not isinstance(other, LadderMultiplier):
@@ -419,6 +434,9 @@ class SimpleLadderMultiplier(ScalarMultiplier):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.complete = complete
 
+    def __hash__(self):
+        return id(self)
+
     def __eq__(self, other):
         if not isinstance(other, SimpleLadderMultiplier):
             return False
@@ -466,6 +484,9 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
     ):
         super().__init__(short_circuit=short_circuit, dadd=dadd, dbl=dbl, scl=scl)
         self.complete = complete
+
+    def __hash__(self):
+        return id(self)
 
     def __eq__(self, other):
         if not isinstance(other, DifferentialLadderMultiplier):
@@ -516,6 +537,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         super().__init__(
             short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
         )
+
+    def __hash__(self):
+        return id(self)
 
     def __eq__(self, other):
         if not isinstance(other, BinaryNAFMultiplier):
@@ -572,6 +596,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
         )
         self.width = width
         self.precompute_negation = precompute_negation
+
+    def __hash__(self):
+        return id(self)
 
     def __eq__(self, other):
         if not isinstance(other, WindowNAFMultiplier):
