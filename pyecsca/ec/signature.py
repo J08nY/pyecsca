@@ -43,7 +43,7 @@ class SignatureResult:
         return self.r == other.r and self.s == other.s
 
     def __hash__(self):
-        return hash((self.r, self.s)) + 11
+        return hash((self.r, self.s))
 
     def __str__(self):
         return f"(r={self.r}, s={self.s})"

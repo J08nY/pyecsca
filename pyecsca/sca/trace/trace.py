@@ -78,7 +78,7 @@ class Trace:
 
     def __hash__(self):
         # This will have collisions, but those can be sorted out by the equality check above.
-        return hash(str(self.samples)) + hash(self.meta)
+        return hash((str(self.samples), tuple(self.meta.items())))
 
     def with_samples(self, samples: ndarray) -> "Trace":
         """

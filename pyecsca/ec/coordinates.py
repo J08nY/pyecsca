@@ -67,7 +67,7 @@ class AffineCoordinateModel(CoordinateModel):
         return self.curve_model == other.curve_model
 
     def __hash__(self):
-        return hash(self.curve_model) + hash(self.name)
+        return hash((self.curve_model, self.name))
 
 
 class EFDCoordinateModel(CoordinateModel):
@@ -137,4 +137,4 @@ class EFDCoordinateModel(CoordinateModel):
         return self.curve_model == other.curve_model and self.name == other.name
 
     def __hash__(self):
-        return hash(self.curve_model) + hash(self.name)
+        return hash((self.curve_model, self.name))

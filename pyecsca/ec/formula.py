@@ -410,7 +410,7 @@ class EFDFormula(Formula):
         )
 
     def __hash__(self):
-        return hash(self.name) + hash(self.coordinate_model)
+        return hash((self.coordinate_model, self.name))
 
 
 @public

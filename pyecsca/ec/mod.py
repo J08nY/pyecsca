@@ -561,7 +561,7 @@ class SymbolicMod(Mod):
         return str(self.x)
 
     def __hash__(self):
-        return hash(("SymbolicMod", self.x, self.n)) + 1
+        return hash(("SymbolicMod", self.x, self.n))
 
     def __pow__(self, n) -> "SymbolicMod":
         try:

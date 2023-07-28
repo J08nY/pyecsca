@@ -99,7 +99,7 @@ class EFDCurveModel(CurveModel):
         return self._efd_name == other._efd_name
 
     def __hash__(self):
-        return hash(self._efd_name) + 1
+        return hash(self._efd_name)
 
     def __str__(self):
         return f"{self.__class__.__name__.replace('Model', '')}"
