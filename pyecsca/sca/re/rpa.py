@@ -5,7 +5,7 @@ Provides functionality inspired by the Refined-Power Analysis attack by Goubin.
   `<https://dl.acm.org/doi/10.5555/648120.747060>`_
 """
 from public import public
-from typing import MutableMapping, Optional, Callable
+from typing import MutableMapping, Optional, Callable, List
 from collections import Counter
 
 from sympy import FF, sympify, Poly, symbols
@@ -117,7 +117,7 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
         # TODO: There may be more roots.
         if not roots:
             return None
-        x = Mod(int(roots[0]), params.curve.prime)
+        x = Mod(int(next(iter(roots.keys()))), params.curve.prime)
         return Point(AffineCoordinateModel(params.curve.model), x=x, y=Mod(0, params.curve.prime))
     elif isinstance(params.curve.model, MontgomeryModel):
         return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime),
@@ -126,7 +126,7 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
         raise NotImplementedError
 
 
-def rpa_distinguish(params: DomainParameters, mults: list[ScalarMultiplier], oracle: Callable[[int, Point], bool]) -> list[ScalarMultiplier]:
+def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool]) -> List[ScalarMultiplier]:
     """
     Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.mults`) using
     an RPA :paramref:`~.rpa_distinguish.oracle`.
@@ -136,7 +136,7 @@ def rpa_distinguish(params: DomainParameters, mults: list[ScalarMultiplier], ora
     :param oracle: An oracle that returns `True` when an RPA point is encountered during scalar multiplication of the input by the scalar.
     :returns: The list of possible multipliers after distinguishing (ideally just one).
     """
-    P0 = rpa_point_x0(params) or rpa_point_0y(params)
+    P0 = rpa_point_0y(params) or rpa_point_x0(params)
     if not P0:
         raise ValueError("There are no RPA-points on the provided curve.")
     print(f"Got RPA point {P0}")

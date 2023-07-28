@@ -1,3 +1,5 @@
+import io
+from contextlib import redirect_stdout
 from copy import copy
 from os.path import realpath, dirname, join
 from typing import Optional
@@ -31,7 +33,7 @@ from pyecsca.sca.target.ectester import (
 )
 
 if has_pyscard:
-    from pyecsca.sca.target.ectester import ECTesterTarget
+    from pyecsca.sca.target.ectester import ECTesterTargetPCSC as ECTesterTarget
 else:
     ECTesterTarget = None
 
@@ -54,9 +56,10 @@ class BinaryTargetTests(TestCase):
     def test_debug(self):
         target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
         target = TestTarget(["python", target_path], debug_output=True)
-        target.connect()
-        target.send_cmd(SimpleSerialMessage("d", ""), 500)
-        target.disconnect()
+        with redirect_stdout(io.StringIO()):
+            target.connect()
+            target.send_cmd(SimpleSerialMessage("d", ""), 500)
+            target.disconnect()
 
     def test_no_connection(self):
         target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
