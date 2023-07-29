@@ -129,7 +129,7 @@ def divpoly0(curve: EllipticCurve, n: int) -> Poly:
 
     mem: Dict[int, Poly] = {}
     for i, keep in ls:
-        val = None
+        print(f"...{i}")
         if i == -2:
             val = mem[-1] ** 2
         elif i == -1:
@@ -158,7 +158,7 @@ def divpoly0(curve: EllipticCurve, n: int) -> Poly:
     return mem[n]
 
 
-def divpoly(curve, n, two_torsion_multiplicity=2):
+def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> Poly:
     f = divpoly0(curve, n)
     a1, a2, a3, a4, a6 = a_invariants(curve)
     xs, ys = symbols("x y")
@@ -178,3 +178,22 @@ def divpoly(curve, n, two_torsion_multiplicity=2):
             return f * divpoly0(curve, -1)
         else:
             return f
+
+
+def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Poly, Poly]:
+    xs = symbols("x")
+    K = FF(curve.prime)
+    x = Poly(xs, xs, domain=K)
+
+    if n == 1:
+        return x
+
+    polys = [divpoly0(curve, i) for i in (-2, -1, n - 1, n, n + 1)]
+    denom = polys[3] ** 2
+    if n % 2 == 0:
+        num = x * polys[1] * polys[3] ** 2 - polys[2] * polys[4]
+        denom *= polys[1]
+    else:
+        num = x * polys[3] ** 2 - polys[1] * polys[2] * polys[4]
+    lc = K(denom.LC())
+    return num.quo(lc), denom.monic()

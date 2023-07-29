@@ -1,9 +1,9 @@
 from unittest import TestCase
-from sympy import FF
+from sympy import FF, simplify
 
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.params import get_params
-from pyecsca.sca.re.zvp import unroll_formula, divpoly0, a_invariants, b_invariants, divpoly
+from pyecsca.sca.re.zvp import unroll_formula, divpoly0, a_invariants, b_invariants, divpoly, mult_by_n
 
 
 class ZVPTests(TestCase):
@@ -111,12 +111,12 @@ class ZVPTests(TestCase):
         # Data from sagemath
         K = FF(self.secp128r1.curve.prime)
         coeffs_0 = {
-            (0, ): K(16020440675387382717114730680672549016),
-            (1, ): K(269851015321770885610377847857290470365),
-            (2, ): K(340282366762482138434845932244680310693),
-            (3, ): K(109469325440469337582450480850803806492),
-            (4, ): K(340282366762482138434845932244680310753),
-            (6, ): K(2)
+            (0,): K(16020440675387382717114730680672549016),
+            (1,): K(269851015321770885610377847857290470365),
+            (2,): K(340282366762482138434845932244680310693),
+            (3,): K(109469325440469337582450480850803806492),
+            (4,): K(340282366762482138434845932244680310753),
+            (6,): K(2)
         }
         self.assertDictEqual(divpoly(self.secp128r1.curve, 4, 0).as_dict(), coeffs_0)
         coeffs_1 = {
@@ -129,13 +129,30 @@ class ZVPTests(TestCase):
         }
         self.assertDictEqual(divpoly(self.secp128r1.curve, 4, 1).as_dict(), coeffs_1)
         coeffs_2 = {
-            (9, ): K(8),
-            (7, ): K(340282366762482138434845932244680310639),
-            (6, ): K(187545273439985507098415273777631738640),
-            (4, ): K(117928913205007755574446043156465405646),
-            (3, ): K(244159722710157842132157548160645018307),
-            (2, ): K(200234655086793134086408617236124137371),
-            (1, ): K(51914434605509249526780779992574428819),
-            (0, ): K(60581150995923875019702403440670701629)
+            (9,): K(8),
+            (7,): K(340282366762482138434845932244680310639),
+            (6,): K(187545273439985507098415273777631738640),
+            (4,): K(117928913205007755574446043156465405646),
+            (3,): K(244159722710157842132157548160645018307),
+            (2,): K(200234655086793134086408617236124137371),
+            (1,): K(51914434605509249526780779992574428819),
+            (0,): K(60581150995923875019702403440670701629)
         }
         self.assertDictEqual(divpoly(self.secp128r1.curve, 4, 2).as_dict(), coeffs_2)
+
+    def test_mult_by_n(self):
+        # Data from sagemath
+        coeffs_num = [85070591690620534608711483061170077696,
+                      0,
+                      170141183381241069217422966122340155393,
+                      62583007080472960807846662406395871832,
+                      85070591690620534608711483061170077698]
+        coeffs_denom = [1,
+                        0,
+                        340282366762482138434845932244680310780,
+                        308990863222245658030922601041482374867]
+
+        num, denom = mult_by_n(self.secp128r1.curve, 2)
+        K = FF(self.secp128r1.curve.prime)
+        self.assertListEqual(coeffs_num, list(map(K, num.all_coeffs())))
+        self.assertListEqual(coeffs_denom, list(map(K, denom.all_coeffs())))
