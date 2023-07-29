@@ -148,7 +148,7 @@ class Mod:
     n: Any
     __slots__ = ("x", "n")
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs) -> "Mod":
         if cls != Mod:
             return cls.__new__(cls, *args, **kwargs)
         if not _mod_classes:

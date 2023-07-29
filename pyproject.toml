@@ -39,7 +39,8 @@
     "datashader",
     "xarray",
     "astunparse",
-    "numba==0.57.1"
+    "numba==0.57.1",
+    "networkx"
   ]
 
 [project.urls]

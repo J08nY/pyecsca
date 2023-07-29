@@ -5,7 +5,6 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from pyecsca.ec.context import local
-from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import Mod
