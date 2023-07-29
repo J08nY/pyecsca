@@ -111,13 +111,14 @@ class ECConfig:
 
          - ``"gmp"``: Requires the GMP library and `gmpy2` package.
          - ``"python"``: Doesn't require anything.
+         - ``"symbolic"``: Requires sympy.
         """
         return self._mod_implementation
 
     @mod_implementation.setter
     def mod_implementation(self, value: str):
-        if value not in ("python", "gmp"):
-            raise ValueError("Bad Mod implementaiton, can be one of 'python' or 'gmp'.")
+        if value not in ("python", "gmp", "symbolic"):
+            raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp' or 'symbolic'.")
         self._mod_implementation = value
 
 

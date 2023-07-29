@@ -40,6 +40,7 @@ class OpResult:
         return self.name
 
     def __repr__(self):
+        # TODO: This repr is broken for square and neg and inv.
         char = self.op.op_str
         parents = char.join(str(parent) for parent in self.parents)
         return f"{self.name} = {parents}"
