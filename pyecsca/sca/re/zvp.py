@@ -1,10 +1,10 @@
 """
-Provides functionality inspired by the Zero-value point attack
+Provides functionality inspired by the Zero-value point attack.
 
   Zero-Value Point Attacks on Elliptic Curve Cryptosystem, Toru Akishita & Tsuyoshi Takagi , ISC '03
   `<https://doi.org/10.1007/10958513_17>`_
 """
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Union, Set
 
 from sympy import symbols, FF, Poly
 import networkx as nx
@@ -30,11 +30,11 @@ def unroll_formula(formula: Formula, prime: int):
     return [op_result.value for op_result in ctx.actions.get_by_index([0])[0].op_results]
 
 
-def values(n: int):
-    done = set()
+def values(*ns: int):
+    done: Set[int] = set()
     vals = {}
-    todo = set()
-    todo.add(n)
+    todo: Set[int] = set()
+    todo.update(ns)
     while todo:
         val = todo.pop()
         if val in done:
@@ -66,9 +66,9 @@ def values(n: int):
     return vals
 
 
-def dep_graph(n: int):
+def dep_graph(*ns: int):
     g = nx.DiGraph()
-    vals = values(n)
+    vals = values(*ns)
     for k, v in vals.items():
         if v:
             for e in v:
@@ -78,15 +78,15 @@ def dep_graph(n: int):
     return g, vals
 
 
-def dep_map(n: int):
-    g, vals = dep_graph(n)
-    current = set()
+def dep_map(*ns: int):
+    g, vals = dep_graph(*ns)
+    current: Set[int] = set()
     ls = []
-    for vert in nx.topological_sort(g):
-        current.update(vals[vert])
+    for vert in nx.lexicographical_topological_sort(g, key=lambda v: -sum(g[v].keys())):
         if vert in current:
             current.remove(vert)
         ls.append((vert, set(current)))
+        current.update(vals[vert])
     ls.reverse()
     return ls, vals
 
@@ -114,7 +114,7 @@ def b_invariants(curve: EllipticCurve) -> Tuple[Mod, ...]:
         raise NotImplementedError
 
 
-def divpoly0(curve: EllipticCurve, n: int) -> Poly:
+def divpoly0(curve: EllipticCurve, *ns: int) -> Union[Poly, Tuple[Poly, ...]]:
     # Basically sagemath's division_polynomial_0 but more clever memory management
     # and dependency computation.
     xs = symbols("x")
@@ -125,11 +125,10 @@ def divpoly0(curve: EllipticCurve, n: int) -> Poly:
     x = Kx(xs)
 
     b2, b4, b6, b8 = map(lambda b: Kx(int(b)), b_invariants(curve))
-    ls, vals = dep_map(n)
+    ls, vals = dep_map(*ns)
 
     mem: Dict[int, Poly] = {}
     for i, keep in ls:
-        print(f"...{i}")
         if i == -2:
             val = mem[-1] ** 2
         elif i == -1:
@@ -151,15 +150,18 @@ def divpoly0(curve: EllipticCurve, n: int) -> Poly:
                 val = mem[-2] * mem[m + 2] * mem[m] ** 3 - mem[m - 1] * mem[m + 1] ** 3
             else:
                 val = mem[m + 2] * mem[m] ** 3 - mem[-2] * mem[m - 1] * mem[m + 1] ** 3
-
-        for dl in set(mem.keys()).difference(keep):
+        for dl in set(mem.keys()).difference(keep).difference(ns):
             del mem[dl]
         mem[i] = val
-    return mem[n]
+
+    if len(ns) == 1:
+        return mem[ns[0]]
+    else:
+        return tuple(mem[n] for n in ns)
 
 
 def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> Poly:
-    f = divpoly0(curve, n)
+    f: Poly = divpoly0(curve, n)
     a1, a2, a3, a4, a6 = a_invariants(curve)
     xs, ys = symbols("x y")
     x = Poly(xs, xs, domain=f.domain)
@@ -188,7 +190,7 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Poly, Poly]:
     if n == 1:
         return x
 
-    polys = [divpoly0(curve, i) for i in (-2, -1, n - 1, n, n + 1)]
+    polys = divpoly0(curve, -2, -1, n - 1, n, n + 1)
     denom = polys[3] ** 2
     if n % 2 == 0:
         num = x * polys[1] * polys[3] ** 2 - polys[2] * polys[4]

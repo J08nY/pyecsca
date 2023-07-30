@@ -1,5 +1,5 @@
 from unittest import TestCase
-from sympy import FF, simplify
+from sympy import FF
 
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.params import get_params
