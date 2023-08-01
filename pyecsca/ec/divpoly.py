@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Union, Set, Mapping
+from typing import Tuple, Dict, Set, Mapping
 
 from sympy import symbols, FF, Poly
 import networkx as nx
@@ -213,6 +213,9 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     a1, a2, a3, a4, a6 = a_invariants(curve)
 
     polys = divpoly0(curve, -2, -1, n - 1, n, n + 1, n + 2)
+    # TODO: All of these fractions may benefit from using
+    #       sympy.cancel to get rid of common factors in the numerator and denominator.
+    #       Though for large polynomials that might be too much.
     mx_denom = polys[n] ** 2
     if n % 2 == 0:
         mx_num = x * polys[-1] * polys[n] ** 2 - polys[n - 1] * polys[n + 1]
@@ -246,11 +249,11 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     mxd_full_denom = mxd_dn_denom
 
     # a1*mx
-    a1mx_num = (Kxy(a1) * mx[0]).quo(Kxy(2))
+    a1mx_num = (Kxy(a1) * mx[0])
     a1mx_denom = mx[1]  # noqa
 
     # a3
-    a3_num = Kxy(a3) * mx[1]
+    a3_num = (Kxy(a3) * mx[1])
     a3_denom = mx[1]  # noqa
 
     # The mx.derivative part has a different denominator, basically mx[1]^2 * m

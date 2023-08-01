@@ -1,4 +1,5 @@
 from unittest import TestCase
+import json
 
 from sympy import FF
 from pyecsca.ec.divpoly import a_invariants, b_invariants, divpoly0, divpoly, mult_by_n
@@ -167,3 +168,19 @@ class DivpolyTests(TestCase):
         my_num, my_denom = my
         self.assertDictEqual(my_num.as_dict(), coeffs_my_num)
         self.assertDictEqual(my_denom.as_dict(), coeffs_my_denom)
+
+    def test_mult_by_n_large(self):
+        K = FF(self.secp128r1.curve.prime)
+        mx, my = mult_by_n(self.secp128r1.curve, 21)
+        with open("test/data/divpoly/mult_21.json") as f:
+            sage_data = json.load(f)
+            sage_data["mx"][0] = {eval(key): K(val) for key, val in sage_data["mx"][0].items()}
+            sage_data["mx"][1] = {eval(key): K(val) for key, val in sage_data["mx"][1].items()}
+            sage_data["my"][0] = {eval(key): K(val) for key, val in sage_data["my"][0].items()}
+            sage_data["my"][1] = {eval(key): K(val) for key, val in sage_data["my"][1].items()}
+
+        self.assertDictEqual(mx[0].as_dict(), sage_data["mx"][0])
+        self.assertDictEqual(mx[1].as_dict(), sage_data["mx"][1])
+
+        self.assertDictEqual(my[0].as_dict(), sage_data["my"][0])
+        self.assertDictEqual(my[1].as_dict(), sage_data["my"][1])
