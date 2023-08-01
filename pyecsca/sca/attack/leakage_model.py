@@ -5,7 +5,7 @@ from typing import Literal, ClassVar
 from numpy.random import default_rng
 from public import public
 
-from pyecsca.sca import Trace
+from ...sca.trace import Trace
 
 if sys.version_info[0] < 3 or sys.version_info[0] == 3 and sys.version_info[1] < 10:
     def hw(i):

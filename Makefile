@@ -1,10 +1,11 @@
 EC_TESTS = ec.test_context ec.test_configuration ec.test_curve ec.test_formula \
 ec.test_params ec.test_key_agreement ec.test_key_generation ec.test_mod ec.test_model \
-ec.test_mult ec.test_naf ec.test_op ec.test_point ec.test_signature ec.test_transformations ec.test_regress
+ec.test_mult ec.test_naf ec.test_op ec.test_point ec.test_signature ec.test_transformations ec.test_regress \
+ec.test_divpoly
 
 SCA_TESTS = sca.test_align sca.test_combine sca.test_edit sca.test_filter sca.test_match sca.test_process \
 sca.test_sampling sca.test_target sca.test_test sca.test_trace sca.test_traceset sca.test_plot sca.test_rpa \
-sca.test_stacked_combine sca.test_leakage_models
+sca.test_zvp sca.test_stacked_combine sca.test_leakage_models
 
 TESTS = ${EC_TESTS} ${SCA_TESTS}
 
