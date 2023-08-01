@@ -1,3 +1,6 @@
+"""
+Provides functions for computing division polynomials and the multiplication-by-n map on an elliptic curve.
+"""
 from typing import Tuple, Dict, Set, Mapping
 
 from sympy import symbols, FF, Poly
@@ -167,10 +170,10 @@ def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> 
     """
     Compute the n-th division polynomial.
 
-    :param curve:
-    :param n:
-    :param two_torsion_multiplicity:
-    :return:
+    :param curve: Curve to compute on.
+    :param n: Scalar.
+    :param two_torsion_multiplicity: Same as sagemath.
+    :return: The division polynomial.
     """
     f: Poly = divpoly0(curve, n)[n]
     a1, a2, a3, a4, a6 = a_invariants(curve)
@@ -199,7 +202,7 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
 
     :param curve: Curve to compute on.
     :param n: Scalar.
-    :return:
+    :return: A tuple (mx, my) where each is a tuple (numerator, denominator).
     """
     xs, ys = symbols("x y")
     K = FF(curve.prime)
@@ -208,7 +211,7 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     Kxy = lambda r: Poly(r, xs, ys, domain=K)  # noqa
 
     if n == 1:
-        return x
+        return x, y
 
     a1, a2, a3, a4, a6 = a_invariants(curve)
 
