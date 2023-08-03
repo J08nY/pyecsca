@@ -134,7 +134,7 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
     :param params: The domain parameters to use.
     :param mults: The list of possible multipliers.
     :param oracle: An oracle that returns `True` when an RPA point is encountered during scalar multiplication of the input by the scalar.
-    :returns: The list of possible multipliers after distinguishing (ideally just one).
+    :return: The list of possible multipliers after distinguishing (ideally just one).
     """
     P0 = rpa_point_0y(params) or rpa_point_x0(params)
     if not P0:

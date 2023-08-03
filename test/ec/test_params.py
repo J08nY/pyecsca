@@ -7,7 +7,8 @@ from pyecsca.ec.point import Point, InfinityPoint
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.error import UnsatisfiedAssumptionError
-from pyecsca.ec.params import get_params, load_params, load_category, get_category, DomainParameters
+from pyecsca.ec.params import get_params, load_params, load_category, get_category, DomainParameters, \
+    load_params_ectester, load_params_ecgen
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.curve import EllipticCurve
 
@@ -47,8 +48,8 @@ class DomainParameterTests(TestCase):
         [
             ("anssi", "projective"),
             (
-                "brainpool",
-                lambda name: "projective" if name.endswith("r1") else "jacobian",
+                    "brainpool",
+                    lambda name: "projective" if name.endswith("r1") else "jacobian",
             ),
         ]
     )
@@ -61,6 +62,16 @@ class DomainParameterTests(TestCase):
             assert params.curve.is_on_curve(params.generator)
         except NotImplementedError:
             pass
+
+    def test_load_params_ectester(self):
+        params = load_params_ectester("test/data/ectester_secp128r1.csv", "projective")
+        assert params.curve.is_on_curve(params.generator)
+        self.assertEqual(params, self.secp128r1)
+
+    def test_load_params_ecgen(self):
+        params = load_params_ecgen("test/data/ecgen_secp128r1.json", "projective")
+        assert params.curve.is_on_curve(params.generator)
+        self.assertEqual(params, self.secp128r1)
 
     def test_load_category(self):
         category = load_category("test/data/curves.json", "yz")
