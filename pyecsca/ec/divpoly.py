@@ -194,6 +194,8 @@ def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> 
             return f * divpoly0(curve, -1)[-1]
         else:
             return f
+    else:
+        raise ValueError
 
 
 def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Poly, Poly]]:
@@ -211,7 +213,7 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     Kxy = lambda r: Poly(r, xs, ys, domain=K)  # noqa
 
     if n == 1:
-        return x, y
+        return (x, Kxy(1)), (y, Kxy(1))
 
     a1, a2, a3, a4, a6 = a_invariants(curve)
 

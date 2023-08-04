@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import MontgomeryModel
@@ -44,6 +45,20 @@ class CurveTests(TestCase):
                 InfinityPoint(self.secp128r1.curve.coordinate_model),
                 parameters={"a": Mod(1, 5), "b": Mod(2, 5)},
             )
+
+    def test_to_coords(self):
+        affine = self.secp128r1.to_affine()
+        m1_coords = affine.curve.model.coordinates["projective-1"]
+        m3_coords = affine.curve.model.coordinates["projective-3"]
+        with self.assertRaises(UnsatisfiedAssumptionError):
+            affine.to_coords(m1_coords)
+        affine.to_coords(m3_coords)
+
+    def test_to_affine(self):
+        affine = self.secp128r1.to_affine()
+        model = AffineCoordinateModel(affine.curve.model)
+        self.assertEqual(affine.curve.coordinate_model, model)
+        self.assertEqual(affine.generator.coordinate_model, model)
 
     def test_is_neutral(self):
         self.assertTrue(

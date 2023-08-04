@@ -17,7 +17,7 @@ from public import public
 
 from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
-from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
+from .error import raise_unsatisified_assumption
 from .mod import Mod
 from .model import (
     CurveModel,
@@ -69,6 +69,29 @@ class DomainParameters:
 
     def __hash__(self):
         return hash((self.curve, self.generator, self.order, self.cofactor))
+
+    def to_coords(self, coordinate_model: CoordinateModel) -> "DomainParameters":
+        """
+        Convert the domain parameters into a different coordinate model, only possible if they are currently affine.
+
+        :param coordinate_model: The target coordinate model.
+        :return: The transformed domain parameters
+        """
+        if not isinstance(self.curve.coordinate_model, AffineCoordinateModel):
+            raise ValueError
+        curve = self.curve.to_coords(coordinate_model)
+        generator = self.generator.to_model(coordinate_model, curve)
+        return DomainParameters(curve, generator, self.order, self.cofactor, self.name, self.category)
+
+    def to_affine(self) -> "DomainParameters":
+        """
+        Convert the domain parameters into the affine coordinate model, if possible.
+
+        :return: The transformed domain parameters
+        """
+        curve = self.curve.to_affine()
+        generator = self.generator.to_affine()
+        return DomainParameters(curve, generator, self.order, self.cofactor, self.name, self.category)
 
     def __get_name(self):
         if self.name and self.category:
@@ -153,7 +176,7 @@ def _create_params(curve, coords, infty):
         coord_model = AffineCoordinateModel(model)
     else:
         if coords not in model.coordinates:
-            raise ValueError("Coordinate model not supported for curve.")
+            raise ValueError("Coordinate model not supported for curve model.")
         coord_model = model.coordinates[coords]
         for assumption in coord_model.assumptions:
             # Try to execute assumption, if it works, check with curve parameters
@@ -188,9 +211,11 @@ def _create_params(curve, coords, infty):
                 roots = poly.ground_roots()
                 for root in roots:
                     params[param] = Mod(int(root), field)
+                    print("here", model, coords, param, root)
                     break
                 else:
-                    raise UnsatisfiedAssumptionError(
+                    raise_unsatisified_assumption(
+                        getconfig().ec.unsatisfied_coordinate_assumption_action,
                         f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
                     )
 
