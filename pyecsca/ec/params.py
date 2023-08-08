@@ -211,7 +211,6 @@ def _create_params(curve, coords, infty):
                 roots = poly.ground_roots()
                 for root in roots:
                     params[param] = Mod(int(root), field)
-                    print("here", model, coords, param, root)
                     break
                 else:
                     raise_unsatisified_assumption(

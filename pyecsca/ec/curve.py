@@ -84,20 +84,11 @@ class EllipticCurve:
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in self.parameters.items():
                     expr = expr.subs(curve_param, k(value))
-                if (
-                        len(expr.free_symbols) > 1
-                        or (param := str(expr.free_symbols.pop()))
-                        not in self.coordinate_model.parameters
-                ):
+                if len(expr.free_symbols) > 0:
                     raise ValueError(
-                        f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string})."
+                        f"Missing necessary coordinate model parameter ({assumption_string})."
                     )
-                poly = Poly(expr, symbols(param), domain=k)
-                roots = poly.ground_roots()
-                for root in roots:
-                    self.parameters[param] = Mod(int(root), self.prime)
-                    break
-                else:
+                if k(expr) != 0:
                     raise_unsatisified_assumption(
                         getconfig().ec.unsatisfied_coordinate_assumption_action,
                         f"Coordinate model {self.coordinate_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
