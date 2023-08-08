@@ -58,7 +58,7 @@
 "leia" = ["smartleia"]
 "gmp" = ["gmpy2"]
 "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"]
-"test" = ["pytest", "coverage", "pytest-cov", "parameterized"]
+"test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "parameterized"]
 "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
 
 [tool.setuptools.packages.find]
