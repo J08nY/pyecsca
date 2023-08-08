@@ -1,4 +1,5 @@
 import numpy as np
+from importlib.resources import files, as_file
 from pyecsca.sca import (
     align_correlation,
     align_peaks,
@@ -8,6 +9,7 @@ from pyecsca.sca import (
     Trace,
     InspectorTraceSet,
 )
+import test.data.sca
 from .utils import Plottable, slow
 
 
@@ -43,17 +45,19 @@ class AlignTests(Plottable):
 
     @slow
     def test_large_align(self):
-        example = InspectorTraceSet.read("test/data/example.trs")
-        result, _ = align_correlation(
-            *example, reference_offset=100000, reference_length=20000, max_offset=15000
-        )
-        self.assertIsNotNone(result)
+        with as_file(files(test.data.sca).joinpath("example.trs")) as path:
+            example = InspectorTraceSet.read(path)
+            result, _ = align_correlation(
+                *example, reference_offset=100000, reference_length=20000, max_offset=15000
+            )
+            self.assertIsNotNone(result)
 
     @slow
     def test_large_dtw_align(self):
-        example = InspectorTraceSet.read("test/data/example.trs")
-        result = align_dtw(*example[:5])
-        self.assertIsNotNone(result)
+        with as_file(files(test.data.sca).joinpath("example.trs")) as path:
+            example = InspectorTraceSet.read(path)
+            result = align_dtw(*example[:5])
+            self.assertIsNotNone(result)
 
     def test_peak_align(self):
         first_arr = np.array(

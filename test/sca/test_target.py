@@ -4,9 +4,10 @@ from copy import copy
 from os.path import realpath, dirname, join
 from typing import Optional
 from unittest import TestCase, SkipTest
+from importlib.resources import files, as_file
 
 from smartcard.pcsc.PCSCExceptions import BaseSCardException
-
+import test.data.sca
 from pyecsca.ec.key_agreement import ECDH_SHA1
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import Mod
@@ -44,31 +45,31 @@ class TestTarget(SimpleSerialTarget, BinaryTarget):
 
 class BinaryTargetTests(TestCase):
     def test_basic_target(self):
-        target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
-        target = TestTarget(["python", target_path])
-        target.connect()
-        resp = target.send_cmd(SimpleSerialMessage("d", ""), 500)
-        self.assertIn("r", resp)
-        self.assertIn("z", resp)
-        self.assertEqual(resp["r"].data, "01020304")
-        target.disconnect()
-
-    def test_debug(self):
-        target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
-        target = TestTarget(["python", target_path], debug_output=True)
-        with redirect_stdout(io.StringIO()):
+        with as_file(files(test.data.sca).joinpath("target.py")) as target_path:
+            target = TestTarget(["python", target_path])
             target.connect()
-            target.send_cmd(SimpleSerialMessage("d", ""), 500)
+            resp = target.send_cmd(SimpleSerialMessage("d", ""), 500)
+            self.assertIn("r", resp)
+            self.assertIn("z", resp)
+            self.assertEqual(resp["r"].data, "01020304")
             target.disconnect()
 
+    def test_debug(self):
+        with as_file(files(test.data.sca).joinpath("target.py")) as target_path:
+            target = TestTarget(["python", target_path], debug_output=True)
+            with redirect_stdout(io.StringIO()):
+                target.connect()
+                target.send_cmd(SimpleSerialMessage("d", ""), 500)
+                target.disconnect()
+
     def test_no_connection(self):
-        target_path = join(dirname(realpath(__file__)), "..", "data", "target.py")
-        target = TestTarget(target_path)
-        with self.assertRaises(ValueError):
-            target.write(bytes([1, 2, 3, 4]))
-        with self.assertRaises(ValueError):
-            target.read(5)
-        target.disconnect()
+        with as_file(files(test.data.sca).joinpath("target.py")) as target_path:
+            target = TestTarget(str(target_path))
+            with self.assertRaises(ValueError):
+                target.write(bytes([1, 2, 3, 4]))
+            with self.assertRaises(ValueError):
+                target.read(5)
+            target.disconnect()
 
 
 class ECTesterTargetTests(TestCase):

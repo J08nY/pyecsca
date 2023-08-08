@@ -1,10 +1,12 @@
 import os.path
 import shutil
 import tempfile
+from importlib.resources import files, as_file
 from unittest import TestCase
 
 import numpy as np
 
+import test.data.sca
 from pyecsca.sca import (
     TraceSet,
     InspectorTraceSet,
@@ -33,25 +35,27 @@ class TraceSetTests(TestCase):
 
 class InspectorTraceSetTests(TestCase):
     def test_load_fname(self):
-        result = InspectorTraceSet.read("test/data/example.trs")
-        self.assertIsNotNone(result)
-        self.assertEqual(result.global_title, "Example trace set")
-        self.assertEqual(len(result), 10)
-        self.assertEqual(len(list(result)), 10)
-        self.assertIn("InspectorTraceSet", str(result))
-        self.assertIs(result[0].trace_set, result)
-        self.assertEqual(result.sampling_frequency, 12500000)
+        with as_file(files(test.data.sca).joinpath("example.trs")) as path:
+            result = InspectorTraceSet.read(path)
+            self.assertIsNotNone(result)
+            self.assertEqual(result.global_title, "Example trace set")
+            self.assertEqual(len(result), 10)
+            self.assertEqual(len(list(result)), 10)
+            self.assertIn("InspectorTraceSet", str(result))
+            self.assertIs(result[0].trace_set, result)
+            self.assertEqual(result.sampling_frequency, 12500000)
 
     def test_load_file(self):
-        with open("test/data/example.trs", "rb") as f:
+        with files(test.data.sca).joinpath("example.trs").open("rb") as f:
             self.assertIsNotNone(InspectorTraceSet.read(f))
 
     def test_load_bytes(self):
-        with open("test/data/example.trs", "rb") as f:
+        with files(test.data.sca).joinpath("example.trs").open("rb") as f:
             self.assertIsNotNone(InspectorTraceSet.read(f.read()))
 
     def test_save(self):
-        trace_set = InspectorTraceSet.read("test/data/example.trs")
+        with as_file(files(test.data.sca).joinpath("example.trs")) as path:
+            trace_set = InspectorTraceSet.read(path)
         with tempfile.TemporaryDirectory() as dirname:
             path = os.path.join(dirname, "out.trs")
             trace_set.write(path)
@@ -61,18 +65,21 @@ class InspectorTraceSetTests(TestCase):
 
 class ChipWhispererTraceSetTests(TestCase):
     def test_load_fname(self):
-        result = ChipWhispererTraceSet.read("test/data/config_chipwhisperer_.cfg")
-        self.assertIsNotNone(result)
-        self.assertEqual(len(result), 2)
+        with as_file(files(test.data.sca).joinpath("config_chipwhisperer_.cfg")) as path:
+            # This will not work if the test package is not on the file system directly.
+            result = ChipWhispererTraceSet.read(path)
+            self.assertIsNotNone(result)
+            self.assertEqual(len(result), 2)
 
 
 class PickleTraceSetTests(TestCase):
     def test_load_fname(self):
-        result = PickleTraceSet.read("test/data/test.pickle")
-        self.assertIsNotNone(result)
+        with as_file(files(test.data.sca).joinpath("test.pickle")) as path:
+            result = PickleTraceSet.read(path)
+            self.assertIsNotNone(result)
 
     def test_load_file(self):
-        with open("test/data/test.pickle", "rb") as f:
+        with files(test.data.sca).joinpath("test.pickle").open("rb") as f:
             self.assertIsNotNone(PickleTraceSet.read(f))
 
     def test_save(self):
@@ -86,17 +93,18 @@ class PickleTraceSetTests(TestCase):
 
 class HDF5TraceSetTests(TestCase):
     def test_load_fname(self):
-        result = HDF5TraceSet.read("test/data/test.h5")
-        self.assertIsNotNone(result)
+        with as_file(files(test.data.sca).joinpath("test.h5")) as path:
+            result = HDF5TraceSet.read(path)
+            self.assertIsNotNone(result)
 
     def test_load_file(self):
-        with open("test/data/test.h5", "rb") as f:
+        with files(test.data.sca).joinpath("test.h5").open("rb") as f:
             self.assertIsNotNone(HDF5TraceSet.read(f))
 
     def test_inplace(self):
-        with tempfile.TemporaryDirectory() as dirname:
+        with tempfile.TemporaryDirectory() as dirname, as_file(files(test.data.sca).joinpath("test.h5")) as orig_path:
             path = os.path.join(dirname, "test.h5")
-            shutil.copy("test/data/test.h5", path)
+            shutil.copy(orig_path, path)
             trace_set = HDF5TraceSet.inplace(path)
             self.assertIsNotNone(trace_set)
             test_trace = Trace(

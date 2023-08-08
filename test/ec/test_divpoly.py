@@ -1,6 +1,8 @@
 from unittest import TestCase
 import json
+from importlib.resources import files
 
+import test.data.divpoly
 from sympy import FF
 from pyecsca.ec.divpoly import a_invariants, b_invariants, divpoly0, divpoly, mult_by_n
 from pyecsca.ec.model import ShortWeierstrassModel
@@ -172,7 +174,7 @@ class DivpolyTests(TestCase):
     def test_mult_by_n_large(self):
         K = FF(self.secp128r1.curve.prime)
         mx, my = mult_by_n(self.secp128r1.curve, 21)
-        with open("test/data/divpoly/mult_21.json") as f:
+        with files(test.data.divpoly).joinpath("mult_21.json").open("r") as f:
             sage_data = json.load(f)
             sage_data["mx"][0] = {eval(key): K(val) for key, val in sage_data["mx"][0].items()}
             sage_data["mx"][1] = {eval(key): K(val) for key, val in sage_data["mx"][1].items()}

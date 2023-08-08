@@ -1,7 +1,9 @@
 from unittest import TestCase
 
 from parameterized import parameterized
+from importlib.resources import files, as_file
 
+import test.data.ec
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.point import Point, InfinityPoint
 from pyecsca.misc.cfg import TemporaryConfig
@@ -57,25 +59,29 @@ class DomainParameterTests(TestCase):
         get_category(name, coords)
 
     def test_load_params(self):
-        params = load_params("test/data/curve.json", "projective")
-        try:
-            assert params.curve.is_on_curve(params.generator)
-        except NotImplementedError:
-            pass
+        with as_file(files(test.data.ec).joinpath("curve.json")) as path:
+            params = load_params(path, "projective")
+            try:
+                assert params.curve.is_on_curve(params.generator)
+            except NotImplementedError:
+                pass
 
     def test_load_params_ectester(self):
-        params = load_params_ectester("test/data/ectester_secp128r1.csv", "projective")
-        assert params.curve.is_on_curve(params.generator)
-        self.assertEqual(params, self.secp128r1)
+        with as_file(files(test.data.ec).joinpath("ectester_secp128r1.csv")) as path:
+            params = load_params_ectester(path, "projective")
+            assert params.curve.is_on_curve(params.generator)
+            self.assertEqual(params, self.secp128r1)
 
     def test_load_params_ecgen(self):
-        params = load_params_ecgen("test/data/ecgen_secp128r1.json", "projective")
-        assert params.curve.is_on_curve(params.generator)
-        self.assertEqual(params, self.secp128r1)
+        with as_file(files(test.data.ec).joinpath("ecgen_secp128r1.json")) as path:
+            params = load_params_ecgen(path, "projective")
+            assert params.curve.is_on_curve(params.generator)
+            self.assertEqual(params, self.secp128r1)
 
     def test_load_category(self):
-        category = load_category("test/data/curves.json", "yz")
-        self.assertEqual(len(category), 1)
+        with as_file(files(test.data.ec).joinpath("curves.json")) as path:
+            category = load_category(path, "yz")
+            self.assertEqual(len(category), 1)
 
     @parameterized.expand(
         [
