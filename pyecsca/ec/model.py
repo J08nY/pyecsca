@@ -1,9 +1,9 @@
 """Provides curve model classes for the supported curve models."""
 from ast import parse, Expression, Module
-from os.path import join
 from typing import List, MutableMapping
+from importlib_resources import files, as_file
+from importlib_resources.abc import Traversable
 
-from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
 from .coordinates import EFDCoordinateModel, CoordinateModel
@@ -50,19 +50,18 @@ class EFDCurveModel(CurveModel):
         self.__class__.to_weierstrass = []
         self.__class__.from_weierstrass = []
 
-        files = resource_listdir(__name__, join("efd", efd_name))
-        for fname in files:
-            file_path = join("efd", efd_name, fname)
-            if resource_isdir(__name__, file_path):
-                self.__read_coordinate_dir(self.__class__, file_path, fname)
-            else:
-                self.__read_curve_file(self.__class__, file_path)
+        for entry in files("pyecsca.ec").joinpath("efd", efd_name).iterdir():
+            with as_file(entry) as file_path:
+                if entry.is_dir():
+                    self.__read_coordinate_dir(self.__class__, file_path, file_path.stem)
+                else:
+                    self.__read_curve_file(self.__class__, file_path)
 
-    def __read_curve_file(self, cls, file_path):
+    def __read_curve_file(self, cls, file_path: Traversable):
         def format_eq(line, mode="exec"):
             return parse(line.replace("^", "**"), mode=mode)
 
-        with resource_stream(__name__, file_path) as f:
+        with file_path.open("rb") as f:
             for raw in f.readlines():
                 line = raw.decode("ascii").rstrip()
                 if line.startswith("name"):
@@ -90,7 +89,7 @@ class EFDCurveModel(CurveModel):
                 else:
                     cls.full_weierstrass.append(format_eq(line))
 
-    def __read_coordinate_dir(self, cls, dir_path, name):
+    def __read_coordinate_dir(self, cls, dir_path: Traversable, name: str):
         cls.coordinates[name] = EFDCoordinateModel(dir_path, name, self)
 
     def __eq__(self, other):

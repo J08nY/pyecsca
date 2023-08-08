@@ -40,7 +40,8 @@
     "xarray",
     "astunparse",
     "numba==0.57.1",
-    "networkx"
+    "networkx",
+    "importlib-resources"
   ]
 
 [project.urls]

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import click
 
-from importlib.resources import files, as_file
+from importlib_resources import files, as_file
 from test.utils import Profiler
 import test.data.sca
 from pyecsca.sca import (

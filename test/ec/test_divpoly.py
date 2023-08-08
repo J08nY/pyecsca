@@ -1,5 +1,5 @@
 import json
-from importlib.resources import files
+from importlib_resources import files
 
 import test.data.divpoly
 from sympy import FF

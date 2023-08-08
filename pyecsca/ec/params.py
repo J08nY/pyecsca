@@ -8,11 +8,10 @@ import csv
 from sympy import Poly, FF, symbols, sympify
 from astunparse import unparse
 from io import RawIOBase, BufferedIOBase
-from os.path import join
 from pathlib import Path
 from typing import Optional, Dict, Union, BinaryIO, List, Callable, IO
+from importlib_resources import files
 
-from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
 from .coordinates import AffineCoordinateModel, CoordinateModel
@@ -442,14 +441,12 @@ def get_category(
                   as argument the name of the curve and returns the infinity option to use for that curve.
     :return: The category.
     """
-    listing = resource_listdir(__name__, "std")
-    categories = [
-        entry for entry in listing if resource_isdir(__name__, join("std", entry))
-    ]
+    categories = {
+        entry.name: entry for entry in files("pyecsca.ec").joinpath("std").iterdir() if entry.is_dir()
+    }
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
-    json_path = join("std", category, "curves.json")
-    with resource_stream(__name__, json_path) as f:
+    with categories[category].joinpath("curves.json").open("rb") as f:
         return load_category(f, coords, infty)
 
 
@@ -469,14 +466,12 @@ def get_params(
                   point at infinity of the coordinate system.
     :return: The curve.
     """
-    listing = resource_listdir(__name__, "std")
-    categories = [
-        entry for entry in listing if resource_isdir(__name__, join("std", entry))
-    ]
+    categories = {
+        entry.name: entry for entry in files("pyecsca.ec").joinpath("std").iterdir() if entry.is_dir()
+    }
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
-    json_path = join("std", category, "curves.json")
-    with resource_stream(__name__, json_path) as f:
+    with categories[category].joinpath("curves.json").open("rb") as f:
         category_json = json.load(f)
     curve = None
     for curve in category_json["curves"]:

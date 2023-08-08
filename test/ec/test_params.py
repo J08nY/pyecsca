@@ -1,7 +1,4 @@
-from unittest import TestCase
-
-from parameterized import parameterized
-from importlib.resources import files, as_file
+from importlib_resources import files, as_file
 
 import pytest
 

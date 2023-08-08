@@ -4,7 +4,7 @@ from copy import copy
 from os.path import realpath, dirname, join
 from typing import Optional
 from unittest import TestCase, SkipTest
-from importlib.resources import files, as_file
+from importlib_resources import files, as_file
 
 from smartcard.pcsc.PCSCExceptions import BaseSCardException
 import test.data.sca

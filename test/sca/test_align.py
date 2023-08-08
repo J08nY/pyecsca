@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from importlib.resources import files, as_file
+from importlib_resources import files, as_file
 from pyecsca.sca import (
     align_correlation,
     align_peaks,
