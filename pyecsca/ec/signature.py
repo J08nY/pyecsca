@@ -74,6 +74,7 @@ class ECDSAAction(Action):
 class ECDSASignAction(ECDSAAction):
     """ECDSA signing."""
 
+    # TODO: Make this a ResultAction
     privkey: Mod
 
     def __init__(
@@ -94,6 +95,7 @@ class ECDSASignAction(ECDSAAction):
 class ECDSAVerifyAction(ECDSAAction):
     """ECDSA verification."""
 
+    # TODO: Make this a ResultAction
     signature: SignatureResult
     pubkey: Point
 
