@@ -372,7 +372,7 @@ class EFDFormula(Formula):
         with path.open("rb") as f:
             for line in f.readlines():
                 code_module = parse(
-                    line.decode("ascii").replace("^", "**"), path, mode="exec"
+                    line.decode("ascii").replace("^", "**"), str(path), mode="exec"
                 )
                 self.code.append(CodeOp(code_module))
 
