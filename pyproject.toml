@@ -72,3 +72,6 @@ testpaths = ["test"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+filterwarnings = [
+    "ignore:Deprecated call to `pkg_resources.declare_namespace"
+]

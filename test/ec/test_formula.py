@@ -1,5 +1,4 @@
-from unittest import TestCase
-
+import pytest
 from sympy import FF, symbols
 
 from pyecsca.ec.mod import SymbolicMod, Mod
@@ -9,99 +8,115 @@ from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point
 
 
-class FormulaTests(TestCase):
-    def setUp(self):
-        self.secp128r1 = get_params("secg", "secp128r1", "projective")
-        self.add = self.secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
-        self.dbl = self.secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
-        self.mdbl = self.secp128r1.curve.coordinate_model.formulas["mdbl-2007-bl"]
-        self.jac_secp128r1 = get_params("secg", "secp128r1", "jacobian")
-        self.jac_dbl = self.jac_secp128r1.curve.coordinate_model.formulas[
-            "dbl-1998-hnm"
-        ]
+@pytest.fixture()
+def add(secp128r1):
+    return secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
 
-    def test_wrong_call(self):
-        with self.assertRaises(ValueError):
-            self.add(self.secp128r1.curve.prime)
-        with self.assertRaises(ValueError):
-            self.add(
-                self.secp128r1.curve.prime,
-                self.secp128r1.generator.to_affine(),
-                self.secp128r1.generator.to_affine(),
-            )
 
-    def test_indices(self):
-        self.assertEqual(self.add.input_index, 1)
-        self.assertEqual(self.add.output_index, 3)
+@pytest.fixture()
+def dbl(secp128r1):
+    return secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
 
-    def test_inputs_outputs(self):
-        self.assertEqual(self.add.inputs, {"X1", "Y1", "Z1", "X2", "Y2", "Z2"})
-        self.assertEqual(self.add.outputs, {"X3", "Y3", "Z3"})
 
-    def test_eq(self):
-        self.assertEqual(self.add, self.add)
-        self.assertNotEqual(self.add, self.dbl)
+@pytest.fixture()
+def mdbl(secp128r1):
+    return secp128r1.curve.coordinate_model.formulas["mdbl-2007-bl"]
 
-    def test_num_ops(self):
-        self.assertEqual(self.add.num_operations, 33)
-        self.assertEqual(self.add.num_multiplications, 17)
-        self.assertEqual(self.add.num_divisions, 0)
-        self.assertEqual(self.add.num_inversions, 0)
-        self.assertEqual(self.add.num_powers, 0)
-        self.assertEqual(self.add.num_squarings, 6)
-        self.assertEqual(self.add.num_addsubs, 10)
 
-    def test_assumptions(self):
-        res = self.mdbl(
-            self.secp128r1.curve.prime,
-            self.secp128r1.generator,
-            **self.secp128r1.curve.parameters
+def test_wrong_call(secp128r1, add):
+    with pytest.raises(ValueError):
+        add(secp128r1.curve.prime)
+    with pytest.raises(ValueError):
+        add(
+            secp128r1.curve.prime,
+            secp128r1.generator.to_affine(),
+            secp128r1.generator.to_affine(),
         )
-        self.assertIsNotNone(res)
 
-        coords = {
-            name: value * 5 for name, value in self.secp128r1.generator.coords.items()
-        }
-        other = Point(self.secp128r1.generator.coordinate_model, **coords)
-        with self.assertRaises(UnsatisfiedAssumptionError):
-            self.mdbl(
-                self.secp128r1.curve.prime, other, **self.secp128r1.curve.parameters
-            )
-        with TemporaryConfig() as cfg:
-            cfg.ec.unsatisfied_formula_assumption_action = "ignore"
-            pt = self.mdbl(
-                self.secp128r1.curve.prime, other, **self.secp128r1.curve.parameters
-            )
-            self.assertIsNotNone(pt)
 
-    def test_parameters(self):
-        res = self.jac_dbl(
-            self.secp128r1.curve.prime,
-            self.jac_secp128r1.generator,
-            **self.jac_secp128r1.curve.parameters
+def test_indices(add):
+    assert add.input_index == 1
+    assert add.output_index == 3
+
+
+def test_inputs_outputs(add):
+    assert add.inputs == {"X1", "Y1", "Z1", "X2", "Y2", "Z2"}
+    assert add.outputs == {"X3", "Y3", "Z3"}
+
+
+def test_eq(add, dbl):
+    assert add == add
+    assert add != dbl
+
+
+def test_num_ops(add):
+    assert add.num_operations == 33
+    assert add.num_multiplications == 17
+    assert add.num_divisions == 0
+    assert add.num_inversions == 0
+    assert add.num_powers == 0
+    assert add.num_squarings == 6
+    assert add.num_addsubs == 10
+
+
+def test_assumptions(secp128r1, mdbl):
+    res = mdbl(
+        secp128r1.curve.prime,
+        secp128r1.generator,
+        **secp128r1.curve.parameters
+    )
+    assert res is not None
+
+    coords = {
+        name: value * 5 for name, value in secp128r1.generator.coords.items()
+    }
+    other = Point(secp128r1.generator.coordinate_model, **coords)
+    with pytest.raises(UnsatisfiedAssumptionError):
+        mdbl(
+            secp128r1.curve.prime, other, **secp128r1.curve.parameters
         )
-        self.assertIsNotNone(res)
-
-    def test_symbolic(self):
-        p = self.secp128r1.curve.prime
-        k = FF(p)
-        coords = self.secp128r1.curve.coordinate_model
-        sympy_params = {
-            key: SymbolicMod(k(int(value)), p)
-            for key, value in self.secp128r1.curve.parameters.items()
-        }
-        symbolic_point = Point(
-            coords, **{key: SymbolicMod(symbols(key), p) for key in coords.variables}
+    with TemporaryConfig() as cfg:
+        cfg.ec.unsatisfied_formula_assumption_action = "ignore"
+        pt = mdbl(
+            secp128r1.curve.prime, other, **secp128r1.curve.parameters
         )
-        symbolic_double = self.dbl(p, symbolic_point, **sympy_params)[0]
-        generator_double = self.dbl(
-            p, self.secp128r1.generator, **self.secp128r1.curve.parameters
-        )[0]
-        for outer_var in coords.variables:
-            symbolic_val = getattr(symbolic_double, outer_var).x
-            generator_val = getattr(generator_double, outer_var).x
-            for inner_var in coords.variables:
-                symbolic_val = symbolic_val.subs(
-                    inner_var, k(getattr(self.secp128r1.generator, inner_var).x)
-                )
-            self.assertEqual(Mod(int(symbolic_val), p), Mod(generator_val, p))
+        assert pt is not None
+
+
+def test_parameters():
+    jac_secp128r1 = get_params("secg", "secp128r1", "jacobian")
+    jac_dbl = jac_secp128r1.curve.coordinate_model.formulas[
+        "dbl-1998-hnm"
+    ]
+
+    res = jac_dbl(
+        jac_secp128r1.curve.prime,
+        jac_secp128r1.generator,
+        **jac_secp128r1.curve.parameters
+    )
+    assert res is not None
+
+
+def test_symbolic(secp128r1, dbl):
+    p = secp128r1.curve.prime
+    k = FF(p)
+    coords = secp128r1.curve.coordinate_model
+    sympy_params = {
+        key: SymbolicMod(k(int(value)), p)
+        for key, value in secp128r1.curve.parameters.items()
+    }
+    symbolic_point = Point(
+        coords, **{key: SymbolicMod(symbols(key), p) for key in coords.variables}
+    )
+    symbolic_double = dbl(p, symbolic_point, **sympy_params)[0]
+    generator_double = dbl(
+        p, secp128r1.generator, **secp128r1.curve.parameters
+    )[0]
+    for outer_var in coords.variables:
+        symbolic_val = getattr(symbolic_double, outer_var).x
+        generator_val = getattr(generator_double, outer_var).x
+        for inner_var in coords.variables:
+            symbolic_val = symbolic_val.subs(
+                inner_var, k(getattr(secp128r1.generator, inner_var).x)
+            )
+        assert Mod(int(symbolic_val), p) == Mod(generator_val, p)
