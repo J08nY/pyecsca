@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+
 from pyecsca.ec.configuration import (
     all_configurations,
     HashType,
@@ -11,7 +13,6 @@ from pyecsca.ec.configuration import (
 )
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.mult import LTRMultiplier
-from .utils import slow
 
 
 class ConfigurationTests(TestCase):
@@ -25,7 +26,7 @@ class ConfigurationTests(TestCase):
             "inv": Inversion.GCD,
         }
 
-    @slow
+    @pytest.mark.slow
     def test_all(self):
         j = 0
         for _ in all_configurations(model=ShortWeierstrassModel()):

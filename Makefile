@@ -12,13 +12,13 @@ TESTS = ${EC_TESTS} ${SCA_TESTS}
 PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine
 
 test:
-	nose2 -E "not slow and not disabled" -C -v ${TESTS}
+	pytest -m "not slow" --cov=pyecsca
 
 test-plots:
-	env PYECSCA_TEST_PLOTS=1 nose2 -E "not slow and not disabled" -C -v ${TESTS}
+	env PYECSCA_TEST_PLOTS=1 pytest -m "not slow"
 
 test-all:
-	nose2 -C -v ${TESTS}
+	pytest --cov=pyecsca
 
 typecheck:
 	mypy --namespace-packages -p pyecsca --ignore-missing-imports --show-error-codes --check-untyped-defs

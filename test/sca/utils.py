@@ -10,16 +10,6 @@ from pyecsca.sca import Trace
 force_plot = True
 
 
-def slow(func):
-    func.slow = 1
-    return func
-
-
-def disabled(func):
-    func.disabled = 1
-    return func
-
-
 cases: Dict[str, int] = {}
 
 

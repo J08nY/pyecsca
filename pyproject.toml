@@ -57,7 +57,7 @@
 "leia" = ["smartleia"]
 "gmp" = ["gmpy2"]
 "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"]
-"test" = ["nose2", "parameterized", "coverage"]
+"test" = ["pytest", "coverage", "pytest-cov"]
 "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
 
 [tool.setuptools.packages.find]
@@ -66,3 +66,9 @@ namespaces = true
 
 [tool.setuptools.package-data]
 pyecsca = ["ec/efd/*/*", "ec/efd/*/*/*", "ec/efd/*/*/*/*", "ec/std/*", "ec/std/*/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]

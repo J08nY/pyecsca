@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from importlib.resources import files, as_file
 from pyecsca.sca import (
     align_correlation,
@@ -10,7 +11,7 @@ from pyecsca.sca import (
     InspectorTraceSet,
 )
 import test.data.sca
-from .utils import Plottable, slow
+from .utils import Plottable
 
 
 class AlignTests(Plottable):
@@ -43,7 +44,7 @@ class AlignTests(Plottable):
         self.assertEqual(offsets[0], 0)
         self.assertEqual(offsets[1], 3)
 
-    @slow
+    @pytest.mark.slow
     def test_large_align(self):
         with as_file(files(test.data.sca).joinpath("example.trs")) as path:
             example = InspectorTraceSet.read(path)
@@ -52,7 +53,7 @@ class AlignTests(Plottable):
             )
             self.assertIsNotNone(result)
 
-    @slow
+    @pytest.mark.slow
     def test_large_dtw_align(self):
         with as_file(files(test.data.sca).joinpath("example.trs")) as path:
             example = InspectorTraceSet.read(path)
