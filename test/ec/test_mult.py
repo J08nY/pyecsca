@@ -1,9 +1,6 @@
-from unittest import TestCase
 
 import pytest
-from parameterized import parameterized
 
-from pyecsca.ec.params import get_params
 from pyecsca.ec.mult import (
     LTRMultiplier,
     RTLMultiplier,

@@ -1,8 +1,4 @@
-from unittest import TestCase
-
-from parameterized import parameterized
 import pytest
-from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.signature import (
