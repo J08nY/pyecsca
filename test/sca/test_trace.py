@@ -1,11 +1,9 @@
-from unittest import TestCase
 import numpy as np
 from pyecsca.sca import Trace
 
 
-class TraceTests(TestCase):
-    def test_basic(self):
-        trace = Trace(np.array([10, 15, 24], dtype=np.dtype("i1")))
-        self.assertIsNotNone(trace)
-        self.assertIn("Trace", str(trace))
-        self.assertIsNone(trace.trace_set)
+def test_basic():
+    trace = Trace(np.array([10, 15, 24], dtype=np.dtype("i1")))
+    assert trace is not None
+    assert "Trace" in str(trace)
+    assert trace.trace_set is None

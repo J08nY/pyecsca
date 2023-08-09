@@ -105,7 +105,7 @@ def test_equals(secp128r1, coords):
     )
     assert pt.equals(other)
     assert pt != other
-    assert not pt.equals(2)
+    assert not pt.equals(2)  # type: ignore
     assert pt != 2
     assert not pt.equals(third)
     assert pt != third

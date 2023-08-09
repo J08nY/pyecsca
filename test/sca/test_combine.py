@@ -1,6 +1,7 @@
-from unittest import TestCase
-
+from collections import namedtuple
 import numpy as np
+import pytest
+
 from pyecsca.sca import (
     Trace,
     CombinedTrace,
@@ -14,65 +15,68 @@ from pyecsca.sca import (
 )
 
 
-class CombineTests(TestCase):
-    def setUp(self):
-        self.a = Trace(np.array([20, 80], dtype=np.dtype("i1")), {"data": b"\xff"})
-        self.b = Trace(np.array([30, 42], dtype=np.dtype("i1")), {"data": b"\xff"})
-        self.c = Trace(np.array([78, 56], dtype=np.dtype("i1")), {"data": b"\x00"})
+@pytest.fixture()
+def data():
+    Data = namedtuple("Data", ["a", "b", "c"])
+    return Data(a=Trace(np.array([20, 80], dtype=np.dtype("i1")), {"data": b"\xff"}),
+                b=Trace(np.array([30, 42], dtype=np.dtype("i1")), {"data": b"\xff"}),
+                c=Trace(np.array([78, 56], dtype=np.dtype("i1")), {"data": b"\x00"}))
 
-    def test_average(self):
-        self.assertIsNone(average())
-        result = average(self.a, self.b)
-        self.assertIsNotNone(result)
-        self.assertIsInstance(result, CombinedTrace)
-        self.assertEqual(len(result.samples), 2)
-        self.assertEqual(result.samples[0], 25)
-        self.assertEqual(result.samples[1], 61)
 
-    def test_conditional_average(self):
-        result = conditional_average(
-            self.a,
-            self.b,
-            self.c,
-            condition=lambda trace: trace.meta["data"] == b"\xff",
-        )
-        self.assertIsInstance(result, CombinedTrace)
-        self.assertEqual(len(result.samples), 2)
-        self.assertEqual(result.samples[0], 25)
-        self.assertEqual(result.samples[1], 61)
+def test_average(data):
+    assert average() is None
+    result = average(data.a, data.b)
+    assert result is not None
+    assert isinstance(result, CombinedTrace)
+    assert len(result.samples) == 2
+    assert result.samples[0] == 25
+    assert result.samples[1] == 61
 
-    def test_standard_deviation(self):
-        self.assertIsNone(standard_deviation())
-        result = standard_deviation(self.a, self.b)
-        self.assertIsInstance(result, CombinedTrace)
-        self.assertEqual(len(result.samples), 2)
 
-    def test_variance(self):
-        self.assertIsNone(variance())
-        result = variance(self.a, self.b)
-        self.assertIsInstance(result, CombinedTrace)
-        self.assertEqual(len(result.samples), 2)
+def test_conditional_average(data):
+    result = conditional_average(data.a, data.b, data.c, condition=lambda trace: trace.meta["data"] == b"\xff", )
+    assert isinstance(result, CombinedTrace)
+    assert len(result.samples) == 2
+    assert result.samples[0] == 25
+    assert result.samples[1] == 61
 
-    def test_average_and_variance(self):
-        self.assertIsNone(average_and_variance())
-        mean, var = average_and_variance(self.a, self.b)
-        self.assertIsInstance(mean, CombinedTrace)
-        self.assertIsInstance(var, CombinedTrace)
-        self.assertEqual(len(mean.samples), 2)
-        self.assertEqual(len(var.samples), 2)
-        self.assertEqual(mean, average(self.a, self.b))
-        self.assertEqual(var, variance(self.a, self.b))
 
-    def test_add(self):
-        self.assertIsNone(add())
-        result = add(self.a, self.b)
-        self.assertIsInstance(result, CombinedTrace)
-        self.assertEqual(result.samples[0], 50)
-        self.assertEqual(result.samples[1], 122)
-        np.testing.assert_equal(self.a.samples, add(self.a).samples)
+def test_standard_deviation(data):
+    assert standard_deviation() is None
+    result = standard_deviation(data.a, data.b)
+    assert isinstance(result, CombinedTrace)
+    assert len(result.samples) == 2
 
-    def test_subtract(self):
-        result = subtract(self.a, self.b)
-        self.assertIsInstance(result, CombinedTrace)
-        self.assertEqual(result.samples[0], -10)
-        self.assertEqual(result.samples[1], 38)
+
+def test_variance(data):
+    assert variance() is None
+    result = variance(data.a, data.b)
+    assert isinstance(result, CombinedTrace)
+    assert len(result.samples) == 2
+
+
+def test_average_and_variance(data):
+    assert average_and_variance() is None
+    mean, var = average_and_variance(data.a, data.b)
+    assert isinstance(mean, CombinedTrace)
+    assert isinstance(var, CombinedTrace)
+    assert len(mean.samples) == 2
+    assert len(var.samples) == 2
+    assert mean == average(data.a, data.b)
+    assert var == variance(data.a, data.b)
+
+
+def test_add(data):
+    assert add() is None
+    result = add(data.a, data.b)
+    assert isinstance(result, CombinedTrace)
+    assert result.samples[0] == 50
+    assert result.samples[1] == 122
+    np.testing.assert_equal(data.a.samples, add(data.a).samples)
+
+
+def test_subtract(data):
+    result = subtract(data.a, data.b)
+    assert isinstance(result, CombinedTrace)
+    assert result.samples[0] == -10
+    assert result.samples[1] == 38

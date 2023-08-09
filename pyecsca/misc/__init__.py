@@ -1,1 +1,1 @@
-"""package for miscellaneous things."""
+"""Package for miscellaneous things."""
