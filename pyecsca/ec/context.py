@@ -9,8 +9,6 @@ multiplication actions has as its children an ordered list of the individual for
 
 A :py:class:`PathContext` works like a :py:class:`DefaultContext` that only traces an action on a particular path
 in the tree.
-
-A :py:class:`NullContext` does not trace any actions and is the default context.
 """
 from abc import abstractmethod, ABC
 from collections import OrderedDict
@@ -267,6 +265,4 @@ def local(ctx: Optional[Context] = None) -> ContextManager:
     :param ctx: If none, current context is copied.
     :return: A context manager.
     """
-    if ctx is None:
-        ctx = current
     return _ContextManager(ctx)

@@ -10,7 +10,7 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 import random
 import secrets
 from functools import wraps, lru_cache
-from typing import Type, Dict, Any, Tuple, Union
+from typing import Type, Dict, Any, Tuple, Union, Optional
 
 from public import public
 from sympy import Expr, FF
@@ -148,7 +148,7 @@ class Mod:
     n: Any
     __slots__ = ("x", "n")
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs) -> "Mod":
         if cls != Mod:
             return cls.__new__(cls, *args, **kwargs)
         if not _mod_classes:
@@ -561,15 +561,13 @@ class SymbolicMod(Mod):
         return str(self.x)
 
     def __hash__(self):
-        return hash(("SymbolicMod", self.x, self.n)) + 1
+        return hash(("SymbolicMod", self.x, self.n))
 
     def __pow__(self, n) -> "SymbolicMod":
-        try:
-            x = pow(self.x, n, self.n)
-        except TypeError:
-            x = pow(self.x, n) % self.n
-        return SymbolicMod(x, self.n)
+        return self.__class__(pow(self.x, n), self.n)
 
+
+_mod_classes["symbolic"] = SymbolicMod
 
 if has_gmp:
 

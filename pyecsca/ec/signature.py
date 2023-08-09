@@ -43,7 +43,7 @@ class SignatureResult:
         return self.r == other.r and self.s == other.s
 
     def __hash__(self):
-        return hash((self.r, self.s)) + 11
+        return hash((self.r, self.s))
 
     def __str__(self):
         return f"(r={self.r}, s={self.s})"
@@ -74,6 +74,7 @@ class ECDSAAction(Action):
 class ECDSASignAction(ECDSAAction):
     """ECDSA signing."""
 
+    # TODO: Make this a ResultAction
     privkey: Mod
 
     def __init__(
@@ -94,6 +95,7 @@ class ECDSASignAction(ECDSAAction):
 class ECDSAVerifyAction(ECDSAAction):
     """ECDSA verification."""
 
+    # TODO: Make this a ResultAction
     signature: SignatureResult
     pubkey: Point
 

@@ -203,7 +203,7 @@ class Point:
         return self.coords == other.coords
 
     def __hash__(self):
-        return hash((self.coordinate_model.name, tuple(self.coords.keys()), tuple(self.coords.values()))) + 13
+        return hash((self.coordinate_model, tuple(self.coords.keys()), tuple(self.coords.values())))
 
     def __str__(self):
         args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])
@@ -254,7 +254,7 @@ class InfinityPoint(Point):
             return self.coordinate_model == other.coordinate_model
 
     def __hash__(self):
-        return hash(self.coordinate_model.name) + 13
+        return hash((self.coordinate_model, 0))
 
     def __str__(self):
         return "Infinity"

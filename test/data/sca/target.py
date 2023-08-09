@@ -4,7 +4,10 @@ from sys import stdout
 if __name__ == "__main__":
 
     while True:
-        line = input()
+        try:
+            line = input()
+        except EOFError:
+            break
         char = line[0]
         content = line[1:]
         if char == "d":

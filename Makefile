@@ -1,23 +1,24 @@
-EC_TESTS = ec.test_context ec.test_configuration ec.test_curve ec.test_formula \
-ec.test_params ec.test_key_agreement ec.test_key_generation ec.test_mod ec.test_model \
-ec.test_mult ec.test_naf ec.test_op ec.test_point ec.test_signature ec.test_transformations ec.test_regress
+EC_TESTS = test.ec.test_context test.ec.test_configuration test.ec.test_curve test.ec.test_formula \
+test.ec.test_params test.ec.test_key_agreement test.ec.test_key_generation test.ec.test_mod test.ec.test_model \
+test.ec.test_mult test.ec.test_naf test.ec.test_op test.ec.test_point test.ec.test_signature test.ec.test_transformations test.ec.test_regress \
+test.ec.test_divpoly
 
-SCA_TESTS = sca.test_align sca.test_combine sca.test_edit sca.test_filter sca.test_match sca.test_process \
-sca.test_sampling sca.test_target sca.test_test sca.test_trace sca.test_traceset sca.test_plot sca.test_rpa \
-sca.test_stacked_combine sca.test_leakage_models
+SCA_TESTS = test.sca.test_align test.sca.test_combine test.sca.test_edit test.sca.test_filter test.sca.test_match test.sca.test_process \
+test.sca.test_sampling test.sca.test_target test.sca.test_test test.sca.test_trace test.sca.test_traceset test.sca.test_plot test.sca.test_rpa \
+test.sca.test_zvp test.sca.test_stacked_combine test.sca.test_leakage_models
 
 TESTS = ${EC_TESTS} ${SCA_TESTS}
 
 PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine
 
 test:
-	nose2 -s test -E "not slow and not disabled" -C -v ${TESTS}
+	pytest -m "not slow" --cov=pyecsca
 
 test-plots:
-	env PYECSCA_TEST_PLOTS=1 nose2 -s test -E "not slow and not disabled" -C -v ${TESTS}
+	env PYECSCA_TEST_PLOTS=1 pytest -m "not slow"
 
 test-all:
-	nose2 -s test -C -v ${TESTS}
+	pytest --cov=pyecsca
 
 typecheck:
 	mypy --namespace-packages -p pyecsca --ignore-missing-imports --show-error-codes --check-untyped-defs

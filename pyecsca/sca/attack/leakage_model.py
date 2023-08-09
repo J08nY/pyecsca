@@ -5,6 +5,8 @@ from typing import Literal, ClassVar
 from numpy.random import default_rng
 from public import public
 
+from ...sca.trace import Trace
+
 if sys.version_info[0] < 3 or sys.version_info[0] == 3 and sys.version_info[1] < 10:
     def hw(i):
         return bin(i).count("1")
@@ -14,7 +16,18 @@ else:
 
 
 @public
-class NormalNoice:
+class Noise:
+    pass
+
+
+@public
+class ZeroNoise(Noise):
+    def __call__(self, *args, **kwargs):
+        return args[0]
+
+
+@public
+class NormalNoice(Noise):
     """
     https://www.youtube.com/watch?v=SAfq55aiqPc
     """
@@ -24,8 +37,11 @@ class NormalNoice:
         self.mean = mean
         self.sdev = sdev
 
-    def __call__(self, *args, **kwargs) -> float:
-        return args[0] + self.rng.normal(self.mean, self.sdev)
+    def __call__(self, *args, **kwargs):
+        arg = args[0]
+        if isinstance(arg, Trace):
+            return Trace(arg.samples + self.rng.normal(self.mean, self.sdev, len(arg.samples)))
+        return arg + self.rng.normal(self.mean, self.sdev)
 
 
 @public

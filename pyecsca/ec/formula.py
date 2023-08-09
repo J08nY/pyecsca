@@ -7,7 +7,7 @@ from astunparse import unparse
 from itertools import product
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
-from pkg_resources import resource_stream
+from importlib_resources.abc import Traversable
 from public import public
 from sympy import sympify, FF, symbols, Poly, Rational
 
@@ -40,6 +40,7 @@ class OpResult:
         return self.name
 
     def __repr__(self):
+        # TODO: This repr is broken for square and neg and inv.
         char = self.op.op_str
         parents = char.join(str(parent) for parent in self.parents)
         return f"{self.name} = {parents}"
@@ -338,7 +339,7 @@ class Formula(ABC):
 class EFDFormula(Formula):
     """Formula from the `Explicit-Formulas Database <https://www.hyperelliptic.org/EFD/>`_."""
 
-    def __init__(self, path: str, name: str, coordinate_model: Any):
+    def __init__(self, meta_path: Traversable, op3_path: Traversable, name: str, coordinate_model: Any):
         self.name = name
         self.coordinate_model = coordinate_model
         self.meta = {}
@@ -346,11 +347,11 @@ class EFDFormula(Formula):
         self.assumptions = []
         self.code = []
         self.unified = False
-        self.__read_meta_file(path)
-        self.__read_op3_file(path + ".op3")
+        self.__read_meta_file(meta_path)
+        self.__read_op3_file(op3_path)
 
-    def __read_meta_file(self, path):
-        with resource_stream(__name__, path) as f:
+    def __read_meta_file(self, path: Traversable):
+        with path.open("rb") as f:
             line = f.readline().decode("ascii").rstrip()
             while line:
                 if line.startswith("source"):
@@ -367,11 +368,11 @@ class EFDFormula(Formula):
                     self.unified = True
                 line = f.readline().decode("ascii").rstrip()
 
-    def __read_op3_file(self, path):
-        with resource_stream(__name__, path) as f:
+    def __read_op3_file(self, path: Traversable):
+        with path.open("rb") as f:
             for line in f.readlines():
                 code_module = parse(
-                    line.decode("ascii").replace("^", "**"), path, mode="exec"
+                    line.decode("ascii").replace("^", "**"), str(path), mode="exec"
                 )
                 self.code.append(CodeOp(code_module))
 
@@ -410,7 +411,7 @@ class EFDFormula(Formula):
         )
 
     def __hash__(self):
-        return hash(self.name) + hash(self.coordinate_model)
+        return hash((self.coordinate_model, self.name))
 
 
 @public

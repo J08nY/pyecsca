@@ -1,14 +1,18 @@
 """Provides an elliptic curve class."""
 from ast import Module
+from astunparse import unparse
 from copy import copy
-from typing import MutableMapping, Union, List, Optional
+from typing import MutableMapping, Union, List, Optional, Dict
 
 from public import public
+from sympy import FF, sympify
 
 from .coordinates import CoordinateModel, AffineCoordinateModel
+from .error import raise_unsatisified_assumption
 from .mod import Mod
 from .model import CurveModel
 from .point import Point, InfinityPoint
+from ..misc.cfg import getconfig
 
 
 @public
@@ -27,21 +31,21 @@ class EllipticCurve:
     """The neutral point on the curve."""
 
     def __init__(
-        self,
-        model: CurveModel,
-        coordinate_model: CoordinateModel,
-        prime: int,
-        neutral: Point,
-        parameters: MutableMapping[str, Union[Mod, int]],
+            self,
+            model: CurveModel,
+            coordinate_model: CoordinateModel,
+            prime: int,
+            neutral: Point,
+            parameters: MutableMapping[str, Union[Mod, int]],
     ):
         if coordinate_model not in model.coordinates.values() and not isinstance(
-            coordinate_model, AffineCoordinateModel
+                coordinate_model, AffineCoordinateModel
         ):
             raise ValueError
         if (
-            set(model.parameter_names)
-            .union(coordinate_model.parameters)
-            .symmetric_difference(parameters.keys())
+                set(model.parameter_names)
+                .union(coordinate_model.parameters)
+                .symmetric_difference(parameters.keys())
         ):
             raise ValueError
         self.model = model
@@ -56,6 +60,39 @@ class EllipticCurve:
                 value = Mod(value, prime)
             self.parameters[name] = value
         self.neutral = neutral
+        self.__validate_coord_assumptions()
+
+    def __validate_coord_assumptions(self):
+        for assumption in self.coordinate_model.assumptions:
+            # Try to execute assumption, if it works, check with curve parameters
+            # if it doesn't work, move all over to rhs and construct a sympy polynomial of it
+            # then find roots and take first one for new value for new coordinate parameter.
+            try:
+                alocals: Dict[str, Union[Mod, int]] = {}
+                compiled = compile(assumption, "", mode="exec")
+                exec(compiled, None, alocals)
+                for param, value in alocals.items():
+                    if self.parameters[param] != value:
+                        raise_unsatisified_assumption(
+                            getconfig().ec.unsatisfied_coordinate_assumption_action,
+                            f"Coordinate model {self.coordinate_model} has an unsatisifed assumption on the {param} parameter (= {value}).",
+                        )
+            except NameError:
+                k = FF(self.prime)
+                assumption_string = unparse(assumption)
+                lhs, rhs = assumption_string.split(" = ")
+                expr = sympify(f"{rhs} - {lhs}")
+                for curve_param, value in self.parameters.items():
+                    expr = expr.subs(curve_param, k(value))
+                if len(expr.free_symbols) > 0:
+                    raise ValueError(
+                        f"Missing necessary coordinate model parameter ({assumption_string})."
+                    )
+                if k(expr) != 0:
+                    raise_unsatisified_assumption(
+                        getconfig().ec.unsatisfied_coordinate_assumption_action,
+                        f"Coordinate model {self.coordinate_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
+                    )
 
     def _execute_base_formulas(self, formulas: List[Module], *points: Point) -> Point:
         for point in points:
@@ -195,6 +232,18 @@ class EllipticCurve:
             loc = {**self.parameters, **point.to_affine().coords}
         return eval(compile(self.model.equation, "", mode="eval"), loc)
 
+    def to_coords(self, coordinate_model: CoordinateModel) -> "EllipticCurve":
+        """
+        Convert this curve into a different coordinate model, only possible if it is currently affine.
+
+        :param coordinate_model: The target coordinate model.
+        :return: The transformed elliptic curve.
+        """
+        if not isinstance(self.coordinate_model, AffineCoordinateModel):
+            raise ValueError
+        return EllipticCurve(self.model, coordinate_model, self.prime, self.neutral.to_model(coordinate_model, self),
+                             self.parameters)  # type: ignore[arg-type]
+
     def to_affine(self) -> "EllipticCurve":
         """
         Convert this curve into the affine coordinate model, if possible.
@@ -202,7 +251,8 @@ class EllipticCurve:
         :return: The transformed elliptic curve.
         """
         coord_model = AffineCoordinateModel(self.model)
-        return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(), self.parameters)  # type: ignore[arg-type]
+        return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(),
+                             self.parameters)  # type: ignore[arg-type]
 
     def decode_point(self, encoded: bytes) -> Point:
         """
@@ -270,10 +320,10 @@ class EllipticCurve:
         if not isinstance(other, EllipticCurve):
             return False
         return (
-            self.model == other.model
-            and self.coordinate_model == other.coordinate_model
-            and self.prime == other.prime
-            and self.parameters == other.parameters
+                self.model == other.model
+                and self.coordinate_model == other.coordinate_model
+                and self.prime == other.prime
+                and self.parameters == other.parameters
         )
 
     def __hash__(self):

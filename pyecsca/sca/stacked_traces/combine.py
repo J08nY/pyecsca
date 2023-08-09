@@ -8,8 +8,8 @@ from math import sqrt
 from public import public
 from typing import Callable, Union, Tuple, cast
 
-from pyecsca.sca.trace.trace import CombinedTrace
-from pyecsca.sca.stacked_traces import StackedTraces
+from ...sca.trace.trace import CombinedTrace
+from ...sca.stacked_traces import StackedTraces
 
 TPB = Union[int, Tuple[int, ...]]
 CudaCTX = Tuple[

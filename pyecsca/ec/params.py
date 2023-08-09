@@ -4,19 +4,19 @@ Provides functions for obtaining domain parameters from the `std-curves <https:/
 It also provides a domain parameter class and a class for a whole category of domain parameters.
 """
 import json
+import csv
 from sympy import Poly, FF, symbols, sympify
 from astunparse import unparse
 from io import RawIOBase, BufferedIOBase
-from os.path import join
 from pathlib import Path
 from typing import Optional, Dict, Union, BinaryIO, List, Callable, IO
+from importlib_resources import files
 
-from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
 from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
-from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
+from .error import raise_unsatisified_assumption
 from .mod import Mod
 from .model import (
     CurveModel,
@@ -41,13 +41,13 @@ class DomainParameters:
     category: Optional[str]
 
     def __init__(
-        self,
-        curve: EllipticCurve,
-        generator: Point,
-        order: int,
-        cofactor: int,
-        name: Optional[str] = None,
-        category: Optional[str] = None,
+            self,
+            curve: EllipticCurve,
+            generator: Point,
+            order: int,
+            cofactor: int,
+            name: Optional[str] = None,
+            category: Optional[str] = None,
     ):
         self.curve = curve
         self.generator = generator
@@ -60,14 +60,37 @@ class DomainParameters:
         if not isinstance(other, DomainParameters):
             return False
         return (
-            self.curve == other.curve
-            and self.generator == other.generator
-            and self.order == other.order
-            and self.cofactor == other.cofactor
+                self.curve == other.curve
+                and self.generator == other.generator
+                and self.order == other.order
+                and self.cofactor == other.cofactor
         )
 
     def __hash__(self):
         return hash((self.curve, self.generator, self.order, self.cofactor))
+
+    def to_coords(self, coordinate_model: CoordinateModel) -> "DomainParameters":
+        """
+        Convert the domain parameters into a different coordinate model, only possible if they are currently affine.
+
+        :param coordinate_model: The target coordinate model.
+        :return: The transformed domain parameters
+        """
+        if not isinstance(self.curve.coordinate_model, AffineCoordinateModel):
+            raise ValueError
+        curve = self.curve.to_coords(coordinate_model)
+        generator = self.generator.to_model(coordinate_model, curve)
+        return DomainParameters(curve, generator, self.order, self.cofactor, self.name, self.category)
+
+    def to_affine(self) -> "DomainParameters":
+        """
+        Convert the domain parameters into the affine coordinate model, if possible.
+
+        :return: The transformed domain parameters
+        """
+        curve = self.curve.to_affine()
+        generator = self.generator.to_affine()
+        return DomainParameters(curve, generator, self.order, self.cofactor, self.name, self.category)
 
     def __get_name(self):
         if self.name and self.category:
@@ -152,7 +175,7 @@ def _create_params(curve, coords, infty):
         coord_model = AffineCoordinateModel(model)
     else:
         if coords not in model.coordinates:
-            raise ValueError("Coordinate model not supported for curve.")
+            raise ValueError("Coordinate model not supported for curve model.")
         coord_model = model.coordinates[coords]
         for assumption in coord_model.assumptions:
             # Try to execute assumption, if it works, check with curve parameters
@@ -176,9 +199,9 @@ def _create_params(curve, coords, infty):
                 for curve_param, value in params.items():
                     expr = expr.subs(curve_param, k(value))
                 if (
-                    len(expr.free_symbols) > 1
-                    or (param := str(expr.free_symbols.pop()))
-                    not in coord_model.parameters
+                        len(expr.free_symbols) > 1
+                        or (param := str(expr.free_symbols.pop()))
+                        not in coord_model.parameters
                 ):
                     raise ValueError(
                         f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string})."
@@ -189,7 +212,8 @@ def _create_params(curve, coords, infty):
                     params[param] = Mod(int(root), field)
                     break
                 else:
-                    raise UnsatisfiedAssumptionError(
+                    raise_unsatisified_assumption(
+                        getconfig().ec.unsatisfied_coordinate_assumption_action,
                         f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
                     )
 
@@ -230,9 +254,9 @@ def _create_params(curve, coords, infty):
 
 @public
 def load_category(
-    file: Union[str, Path, BinaryIO, IO[bytes]],
-    coords: Union[str, Callable[[str], str]],
-    infty: Union[bool, Callable[[str], bool]] = True,
+        file: Union[str, Path, BinaryIO, IO[bytes]],
+        coords: Union[str, Callable[[str], str]],
+        infty: Union[bool, Callable[[str], bool]] = True,
 ) -> DomainParameterCategory:
     """
     Load a category of domain parameters containing several curves from a JSON file.
@@ -268,7 +292,7 @@ def load_category(
 
 @public
 def load_params(
-    file: Union[str, Path, BinaryIO], coords: str, infty: bool = True
+        file: Union[str, Path, BinaryIO], coords: str, infty: bool = True
 ) -> DomainParameters:
     """
     Load a curve from a JSON file.
@@ -291,10 +315,120 @@ def load_params(
 
 
 @public
+def load_params_ecgen(
+        file: Union[str, Path, BinaryIO], coords: str, infty: bool = True
+) -> DomainParameters:
+    """
+    Load a curve from a file that is output of `ecgen <https://github.com/J08nY/ecgen>`_.
+
+    :param file: The file to load from.
+    :param coords: The name of the coordinate system to use.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system.
+    :return: The curve.
+    """
+    if isinstance(file, (str, Path)):
+        with open(file, "rb") as f:
+            ecgen = json.load(f)
+    elif isinstance(file, (RawIOBase, BufferedIOBase, BinaryIO)):
+        ecgen = json.load(file)
+    else:
+        raise TypeError
+    ecgen = ecgen[0]
+    if "m" in ecgen["field"]:
+        raise ValueError("Binary extension field curves not supported")
+    if len(ecgen["subgroups"]) != 1:
+        raise ValueError("Can not represent curve with two subgroups.")
+    curve_dict = {
+        "form": "Weierstrass",
+        "field": {
+            "type": "Prime",
+            "p": ecgen["field"]["p"]
+        },
+        "order": ecgen["subgroups"][0]["order"],  # Take just the first subgroup
+        "cofactor": ecgen["subgroups"][0]["cofactor"],
+        "params": {
+            "a": {
+                "raw": ecgen["a"]
+            },
+            "b": {
+                "raw": ecgen["b"]
+            }
+        },
+        "generator": {
+            "x": {
+                "raw": ecgen["subgroups"][0]["x"]
+            },
+            "y": {
+                "raw": ecgen["subgroups"][0]["y"]
+            }
+        },
+        "name": None,
+        "category": None
+    }
+    return _create_params(curve_dict, coords, infty)
+
+
+@public
+def load_params_ectester(
+        file: Union[str, Path, BinaryIO], coords: str, infty: bool = True
+) -> DomainParameters:
+    """
+    Load a curve from a file that uses the format of `ECTester <https://github.com/crocs-muni/ECTester>`_.
+
+    :param file: The file to load from.
+    :param coords: The name of the coordinate system to use.
+    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+                  point at infinity of the coordinate system.
+    :return: The curve.
+    """
+    if isinstance(file, (str, Path)):
+        with open(file, "r") as f:
+            reader = csv.reader(f)
+            line = next(iter(reader))
+    elif isinstance(file, (RawIOBase, BufferedIOBase, BinaryIO)):
+        reader = csv.reader(list(map(lambda line: line.decode(), file.readlines())))
+        line = next(iter(reader))
+    else:
+        raise TypeError
+    if len(line) != 7:
+        raise ValueError("Binary extension field curves not supported")
+    # line = p,a,b,gx,gy,n,h (all in hex)
+    curve_dict = {
+        "form": "Weierstrass",
+        "field": {
+            "type": "Prime",
+            "p": line[0]
+        },
+        "order": line[5],
+        "cofactor": line[6],
+        "params": {
+            "a": {
+                "raw": line[1]
+            },
+            "b": {
+                "raw": line[2]
+            }
+        },
+        "generator": {
+            "x": {
+                "raw": line[3]
+            },
+            "y": {
+                "raw": line[4]
+            }
+        },
+        "name": None,
+        "category": None
+    }
+    return _create_params(curve_dict, coords, infty)
+
+
+@public
 def get_category(
-    category: str,
-    coords: Union[str, Callable[[str], str]],
-    infty: Union[bool, Callable[[str], bool]] = True,
+        category: str,
+        coords: Union[str, Callable[[str], str]],
+        infty: Union[bool, Callable[[str], bool]] = True,
 ) -> DomainParameterCategory:
     """
     Retrieve a category from the std-curves database at https://github.com/J08nY/std-curves.
@@ -307,20 +441,18 @@ def get_category(
                   as argument the name of the curve and returns the infinity option to use for that curve.
     :return: The category.
     """
-    listing = resource_listdir(__name__, "std")
-    categories = [
-        entry for entry in listing if resource_isdir(__name__, join("std", entry))
-    ]
+    categories = {
+        entry.name: entry for entry in files("pyecsca.ec").joinpath("std").iterdir() if entry.is_dir()
+    }
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
-    json_path = join("std", category, "curves.json")
-    with resource_stream(__name__, json_path) as f:
+    with categories[category].joinpath("curves.json").open("rb") as f:
         return load_category(f, coords, infty)
 
 
 @public
 def get_params(
-    category: str, name: str, coords: str, infty: bool = True
+        category: str, name: str, coords: str, infty: bool = True
 ) -> DomainParameters:
     """
     Retrieve a curve from a set of stored parameters.
@@ -334,14 +466,12 @@ def get_params(
                   point at infinity of the coordinate system.
     :return: The curve.
     """
-    listing = resource_listdir(__name__, "std")
-    categories = [
-        entry for entry in listing if resource_isdir(__name__, join("std", entry))
-    ]
+    categories = {
+        entry.name: entry for entry in files("pyecsca.ec").joinpath("std").iterdir() if entry.is_dir()
+    }
     if category not in categories:
         raise ValueError(f"Category {category} not found.")
-    json_path = join("std", category, "curves.json")
-    with resource_stream(__name__, json_path) as f:
+    with categories[category].joinpath("curves.json").open("rb") as f:
         category_json = json.load(f)
     curve = None
     for curve in category_json["curves"]:

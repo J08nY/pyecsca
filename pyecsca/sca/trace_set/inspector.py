@@ -146,7 +146,7 @@ class InspectorTraceSet(TraceSet):
     }
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "InspectorTraceSet":
         """
         Read Inspector trace set from file path, bytes or file-like object.
 
@@ -207,7 +207,7 @@ class InspectorTraceSet(TraceSet):
         return result, tags
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "InspectorTraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):

@@ -1,9 +1,9 @@
 """Provides a coordinate model class."""
 from ast import parse, Module
-from os.path import join
+from importlib_resources.abc import Traversable
+from importlib_resources import as_file
 from typing import List, Any, MutableMapping
 
-from pkg_resources import resource_listdir, resource_isdir, resource_stream
 from public import public
 
 from .formula import (
@@ -67,11 +67,11 @@ class AffineCoordinateModel(CoordinateModel):
         return self.curve_model == other.curve_model
 
     def __hash__(self):
-        return hash(self.curve_model) + hash(self.name)
+        return hash((self.curve_model, self.name))
 
 
 class EFDCoordinateModel(CoordinateModel):
-    def __init__(self, dir_path: str, name: str, curve_model: Any):
+    def __init__(self, dir_path: Traversable, name: str, curve_model: Any):
         self.name = name
         self.curve_model = curve_model
         self.variables = []
@@ -80,31 +80,32 @@ class EFDCoordinateModel(CoordinateModel):
         self.assumptions = []
         self.neutral = []
         self.formulas = {}
-        for fname in resource_listdir(__name__, dir_path):
-            file_path = join(dir_path, fname)
-            if resource_isdir(__name__, file_path):
-                self.__read_formula_dir(file_path, fname)
-            else:
-                self.__read_coordinates_file(file_path)
+        for entry in dir_path.iterdir():
+            with as_file(entry) as file_path:
+                if entry.is_dir():
+                    self.__read_formula_dir(file_path, file_path.stem)
+                else:
+                    self.__read_coordinates_file(file_path)
 
-    def __read_formula_dir(self, dir_path, formula_type):
-        for fname in resource_listdir(__name__, dir_path):
-            if fname.endswith(".op3"):
-                continue
-            formula_types = {
-                "addition": AdditionEFDFormula,
-                "doubling": DoublingEFDFormula,
-                "tripling": TriplingEFDFormula,
-                "diffadd": DifferentialAdditionEFDFormula,
-                "ladder": LadderEFDFormula,
-                "scaling": ScalingEFDFormula,
-                "negation": NegationEFDFormula,
-            }
-            cls = formula_types.get(formula_type, EFDFormula)
-            self.formulas[fname] = cls(join(dir_path, fname), fname, self)
+    def __read_formula_dir(self, dir_path: Traversable, formula_type):
+        for entry in dir_path.iterdir():
+            with as_file(entry) as fpath:
+                if fpath.suffix == ".op3":
+                    continue
+                formula_types = {
+                    "addition": AdditionEFDFormula,
+                    "doubling": DoublingEFDFormula,
+                    "tripling": TriplingEFDFormula,
+                    "diffadd": DifferentialAdditionEFDFormula,
+                    "ladder": LadderEFDFormula,
+                    "scaling": ScalingEFDFormula,
+                    "negation": NegationEFDFormula,
+                }
+                cls = formula_types.get(formula_type, EFDFormula)
+                self.formulas[fpath.stem] = cls(fpath, fpath.with_suffix(".op3"), fpath.stem, self)
 
-    def __read_coordinates_file(self, file_path):
-        with resource_stream(__name__, file_path) as f:
+    def __read_coordinates_file(self, file_path: Traversable):
+        with file_path.open("rb") as f:
             line = f.readline().decode("ascii").rstrip()
             while line:
                 if line.startswith("name"):
@@ -137,4 +138,4 @@ class EFDCoordinateModel(CoordinateModel):
         return self.curve_model == other.curve_model and self.name == other.name
 
     def __hash__(self):
-        return hash(self.curve_model) + hash(self.name)
+        return hash((self.curve_model, self.name))

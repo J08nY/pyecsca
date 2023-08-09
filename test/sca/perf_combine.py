@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import click
 
+from importlib_resources import files, as_file
 from test.utils import Profiler
+import test.data.sca
 from pyecsca.sca import (
     InspectorTraceSet,
     average,
@@ -24,25 +26,26 @@ from pyecsca.sca import (
     envvar="DIR",
 )
 def main(profiler, operations, directory):
-    traces = InspectorTraceSet.read("test/data/example.trs")
-    with Profiler(profiler, directory, f"combine_average_example_{operations}"):
-        for _ in range(operations):
-            average(*traces)
-    with Profiler(profiler, directory, f"combine_condavg_example_{operations}"):
-        for _ in range(operations):
-            conditional_average(*traces, condition=lambda trace: trace[0] > 0)
-    with Profiler(profiler, directory, f"combine_variance_example_{operations}"):
-        for _ in range(operations):
-            variance(*traces)
-    with Profiler(profiler, directory, f"combine_stddev_example_{operations}"):
-        for _ in range(operations):
-            standard_deviation(*traces)
-    with Profiler(profiler, directory, f"combine_add_example_{operations}"):
-        for _ in range(operations):
-            add(*traces)
-    with Profiler(profiler, directory, f"combine_subtract_example_{operations}"):
-        for _ in range(operations):
-            subtract(traces[0], traces[1])
+    with as_file(files(test.data.sca).joinpath("example.trs")) as path:
+        traces = InspectorTraceSet.read(path)
+        with Profiler(profiler, directory, f"combine_average_example_{operations}"):
+            for _ in range(operations):
+                average(*traces)
+        with Profiler(profiler, directory, f"combine_condavg_example_{operations}"):
+            for _ in range(operations):
+                conditional_average(*traces, condition=lambda trace: trace[0] > 0)
+        with Profiler(profiler, directory, f"combine_variance_example_{operations}"):
+            for _ in range(operations):
+                variance(*traces)
+        with Profiler(profiler, directory, f"combine_stddev_example_{operations}"):
+            for _ in range(operations):
+                standard_deviation(*traces)
+        with Profiler(profiler, directory, f"combine_add_example_{operations}"):
+            for _ in range(operations):
+                add(*traces)
+        with Profiler(profiler, directory, f"combine_subtract_example_{operations}"):
+            for _ in range(operations):
+                subtract(traces[0], traces[1])
 
 
 if __name__ == "__main__":

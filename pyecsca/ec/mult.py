@@ -48,6 +48,9 @@ class PrecomputationAction(Action):
         self.params = params
         self.point = point
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.params}, {self.point})"
+
 
 @public
 class ScalarMultiplier(ABC):
@@ -73,14 +76,14 @@ class ScalarMultiplier(ABC):
 
     def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
         if (
-            len(
-                {
-                    formula.coordinate_model
-                    for formula in formulas.values()
-                    if formula is not None
-                }
-            )
-            != 1
+                len(
+                    {
+                        formula.coordinate_model
+                        for formula in formulas.values()
+                        if formula is not None
+                    }
+                )
+                != 1
         ):
             raise ValueError
         self.short_circuit = short_circuit
@@ -102,8 +105,8 @@ class ScalarMultiplier(ABC):
         if "dbl" not in self.formulas:
             raise NotImplementedError
         if (
-            self.short_circuit
-            and point == self._params.curve.neutral
+                self.short_circuit
+                and point == self._params.curve.neutral
         ):
             return copy(point)
         return self.formulas["dbl"](
@@ -152,6 +155,17 @@ class ScalarMultiplier(ABC):
             self._params.curve.prime, point, **self._params.curve.parameters
         )[0]
 
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, ScalarMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit})"
+
     def init(self, params: DomainParameters, point: Point):
         """
         Initialize the scalar multiplier with :paramref:`~.init.params` and a :paramref:`~.init.point`.
@@ -164,8 +178,8 @@ class ScalarMultiplier(ABC):
         """
         coord_model = set(self.formulas.values()).pop().coordinate_model
         if (
-            params.curve.coordinate_model != coord_model
-            or point.coordinate_model != coord_model
+                params.curve.coordinate_model != coord_model
+                or point.coordinate_model != coord_model
         ):
             raise ValueError
         self._params = params
@@ -200,17 +214,25 @@ class LTRMultiplier(ScalarMultiplier):
     complete: bool
 
     def __init__(
-        self,
-        add: AdditionFormula,
-        dbl: DoublingFormula,
-        scl: Optional[ScalingFormula] = None,
-        always: bool = False,
-        complete: bool = True,
-        short_circuit: bool = True,
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            scl: Optional[ScalingFormula] = None,
+            always: bool = False,
+            complete: bool = True,
+            short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
         self.complete = complete
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, LTRMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.always == other.always and self.complete == other.complete
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -251,15 +273,23 @@ class RTLMultiplier(ScalarMultiplier):
     always: bool
 
     def __init__(
-        self,
-        add: AdditionFormula,
-        dbl: DoublingFormula,
-        scl: Optional[ScalingFormula] = None,
-        always: bool = False,
-        short_circuit: bool = True,
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            scl: Optional[ScalingFormula] = None,
+            always: bool = False,
+            short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, RTLMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.always == other.always
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -297,13 +327,21 @@ class CoronMultiplier(ScalarMultiplier):
     optionals = {ScalingFormula}
 
     def __init__(
-        self,
-        add: AdditionFormula,
-        dbl: DoublingFormula,
-        scl: Optional[ScalingFormula] = None,
-        short_circuit: bool = True,
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            scl: Optional[ScalingFormula] = None,
+            short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, CoronMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -332,17 +370,25 @@ class LadderMultiplier(ScalarMultiplier):
     complete: bool
 
     def __init__(
-        self,
-        ladd: LadderFormula,
-        dbl: Optional[DoublingFormula] = None,
-        scl: Optional[ScalingFormula] = None,
-        complete: bool = True,
-        short_circuit: bool = True,
+            self,
+            ladd: LadderFormula,
+            dbl: Optional[DoublingFormula] = None,
+            scl: Optional[ScalingFormula] = None,
+            complete: bool = True,
+            short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, ladd=ladd, dbl=dbl, scl=scl)
         self.complete = complete
         if (not complete or short_circuit) and dbl is None:
             raise ValueError
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, LadderMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -378,15 +424,23 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     complete: bool
 
     def __init__(
-        self,
-        add: AdditionFormula,
-        dbl: DoublingFormula,
-        scl: Optional[ScalingFormula] = None,
-        complete: bool = True,
-        short_circuit: bool = True,
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            scl: Optional[ScalingFormula] = None,
+            complete: bool = True,
+            short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.complete = complete
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, SimpleLadderMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -421,15 +475,23 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
     complete: bool
 
     def __init__(
-        self,
-        dadd: DifferentialAdditionFormula,
-        dbl: DoublingFormula,
-        scl: Optional[ScalingFormula] = None,
-        complete: bool = True,
-        short_circuit: bool = True,
+            self,
+            dadd: DifferentialAdditionFormula,
+            dbl: DoublingFormula,
+            scl: Optional[ScalingFormula] = None,
+            complete: bool = True,
+            short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, dadd=dadd, dbl=dbl, scl=scl)
         self.complete = complete
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, DifferentialLadderMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -465,16 +527,24 @@ class BinaryNAFMultiplier(ScalarMultiplier):
     _point_neg: Point
 
     def __init__(
-        self,
-        add: AdditionFormula,
-        dbl: DoublingFormula,
-        neg: NegationFormula,
-        scl: Optional[ScalingFormula] = None,
-        short_circuit: bool = True,
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            neg: NegationFormula,
+            scl: Optional[ScalingFormula] = None,
+            short_circuit: bool = True,
     ):
         super().__init__(
             short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
         )
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, BinaryNAFMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
@@ -512,20 +582,28 @@ class WindowNAFMultiplier(ScalarMultiplier):
     width: int
 
     def __init__(
-        self,
-        add: AdditionFormula,
-        dbl: DoublingFormula,
-        neg: NegationFormula,
-        width: int,
-        scl: Optional[ScalingFormula] = None,
-        precompute_negation: bool = False,
-        short_circuit: bool = True,
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            neg: NegationFormula,
+            width: int,
+            scl: Optional[ScalingFormula] = None,
+            precompute_negation: bool = False,
+            short_circuit: bool = True,
     ):
         super().__init__(
             short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
         )
         self.width = width
         self.precompute_negation = precompute_negation
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, WindowNAFMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.precompute_negation == other.precompute_negation
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
