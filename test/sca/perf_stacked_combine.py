@@ -423,6 +423,7 @@ def export_report(time_storage: List[List[TimeRecord]],
               output,
               cls=NumpyEncoder,
               indent=4)
+    output.write("\n")
 
 
 def repetition(args: argparse.Namespace,
