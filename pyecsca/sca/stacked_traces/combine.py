@@ -122,6 +122,8 @@ class GPUTraceManager(BaseTraceManager):
             )
 
         super().__init__(traces)
+        self._traces.samples = np.asfortranarray(self._traces.samples)
+
         self._tpb = tpb
         self._chunk_size = chunk_size
         self._combine_func = self._gpu_combine1D_all if chunk_size is None \
