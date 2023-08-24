@@ -9,7 +9,7 @@ from pyecsca.ec.mult import (
     WindowNAFMultiplier,
     SimpleLadderMultiplier,
     DifferentialLadderMultiplier,
-    CoronMultiplier,
+    CoronMultiplier, FixedWindowLTRMultiplier,
 )
 from pyecsca.ec.point import InfinityPoint, Point
 from .utils import cartesian
@@ -208,6 +208,20 @@ def test_window_naf(secp128r1, name, add, dbl, neg, width, scale):
     assert_pt_equality(res_precompute, res, scale)
 
 
+@pytest.mark.parametrize("name,add,dbl,width,scale",
+                         [
+                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", 5, "z"),
+                             ("complete", "add-2016-rcb", "dbl-2016-rcb", 5, None),
+                             ("none", "add-1998-cmo", "dbl-1998-cmo", 5, None),
+                         ])
+def test_fixed_window(secp128r1, name, add, dbl, width, scale):
+    formulas = get_formulas(secp128r1.curve.coordinate_model, add, dbl, scale)
+    mult = FixedWindowLTRMultiplier(*formulas[:2], width)
+    mult.init(secp128r1, secp128r1.generator)
+    res = mult.multiply(157 * 789)
+    print(res)
+
+
 @pytest.mark.parametrize("name,num,add,dbl",
                          cartesian(
                              [
@@ -307,6 +321,18 @@ def test_basic_multipliers(secp128r1, name, num, add, dbl):
     coron.init(secp128r1, secp128r1.generator)
     res_coron = coron.multiply(num)
     assert res_coron == res_ltr
+
+    fixed = FixedWindowLTRMultiplier(
+        secp128r1.curve.coordinate_model.formulas[add],
+        secp128r1.curve.coordinate_model.formulas[dbl],
+        8,
+        secp128r1.curve.coordinate_model.formulas["z"],
+    )
+    with pytest.raises(ValueError):
+        fixed.multiply(1)
+    fixed.init(secp128r1, secp128r1.generator)
+    res_fixed = fixed.multiply(num)
+    assert res_fixed == res_ltr
 
 
 def test_init_fail(curve25519, secp128r1):
