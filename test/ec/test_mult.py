@@ -216,10 +216,15 @@ def test_window_naf(secp128r1, name, add, dbl, neg, width, scale):
                          ])
 def test_fixed_window(secp128r1, name, add, dbl, width, scale):
     formulas = get_formulas(secp128r1.curve.coordinate_model, add, dbl, scale)
-    mult = FixedWindowLTRMultiplier(*formulas[:2], width)
+    mult = FixedWindowLTRMultiplier(*formulas[:2], width, *formulas[2:])
     mult.init(secp128r1, secp128r1.generator)
     res = mult.multiply(157 * 789)
-    print(res)
+    other = mult.multiply(157)
+    mult.init(secp128r1, other)
+    other = mult.multiply(789)
+    assert_pt_equality(res, other, scale)
+    mult.init(secp128r1, secp128r1.generator)
+    assert InfinityPoint(secp128r1.curve.coordinate_model) == mult.multiply(0)
 
 
 @pytest.mark.parametrize("name,num,add,dbl",
