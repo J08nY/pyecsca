@@ -263,7 +263,7 @@ class DoubleAndAddMultiplier(ScalarMultiplier, ABC):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order and self.always == other.always and self.complete == other.complete
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order})"
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order}, always={self.always}, complete={self.complete})"
 
     def _accumulate(self, p: Point, r: Point) -> Point:
         if self.accumulation_order is AccumulationOrder.PeqPR:

@@ -1,3 +1,5 @@
+from itertools import product
+from typing import Sequence
 
 import pytest
 
@@ -13,7 +15,7 @@ from pyecsca.ec.mult import (
     CoronMultiplier,
     FixedWindowLTRMultiplier,
     ProcessingDirection,
-    AccumulationOrder
+    AccumulationOrder, ScalarMultiplier
 )
 from pyecsca.ec.point import InfinityPoint, Point
 from .utils import cartesian
@@ -108,7 +110,8 @@ def test_doubleandadd(secp128r1, add, dbl, scale):
         DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale, direction=ProcessingDirection.RTL
     )
     c = do_basic_test(
-        DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale, accumulation_order=AccumulationOrder.PeqPR
+        DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale,
+        accumulation_order=AccumulationOrder.PeqPR
     )
     d = do_basic_test(
         DoubleAndAddMultiplier,
@@ -259,122 +262,48 @@ def test_fixed_window(secp128r1, add, dbl, width, scale):
     assert InfinityPoint(secp128r1.curve.coordinate_model) == mult.multiply(0)
 
 
-@pytest.mark.parametrize("num,add,dbl",
-                         cartesian(
-                             [(10,), (2355498743,), (325385790209017329644351321912443757746,)],
-                             [("add-1998-cmo", "dbl-1998-cmo"), ("add-2016-rcb", "dbl-2016-rcb")],
-                         ))
+@pytest.fixture(params=["add-1998-cmo", "add-2016-rcb"])
+def add(secp128r1, request):
+    return secp128r1.curve.coordinate_model.formulas[request.param]
+
+
+@pytest.fixture(params=["dbl-1998-cmo", "dbl-2016-rcb"])
+def dbl(secp128r1, request):
+    return secp128r1.curve.coordinate_model.formulas[request.param]
+
+
+@pytest.mark.parametrize("num", [10, 2355498743, 325385790209017329644351321912443757746])
 def test_basic_multipliers(secp128r1, num, add, dbl):
-    ltr = LTRMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        ltr.multiply(1)
-    ltr.init(secp128r1, secp128r1.generator)
-    res_ltr = ltr.multiply(num)
-    rtl = RTLMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas["dbl-1998-cmo"],
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        rtl.multiply(1)
-    rtl.init(secp128r1, secp128r1.generator)
-    res_rtl = rtl.multiply(num)
-    assert res_ltr == res_rtl
+    neg = secp128r1.curve.coordinate_model.formulas["neg"]
+    scale = secp128r1.curve.coordinate_model.formulas["z"]
 
-    ltr_always = LTRMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["z"],
-        always=True,
-    )
-    rtl_always = RTLMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["z"],
-        always=True,
-    )
-    ltr_always.init(secp128r1, secp128r1.generator)
-    rtl_always.init(secp128r1, secp128r1.generator)
-    res_ltr_always = ltr_always.multiply(num)
-    res_rtl_always = rtl_always.multiply(num)
-    assert res_ltr == res_ltr_always
-    assert res_rtl == res_rtl_always
+    ltr_options = {"always": (True, False),
+                   "complete": (True, False),
+                   "accumulation_order": tuple(AccumulationOrder)}
+    ltrs = [LTRMultiplier(add, dbl, scale, **dict(zip(ltr_options.keys(), combination))) for combination in product(*ltr_options.values())]
+    rtl_options = ltr_options
+    rtls = [RTLMultiplier(add, dbl, scale, **dict(zip(rtl_options.keys(), combination))) for combination in product(*rtl_options.values())]
+    bnaf_options = {"direction": tuple(ProcessingDirection),
+                    "accumulation_order": tuple(AccumulationOrder)}
+    bnafs = [BinaryNAFMultiplier(add, dbl, neg, scale, **dict(zip(bnaf_options.keys(), combination))) for combination in product(*bnaf_options.values())]
+    wnaf_options = {"precompute_negation": (True, False),
+                    "width": (3, 5)}
+    wnafs = [WindowNAFMultiplier(add, dbl, neg, scl=scale, **dict(zip(wnaf_options.keys(), combination))) for combination in product(*wnaf_options.values())]
+    ladder_options = {"complete": (True, False)}
+    ladders = [SimpleLadderMultiplier(add, dbl, scale, **dict(zip(ladder_options.keys(), combination))) for combination in product(*ladder_options.values())]
+    fixed_options = {"m": (5, 8)}
+    fixeds = [FixedWindowLTRMultiplier(add, dbl, scl=scale, **dict(zip(fixed_options.keys(), combination))) for
+             combination in product(*fixed_options.values())]
 
-    bnaf = BinaryNAFMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["neg"],
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        bnaf.multiply(1)
-    bnaf.init(secp128r1, secp128r1.generator)
-    res_bnaf = bnaf.multiply(num)
-    assert res_bnaf == res_ltr
-
-    bnaf_rtl = BinaryNAFMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["neg"],
-        secp128r1.curve.coordinate_model.formulas["z"],
-        direction=ProcessingDirection.RTL
-    )
-    with pytest.raises(ValueError):
-        bnaf_rtl.multiply(1)
-    bnaf_rtl.init(secp128r1, secp128r1.generator)
-    res_bnaf_rtl = bnaf_rtl.multiply(num)
-    assert res_bnaf_rtl == res_ltr
-
-    wnaf = WindowNAFMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["neg"],
-        3,
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        wnaf.multiply(1)
-    wnaf.init(secp128r1, secp128r1.generator)
-    res_wnaf = wnaf.multiply(num)
-    assert res_wnaf == res_ltr
-
-    ladder = SimpleLadderMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        ladder.multiply(1)
-    ladder.init(secp128r1, secp128r1.generator)
-    res_ladder = ladder.multiply(num)
-    assert res_ladder == res_ltr
-
-    coron = CoronMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        coron.multiply(1)
-    coron.init(secp128r1, secp128r1.generator)
-    res_coron = coron.multiply(num)
-    assert res_coron == res_ltr
-
-    fixed = FixedWindowLTRMultiplier(
-        secp128r1.curve.coordinate_model.formulas[add],
-        secp128r1.curve.coordinate_model.formulas[dbl],
-        8,
-        secp128r1.curve.coordinate_model.formulas["z"],
-    )
-    with pytest.raises(ValueError):
-        fixed.multiply(1)
-    fixed.init(secp128r1, secp128r1.generator)
-    res_fixed = fixed.multiply(num)
-    assert res_fixed == res_ltr
+    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds
+    results = []
+    for mult in mults:
+        mult.init(secp128r1, secp128r1.generator)
+        res = mult.multiply(num)
+        if results:
+            assert res == results[-1], f"Points not equal {res} != {results[-1]} for mult = {mult}"
+        results.append(res)
+    print(len(results))
 
 
 def test_init_fail(curve25519, secp128r1):
