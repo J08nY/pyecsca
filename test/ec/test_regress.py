@@ -1,5 +1,4 @@
 from typing import cast
-from unittest import TestCase
 
 import pytest
 from sympy import symbols

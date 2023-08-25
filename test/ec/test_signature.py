@@ -1,6 +1,13 @@
+import json
+
 import pytest
+from importlib_resources import files
+import test.data.ec
+from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.params import get_params
+from pyecsca.ec.point import Point
 from pyecsca.ec.signature import (
     Signature,
     SignatureResult,
@@ -108,3 +115,29 @@ def test_der():
     sig = SignatureResult(0xAAAAA, 0xBBBBB)
     assert sig == SignatureResult.from_DER(sig.to_DER())
     assert sig != "abc"
+
+
+def test_ecdsa_nist():
+    with files(test.data.ec).joinpath("ecdsa_tv.json").open("r") as f:
+        nist_data = json.load(f)
+
+    P192 = get_params("nist", "P-192", "projective")
+    affine_model = AffineCoordinateModel(P192.curve.model)
+    add = P192.curve.coordinate_model.formulas["add-2016-rcb"]
+    dbl = P192.curve.coordinate_model.formulas["dbl-2016-rcb"]
+    mult = LTRMultiplier(add, dbl)
+    priv = Mod(int(nist_data["priv"], 16), P192.order)
+
+    pub_affine = Point(affine_model,
+                       x=Mod(int(nist_data["pub"]["x"], 16), P192.curve.prime),
+                       y=Mod(int(nist_data["pub"]["y"], 16), P192.curve.prime))
+    pub = pub_affine.to_model(P192.curve.coordinate_model, P192.curve)
+
+    signer = ECDSA_SHA1(mult, P192, add, pub, priv)
+
+    nonce = int(nist_data["k"], 16)
+    data = bytes.fromhex(nist_data["msg"])
+    signature = signer.sign_hash(data, nonce=nonce)
+    assert signature.r == int(nist_data["signature"]["r"], 16)
+    assert signature.s == int(nist_data["signature"]["s"], 16)
+    assert signer.verify_hash(signature, data)

@@ -1,0 +1,13 @@
+{
+  "msg": "608079423f12421de616b7493ebe551cf4d65b92",
+  "priv": "e14f37b3d1374ff8b03f41b9b3fdd2f0ebccf275d660d7f3",
+  "pub": {
+    "x": "07008ea40b08dbe76432096e80a2494c94982d2d5bcf98e6",
+    "y": "76fab681d00b414ea636ba215de26d98c41bd7f2e4d65477"
+  },
+  "k": "cb0abc7043a10783684556fb12c4154d57bc31a289685f25",
+  "signature": {
+    "r": "6994d962bdd0d793ffddf855ec5bf2f91a9698b46258a63e",
+    "s": "02ba6465a234903744ab02bc8521405b73cf5fc00e1a9f41"
+  }
+}
