@@ -6,6 +6,7 @@ from sympy import symbols
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
 from pyecsca.ec.mod import Mod, SymbolicMod
 from pyecsca.ec.model import MontgomeryModel, EdwardsModel
@@ -94,13 +95,26 @@ def test_issue_13():
     formula(p, PmQ, P, Q, c=c, r=r, d=d)
 
 
-@pytest.mark.xfail(reason="Unresolved issue currently.")
 def test_issue_14():
     model = EdwardsModel()
     coords = model.coordinates["projective"]
     affine = AffineCoordinateModel(model)
     formula = coords.formulas["add-2007-bl-4"]
-    p = 19
+
+    with pytest.raises(UnsatisfiedAssumptionError):
+        # p is 3 mod 4, so there is no square root of -1
+        p = 19
+        c = Mod(2, p)
+        d = Mod(10, p)
+        curve = EllipticCurve(model, coords, p, InfinityPoint(coords), {"c": c, "d": d})
+        Paff = Point(affine, x=Mod(0xD, p), y=Mod(0x9, p))
+        P = Paff.to_model(coords, curve)
+        Qaff = Point(affine, x=Mod(0x4, p), y=Mod(0x12, p))
+        Q = Qaff.to_model(coords, curve)
+        formula(p, P, Q, **curve.parameters)[0]
+
+    # p is 1 mod 4, so there is a square root of -1
+    p = 29
     c = Mod(2, p)
     d = Mod(10, p)
     curve = EllipticCurve(model, coords, p, InfinityPoint(coords), {"c": c, "d": d})
