@@ -43,28 +43,33 @@ def do_basic_test(
     mult.init(params, other)
     other = mult.multiply(2)
     assert_pt_equality(res, other, scale)
+    try:
+        affine = params.curve.affine_multiply(base.to_affine(), 314)
+        assert_pt_equality(res, affine, False)
+    except NotImplementedError:
+        pass
     mult.init(params, base)
     assert InfinityPoint(params.curve.coordinate_model) == mult.multiply(0)
     return res
 
 
-@pytest.mark.parametrize("name,add,dbl,scale",
+@pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", None),
                          ])
-def test_rtl(secp128r1, name, add, dbl, scale):
+def test_rtl(secp128r1, add, dbl, scale):
     do_basic_test(RTLMultiplier, secp128r1, secp128r1.generator, add, dbl, scale)
 
 
-@pytest.mark.parametrize("name,add,dbl,scale",
+@pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", None),
                          ])
-def test_ltr(secp128r1, name, add, dbl, scale):
+def test_ltr(secp128r1, add, dbl, scale):
     a = do_basic_test(
         LTRMultiplier, secp128r1, secp128r1.generator, add, dbl, scale
     )
@@ -89,13 +94,13 @@ def test_ltr(secp128r1, name, add, dbl, scale):
     assert_pt_equality(c, d, scale)
 
 
-@pytest.mark.parametrize("name,add,dbl,scale",
+@pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", None),
                          ])
-def test_doubleandadd(secp128r1, name, add, dbl, scale):
+def test_doubleandadd(secp128r1, add, dbl, scale):
     a = do_basic_test(
         DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale
     )
@@ -120,14 +125,14 @@ def test_doubleandadd(secp128r1, name, add, dbl, scale):
     assert_pt_equality(c, d, scale)
 
 
-@pytest.mark.parametrize("name,add,dbl,scale",
+@pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", None),
                          ]
                          )
-def test_coron(secp128r1, name, add, dbl, scale):
+def test_coron(secp128r1, add, dbl, scale):
     do_basic_test(CoronMultiplier, secp128r1, secp128r1.generator, add, dbl, scale)
 
 
@@ -152,36 +157,28 @@ def test_ladder(curve25519):
     assert_pt_equality(a, b, True)
 
 
-@pytest.mark.parametrize("name,add,dbl,scale",
+@pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", None),
                          ])
-def test_simple_ladder(secp128r1, name, add, dbl, scale):
+def test_simple_ladder(secp128r1, add, dbl, scale):
     do_basic_test(
         SimpleLadderMultiplier, secp128r1, secp128r1.generator, add, dbl, scale
     )
 
 
-@pytest.mark.parametrize("name,num,complete",
+@pytest.mark.parametrize("num,complete",
                          [
-                             ("15", 15, True),
-                             ("15", 15, False),
-                             ("2355498743", 2355498743, True),
-                             ("2355498743", 2355498743, False),
-                             (
-                                     "325385790209017329644351321912443757746",
-                                     325385790209017329644351321912443757746,
-                                     True,
-                             ),
-                             (
-                                     "325385790209017329644351321912443757746",
-                                     325385790209017329644351321912443757746,
-                                     False,
-                             ),
+                             (15, True),
+                             (15, False),
+                             (2355498743, True),
+                             (2355498743, False),
+                             (325385790209017329644351321912443757746, True),
+                             (325385790209017329644351321912443757746, False),
                          ])
-def test_ladder_differential(curve25519, name, num, complete):
+def test_ladder_differential(curve25519, num, complete):
     ladder = LadderMultiplier(
         curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
         curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
@@ -202,28 +199,28 @@ def test_ladder_differential(curve25519, name, num, complete):
     assert InfinityPoint(curve25519.curve.coordinate_model) == differential.multiply(0)
 
 
-@pytest.mark.parametrize("name,add,dbl,neg,scale",
+@pytest.mark.parametrize("add,dbl,neg,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "neg", "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", "neg", None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", "neg", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "neg", "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", "neg", None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "neg", None),
                          ])
-def test_binary_naf(secp128r1, name, add, dbl, neg, scale):
+def test_binary_naf(secp128r1, add, dbl, neg, scale):
     do_basic_test(
         BinaryNAFMultiplier, secp128r1, secp128r1.generator, add, dbl, scale, neg
     )
 
 
-@pytest.mark.parametrize("name,add,dbl,neg,width,scale",
+@pytest.mark.parametrize("add,dbl,neg,width,scale",
                          [
-                             ("scaled3", "add-1998-cmo", "dbl-1998-cmo", "neg", 3, "z"),
-                             ("none3", "add-1998-cmo", "dbl-1998-cmo", "neg", 3, None),
-                             ("complete3", "add-2016-rcb", "dbl-2016-rcb", "neg", 3, None),
-                             ("scaled5", "add-1998-cmo", "dbl-1998-cmo", "neg", 5, "z"),
-                             ("none5", "add-1998-cmo", "dbl-1998-cmo", "neg", 5, None),
-                             ("complete5", "add-2016-rcb", "dbl-2016-rcb", "neg", 5, None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 3, "z"),
+                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 3, None),
+                             ("add-2016-rcb", "dbl-2016-rcb", "neg", 3, None),
+                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 5, "z"),
+                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 5, None),
+                             ("add-2016-rcb", "dbl-2016-rcb", "neg", 5, None),
                          ])
-def test_window_naf(secp128r1, name, add, dbl, neg, width, scale):
+def test_window_naf(secp128r1, add, dbl, neg, width, scale):
     formulas = get_formulas(secp128r1.curve.coordinate_model, add, dbl, neg, scale)
     mult = WindowNAFMultiplier(*formulas[:3], width, *formulas[3:])
     mult.init(secp128r1, secp128r1.generator)
@@ -243,13 +240,13 @@ def test_window_naf(secp128r1, name, add, dbl, neg, width, scale):
     assert_pt_equality(res_precompute, res, scale)
 
 
-@pytest.mark.parametrize("name,add,dbl,width,scale",
+@pytest.mark.parametrize("add,dbl,width,scale",
                          [
-                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", 5, "z"),
-                             ("complete", "add-2016-rcb", "dbl-2016-rcb", 5, None),
-                             ("none", "add-1998-cmo", "dbl-1998-cmo", 5, None),
+                             ("add-1998-cmo", "dbl-1998-cmo", 5, "z"),
+                             ("add-2016-rcb", "dbl-2016-rcb", 5, None),
+                             ("add-1998-cmo", "dbl-1998-cmo", 5, None),
                          ])
-def test_fixed_window(secp128r1, name, add, dbl, width, scale):
+def test_fixed_window(secp128r1, add, dbl, width, scale):
     formulas = get_formulas(secp128r1.curve.coordinate_model, add, dbl, scale)
     mult = FixedWindowLTRMultiplier(*formulas[:2], width, *formulas[2:])
     mult.init(secp128r1, secp128r1.generator)
@@ -262,20 +259,12 @@ def test_fixed_window(secp128r1, name, add, dbl, width, scale):
     assert InfinityPoint(secp128r1.curve.coordinate_model) == mult.multiply(0)
 
 
-@pytest.mark.parametrize("name,num,add,dbl",
+@pytest.mark.parametrize("num,add,dbl",
                          cartesian(
-                             [
-                                 ("10", 10),
-                                 ("2355498743", 2355498743),
-                                 (
-                                         "325385790209017329644351321912443757746",
-                                         325385790209017329644351321912443757746,
-                                 ),
-                             ],
+                             [(10,), (2355498743,), (325385790209017329644351321912443757746,)],
                              [("add-1998-cmo", "dbl-1998-cmo"), ("add-2016-rcb", "dbl-2016-rcb")],
-                         )
-                         )
-def test_basic_multipliers(secp128r1, name, num, add, dbl):
+                         ))
+def test_basic_multipliers(secp128r1, num, add, dbl):
     ltr = LTRMultiplier(
         secp128r1.curve.coordinate_model.formulas[add],
         secp128r1.curve.coordinate_model.formulas[dbl],

@@ -37,15 +37,15 @@ def msg():
     return 0xCAFEBABE.to_bytes(4, byteorder="big")
 
 
-@pytest.mark.parametrize("name,algo",
+@pytest.mark.parametrize("algo",
                          [
-                             ("SHA1", ECDSA_SHA1),
-                             ("SHA224", ECDSA_SHA224),
-                             ("SHA256", ECDSA_SHA256),
-                             ("SHA384", ECDSA_SHA384),
-                             ("SHA512", ECDSA_SHA512),
+                             ECDSA_SHA1,
+                             ECDSA_SHA224,
+                             ECDSA_SHA256,
+                             ECDSA_SHA384,
+                             ECDSA_SHA512,
                          ])
-def test_all(secp128r1, mult, keypair, msg, add, name, algo):
+def test_all(secp128r1, mult, keypair, msg, add, algo):
     priv, pub = keypair
     signer = algo(mult, secp128r1, privkey=keypair[0])
     assert signer.can_sign
@@ -85,15 +85,15 @@ def test_cannot(secp128r1, add, mult, keypair):
         Signature(mult, secp128r1)
 
 
-@pytest.mark.parametrize("name,algo",
+@pytest.mark.parametrize("algo",
                          [
-                             ("SHA1", ECDSA_SHA1),
-                             ("SHA224", ECDSA_SHA224),
-                             ("SHA256", ECDSA_SHA256),
-                             ("SHA384", ECDSA_SHA384),
-                             ("SHA512", ECDSA_SHA512),
+                             ECDSA_SHA1,
+                             ECDSA_SHA224,
+                             ECDSA_SHA256,
+                             ECDSA_SHA384,
+                             ECDSA_SHA512,
                          ])
-def test_fixed_nonce(secp128r1, mult, keypair, msg, add, name, algo):
+def test_fixed_nonce(secp128r1, mult, keypair, msg, add, algo):
     priv, pub = keypair
     signer = algo(mult, secp128r1, privkey=priv)
     sig_one = signer.sign_data(msg, nonce=0xABCDEF)
