@@ -1,0 +1,18 @@
+{
+  "raw": "ca7c0f8c3ffa87a96e1b74ac8e6af594347bb40a",
+  "sha1": "d248313e865a1ae677782b54b24d8abaf11a53c2",
+  "keyA": {
+    "priv": "0xaa374ffc3ce144e6b073307972cb6d57b2a4e982",
+    "pub": {
+      "x": "0x51b4496fecc406ed0e75a24a3c03206251419dc0",
+      "y": "0xc28dcb4b73a514b468d793894f381ccc1756aa6c"
+    }
+  },
+  "keyB": {
+    "priv": "0x45fb58a92a17ad4b15101c66e74f277e2b460866",
+    "pub": {
+      "x": "0x49b41e0e9c0369c2328739d90f63d56707c6e5bc",
+      "y": "0x26e008b567015ed96d232a03111c3edc0e9c8f83"
+    }
+  }
+}
