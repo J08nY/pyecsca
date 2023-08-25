@@ -10,7 +10,7 @@ from pyecsca.ec.configuration import (
     Inversion,
 )
 from pyecsca.ec.model import ShortWeierstrassModel
-from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.mult import LTRMultiplier, AccumulationOrder
 
 
 @pytest.fixture(scope="module")
@@ -30,7 +30,7 @@ def test_weierstrass_projective(base_independents):
     model = ShortWeierstrassModel()
     coords = model.coordinates["projective"]
     configs = list(all_configurations(model=model, coords=coords, **base_independents))
-    assert len(configs) == 1960
+    assert len(configs) == 4060
 
 
 def test_mult_class(base_independents):
@@ -38,18 +38,19 @@ def test_mult_class(base_independents):
     coords = model.coordinates["projective"]
     scalarmult = LTRMultiplier
     configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult, **base_independents))
-    assert len(configs) == 560
+    assert len(configs) == 1120
 
 
 def test_one(base_independents):
     model = ShortWeierstrassModel()
     coords = model.coordinates["projective"]
     scalarmult = {"cls": LTRMultiplier, "add": coords.formulas["add-1998-cmo"], "dbl": coords.formulas["dbl-1998-cmo"],
-                  "scl": None, "always": True, "complete": False, "short_circuit": True, }
+                  "scl": None, "always": True, "complete": False, "short_circuit": True,
+                  "accumulation_order": AccumulationOrder.PeqRP}
     configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult, **base_independents))
     assert len(configs) == 1
-    scalarmult = LTRMultiplier(coords.formulas["add-1998-cmo"], coords.formulas["dbl-1998-cmo"], None, True, False,
-                               True, )
+    scalarmult = LTRMultiplier(coords.formulas["add-1998-cmo"], coords.formulas["dbl-1998-cmo"], None, True,
+                               accumulation_order=AccumulationOrder.PeqRP, complete=False, short_circuit=True)
     configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult, **base_independents))
     assert len(configs) == 1
     configs = list(all_configurations(model=model, scalarmult=scalarmult, **base_independents))

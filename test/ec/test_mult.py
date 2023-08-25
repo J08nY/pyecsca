@@ -2,6 +2,7 @@
 import pytest
 
 from pyecsca.ec.mult import (
+    DoubleAndAddMultiplier,
     LTRMultiplier,
     RTLMultiplier,
     LadderMultiplier,
@@ -9,7 +10,10 @@ from pyecsca.ec.mult import (
     WindowNAFMultiplier,
     SimpleLadderMultiplier,
     DifferentialLadderMultiplier,
-    CoronMultiplier, FixedWindowLTRMultiplier,
+    CoronMultiplier,
+    FixedWindowLTRMultiplier,
+    ProcessingDirection,
+    AccumulationOrder
 )
 from pyecsca.ec.point import InfinityPoint, Point
 from .utils import cartesian
@@ -72,6 +76,37 @@ def test_ltr(secp128r1, name, add, dbl, scale):
     )
     d = do_basic_test(
         LTRMultiplier,
+        secp128r1,
+        secp128r1.generator,
+        add,
+        dbl,
+        scale,
+        always=True,
+        complete=False,
+    )
+    assert_pt_equality(a, b, scale)
+    assert_pt_equality(b, c, scale)
+    assert_pt_equality(c, d, scale)
+
+
+@pytest.mark.parametrize("name,add,dbl,scale",
+                         [
+                             ("scaled", "add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("complete", "add-2016-rcb", "dbl-2016-rcb", None),
+                             ("none", "add-1998-cmo", "dbl-1998-cmo", None),
+                         ])
+def test_doubleandadd(secp128r1, name, add, dbl, scale):
+    a = do_basic_test(
+        DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale
+    )
+    b = do_basic_test(
+        DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale, direction=ProcessingDirection.RTL
+    )
+    c = do_basic_test(
+        DoubleAndAddMultiplier, secp128r1, secp128r1.generator, add, dbl, scale, accumulation_order=AccumulationOrder.PeqPR
+    )
+    d = do_basic_test(
+        DoubleAndAddMultiplier,
         secp128r1,
         secp128r1.generator,
         add,
@@ -291,6 +326,19 @@ def test_basic_multipliers(secp128r1, name, num, add, dbl):
     bnaf.init(secp128r1, secp128r1.generator)
     res_bnaf = bnaf.multiply(num)
     assert res_bnaf == res_ltr
+
+    bnaf_rtl = BinaryNAFMultiplier(
+        secp128r1.curve.coordinate_model.formulas[add],
+        secp128r1.curve.coordinate_model.formulas[dbl],
+        secp128r1.curve.coordinate_model.formulas["neg"],
+        secp128r1.curve.coordinate_model.formulas["z"],
+        direction=ProcessingDirection.RTL
+    )
+    with pytest.raises(ValueError):
+        bnaf_rtl.multiply(1)
+    bnaf_rtl.init(secp128r1, secp128r1.generator)
+    res_bnaf_rtl = bnaf_rtl.multiply(num)
+    assert res_bnaf_rtl == res_ltr
 
     wnaf = WindowNAFMultiplier(
         secp128r1.curve.coordinate_model.formulas[add],

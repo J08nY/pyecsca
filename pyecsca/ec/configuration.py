@@ -1,4 +1,5 @@
 """Provides a way to work with and enumerate implementation configurations."""
+import warnings
 from dataclasses import dataclass
 from enum import Enum
 from itertools import product
@@ -9,7 +10,6 @@ from typing import (
     get_args,
     Generator,
     FrozenSet,
-    Any,
 )
 
 from public import public
@@ -200,13 +200,26 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
                     required_type, bool
                 ):
                     options = [True, False]
+                elif get_origin(required_type) is None and issubclass(
+                        required_type, Enum
+                ):
+                    options = list(required_type)
                 elif (
                     get_origin(required_type) is None
                     and issubclass(required_type, int)
                     and name == "width"
                 ):
+                    # TODO: More options possible!
                     options = [3, 5]
+                elif (
+                    get_origin(required_type) is None
+                    and issubclass(required_type, int)
+                    and name == "m"
+                ):
+                    # TODO: More options possible!
+                    options = [5, 8]
                 else:
+                    warnings.warn(RuntimeWarning(f"Unknown scalarmult option range = {name}"))
                     options = []
                 arg_options[name] = options
             keys = arg_options.keys()

@@ -1,7 +1,8 @@
 """Provides several classes implementing different scalar multiplication algorithms."""
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type
+from enum import Enum, auto
+from typing import Mapping, Tuple, Optional, MutableMapping, ClassVar, Set, Type, List
 from math import log2
 
 from public import public
@@ -19,6 +20,20 @@ from .formula import (
 from .scalar import wnaf, naf, convert
 from .params import DomainParameters
 from .point import Point
+
+
+@public
+class ProcessingDirection(Enum):
+    """Scalar processing direction."""
+    LTR = "Left-to-right"
+    RTL = "Right-to-left"
+
+
+@public
+class AccumulationOrder(Enum):
+    """Accumulation order (makes a difference for the projective result)."""
+    PeqPR = "P = P + R"
+    PeqRP = "P = R + P"
 
 
 @public
@@ -57,6 +72,10 @@ class PrecomputationAction(Action):
 class ScalarMultiplier(ABC):
     """
     A scalar multiplication algorithm.
+
+    .. note::
+        The __init__ method of all concrete subclasses needs to have type annotations so that
+        configuration enumeration works.
 
     :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
                           of the point at infinity.
@@ -202,16 +221,20 @@ class ScalarMultiplier(ABC):
 
 
 @public
-class LTRMultiplier(ScalarMultiplier):
+class DoubleAndAddMultiplier(ScalarMultiplier, ABC):
     """
-    Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb).
+    Classic double and add scalar multiplication algorithm.
 
     :param always: Whether the double and add always method is used.
+    :param direction: Whether it is LTR or RTL.
+    :param accumulation_order: The order of accumulation of points.
+    :param complete: (Only for LTR, always false for RTL) Whether it starts processing at full order-bit-length.
     """
-
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     always: bool
+    direction: ProcessingDirection
+    accumulation_order: AccumulationOrder
     complete: bool
 
     def __init__(
@@ -220,20 +243,70 @@ class LTRMultiplier(ScalarMultiplier):
             dbl: DoublingFormula,
             scl: Optional[ScalingFormula] = None,
             always: bool = False,
+            direction: ProcessingDirection = ProcessingDirection.LTR,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
             complete: bool = True,
             short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.always = always
+        self.direction = direction
+        self.accumulation_order = accumulation_order
         self.complete = complete
 
     def __hash__(self):
         return id(self)
 
     def __eq__(self, other):
-        if not isinstance(other, LTRMultiplier):
+        if not isinstance(other, DoubleAndAddMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.always == other.always and self.complete == other.complete
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order and self.always == other.always and self.complete == other.complete
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order})"
+
+    def _accumulate(self, p: Point, r: Point) -> Point:
+        if self.accumulation_order is AccumulationOrder.PeqPR:
+            p = self._add(p, r)
+        elif self.accumulation_order is AccumulationOrder.PeqRP:
+            p = self._add(r, p)
+        return p
+
+    def _ltr(self, scalar: int) -> Point:
+        if self.complete:
+            q = self._point
+            r = copy(self._params.curve.neutral)
+            top = self._params.order.bit_length() - 1
+        else:
+            q = copy(self._point)
+            r = copy(self._point)
+            top = scalar.bit_length() - 2
+        for i in range(top, -1, -1):
+            r = self._dbl(r)
+            if scalar & (1 << i) != 0:
+                r = self._accumulate(r, q)
+            elif self.always:
+                # dummy add
+                self._accumulate(r, q)
+        return r
+
+    def _rtl(self, scalar: int) -> Point:
+        q = self._point
+        r = copy(self._params.curve.neutral)
+        if self.complete:
+            top = self._params.order.bit_length()
+        else:
+            top = scalar.bit_length()
+        for _ in range(top):
+            if scalar & 1 != 0:
+                r = self._accumulate(r, q)
+            elif self.always:
+                # dummy add
+                self._accumulate(r, q)
+            # TODO: This double is unnecessary in the last iteration.
+            q = self._dbl(q)
+            scalar >>= 1
+        return r
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -241,37 +314,20 @@ class LTRMultiplier(ScalarMultiplier):
         with ScalarMultiplicationAction(self._point, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
-            if self.complete:
-                q = self._point
-                r = copy(self._params.curve.neutral)
-                top = self._params.order.bit_length() - 1
-            else:
-                q = copy(self._point)
-                r = copy(self._point)
-                top = scalar.bit_length() - 2
-            for i in range(top, -1, -1):
-                r = self._dbl(r)
-                if scalar & (1 << i) != 0:
-                    # TODO: This order makes a difference in projective coordinates
-                    r = self._add(r, q)
-                elif self.always:
-                    self._add(r, q)
+            if self.direction is ProcessingDirection.LTR:
+                r = self._ltr(scalar)
+            elif self.direction is ProcessingDirection.RTL:
+                r = self._rtl(scalar)
             if "scl" in self.formulas:
                 r = self._scl(r)
             return action.exit(r)
 
 
 @public
-class RTLMultiplier(ScalarMultiplier):
+class LTRMultiplier(DoubleAndAddMultiplier):
     """
-    Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb).
-
-    :param always: Whether the double and add always method is used.
+    Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb).
     """
-
-    requires = {AdditionFormula, DoublingFormula}
-    optionals = {ScalingFormula}
-    always: bool
 
     def __init__(
             self,
@@ -279,38 +335,34 @@ class RTLMultiplier(ScalarMultiplier):
             dbl: DoublingFormula,
             scl: Optional[ScalingFormula] = None,
             always: bool = False,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+            complete: bool = True,
             short_circuit: bool = True,
     ):
-        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
-        self.always = always
+        super().__init__(short_circuit=short_circuit, direction=ProcessingDirection.LTR,
+                         accumulation_order=accumulation_order, always=always, complete=complete,
+                         add=add, dbl=dbl, scl=scl)
 
-    def __hash__(self):
-        return id(self)
 
-    def __eq__(self, other):
-        if not isinstance(other, RTLMultiplier):
-            return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.always == other.always
+@public
+class RTLMultiplier(DoubleAndAddMultiplier):
+    """
+    Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb).
+    """
 
-    def multiply(self, scalar: int) -> Point:
-        if not self._initialized:
-            raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
-            if scalar == 0:
-                return action.exit(copy(self._params.curve.neutral))
-            q = self._point
-            r = copy(self._params.curve.neutral)
-            while scalar > 0:
-                if scalar & 1 != 0:
-                    # TODO: This order makes a difference in projective coordinates
-                    r = self._add(r, q)
-                elif self.always:
-                    self._add(r, q)
-                q = self._dbl(q)
-                scalar >>= 1
-            if "scl" in self.formulas:
-                r = self._scl(r)
-            return action.exit(r)
+    def __init__(
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            scl: Optional[ScalingFormula] = None,
+            always: bool = False,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+            complete: bool = True,
+            short_circuit: bool = True,
+    ):
+        super().__init__(short_circuit=short_circuit, direction=ProcessingDirection.RTL,
+                         accumulation_order=accumulation_order, always=always,
+                         add=add, dbl=dbl, scl=scl, complete=complete)
 
 
 @public
@@ -521,10 +573,12 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
 
 @public
 class BinaryNAFMultiplier(ScalarMultiplier):
-    """Binary NAF (Non Adjacent Form) multiplier, left-to-right."""
+    """Binary NAF (Non Adjacent Form) multiplier."""
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
+    direction: ProcessingDirection
+    accumulation_order: AccumulationOrder
     _point_neg: Point
 
     def __init__(
@@ -533,11 +587,15 @@ class BinaryNAFMultiplier(ScalarMultiplier):
             dbl: DoublingFormula,
             neg: NegationFormula,
             scl: Optional[ScalingFormula] = None,
+            direction: ProcessingDirection = ProcessingDirection.LTR,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
             short_circuit: bool = True,
     ):
         super().__init__(
             short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
         )
+        self.direction = direction
+        self.accumulation_order = accumulation_order
 
     def __hash__(self):
         return id(self)
@@ -552,6 +610,36 @@ class BinaryNAFMultiplier(ScalarMultiplier):
             super().init(params, point)
             self._point_neg = self._neg(point)
 
+    def _accumulate(self, p: Point, r: Point) -> Point:
+        if self.accumulation_order is AccumulationOrder.PeqPR:
+            p = self._add(p, r)
+        elif self.accumulation_order is AccumulationOrder.PeqRP:
+            p = self._add(r, p)
+        return p
+
+    def _ltr(self, scalar_naf: List[int]) -> Point:
+        q = copy(self._params.curve.neutral)
+        for val in scalar_naf:
+            q = self._dbl(q)
+            if val == 1:
+                q = self._accumulate(q, self._point)
+            if val == -1:
+                # TODO: Whether this negation is precomputed can be a parameter
+                q = self._accumulate(q, self._point_neg)
+        return q
+
+    def _rtl(self, scalar_naf: List[int]) -> Point:
+        q = self._point
+        r = copy(self._params.curve.neutral)
+        for val in reversed(scalar_naf):
+            if val == 1:
+                r = self._accumulate(r, q)
+            if val == -1:
+                neg = self._neg(q)
+                r = self._accumulate(r, neg)
+            q = self._dbl(q)
+        return r
+
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
@@ -559,13 +647,10 @@ class BinaryNAFMultiplier(ScalarMultiplier):
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             scalar_naf = naf(scalar)
-            q = copy(self._params.curve.neutral)
-            for val in scalar_naf:
-                q = self._dbl(q)
-                if val == 1:
-                    q = self._add(q, self._point)
-                if val == -1:
-                    q = self._add(q, self._point_neg)
+            if self.direction is ProcessingDirection.LTR:
+                q = self._ltr(scalar_naf)
+            elif self.direction is ProcessingDirection.RTL:
+                q = self._rtl(scalar_naf)
             if "scl" in self.formulas:
                 q = self._scl(q)
             return action.exit(q)
@@ -628,14 +713,17 @@ class WindowNAFMultiplier(ScalarMultiplier):
             scalar_naf = wnaf(scalar, self.width)
             q = copy(self._params.curve.neutral)
             for val in scalar_naf:
+                # TODO: Add RTL version of this.
                 q = self._dbl(q)
                 if val > 0:
+                    # TODO: This order makes a difference in projective coordinates
                     q = self._add(q, self._points[val])
                 elif val < 0:
                     if self.precompute_negation:
                         neg = self._points_neg[-val]
                     else:
                         neg = self._neg(self._points[-val])
+                    # TODO: This order makes a difference in projective coordinates
                     q = self._add(q, neg)
             if "scl" in self.formulas:
                 q = self._scl(q)
@@ -693,6 +781,7 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
         else:
             r = copy(point)
             q = self._dbl(point)
+            # TODO: This could be made via a different chain.
             for _ in range(self.m - 2):
                 q = self._add(q, r)
         return q
@@ -707,8 +796,10 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
             converted = convert(scalar, self.m)
             q = copy(self._params.curve.neutral)
             for digit in reversed(converted):
+                # TODO: Add RTL version of this.
                 q = self._mult_m(q)
                 if digit != 0:
+                    # TODO: This order makes a difference in projective coordinates
                     q = self._add(q, self._points[digit])
             if "scl" in self.formulas:
                 q = self._scl(q)

@@ -12,7 +12,7 @@ from pyecsca.ec.mult import (
     RTLMultiplier,
     BinaryNAFMultiplier,
     WindowNAFMultiplier,
-    SimpleLadderMultiplier,
+    SimpleLadderMultiplier, AccumulationOrder, ProcessingDirection,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -73,12 +73,12 @@ def test_0y_point(rpa_params):
 
 
 def test_distinguish(secp128r1, add, dbl, neg):
-    multipliers = [LTRMultiplier(add, dbl, None, False, True, True),
-                   LTRMultiplier(add, dbl, None, True, True, True),
-                   RTLMultiplier(add, dbl, None, False, True),
-                   RTLMultiplier(add, dbl, None, True, True),
+    multipliers = [LTRMultiplier(add, dbl, None, False, AccumulationOrder.PeqRP, True, True),
+                   LTRMultiplier(add, dbl, None, True, AccumulationOrder.PeqRP, True, True),
+                   RTLMultiplier(add, dbl, None, False, AccumulationOrder.PeqRP, True),
+                   RTLMultiplier(add, dbl, None, True, AccumulationOrder.PeqRP, True),
                    SimpleLadderMultiplier(add, dbl, None, True, True),
-                   BinaryNAFMultiplier(add, dbl, neg, None, True),
+                   BinaryNAFMultiplier(add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqRP, True),
                    WindowNAFMultiplier(add, dbl, neg, 3, None, True),
                    WindowNAFMultiplier(add, dbl, neg, 4, None, True)]
     for real_mult in multipliers:
