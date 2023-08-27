@@ -127,7 +127,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
 
     .. warning::
         The returned number of configurations might be quite large and take up significant
-        memory space.
+        memory space. Use this generator and do not store the results.
 
     :param kwargs: The configuration parameters to match.
     :return: A generator of the configurations.

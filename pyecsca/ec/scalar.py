@@ -9,9 +9,9 @@ def convert_base(i: int, base: int) -> List[int]:
     """
     Convert an integer to base.
 
-    :param i:
-    :param base:
-    :return:
+    :param i: The scalar.
+    :param base: The base.
+    :return: The resulting digit list.
     """
     if i == 0:
         return [0]
@@ -28,9 +28,9 @@ def sliding_window_ltr(i: int, w: int) -> List[int]:
     Compute the sliding-window left-to-right form.
     From https://eprint.iacr.org/2017/627.pdf.
 
-    :param i:
-    :param w:
-    :return:
+    :param i: The scalar.
+    :param w: The width.
+    :return: The sliding-window LTR form.
     """
     result: List[int] = []
     b = i.bit_length() - 1
@@ -83,6 +83,17 @@ def sliding_window_rtl(i: int, w: int) -> List[int]:
 def wnaf(k: int, w: int) -> List[int]:
     """
     Compute width `w` NAF (Non-Adjacent Form) of the scalar `k`.
+
+    Algorithm 9.35 from GECC, Algorithm 9.20 from HEHCC.
+
+    .. note::
+        According to HEHCC this is actually not unique
+
+            A left-to-right variant to compute an NAFw expansion of an integer can be found both
+            in [AVA 2005a] and in [MUST 2005]. The result may differ from the expansion produced
+            by Algorithm 9.20 but they have the same digit set and the same optimal weight.
+
+        According to GECC it is.
 
     :param k: The scalar.
     :param w: The width.

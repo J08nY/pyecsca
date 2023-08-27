@@ -16,7 +16,7 @@ from ..scalar import convert_base, sliding_window_rtl, sliding_window_ltr
 
 @public
 class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
-    """"""
+    """Sliding window scalar multiplier."""
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}

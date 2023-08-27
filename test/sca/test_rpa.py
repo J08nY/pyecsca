@@ -12,7 +12,7 @@ from pyecsca.ec.mult import (
     RTLMultiplier,
     BinaryNAFMultiplier,
     WindowNAFMultiplier,
-    SimpleLadderMultiplier, AccumulationOrder, ProcessingDirection,
+    SimpleLadderMultiplier, AccumulationOrder, ProcessingDirection, SlidingWindowMultiplier, FixedWindowLTRMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -79,8 +79,12 @@ def test_distinguish(secp128r1, add, dbl, neg):
                    RTLMultiplier(add, dbl, None, True, AccumulationOrder.PeqRP, True),
                    SimpleLadderMultiplier(add, dbl, None, True, True),
                    BinaryNAFMultiplier(add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqRP, True),
-                   WindowNAFMultiplier(add, dbl, neg, 3, None, True),
-                   WindowNAFMultiplier(add, dbl, neg, 4, None, True)]
+                   WindowNAFMultiplier(add, dbl, neg, 3, None, AccumulationOrder.PeqRP, True),
+                   WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqRP, True),
+                   SlidingWindowMultiplier(add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqRP, True),
+                   SlidingWindowMultiplier(add, dbl, 3, None, ProcessingDirection.RTL, AccumulationOrder.PeqRP, True),
+                   FixedWindowLTRMultiplier(add, dbl, 3, None, AccumulationOrder.PeqRP, True),
+                   FixedWindowLTRMultiplier(add, dbl, 8, None, AccumulationOrder.PeqRP, True)]
     for real_mult in multipliers:
         def simulated_oracle(scalar, affine_point):
             point = affine_point.to_model(secp128r1.curve.coordinate_model, secp128r1.curve)
