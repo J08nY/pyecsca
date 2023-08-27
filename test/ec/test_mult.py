@@ -287,11 +287,12 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
                     "accumulation_order": tuple(AccumulationOrder)}
     bnafs = [BinaryNAFMultiplier(add, dbl, neg, scale, **dict(zip(bnaf_options.keys(), combination))) for combination in product(*bnaf_options.values())]
     wnaf_options = {"precompute_negation": (True, False),
-                    "width": (3, 5)}
+                    "width": (3, 5),
+                    "accumulation_order": tuple(AccumulationOrder)}
     wnafs = [WindowNAFMultiplier(add, dbl, neg, scl=scale, **dict(zip(wnaf_options.keys(), combination))) for combination in product(*wnaf_options.values())]
     ladder_options = {"complete": (True, False)}
     ladders = [SimpleLadderMultiplier(add, dbl, scale, **dict(zip(ladder_options.keys(), combination))) for combination in product(*ladder_options.values())]
-    fixed_options = {"m": (5, 8)}
+    fixed_options = {"m": (5, 8), "accumulation_order": tuple(AccumulationOrder)}
     fixeds = [FixedWindowLTRMultiplier(add, dbl, scl=scale, **dict(zip(fixed_options.keys(), combination))) for combination in product(*fixed_options.values())]
 
     mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds
@@ -302,6 +303,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         if results:
             assert res == results[-1], f"Points not equal {res} != {results[-1]} for mult = {mult}"
         results.append(res)
+    print(len(results))
 
 
 def test_init_fail(curve25519, secp128r1):

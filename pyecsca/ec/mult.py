@@ -17,7 +17,7 @@ from .formula import (
     LadderFormula,
     NegationFormula,
 )
-from .scalar import wnaf, naf, convert
+from .scalar import wnaf, naf, convert_base
 from .params import DomainParameters
 from .point import Point
 
@@ -664,6 +664,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
     optionals = {ScalingFormula}
     _points: MutableMapping[int, Point]
     _points_neg: MutableMapping[int, Point]
+    accumulation_order: AccumulationOrder
     precompute_negation: bool = False
     width: int
 
@@ -674,6 +675,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
             neg: NegationFormula,
             width: int,
             scl: Optional[ScalingFormula] = None,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
             precompute_negation: bool = False,
             short_circuit: bool = True,
     ):
@@ -681,6 +683,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
             short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
         )
         self.width = width
+        self.accumulation_order = accumulation_order
         self.precompute_negation = precompute_negation
 
     def __hash__(self):
@@ -704,6 +707,13 @@ class WindowNAFMultiplier(ScalarMultiplier):
                     self._points_neg[2 * i + 1] = self._neg(current_point)
                 current_point = self._add(current_point, double_point)
 
+    def _accumulate(self, p: Point, r: Point) -> Point:
+        if self.accumulation_order is AccumulationOrder.PeqPR:
+            p = self._add(p, r)
+        elif self.accumulation_order is AccumulationOrder.PeqRP:
+            p = self._add(r, p)
+        return p
+
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
@@ -713,18 +723,15 @@ class WindowNAFMultiplier(ScalarMultiplier):
             scalar_naf = wnaf(scalar, self.width)
             q = copy(self._params.curve.neutral)
             for val in scalar_naf:
-                # TODO: Add RTL version of this.
                 q = self._dbl(q)
                 if val > 0:
-                    # TODO: This order makes a difference in projective coordinates
-                    q = self._add(q, self._points[val])
+                    q = self._accumulate(q, self._points[val])
                 elif val < 0:
                     if self.precompute_negation:
                         neg = self._points_neg[-val]
                     else:
                         neg = self._neg(self._points[-val])
-                    # TODO: This order makes a difference in projective coordinates
-                    q = self._add(q, neg)
+                    q = self._accumulate(q, neg)
             if "scl" in self.formulas:
                 q = self._scl(q)
             return action.exit(q)
@@ -738,6 +745,7 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
     optionals = {ScalingFormula}
     complete: bool
     m: int
+    accumulation_order: AccumulationOrder
     _points: MutableMapping[int, Point]
 
     def __init__(
@@ -746,13 +754,15 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
             dbl: DoublingFormula,
             m: int,
             scl: Optional[ScalingFormula] = None,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
             short_circuit: bool = True,
     ):
         super().__init__(
             short_circuit=short_circuit, add=add, dbl=dbl, scl=scl
         )
         if m < 2:
-            raise ValueError("Invalid window width.")
+            raise ValueError("Invalid base.")
+        self.accumulation_order = accumulation_order
         self.m = m
 
     def __hash__(self):
@@ -775,16 +785,25 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
 
     def _mult_m(self, point: Point) -> Point:
         if self.m & (self.m - 1) == 0:
+            # Power of 2
             q = point
             for _ in range(int(log2(self.m))):
                 q = self._dbl(q)
         else:
+            # Not power of 2
             r = copy(point)
             q = self._dbl(point)
             # TODO: This could be made via a different chain.
             for _ in range(self.m - 2):
-                q = self._add(q, r)
+                q = self._accumulate(q, r)
         return q
+
+    def _accumulate(self, p: Point, r: Point) -> Point:
+        if self.accumulation_order is AccumulationOrder.PeqPR:
+            p = self._add(p, r)
+        elif self.accumulation_order is AccumulationOrder.PeqRP:
+            p = self._add(r, p)
+        return p
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -793,14 +812,12 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             # General case (any m) and special case (m = 2^k) are handled together here
-            converted = convert(scalar, self.m)
+            converted = convert_base(scalar, self.m)
             q = copy(self._params.curve.neutral)
             for digit in reversed(converted):
-                # TODO: Add RTL version of this.
                 q = self._mult_m(q)
                 if digit != 0:
-                    # TODO: This order makes a difference in projective coordinates
-                    q = self._add(q, self._points[digit])
+                    q = self._accumulate(q, self._points[digit])
             if "scl" in self.formulas:
                 q = self._scl(q)
             return action.exit(q)

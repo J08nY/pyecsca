@@ -30,7 +30,7 @@ def test_weierstrass_projective(base_independents):
     model = ShortWeierstrassModel()
     coords = model.coordinates["projective"]
     configs = list(all_configurations(model=model, coords=coords, **base_independents))
-    assert len(configs) == 4060
+    assert len(configs) == 4900
 
 
 def test_mult_class(base_independents):
