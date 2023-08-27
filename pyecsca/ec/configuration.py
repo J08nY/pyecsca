@@ -142,12 +142,12 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
 
     def leaf_subclasses(cls):
         subs = cls.__subclasses__()
-        result = []
+        result = set()
         for subclass in subs:
             if subclass.__subclasses__():
-                result.extend(leaf_subclasses(subclass))
+                result.update(leaf_subclasses(subclass))
             else:
-                result.append(subclass)
+                result.add(subclass)
         return result
 
     def independents(kwargs):

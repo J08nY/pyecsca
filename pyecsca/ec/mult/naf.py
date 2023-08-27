@@ -2,7 +2,8 @@ from copy import copy
 from typing import Optional, List, MutableMapping
 from public import public
 
-from .base import ScalarMultiplier, ScalarMultiplicationAction, ProcessingDirection, AccumulationOrder, PrecomputationAction
+from .base import ScalarMultiplier, ScalarMultiplicationAction, ProcessingDirection, AccumulationOrder, \
+    PrecomputationAction, AccumulatorMultiplier
 from ..formula import (
     AdditionFormula,
     DoublingFormula,
@@ -15,13 +16,12 @@ from ..scalar import naf, wnaf
 
 
 @public
-class BinaryNAFMultiplier(ScalarMultiplier):
+class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     """Binary NAF (Non Adjacent Form) multiplier."""
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
     direction: ProcessingDirection
-    accumulation_order: AccumulationOrder
     _point_neg: Point
 
     def __init__(
@@ -35,10 +35,9 @@ class BinaryNAFMultiplier(ScalarMultiplier):
             short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
+            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, neg=neg, scl=scl
         )
         self.direction = direction
-        self.accumulation_order = accumulation_order
 
     def __hash__(self):
         return id(self)
@@ -52,13 +51,6 @@ class BinaryNAFMultiplier(ScalarMultiplier):
         with PrecomputationAction(params, point):
             super().init(params, point)
             self._point_neg = self._neg(point)
-
-    def _accumulate(self, p: Point, r: Point) -> Point:
-        if self.accumulation_order is AccumulationOrder.PeqPR:
-            p = self._add(p, r)
-        elif self.accumulation_order is AccumulationOrder.PeqRP:
-            p = self._add(r, p)
-        return p
 
     def _ltr(self, scalar_naf: List[int]) -> Point:
         q = copy(self._params.curve.neutral)
@@ -100,14 +92,13 @@ class BinaryNAFMultiplier(ScalarMultiplier):
 
 
 @public
-class WindowNAFMultiplier(ScalarMultiplier):
+class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     """Window NAF (Non Adjacent Form) multiplier, left-to-right."""
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
     _points: MutableMapping[int, Point]
     _points_neg: MutableMapping[int, Point]
-    accumulation_order: AccumulationOrder
     precompute_negation: bool = False
     width: int
 
@@ -123,10 +114,9 @@ class WindowNAFMultiplier(ScalarMultiplier):
             short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, add=add, dbl=dbl, neg=neg, scl=scl
+            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, neg=neg, scl=scl
         )
         self.width = width
-        self.accumulation_order = accumulation_order
         self.precompute_negation = precompute_negation
 
     def __hash__(self):
@@ -135,7 +125,7 @@ class WindowNAFMultiplier(ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, WindowNAFMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.precompute_negation == other.precompute_negation
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.precompute_negation == other.precompute_negation and self.accumulation_order == other.accumulation_order
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
@@ -149,13 +139,6 @@ class WindowNAFMultiplier(ScalarMultiplier):
                 if self.precompute_negation:
                     self._points_neg[2 * i + 1] = self._neg(current_point)
                 current_point = self._add(current_point, double_point)
-
-    def _accumulate(self, p: Point, r: Point) -> Point:
-        if self.accumulation_order is AccumulationOrder.PeqPR:
-            p = self._add(p, r)
-        elif self.accumulation_order is AccumulationOrder.PeqRP:
-            p = self._add(r, p)
-        return p
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

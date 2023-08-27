@@ -4,7 +4,8 @@ from typing import Optional
 
 from public import public
 
-from .base import ScalarMultiplier, ProcessingDirection, AccumulationOrder, ScalarMultiplicationAction
+from .base import ScalarMultiplier, ProcessingDirection, AccumulationOrder, ScalarMultiplicationAction, \
+    AccumulatorMultiplier
 from ..formula import (
     AdditionFormula,
     DoublingFormula,
@@ -14,7 +15,7 @@ from ..point import Point
 
 
 @public
-class DoubleAndAddMultiplier(ScalarMultiplier, ABC):
+class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
     """
     Classic double and add scalar multiplication algorithm.
 
@@ -27,7 +28,6 @@ class DoubleAndAddMultiplier(ScalarMultiplier, ABC):
     optionals = {ScalingFormula}
     always: bool
     direction: ProcessingDirection
-    accumulation_order: AccumulationOrder
     complete: bool
 
     def __init__(
@@ -41,10 +41,9 @@ class DoubleAndAddMultiplier(ScalarMultiplier, ABC):
             complete: bool = True,
             short_circuit: bool = True,
     ):
-        super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
+        super().__init__(short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl)
         self.always = always
         self.direction = direction
-        self.accumulation_order = accumulation_order
         self.complete = complete
 
     def __hash__(self):
@@ -57,13 +56,6 @@ class DoubleAndAddMultiplier(ScalarMultiplier, ABC):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order}, always={self.always}, complete={self.complete})"
-
-    def _accumulate(self, p: Point, r: Point) -> Point:
-        if self.accumulation_order is AccumulationOrder.PeqPR:
-            p = self._add(p, r)
-        elif self.accumulation_order is AccumulationOrder.PeqRP:
-            p = self._add(r, p)
-        return p
 
     def _ltr(self, scalar: int) -> Point:
         if self.complete:

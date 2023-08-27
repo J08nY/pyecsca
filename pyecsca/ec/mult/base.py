@@ -206,3 +206,24 @@ class ScalarMultiplier(ABC):
         :return: The resulting multiple.
         """
         raise NotImplementedError
+
+
+@public
+class AccumulatorMultiplier(ScalarMultiplier, ABC):
+    """
+    A scalar multiplication algorithm mix-in class for a multiplier that accumulates.
+
+    :param accumulation_order: The order of accumulation of points.
+    """
+    accumulation_order: AccumulationOrder
+
+    def __init__(self, *args, accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.accumulation_order = accumulation_order
+
+    def _accumulate(self, p: Point, r: Point) -> Point:
+        if self.accumulation_order is AccumulationOrder.PeqPR:
+            p = self._add(p, r)
+        elif self.accumulation_order is AccumulationOrder.PeqRP:
+            p = self._add(r, p)
+        return p

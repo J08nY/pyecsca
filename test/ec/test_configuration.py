@@ -30,7 +30,8 @@ def test_weierstrass_projective(base_independents):
     model = ShortWeierstrassModel()
     coords = model.coordinates["projective"]
     configs = list(all_configurations(model=model, coords=coords, **base_independents))
-    assert len(configs) == 4900
+    assert len(set(map(lambda cfg: cfg.scalarmult, configs))) == len(configs)
+    assert len(configs) == 6020
 
 
 def test_mult_class(base_independents):
@@ -38,6 +39,7 @@ def test_mult_class(base_independents):
     coords = model.coordinates["projective"]
     scalarmult = LTRMultiplier
     configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult, **base_independents))
+    assert len(set(map(lambda cfg: cfg.scalarmult, configs))) == len(configs)
     assert len(configs) == 1120
 
 

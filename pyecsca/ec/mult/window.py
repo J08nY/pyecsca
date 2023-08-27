@@ -3,25 +3,90 @@ from typing import Optional, MutableMapping
 from public import public
 
 from ..params import DomainParameters
-from .base import ScalarMultiplier, AccumulationOrder, ScalarMultiplicationAction, PrecomputationAction
+from .base import ScalarMultiplier, AccumulationOrder, ScalarMultiplicationAction, PrecomputationAction, \
+    ProcessingDirection, AccumulatorMultiplier
 from ..formula import (
     AdditionFormula,
     DoublingFormula,
     ScalingFormula,
 )
 from ..point import Point
-from ..scalar import convert_base
+from ..scalar import convert_base, sliding_window_rtl, sliding_window_ltr
 
 
 @public
-class FixedWindowLTRMultiplier(ScalarMultiplier):
+class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+    """"""
+
+    requires = {AdditionFormula, DoublingFormula}
+    optionals = {ScalingFormula}
+    complete: bool
+    width: int
+    recoding_direction: ProcessingDirection
+    _points: MutableMapping[int, Point]
+
+    def __init__(
+            self,
+            add: AdditionFormula,
+            dbl: DoublingFormula,
+            width: int,
+            scl: Optional[ScalingFormula] = None,
+            recoding_direction: ProcessingDirection = ProcessingDirection.LTR,
+            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+            short_circuit: bool = True,
+    ):
+        super().__init__(
+            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl
+        )
+        self.width = width
+        self.recoding_direction = recoding_direction
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, SlidingWindowMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.recoding_direction == other.recoding_direction and self.accumulation_order == other.accumulation_order
+
+    def init(self, params: DomainParameters, point: Point):
+        with PrecomputationAction(params, point):
+            super().init(params, point)
+            self._points = {}
+            current_point = point
+            double_point = self._dbl(point)
+            for i in range(0, 2 ** (self.width - 1)):
+                self._points[2 * i + 1] = current_point
+                current_point = self._add(current_point, double_point)
+
+    def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalarMultiplier not initialized.")
+        with ScalarMultiplicationAction(self._point, scalar) as action:
+            if scalar == 0:
+                return action.exit(copy(self._params.curve.neutral))
+            if self.recoding_direction is ProcessingDirection.LTR:
+                scalar_sliding = sliding_window_ltr(scalar, self.width)
+            elif self.recoding_direction is ProcessingDirection.RTL:
+                scalar_sliding = sliding_window_rtl(scalar, self.width)
+            q = copy(self._params.curve.neutral)
+            for val in scalar_sliding:
+                q = self._dbl(q)
+                if val != 0:
+                    q = self._accumulate(q, self._points[val])
+            if "scl" in self.formulas:
+                q = self._scl(q)
+            return action.exit(q)
+
+
+@public
+class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     """Like LTRMultiplier, but not binary, but m-ary."""
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     complete: bool
     m: int
-    accumulation_order: AccumulationOrder
     _points: MutableMapping[int, Point]
 
     def __init__(
@@ -34,7 +99,7 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
             short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, add=add, dbl=dbl, scl=scl
+            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl
         )
         if m < 2:
             raise ValueError("Invalid base.")
@@ -47,7 +112,7 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, FixedWindowLTRMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.m == other.m
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.m == other.m and self.accumulation_order == other.accumulation_order
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
@@ -73,13 +138,6 @@ class FixedWindowLTRMultiplier(ScalarMultiplier):
             for _ in range(self.m - 2):
                 q = self._accumulate(q, r)
         return q
-
-    def _accumulate(self, p: Point, r: Point) -> Point:
-        if self.accumulation_order is AccumulationOrder.PeqPR:
-            p = self._add(p, r)
-        elif self.accumulation_order is AccumulationOrder.PeqRP:
-            p = self._add(r, p)
-        return p
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

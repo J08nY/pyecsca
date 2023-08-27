@@ -15,7 +15,7 @@ from pyecsca.ec.mult import (
     CoronMultiplier,
     FixedWindowLTRMultiplier,
     ProcessingDirection,
-    AccumulationOrder, ScalarMultiplier
+    AccumulationOrder, ScalarMultiplier, SlidingWindowMultiplier
 )
 from pyecsca.ec.point import InfinityPoint, Point
 from .utils import cartesian
@@ -292,10 +292,15 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
     wnafs = [WindowNAFMultiplier(add, dbl, neg, scl=scale, **dict(zip(wnaf_options.keys(), combination))) for combination in product(*wnaf_options.values())]
     ladder_options = {"complete": (True, False)}
     ladders = [SimpleLadderMultiplier(add, dbl, scale, **dict(zip(ladder_options.keys(), combination))) for combination in product(*ladder_options.values())]
-    fixed_options = {"m": (5, 8), "accumulation_order": tuple(AccumulationOrder)}
+    fixed_options = {"m": (5, 8),
+                     "accumulation_order": tuple(AccumulationOrder)}
     fixeds = [FixedWindowLTRMultiplier(add, dbl, scl=scale, **dict(zip(fixed_options.keys(), combination))) for combination in product(*fixed_options.values())]
+    sliding_options = {"width": (3, 5),
+                       "recoding_direction": tuple(ProcessingDirection),
+                       "accumulation_order": tuple(AccumulationOrder)}
+    slides = [SlidingWindowMultiplier(add, dbl, scl=scale, **dict(zip(sliding_options.keys(), combination))) for combination in product(*sliding_options.values())]
 
-    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds
+    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds + slides
     results = []
     for mult in mults:
         mult.init(secp128r1, secp128r1.generator)
@@ -303,7 +308,6 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         if results:
             assert res == results[-1], f"Points not equal {res} != {results[-1]} for mult = {mult}"
         results.append(res)
-    print(len(results))
 
 
 def test_init_fail(curve25519, secp128r1):
