@@ -1,0 +1,208 @@
+from abc import ABC, abstractmethod
+from copy import copy
+from enum import Enum
+from public import public
+from typing import Mapping, Tuple, Optional, ClassVar, Set, Type
+
+from ..context import ResultAction, Action
+from ..formula import Formula
+from ..params import DomainParameters
+from ..point import Point
+
+
+@public
+class ProcessingDirection(Enum):
+    """Scalar processing direction."""
+    LTR = "Left-to-right"
+    RTL = "Right-to-left"
+
+
+@public
+class AccumulationOrder(Enum):
+    """Accumulation order (makes a difference for the projective result)."""
+    PeqPR = "P = P + R"
+    PeqRP = "P = R + P"
+
+
+@public
+class ScalarMultiplicationAction(ResultAction):
+    """A scalar multiplication of a point on a curve by a scalar."""
+
+    point: Point
+    scalar: int
+
+    def __init__(self, point: Point, scalar: int):
+        super().__init__()
+        self.point = point
+        self.scalar = scalar
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.point}, {self.scalar})"
+
+
+@public
+class PrecomputationAction(Action):
+    """A precomputation of a point in scalar multiplication."""
+
+    params: DomainParameters
+    point: Point
+
+    def __init__(self, params: DomainParameters, point: Point):
+        super().__init__()
+        self.params = params
+        self.point = point
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.params}, {self.point})"
+
+
+@public
+class ScalarMultiplier(ABC):
+    """
+    A scalar multiplication algorithm.
+
+    .. note::
+        The __init__ method of all concrete subclasses needs to have type annotations so that
+        configuration enumeration works.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param formulas: Formulas this instance will use.
+    """
+
+    requires: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
+    """The set of formulas that the multiplier requires."""
+    optionals: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
+    """The optional set of formulas that the multiplier can use."""
+    short_circuit: bool
+    """Whether the formulas will short-circuit upon input of the point at infinity."""
+    formulas: Mapping[str, Formula]
+    """All formulas the multiplier was initialized with."""
+    _params: DomainParameters
+    _point: Point
+    _initialized: bool = False
+
+    def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
+        if (
+                len(
+                    {
+                        formula.coordinate_model
+                        for formula in formulas.values()
+                        if formula is not None
+                    }
+                )
+                != 1
+        ):
+            raise ValueError
+        self.short_circuit = short_circuit
+        self.formulas = {k: v for k, v in formulas.items() if v is not None}
+
+    def _add(self, one: Point, other: Point) -> Point:
+        if "add" not in self.formulas:
+            raise NotImplementedError
+        if self.short_circuit:
+            if one == self._params.curve.neutral:
+                return copy(other)
+            if other == self._params.curve.neutral:
+                return copy(one)
+        return self.formulas["add"](
+            self._params.curve.prime, one, other, **self._params.curve.parameters
+        )[0]
+
+    def _dbl(self, point: Point) -> Point:
+        if "dbl" not in self.formulas:
+            raise NotImplementedError
+        if (
+                self.short_circuit
+                and point == self._params.curve.neutral
+        ):
+            return copy(point)
+        return self.formulas["dbl"](
+            self._params.curve.prime, point, **self._params.curve.parameters
+        )[0]
+
+    def _scl(self, point: Point) -> Point:
+        if "scl" not in self.formulas:
+            raise NotImplementedError
+        return self.formulas["scl"](
+            self._params.curve.prime, point, **self._params.curve.parameters
+        )[0]
+
+    def _ladd(self, start: Point, to_dbl: Point, to_add: Point) -> Tuple[Point, ...]:
+        if "ladd" not in self.formulas:
+            raise NotImplementedError
+        if self.short_circuit:
+            if to_dbl == self._params.curve.neutral:
+                return to_dbl, to_add
+            if to_add == self._params.curve.neutral:
+                return self._dbl(to_dbl), to_dbl
+        return self.formulas["ladd"](
+            self._params.curve.prime,
+            start,
+            to_dbl,
+            to_add,
+            **self._params.curve.parameters,
+        )
+
+    def _dadd(self, start: Point, one: Point, other: Point) -> Point:
+        if "dadd" not in self.formulas:
+            raise NotImplementedError
+        if self.short_circuit:
+            if one == self._params.curve.neutral:
+                return copy(other)
+            if other == self._params.curve.neutral:
+                return copy(one)
+        return self.formulas["dadd"](
+            self._params.curve.prime, start, one, other, **self._params.curve.parameters
+        )[0]
+
+    def _neg(self, point: Point) -> Point:
+        if "neg" not in self.formulas:
+            raise NotImplementedError
+        return self.formulas["neg"](
+            self._params.curve.prime, point, **self._params.curve.parameters
+        )[0]
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, ScalarMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit})"
+
+    def init(self, params: DomainParameters, point: Point):
+        """
+        Initialize the scalar multiplier with :paramref:`~.init.params` and a :paramref:`~.init.point`.
+
+        .. warning::
+            The point is not verified to be on the curve represented in the domain parameters.
+
+        :param params: The domain parameters to initialize the multiplier with.
+        :param point: The point to initialize the multiplier with.
+        """
+        coord_model = set(self.formulas.values()).pop().coordinate_model
+        if (
+                params.curve.coordinate_model != coord_model
+                or point.coordinate_model != coord_model
+        ):
+            raise ValueError
+        self._params = params
+        self._point = point
+        self._initialized = True
+
+    @abstractmethod
+    def multiply(self, scalar: int) -> Point:
+        """
+        Multiply the point with the scalar.
+
+        .. note::
+            The multiplier needs to be initialized by a call to the :py:meth:`.init` method.
+
+        :param scalar: The scalar to use.
+        :return: The resulting multiple.
+        """
+        raise NotImplementedError
