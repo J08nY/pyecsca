@@ -26,7 +26,8 @@ def convert_base(i: int, base: int) -> List[int]:
 def sliding_window_ltr(i: int, w: int) -> List[int]:
     """
     Compute the sliding-window left-to-right form.
-    From https://eprint.iacr.org/2017/627.pdf.
+
+    From [BBG+17]_.
 
     :param i: The scalar.
     :param w: The width.
@@ -59,7 +60,8 @@ def sliding_window_ltr(i: int, w: int) -> List[int]:
 def sliding_window_rtl(i: int, w: int) -> List[int]:
     """
     Compute the sliding-window right-to-left form.
-    From https://eprint.iacr.org/2017/627.pdf.
+
+    From [BBG+17]_.
 
     :param i: The scalar.
     :param w: The width.
@@ -84,7 +86,7 @@ def wnaf(k: int, w: int) -> List[int]:
     """
     Compute width `w` NAF (Non-Adjacent Form) of the scalar `k`.
 
-    Algorithm 9.35 from GECC, Algorithm 9.20 from HEHCC.
+    Algorithm 9.35 from [GECC]_, Algorithm 9.20 from [HEHCC]_.
 
     .. note::
         According to HEHCC this is actually not unique

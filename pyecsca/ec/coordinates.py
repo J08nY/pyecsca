@@ -71,6 +71,8 @@ class AffineCoordinateModel(CoordinateModel):
 
 
 class EFDCoordinateModel(CoordinateModel):
+    """A coordinate model from [EFD]_ data."""
+
     def __init__(self, dir_path: Traversable, name: str, curve_model: Any):
         self.name = name
         self.curve_model = curve_model

@@ -30,6 +30,7 @@ class CurveModel:
 
 
 class EFDCurveModel(CurveModel):
+    """A curve model from [EFD]_ data."""
     _efd_name: str
     _loaded: bool = False
 

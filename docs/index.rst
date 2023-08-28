@@ -103,6 +103,16 @@ are the best source of documentation on how to use **pyecsca**.
 
    api/modules
 
+:fas:`file` References
+======================
+
+.. toctree::
+   :caption: References
+   :titlesonly:
+   :maxdepth: 1
+
+   references
+
 Requirements
 ============
 

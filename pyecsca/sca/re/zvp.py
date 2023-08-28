@@ -20,7 +20,7 @@ def unroll_formula(formula: Formula, prime: int) -> List[SymbolicMod]:
     Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
 
     :param formula: Formula to unroll.
-    :param prime: Field to unroll over.
+    :param prime: Field to unroll over, necessary for technical reasons.
     :return: List of symbolic intermediate values.
     """
     inputs = [Point(formula.coordinate_model,

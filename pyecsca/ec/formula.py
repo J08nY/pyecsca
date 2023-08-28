@@ -337,7 +337,7 @@ class Formula(ABC):
 
 
 class EFDFormula(Formula):
-    """Formula from the `Explicit-Formulas Database <https://www.hyperelliptic.org/EFD/>`_."""
+    """Formula from the [EFD]_."""
 
     def __init__(self, meta_path: Traversable, op3_path: Traversable, name: str, coordinate_model: Any):
         self.name = name

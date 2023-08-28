@@ -121,8 +121,8 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
 
     .. note::
         The ``formulas`` attribute is unsupported and formulas should be provided using the ``scalarmult``
-        attribute, which is either a subclass of the :py:class:`~.mult.ScalarMultiplier` class or an instance
-        of it or a dictionary giving arguments to a constructor of some :py:class:`~.mult.ScalarMultiplier`
+        attribute, which is either a subclass of the :py:class:`~.ScalarMultiplier` class or an instance
+        of it or a dictionary giving arguments to a constructor of some :py:class:`~.ScalarMultiplier`
         subclass.
 
     .. warning::

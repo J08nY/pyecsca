@@ -1,5 +1,5 @@
 """
-Provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_ repository.
+Provides functions for obtaining domain parameters from the `std-curves <https://github.com/J08nY/std-curves>`_ repository [STD]_.
 
 It also provides a domain parameter class and a class for a whole category of domain parameters.
 """
@@ -264,7 +264,7 @@ def load_category(
     :param file: The file to load from.
     :param coords: The name of the coordinate system to use. Can be a callable that takes
                    as argument the name of the curve and produces the coordinate system to use for that curve.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+    :param infty: Whether to use the special :py:class:`.InfinityPoint` (`True`) or try to use the
                   point at infinity of the coordinate system. Can be a callable that takes
                   as argument the name of the curve and returns the infinity option to use for that curve.
     :return: The category.
@@ -299,7 +299,7 @@ def load_params(
 
     :param file: The file to load from.
     :param coords: The name of the coordinate system to use.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+    :param infty: Whether to use the special :py:class:`.InfinityPoint` (`True`) or try to use the
                   point at infinity of the coordinate system.
     :return: The curve.
     """
@@ -323,7 +323,7 @@ def load_params_ecgen(
 
     :param file: The file to load from.
     :param coords: The name of the coordinate system to use.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+    :param infty: Whether to use the special :py:class:`.InfinityPoint` (`True`) or try to use the
                   point at infinity of the coordinate system.
     :return: The curve.
     """
@@ -378,7 +378,7 @@ def load_params_ectester(
 
     :param file: The file to load from.
     :param coords: The name of the coordinate system to use.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+    :param infty: Whether to use the special :py:class:`.InfinityPoint` (`True`) or try to use the
                   point at infinity of the coordinate system.
     :return: The curve.
     """
@@ -436,7 +436,7 @@ def get_category(
     :param category: The category to retrieve.
     :param coords: The name of the coordinate system to use. Can be a callable that takes
                    as argument the name of the curve and produces the coordinate system to use for that curve.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+    :param infty: Whether to use the special :py:class:`.InfinityPoint` (`True`) or try to use the
                   point at infinity of the coordinate system. Can be a callable that takes
                   as argument the name of the curve and returns the infinity option to use for that curve.
     :return: The category.
@@ -462,7 +462,7 @@ def get_params(
     :param category: The category of the curve.
     :param name: The name of the curve.
     :param coords: The name of the coordinate system to use.
-    :param infty: Whether to use the special :py:class:InfinityPoint (`True`) or try to use the
+    :param infty: Whether to use the special :py:class:`.InfinityPoint` (`True`) or try to use the
                   point at infinity of the coordinate system.
     :return: The curve.
     """
