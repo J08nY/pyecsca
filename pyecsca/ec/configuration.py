@@ -147,7 +147,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
         for subclass in subs:
             if subclass.__subclasses__():
                 result.update(leaf_subclasses(subclass))
-            elif not issubclass(subclass, ABC):
+            elif ABC not in subclass.__bases__:
                 result.add(subclass)
         return result
 
