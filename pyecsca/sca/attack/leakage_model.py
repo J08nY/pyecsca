@@ -1,3 +1,6 @@
+"""
+Provides leakage models to simulate leakage.
+"""
 import abc
 import sys
 from typing import Literal, ClassVar
@@ -46,15 +49,18 @@ class NormalNoice(Noise):
 
 @public
 class LeakageModel(abc.ABC):
+    """An abstract leakage model."""
     num_args: ClassVar[int]
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> int:
+        """Get the leakage from the arg(s)."""
         raise NotImplementedError
 
 
 @public
 class Identity(LeakageModel):
+    """Identity leakage model, leaks the thing itself."""
     num_args = 1
 
     def __call__(self, *args, **kwargs) -> int:
@@ -63,6 +69,7 @@ class Identity(LeakageModel):
 
 @public
 class Bit(LeakageModel):
+    """Bit leakage model, leaks a selected bit."""
     num_args = 1
 
     def __init__(self, which: int):
@@ -77,6 +84,7 @@ class Bit(LeakageModel):
 
 @public
 class Slice(LeakageModel):
+    """Slice leakage model, leaks a slice of bits."""
     num_args = 1
 
     def __init__(self, begin: int, end: int):
@@ -94,6 +102,7 @@ class Slice(LeakageModel):
 
 @public
 class HammingWeight(LeakageModel):
+    """Hamming-weight leakage model, leaks the Hamming-weight of the thing."""
     num_args = 1
 
     def __call__(self, *args, **kwargs) -> int:
@@ -102,6 +111,7 @@ class HammingWeight(LeakageModel):
 
 @public
 class HammingDistance(LeakageModel):
+    """Hamming-distance leakage model, leaks the Hamming-distance between the two things."""
     num_args = 2
 
     def __call__(self, *args, **kwargs) -> int:
@@ -110,6 +120,7 @@ class HammingDistance(LeakageModel):
 
 @public
 class BitLength(LeakageModel):
+    """Bit-length leakage model, leaks the bit-length of the thing."""
     num_args = 1
 
     def __call__(self, *args, **kwargs) -> int:

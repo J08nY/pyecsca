@@ -3,6 +3,8 @@ Provides functionality inspired by the Zero-value point attack.
 
   Zero-Value Point Attacks on Elliptic Curve Cryptosystem, Toru Akishita & Tsuyoshi Takagi , ISC '03
   `<https://doi.org/10.1007/10958513_17>`_
+
+Implements ZVP point construction from [FFD]_.
 """
 from typing import List, Set
 from public import public
