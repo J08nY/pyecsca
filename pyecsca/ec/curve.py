@@ -2,7 +2,7 @@
 from ast import Module
 from astunparse import unparse
 from copy import copy
-from typing import MutableMapping, Union, List, Optional, Dict
+from typing import MutableMapping, Union, List, Optional, Dict, Set
 
 from public import public
 from sympy import FF, sympify
@@ -302,6 +302,21 @@ class EllipticCurve:
             raise ValueError(
                 f"Wrong encoding type: {hex(encoded[0])}, should be one of 0x04, 0x06, 0x02, 0x03 or 0x00"
             )
+
+    def affine_lift_x(self, x: Mod) -> Set[Point]:
+        """
+        Lift an x-coordinate to the curve.
+
+        :param x: The x-coordinate.
+        :return: Lifted (affine) points, if any.
+        """
+        loc = {**self.parameters, "x": x}
+        ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)
+        if not ysquared.is_residue():
+            return set()
+        y = ysquared.sqrt()
+        return {Point(AffineCoordinateModel(self.model), x=x, y=y),
+                Point(AffineCoordinateModel(self.model), x=x, y=-y)}
 
     def affine_random(self) -> Point:
         """Generate a random affine point on the curve."""

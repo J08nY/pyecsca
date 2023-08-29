@@ -18,7 +18,6 @@ from pyecsca.ec.mult import (
     AccumulationOrder, ScalarMultiplier, SlidingWindowMultiplier
 )
 from pyecsca.ec.point import InfinityPoint, Point
-from .utils import cartesian
 
 
 def get_formulas(coords, *names):

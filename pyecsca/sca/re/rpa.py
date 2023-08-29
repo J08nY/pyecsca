@@ -89,7 +89,7 @@ class MultipleContext(Context):
 
 
 def rpa_point_0y(params: DomainParameters) -> Optional[Point]:
-    """Construct an (affine) RPA point (0, y) for given domain parameters."""
+    """Construct an (affine) [RPA]_ point (0, y) for given domain parameters."""
     if isinstance(params.curve.model, ShortWeierstrassModel):
         if not params.curve.parameters["b"].is_residue():
             return None
@@ -104,7 +104,7 @@ def rpa_point_0y(params: DomainParameters) -> Optional[Point]:
 
 
 def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
-    """Construct an (affine) RPA point (x, 0) for given domain parameters."""
+    """Construct an (affine) [RPA]_ point (x, 0) for given domain parameters."""
     if isinstance(params.curve.model, ShortWeierstrassModel):
         if (params.order * params.cofactor) % 2 != 0:
             return None
@@ -129,7 +129,7 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
 def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool]) -> List[ScalarMultiplier]:
     """
     Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.mults`) using
-    an RPA :paramref:`~.rpa_distinguish.oracle`.
+    an [RPA]_ :paramref:`~.rpa_distinguish.oracle`.
 
     :param params: The domain parameters to use.
     :param mults: The list of possible multipliers.

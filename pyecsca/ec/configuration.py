@@ -1,5 +1,6 @@
 """Provides a way to work with and enumerate implementation configurations."""
 import warnings
+from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from itertools import product
@@ -146,7 +147,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
         for subclass in subs:
             if subclass.__subclasses__():
                 result.update(leaf_subclasses(subclass))
-            else:
+            elif not issubclass(subclass, ABC):
                 result.add(subclass)
         return result
 
@@ -240,6 +241,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None
                 continue
             coords_formulas = coords.formulas.values()
             mult_classes = leaf_subclasses(ScalarMultiplier)
+
             if "scalarmult" in kwargs:
                 if isinstance(kwargs["scalarmult"], ScalarMultiplier):
                     mults = [kwargs["scalarmult"]]
