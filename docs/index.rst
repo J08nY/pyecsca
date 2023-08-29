@@ -101,7 +101,10 @@ are the best source of documentation on how to use **pyecsca**.
    :titlesonly:
    :maxdepth: 3
 
-   api/modules
+   api/pyecsca.ec
+   api/pyecsca.misc
+   api/pyecsca.sca
+   api/pyecsca.codegen
 
 :fas:`file` References
 ======================

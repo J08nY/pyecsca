@@ -2,6 +2,7 @@
 Provides functions for computing division polynomials and the multiplication-by-n map on an elliptic curve.
 """
 from typing import Tuple, Dict, Set, Mapping
+from public import public
 
 from sympy import symbols, FF, Poly
 import networkx as nx
@@ -72,6 +73,7 @@ def dep_map(*ns: int):
     return ls, vals
 
 
+@public
 def a_invariants(curve: EllipticCurve) -> Tuple[Mod, ...]:
     """
     Compute the a-invariants of the curve.
@@ -90,6 +92,7 @@ def a_invariants(curve: EllipticCurve) -> Tuple[Mod, ...]:
         raise NotImplementedError
 
 
+@public
 def b_invariants(curve: EllipticCurve) -> Tuple[Mod, ...]:
     """
     Compute the b-invariants of the curve.
@@ -166,6 +169,7 @@ def divpoly0(curve: EllipticCurve, *ns: int) -> Mapping[int, Poly]:
     return mem
 
 
+@public
 def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> Poly:
     """
     Compute the n-th division polynomial.
@@ -198,6 +202,7 @@ def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> 
         raise ValueError
 
 
+@public
 def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Poly, Poly]]:
     """
     Compute the multiplication-by-n map on an elliptic curve.

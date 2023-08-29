@@ -88,6 +88,7 @@ class MultipleContext(Context):
         return f"{self.__class__.__name__}({self.base!r}, multiples={self.points.values()!r})"
 
 
+@public
 def rpa_point_0y(params: DomainParameters) -> Optional[Point]:
     """Construct an (affine) [RPA]_ point (0, y) for given domain parameters."""
     if isinstance(params.curve.model, ShortWeierstrassModel):
@@ -103,6 +104,7 @@ def rpa_point_0y(params: DomainParameters) -> Optional[Point]:
         raise NotImplementedError
 
 
+@public
 def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
     """Construct an (affine) [RPA]_ point (x, 0) for given domain parameters."""
     if isinstance(params.curve.model, ShortWeierstrassModel):
@@ -126,6 +128,7 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
         raise NotImplementedError
 
 
+@public
 def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool]) -> List[ScalarMultiplier]:
     """
     Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.mults`) using
