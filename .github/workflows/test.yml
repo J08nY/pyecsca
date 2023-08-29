@@ -59,8 +59,7 @@ jobs:
         run: |
           make test
       - name: Code coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         if: ${{ matrix.python-version == 3.9 }}
         with:
           env_vars: PYTHON,USE_GMP
-          functionalities: gcov
