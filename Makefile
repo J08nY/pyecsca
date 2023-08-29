@@ -9,7 +9,7 @@ test.sca.test_zvp test.sca.test_stacked_combine test.sca.test_leakage_models
 
 TESTS = ${EC_TESTS} ${SCA_TESTS}
 
-PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine
+PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine test.sca.perf_zvp
 
 test:
 	pytest -m "not slow" --cov=pyecsca

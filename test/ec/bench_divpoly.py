@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import sys
+
 import click
 
 from pyecsca.ec.divpoly import mult_by_n
@@ -10,6 +12,8 @@ from datetime import datetime
 @click.option("-n", type=click.INT, default=21)
 def main(n):
     p256 = get_params("secg", "secp256r1", "projective")
+
+    print("Benchmarking divpoly computation on P-256...", file=sys.stderr)
 
     ns = []
     durs = []

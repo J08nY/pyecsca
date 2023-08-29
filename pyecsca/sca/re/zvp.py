@@ -105,7 +105,7 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
     :return:
     """
     X1, X2 = symbols("X1,X2")
-    if X2 not in poly.gens:
+    if X2 not in poly.gens or X1 not in poly.gens:
         return poly
     max_degree = poly.degree(X2)
     X2i = poly.gens.index(X2)
@@ -194,6 +194,9 @@ def zvp_point(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     :param k: The discrete-log relationship between the two points, i.e. (X2, Y2) = [k](X1, Y1)
     :return: The set of points (X1, Y1).
     """
+    # If input poly is trivial (only in params), abort early
+    if not set(symbols("X1,X2,Y1,Y2")).intersection(poly.gens):
+        return set()
     # Start with removing all squares of Y1, Y2
     subbed = subs_curve_equation(poly, curve)
     # Remove the Zs by setting them to 1
@@ -210,5 +213,11 @@ def zvp_point(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     # Finally lift the roots to find the points (if any)
     for root, multiplicity in roots.items():
         pt = curve.affine_lift_x(Mod(int(root), curve.prime))
-        points.update(pt)
+        # Check that the points zero out the original polynomial to filter out erroneous candidates
+        for point in pt:
+            other = curve.affine_multiply(point, k)
+            inputs = {"X1": point.x, "Y1": point.y, "X2": other.x, "Y2": other.y, "Z1": 1, "Z2": 1, **curve.parameters}
+            res = poly.eval([inputs[str(gen)] for gen in poly.gens])
+            if res == 0:
+                points.add(point)
     return points

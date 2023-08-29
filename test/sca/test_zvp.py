@@ -3,7 +3,6 @@ import pytest
 from pyecsca.sca.re.zvp import unroll_formula, subs_curve_equation, remove_z, eliminate_y, subs_dlog, subs_curve_params, \
     zvp_point
 from pyecsca.ec.context import local, DefaultContext
-from pyecsca.ec.formula import FormulaAction
 from sympy import symbols, Poly
 
 
@@ -68,18 +67,21 @@ def test_full(secp128r1, formula):
     assert final.gens == (X1,)
 
 
+@pytest.mark.slow
 def test_zvp(secp128r1, formula):
     unrolled = unroll_formula(formula, secp128r1.curve.prime)
-    poly = unrolled[-2]
-    points = zvp_point(poly, secp128r1.curve, 5)
-    assert isinstance(points, set)
+    # Try all intermediates, zvp_point should return empty set if ZVP points do not exist
+    for poly in unrolled:
+        points = zvp_point(poly, secp128r1.curve, 5)
+        assert isinstance(points, set)
 
-    for point in points:
-        second_point = secp128r1.curve.affine_multiply(point, 5)
-        p = point.to_model(formula.coordinate_model, secp128r1.curve)
-        q = second_point.to_model(formula.coordinate_model, secp128r1.curve)
-        with local(DefaultContext()) as ctx:
-            formula(secp128r1.curve.prime, p, q, **secp128r1.curve.parameters)
-        action = next(iter(ctx.actions.keys()))
-        results = list(map(lambda o: int(o.value), action.op_results))
-        assert 0 in results
+        # If points are produced, try them all.
+        for point in points:
+            second_point = secp128r1.curve.affine_multiply(point, 5)
+            p = point.to_model(formula.coordinate_model, secp128r1.curve)
+            q = second_point.to_model(formula.coordinate_model, secp128r1.curve)
+            with local(DefaultContext()) as ctx:
+                formula(secp128r1.curve.prime, p, q, **secp128r1.curve.parameters)
+            action = next(iter(ctx.actions.keys()))
+            results = list(map(lambda o: int(o.value), action.op_results))
+            assert 0 in results
