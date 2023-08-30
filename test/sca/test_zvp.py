@@ -1,9 +1,14 @@
+import secrets
+
 import pytest
 
+from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.point import Point
 from pyecsca.sca.re.zvp import unroll_formula, subs_curve_equation, remove_z, eliminate_y, subs_dlog, subs_curve_params, \
     zvp_point
 from pyecsca.ec.context import local, DefaultContext
-from sympy import symbols, Poly
+from sympy import symbols, Poly, sympify, FF
 
 
 @pytest.fixture(params=["add-2007-bl", "add-2016-rcb"])
@@ -85,3 +90,19 @@ def test_zvp(secp128r1, formula):
             action = next(iter(ctx.actions.keys()))
             results = list(map(lambda o: int(o.value), action.op_results))
             assert 0 in results
+
+
+@pytest.mark.parametrize("poly_str,point,k", [
+    ("Y1 + Y2", (54027047743185503031379008986257148598, 42633567686060343012155773792291852040), 4),
+    ("X1 + X2", (285130337309757533508049972949147801522, 55463852278545391044040942536845640298), 3),
+    ("X1*X2 + Y1*Y2", (155681799415564546404955983367992137717, 227436010604106449719780498844151836756), 5),
+    ("Y1*Y2 - X1*a - X2*a - 3*b", (169722400242675158455680894146658513260, 33263376472545436059176357032150610796), 4)
+])
+def test_points(secp128r1, poly_str, point, k):
+    pt = Point(AffineCoordinateModel(secp128r1.curve.model),
+               x=Mod(point[0], secp128r1.curve.prime),
+               y=Mod(point[1], secp128r1.curve.prime))
+    poly_expr = sympify(poly_str)
+    poly = Poly(poly_expr, domain=FF(secp128r1.curve.prime))
+    res = zvp_point(poly, secp128r1.curve, k)
+    assert pt in res
