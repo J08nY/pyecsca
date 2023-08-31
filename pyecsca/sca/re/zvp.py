@@ -66,18 +66,19 @@ def subs_curve_equation(poly: Poly, curve: EllipticCurve) -> Poly:
     :param curve:
     :return:
     """
+    gens = poly.gens  # type: ignore[attr-defined]
     terms = []
     for term in poly.terms():
         sub = 1
         new_term = []
-        for power, gen in zip(term[0], poly.gens):
+        for power, gen in zip(term[0], gens):
             if str(gen).startswith("Y"):
                 X = symbols("X" + str(gen)[1:])
                 ysquared = curve_equation(X, curve)
                 sub *= ysquared ** (power // 2)
                 power %= 2
             new_term.append(power)
-        expr = Monomial(new_term, poly.gens).as_expr() * sub * term[1]
+        expr = Monomial(new_term, gens).as_expr() * sub * term[1]
         terms.append(expr)
     return Poly(sum(terms), domain=poly.domain)
 
@@ -92,7 +93,7 @@ def subs_curve_params(poly: Poly, curve: EllipticCurve) -> Poly:
     """
     for name, value in curve.parameters.items():
         symbol = symbols(name)
-        if symbol in poly.gens:
+        if symbol in poly.gens:  # type: ignore[attr-defined]
             poly = poly.subs(symbol, value)
     return poly
 
@@ -107,11 +108,12 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
     :return:
     """
     X1, X2 = symbols("X1,X2")
-    if X2 not in poly.gens or X1 not in poly.gens:
+    gens = poly.gens  # type: ignore[attr-defined]
+    if X2 not in gens or X1 not in gens:
         return poly
     max_degree = poly.degree(X2)
-    X2i = poly.gens.index(X2)
-    new_gens = set(poly.gens)
+    X2i = gens.index(X2)
+    new_gens = set(gens)
     new_gens.remove(X2)
 
     mx, my = mult_by_n(curve, k)
@@ -125,7 +127,7 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
         v_power = max_degree - u_power
         v_factor = v**v_power
         powers[X2i] = 0
-        monom = Monomial(powers, poly.gens).as_expr() * term[1]
+        monom = Monomial(powers, gens).as_expr() * term[1]
         res += Poly(monom, *new_gens, domain=poly.domain) * u_factor * v_factor
     return Poly(res, domain=poly.domain)
 
@@ -137,7 +139,7 @@ def remove_z(poly: Poly) -> Poly:
     :param poly:
     :return:
     """
-    for gen in poly.gens:
+    for gen in poly.gens:  # type: ignore[attr-defined]
         if str(gen).startswith("Z"):
             poly = poly.subs(gen, 1)
     return poly
@@ -154,19 +156,16 @@ def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
     :return:
     """
     Y1, Y2 = symbols("Y1,Y2")
-    Y1i = None
-    with contextlib.suppress(ValueError):
-        Y1i = poly.gens.index(Y1)
-    Y2i = None
-    with contextlib.suppress(ValueError):
-        Y2i = poly.gens.index(Y2)
+    gens = poly.gens  # type: ignore[attr-defined]
+    Y1i = gens.index(Y1) if Y1 in gens else None
+    Y2i = gens.index(Y2) if Y2 in gens else None
     f0 = 0
     f1 = 0
     f2 = 0
     f12 = 0
     for term in poly.terms():
         monom = term[0]
-        monom_expr = Monomial(term[0], poly.gens).as_expr() * term[1]
+        monom_expr = Monomial(term[0], gens).as_expr() * term[1]
         y1_present = not (Y1i is None or monom[Y1i] == 0)
         y2_present = not (Y2i is None or monom[Y2i] == 0)
         if y1_present and y2_present:
@@ -197,7 +196,7 @@ def zvp_point(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     :return: The set of points (X1, Y1).
     """
     # If input poly is trivial (only in params), abort early
-    if not set(symbols("X1,X2,Y1,Y2")).intersection(poly.gens):
+    if not set(symbols("X1,X2,Y1,Y2")).intersection(poly.gens):  # type: ignore[attr-defined]
         return set()
     # Start with removing all squares of Y1, Y2
     subbed = subs_curve_equation(poly, curve)
@@ -219,7 +218,7 @@ def zvp_point(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
         for point in pt:
             other = curve.affine_multiply(point, k)
             inputs = {"X1": point.x, "Y1": point.y, "X2": other.x, "Y2": other.y, "Z1": 1, "Z2": 1, **curve.parameters}
-            res = poly.eval([inputs[str(gen)] for gen in poly.gens])
+            res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
             if res == 0:
                 points.add(point)
     return points
