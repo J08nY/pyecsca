@@ -11,35 +11,58 @@ from public import public
 
 from sympy import symbols, FF, Poly, Monomial, Symbol, Expr
 
-from ...ec.context import DefaultContext, local
 from ...ec.curve import EllipticCurve
 from ...ec.divpoly import mult_by_n
 from ...ec.formula import Formula
-from ...ec.mod import SymbolicMod, Mod
+from ...ec.mod import Mod
+from ...ec.params import DomainParameters
 from ...ec.point import Point
-from ...misc.cfg import TemporaryConfig
 
 
 @public
-def unroll_formula(formula: Formula, prime: int) -> List[Poly]:
+def unroll_formula(formula: Formula) -> List[Poly]:
     """
     Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
 
     :param formula: Formula to unroll.
-    :param prime: Field to unroll over, necessary for technical reasons.
     :return: List of symbolic intermediate values.
     """
-    field = FF(prime)
-    inputs = [Point(formula.coordinate_model,
-                    **{var: SymbolicMod(symbols(var + str(i)), prime) for var in formula.coordinate_model.variables})
-              for i in
-              range(1, 1 + formula.num_inputs)]
-    params = {var: SymbolicMod(symbols(var), prime) for var in formula.coordinate_model.curve_model.parameter_names}
-    with local(DefaultContext()) as ctx, TemporaryConfig() as cfg:
-        cfg.ec.mod_implementation = "symbolic"
-        formula(prime, *inputs, **params)
-    return [Poly(op_result.value.x, *op_result.value.x.free_symbols, domain=field) for op_result in
-            ctx.actions.get_by_index([0])[0].op_results]
+    params = {var: symbols(var) for var in formula.coordinate_model.curve_model.parameter_names}
+    inputs = {f"{var}{i}": symbols(f"{var}{i}") for var in formula.coordinate_model.variables for i in
+              range(1, formula.num_inputs + 1)}
+    locals = {**params, **inputs}
+    values = []
+    for op in formula.code:
+        result = op(**locals)
+        locals[op.result] = result
+        values.append(result)
+    return [Poly(value) for value in values]
+
+
+def compute_factor_set(formula: Formula) -> Set[Poly]:
+    """
+
+    :param formula:
+    :return:
+    """
+    unrolled = unroll_formula(formula)
+    factors = set()
+    # Go over all of the unrolled intermediates
+    for poly in unrolled:
+        # Factor the intermediate, don't worry about the coeff
+        coeff, factor_list = poly.factor_list()
+        # Go over all the factors of the intermediate, forget the power
+        for factor, power in factor_list:
+            # Remove unnecessary variables from the Poly
+            reduced = factor.exclude()
+            # If there are only lowercase variables remaining, those are only curve parameters
+            # so we do not care about the polynomial
+            if all(str(gen).islower() for gen in reduced.gens):  # type: ignore[attr-defined]
+                continue
+            # Divide out the GCD of the coefficients from the poly
+            _, reduced = reduced.primitive()
+            factors.add(reduced)
+    return factors
 
 
 def curve_equation(x: Symbol, curve: EllipticCurve, symbolic: bool = True) -> Expr:
@@ -65,6 +88,7 @@ def subs_curve_equation(poly: Poly, curve: EllipticCurve) -> Poly:
     :param curve:
     :return:
     """
+    poly = Poly(poly, domain=FF(curve.prime))
     gens = poly.gens  # type: ignore[attr-defined]
     terms = []
     for term in poly.terms():
@@ -90,6 +114,7 @@ def subs_curve_params(poly: Poly, curve: EllipticCurve) -> Poly:
     :param curve:
     :return:
     """
+    poly = Poly(poly, domain=FF(curve.prime))
     for name, value in curve.parameters.items():
         symbol = symbols(name)
         if symbol in poly.gens:  # type: ignore[attr-defined]
@@ -106,6 +131,7 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
     :param curve:
     :return:
     """
+    poly = Poly(poly, domain=FF(curve.prime))
     X1, X2 = symbols("X1,X2")
     gens = poly.gens  # type: ignore[attr-defined]
     if X2 not in gens or X1 not in gens:
@@ -118,13 +144,23 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
     mx, my = mult_by_n(curve, k)
     u, v = mx[0].subs("x", X1), mx[1].subs("x", X1)
 
+    # The polynomials are quite dense, hence it makes sense
+    # to compute all of the u and v powers in advance and
+    # just use them, because they will likely all be needed.
+    # Note, this has a memory cost...
+    u_powers = [1]
+    v_powers = [1]
+    for i in range(1, max_degree + 1):
+        u_powers.append(u_powers[i - 1] * u)
+        v_powers.append(v_powers[i - 1] * v)
+
     res = 0
     for term in poly.terms():
         powers = list(term[0])
         u_power = powers[X2i]
-        u_factor = u**u_power
+        u_factor = u_powers[u_power]
         v_power = max_degree - u_power
-        v_factor = v**v_power
+        v_factor = v_powers[v_power]
         powers[X2i] = 0
         monom = Monomial(powers, gens).as_expr() * term[1]
         res += Poly(monom, *new_gens, domain=poly.domain) * u_factor * v_factor
@@ -154,6 +190,7 @@ def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
     :param curve:
     :return:
     """
+    poly = Poly(poly, domain=FF(curve.prime))
     Y1, Y2 = symbols("Y1,Y2")
     gens = poly.gens  # type: ignore[attr-defined]
     Y1i = gens.index(Y1) if Y1 in gens else None
@@ -185,11 +222,11 @@ def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
 
 
 @public
-def zvp_point(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
+def zvp_points(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     """
     Find a set of ZVP points for a given intermediate value and dlog relationship.
 
-    :param poly: The polynomial to zero out, obtained as a result of :py:meth:`.unroll_formula`.
+    :param poly: The polynomial to zero out, obtained as a result of :py:meth:`.unroll_formula` (or its factor).
     :param curve: The curve to compute over.
     :param k: The discrete-log relationship between the two points, i.e. (X2, Y2) = [k](X1, Y1)
     :return: The set of points (X1, Y1).
@@ -197,6 +234,7 @@ def zvp_point(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     # If input poly is trivial (only in params), abort early
     if not set(symbols("X1,X2,Y1,Y2")).intersection(poly.gens):  # type: ignore[attr-defined]
         return set()
+    poly = Poly(poly, domain=FF(curve.prime))
     # Start with removing all squares of Y1, Y2
     subbed = subs_curve_equation(poly, curve)
     # Remove the Zs by setting them to 1

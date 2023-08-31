@@ -3,7 +3,7 @@ import click
 
 from pyecsca.ec.mod import has_gmp
 from pyecsca.misc.cfg import TemporaryConfig
-from pyecsca.sca.re.zvp import zvp_point, unroll_formula
+from pyecsca.sca.re.zvp import zvp_points, unroll_formula
 from pyecsca.ec.params import get_params
 from test.utils import Profiler
 
@@ -38,7 +38,7 @@ def main(profiler, mod, operations, directory):
         )
         with Profiler(profiler, directory, f"zvp_p128_{operations}_{mod}"):
             for _ in range(operations):
-                zvp_point(poly, p128.curve, k)
+                zvp_points(poly, p128.curve, k)
 
 
 if __name__ == "__main__":
