@@ -113,7 +113,7 @@ class Configuration:
 
 
 @public
-def all_configurations(**kwargs) -> Generator[Configuration, Configuration, None]:
+def all_configurations(**kwargs) -> Generator[Configuration, None, None]:
     """
     Get all implementation configurations that match the given `kwargs`.
 

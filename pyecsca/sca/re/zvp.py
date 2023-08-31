@@ -15,7 +15,6 @@ from ...ec.curve import EllipticCurve
 from ...ec.divpoly import mult_by_n
 from ...ec.formula import Formula
 from ...ec.mod import Mod
-from ...ec.params import DomainParameters
 from ...ec.point import Point
 
 

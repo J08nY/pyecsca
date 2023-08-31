@@ -238,6 +238,8 @@ def _create_params(curve, coords, infty):
             infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
+    if "generator" not in curve:
+        raise ValueError("Cannot construct curve, missing generator.")
     affine = Point(
         AffineCoordinateModel(model),
         x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
