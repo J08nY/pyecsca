@@ -130,9 +130,9 @@ class CodeOp:
 
     @property
     def parents(self) -> Tuple[Union[str, int]]:
-        if self.operator == OpType.Inv or self.operator == OpType.Neg:
+        if self.operator in (OpType.Inv, OpType.Neg):
             return self.right,  # type: ignore
-        elif self.operator == OpType.Sqr or self.operator == OpType.Id:
+        elif self.operator in (OpType.Sqr, OpType.Id):
             return self.left,  # type: ignore
         else:
             return self.left, self.right  # type: ignore

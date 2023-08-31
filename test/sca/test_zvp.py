@@ -1,5 +1,3 @@
-import secrets
-
 import pytest
 
 from pyecsca.ec.coordinates import AffineCoordinateModel

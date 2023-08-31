@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import click
 
-from datetime import datetime
 from pyecsca.ec.mod import has_gmp
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.sca.re.zvp import zvp_point, unroll_formula

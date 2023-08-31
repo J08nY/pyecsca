@@ -46,6 +46,6 @@ class TraceSet:
 
     def __repr__(self):
         args = ", ".join(
-            ["{}={!r}".format(key, getattr(self, key)) for key in self._keys]
+            [f"{key}={getattr(self, key)!r}" for key in self._keys]
         )
-        return "TraceSet({})".format(args)
+        return f"TraceSet({args})"

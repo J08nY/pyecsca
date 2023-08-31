@@ -135,7 +135,7 @@ def divpoly0(curve: EllipticCurve, *ns: int) -> Mapping[int, Poly]:
     x = Kx(xs)
 
     b2, b4, b6, b8 = map(lambda b: Kx(int(b)), b_invariants(curve))
-    ls, vals = dep_map(*ns)
+    ls, _ = dep_map(*ns)
 
     mem: Dict[int, Poly] = {}
     for i, keep in ls:
@@ -147,7 +147,7 @@ def divpoly0(curve: EllipticCurve, *ns: int) -> Mapping[int, Poly]:
             val = Kx(0)
         elif i < 0:
             raise ValueError("n must be a positive integer (or -1 or -2)")
-        elif i == 1 or i == 2:
+        elif i in (1, 2):
             val = Kx(1)
         elif i == 3:
             val = Kx(3) * x ** 4 + b2 * x ** 3 + Kx(3) * b4 * x ** 2 + Kx(3) * b6 * x + b8
@@ -237,8 +237,9 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     # numerator by the leading coefficient. Sage does this
     # simplification when asking for multiplication_by_m with the
     # x-only=True, as then the poly is an univariate object.
-    # lc = K(mx_denom.LC())
-    # mx = (mx_num.quo(lc), mx_denom.monic())
+    # >
+    # > lc = K(mx_denom.LC())
+    # > mx = (mx_num.quo(lc), mx_denom.monic())
     mx = (mx_num, mx_denom)
 
     # The following lines compute
@@ -246,23 +247,23 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     # just as sage does, but using sympy and step-by-step
     # tracking the numerator and denominator of the fraction.
 
-    # mx.derivative()
+    # > mx.derivative()
     mxd_num = mx[1] * mx[0].diff() - mx[0] * mx[1].diff()
     mxd_denom = mx[1] ** 2
 
-    # mx.derivative()/m
+    # > mx.derivative()/m
     mxd_dn_num = mxd_num
     mxd_dn_denom = mxd_denom * Kxy(n)
 
-    # (2*y+a1*x+a3)*mx.derivative(x)/m
+    # > (2*y+a1*x+a3)*mx.derivative(x)/m
     mxd_full_num = mxd_dn_num * (Kxy(2) * y + Kxy(a1) * x + Kxy(a3))
     mxd_full_denom = mxd_dn_denom
 
-    # a1*mx
+    # > a1*mx
     a1mx_num = (Kxy(a1) * mx[0])
     a1mx_denom = mx[1]  # noqa
 
-    # a3
+    # > a3
     a3_num = (Kxy(a3) * mx[1])
     a3_denom = mx[1]  # noqa
 

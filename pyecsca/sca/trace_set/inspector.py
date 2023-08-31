@@ -23,7 +23,7 @@ class SampleCoding(IntEnum):
 
     def dtype(self):
         char = "f" if self.value & 0x10 else "i"
-        return np.dtype("<{}{}".format(char, self.value & 0x0F))
+        return np.dtype(f"<{char}{self.value & 0x0F}")
 
 
 @public
@@ -54,7 +54,7 @@ class Parsers:
 
     @staticmethod
     def write_float(f, length=None):
-        return struct.pack("<{}".format("e" if length == 2 else "f"), f)
+        return struct.pack(f"<{'e' if length == 2 else 'f'}", f)
 
     @staticmethod
     def write_str(s, length=None):

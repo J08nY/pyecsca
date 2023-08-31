@@ -580,9 +580,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
                     version_bytes[2] = 0x39
             else:
                 version_bytes[2] -= 1
-        else:
-            return False
-        return True
+        return False
 
     @staticmethod
     def encode_parameters(

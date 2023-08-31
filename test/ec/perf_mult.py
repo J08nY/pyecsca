@@ -45,14 +45,6 @@ def main(profiler, mod, operations, directory):
                 one_point = mult.multiply(
                     0x71A55E0C1ABB3A0E069419E0F837BC195F1B9545E69FC51E53C4D48D7FEA3B1A
                 )
-        # ed25519 = get_params("other", "Ed25519", "extended")
-        # ecoords = ed25519.curve.coordinate_model
-        # dblg = ecoords.formulas["mdbl-2008-hwcd"]
-        # click.echo(f"Profiling {operations} {ed25519.curve.prime.bit_length()}-bit doubling formula executions (with assumption)...")
-        # eone_point = ed25519.generator
-        # with Profiler(profiler) as pr:
-        #     for _ in range(operations):
-        #         dblg(ed25519.curve.prime, eone_point, **ed25519.curve.parameters)
 
 
 if __name__ == "__main__":

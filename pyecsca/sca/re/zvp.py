@@ -8,7 +8,6 @@ Implements ZVP point construction from [FFD]_.
 """
 from typing import List, Set
 from public import public
-import contextlib
 
 from sympy import symbols, FF, Poly, Monomial, Symbol, Expr
 

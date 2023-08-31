@@ -11,7 +11,7 @@ from pyecsca.ec.key_agreement import ECDH_SHA1
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
-from pyecsca.ec.params import DomainParameters, get_params
+from pyecsca.ec.params import get_params
 from pyecsca.ec.signature import SignatureResult, ECDSA_SHA1
 from pyecsca.sca.target import (
     BinaryTarget,

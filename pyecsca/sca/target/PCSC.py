@@ -22,7 +22,7 @@ class PCSCTarget(ISO7816Target):  # pragma: no cover
                     self.reader = r
                     break
             else:
-                raise ValueError("Reader '{}' not found.".format(reader))
+                raise ValueError(f"Reader '{reader}' not found.")
         else:
             self.reader = reader
         self.connection: PCSCCardConnection = self.reader.createConnection()

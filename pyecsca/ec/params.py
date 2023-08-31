@@ -393,7 +393,7 @@ def load_params_ectester(
         raise TypeError
     if len(line) != 7:
         raise ValueError("Binary extension field curves not supported")
-    # line = p,a,b,gx,gy,n,h (all in hex)
+    # p,a,b,gx,gy,n,h (all in hex)
     curve_dict = {
         "form": "Weierstrass",
         "field": {
