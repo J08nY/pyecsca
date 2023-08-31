@@ -44,7 +44,7 @@ class Point:
 
     def __init__(self, model: CoordinateModel, **coords: Mod):
         if not set(model.variables) == set(coords.keys()):
-            raise ValueError
+            raise ValueError(f"Wrong coordinate values for coordinate model, expected {model.variables} got {coords.keys()}.")
         self.coordinate_model = model
         self.coords = coords
         field = None
@@ -239,7 +239,7 @@ class InfinityPoint(Point):
         return self == other
 
     def __iter__(self):
-        pass
+        yield from tuple()
 
     def __len__(self):
         return 0

@@ -8,14 +8,6 @@ from pyecsca.ec.point import Point, InfinityPoint
 import pytest
 
 
-class PointTests(TestCase):
-    def setUp(self):
-        self.secp128r1 = get_params("secg", "secp128r1", "projective")
-        self.base = self.secp128r1.generator
-        self.coords = self.secp128r1.curve.coordinate_model
-        self.affine = AffineCoordinateModel(ShortWeierstrassModel())
-
-
 @pytest.fixture()
 def coords(secp128r1):
     return secp128r1.curve.coordinate_model
@@ -29,6 +21,8 @@ def affine_model():
 def test_construction(coords):
     with pytest.raises(ValueError):
         Point(coords)
+    with pytest.raises(ValueError):
+        Point(coords, X=Mod(1, 3), Y=Mod(2, 7), Z=Mod(1, 3))
 
 
 def test_to_affine(secp128r1, coords, affine_model):
@@ -49,6 +43,14 @@ def test_to_affine(secp128r1, coords, affine_model):
     affine = InfinityPoint(coords).to_affine()
     assert isinstance(affine, InfinityPoint)
 
+    secp128r1_xz = get_params("secg", "secp128r1", "xz")
+    with pytest.raises(NotImplementedError):
+        secp128r1_xz.generator.to_affine()
+
+    secp128r1_modified = get_params("secg", "secp128r1", "modified")
+    modified = secp128r1_modified.generator.to_affine()
+    assert modified is not None
+
 
 def test_to_model(secp128r1, coords, affine_model):
     affine = Point(
@@ -66,11 +68,11 @@ def test_to_model(secp128r1, coords, affine_model):
     assert other.coords["Z"] == Mod(1, secp128r1.curve.prime)
 
     infty = InfinityPoint(AffineCoordinateModel(secp128r1.curve.model))
-    other_infty = infty.to_model(coords, secp128r1.curve)
+    other_infty = infty.to_model(projective_model, secp128r1.curve)
     assert isinstance(other_infty, InfinityPoint)
 
     with pytest.raises(ValueError):
-        secp128r1.generator.to_model(coords, secp128r1.curve)
+        secp128r1.generator.to_model(projective_model, secp128r1.curve)
 
 
 def test_to_from_affine(secp128r1, coords):
@@ -158,3 +160,6 @@ def test_iter(secp128r1, coords):
     t = tuple(pt)
     assert len(t) == 3
     assert len(pt) == 3
+
+    assert len(InfinityPoint(coords)) == 0
+    assert len(tuple(InfinityPoint(coords))) == 0
