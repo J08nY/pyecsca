@@ -82,7 +82,7 @@ class Point:
                     pass
             result_variables = set(map(lambda x: x.result, ops))
             if not result_variables.issuperset(affine_model.variables):
-                raise NotImplementedError
+                raise NotImplementedError(f"Coordinate model does have affine mapping function ({result_variables})")
             result = {}
             locls = {**self.coords}
             for op in ops:
@@ -160,7 +160,7 @@ class Point:
         """
         Test whether this point is equal to :paramref:`~.equals_scaled.other` using the "z" scaling formula.
 
-        The "z" scalig formula maps the projective class to a single representative.
+        The "z" scaling formula maps the projective class to a single representative.
 
         :param other: The point to compare
         :raises ValueError: If the "z" formula is not available for the coordinate system.

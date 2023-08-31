@@ -1,5 +1,4 @@
-from unittest import TestCase
-
+from contextlib import nullcontext as does_not_raise
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import Mod
@@ -9,7 +8,7 @@ import pytest
 
 
 @pytest.fixture()
-def coords(secp128r1):
+def secp128r1_coords(secp128r1):
     return secp128r1.curve.coordinate_model
 
 
@@ -18,16 +17,16 @@ def affine_model():
     return AffineCoordinateModel(ShortWeierstrassModel())
 
 
-def test_construction(coords):
+def test_construction(secp128r1_coords):
     with pytest.raises(ValueError):
-        Point(coords)
+        Point(secp128r1_coords)
     with pytest.raises(ValueError):
-        Point(coords, X=Mod(1, 3), Y=Mod(2, 7), Z=Mod(1, 3))
+        Point(secp128r1_coords, X=Mod(1, 3), Y=Mod(2, 7), Z=Mod(1, 3))
 
 
-def test_to_affine(secp128r1, coords, affine_model):
+def test_to_affine(secp128r1, secp128r1_coords, affine_model):
     pt = Point(
-        coords,
+        secp128r1_coords,
         X=Mod(0x161FF7528B899B2D0C28607CA52C5B86, secp128r1.curve.prime),
         Y=Mod(0xCF5AC8395BAFEB13C02DA292DDED7A83, secp128r1.curve.prime),
         Z=Mod(1, secp128r1.curve.prime),
@@ -40,7 +39,7 @@ def test_to_affine(secp128r1, coords, affine_model):
     assert affine.coords["y"] == pt.coords["Y"]
     assert affine.to_affine() == affine
 
-    affine = InfinityPoint(coords).to_affine()
+    affine = InfinityPoint(secp128r1_coords).to_affine()
     assert isinstance(affine, InfinityPoint)
 
     secp128r1_xz = get_params("secg", "secp128r1", "xz")
@@ -52,55 +51,67 @@ def test_to_affine(secp128r1, coords, affine_model):
     assert modified is not None
 
 
-def test_to_model(secp128r1, coords, affine_model):
+def test_to_model(secp128r1, secp128r1_coords, affine_model):
     affine = Point(
         affine_model,
         x=Mod(0xABCD, secp128r1.curve.prime),
         y=Mod(0xEF, secp128r1.curve.prime),
     )
-    projective_model = coords
-    other = affine.to_model(projective_model, secp128r1.curve)
+    other = affine.to_model(secp128r1_coords, secp128r1.curve)
 
-    assert other.coordinate_model == projective_model
-    assert set(other.coords.keys()) == set(projective_model.variables)
+    assert other.coordinate_model == secp128r1_coords
+    assert set(other.coords.keys()) == set(secp128r1_coords.variables)
     assert other.coords["X"] == affine.coords["x"]
     assert other.coords["Y"] == affine.coords["y"]
     assert other.coords["Z"] == Mod(1, secp128r1.curve.prime)
 
     infty = InfinityPoint(AffineCoordinateModel(secp128r1.curve.model))
-    other_infty = infty.to_model(projective_model, secp128r1.curve)
+    other_infty = infty.to_model(secp128r1_coords, secp128r1.curve)
     assert isinstance(other_infty, InfinityPoint)
 
     with pytest.raises(ValueError):
-        secp128r1.generator.to_model(projective_model, secp128r1.curve)
+        secp128r1.generator.to_model(secp128r1_coords, secp128r1.curve)
 
 
-def test_to_from_affine(secp128r1, coords):
+@pytest.mark.parametrize("category,curve,coords,raises", [
+    ("secg", "secp128r1", "projective", does_not_raise()),
+    ("secg", "secp128r1", "jacobian", does_not_raise()),
+    ("secg", "secp128r1", "modified", does_not_raise()),
+    ("secg", "secp128r1", "xyzz", does_not_raise()),
+    ("secg", "secp128r1", "xz", pytest.raises(NotImplementedError)),    # Not really possible
+    ("other", "Curve25519", "xz", pytest.raises(NotImplementedError)),  # Not really possible
+    ("other", "E-222", "inverted", does_not_raise()),
+    ("other", "E-222", "projective", does_not_raise()),
+    # ("other", "E-222", "yz", does_not_raise()),         # No STD curve satisfies this formula assumption
+    # ("other", "E-222", "yzsquared", does_not_raise()),  # No STD curve satisfies this formula assumption
+    ("other", "Ed25519", "extended", does_not_raise()),
+    ("other", "Ed25519", "inverted", does_not_raise()),
+    ("other", "Ed25519", "projective", does_not_raise()),
+])
+def test_to_from_affine(category, curve, coords, raises):
+    params = get_params(category, curve, coords)
+    with raises:
+        other = params.generator.to_affine().to_model(params.curve.coordinate_model, params.curve)
+        assert params.generator == other
+        random_affine = params.curve.affine_random()
+        assert random_affine.to_model(params.curve.coordinate_model, params.curve).to_affine() == random_affine
+
+
+def test_equals(secp128r1, secp128r1_coords):
     pt = Point(
-        coords,
-        X=Mod(0x161FF7528B899B2D0C28607CA52C5B86, secp128r1.curve.prime),
-        Y=Mod(0xCF5AC8395BAFEB13C02DA292DDED7A83, secp128r1.curve.prime),
-        Z=Mod(1, secp128r1.curve.prime),
-    )
-    other = pt.to_affine().to_model(coords, secp128r1.curve)
-    assert pt == other
-
-
-def test_equals(secp128r1, coords):
-    pt = Point(
-        coords,
+        secp128r1_coords,
         X=Mod(0x4, secp128r1.curve.prime),
         Y=Mod(0x6, secp128r1.curve.prime),
         Z=Mod(2, secp128r1.curve.prime),
     )
     other = Point(
-        coords,
+        secp128r1_coords,
         X=Mod(0x2, secp128r1.curve.prime),
         Y=Mod(0x3, secp128r1.curve.prime),
         Z=Mod(1, secp128r1.curve.prime),
     )
     third = Point(
-        coords,
+        secp128r1_coords,
         X=Mod(0x5, secp128r1.curve.prime),
         Y=Mod(0x3, secp128r1.curve.prime),
         Z=Mod(1, secp128r1.curve.prime),
@@ -115,8 +126,8 @@ def test_equals(secp128r1, coords):
     assert pt.equals_affine(other)
     assert not pt.equals_scaled(third)
 
-    infty_one = InfinityPoint(coords)
-    infty_other = InfinityPoint(coords)
+    infty_one = InfinityPoint(secp128r1_coords)
+    infty_other = InfinityPoint(secp128r1_coords)
     assert infty_one.equals(infty_other)
     assert infty_one.equals_affine(infty_other)
     assert infty_one.equals_scaled(infty_other)
@@ -138,21 +149,21 @@ def test_equals(secp128r1, coords):
     assert pt != different
 
 
-def test_bytes(secp128r1, coords):
+def test_bytes(secp128r1, secp128r1_coords):
     pt = Point(
-        coords,
+        secp128r1_coords,
         X=Mod(0x4, secp128r1.curve.prime),
         Y=Mod(0x6, secp128r1.curve.prime),
         Z=Mod(2, secp128r1.curve.prime),
     )
     assert bytes(pt) == \
            b"\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02"
-    assert bytes(InfinityPoint(coords)) == b"\x00"
+    assert bytes(InfinityPoint(secp128r1_coords)) == b"\x00"
 
 
-def test_iter(secp128r1, coords):
+def test_iter(secp128r1, secp128r1_coords):
     pt = Point(
-        coords,
+        secp128r1_coords,
         X=Mod(0x4, secp128r1.curve.prime),
         Y=Mod(0x6, secp128r1.curve.prime),
         Z=Mod(2, secp128r1.curve.prime),
@@ -161,5 +172,5 @@ def test_iter(secp128r1, coords):
     assert len(t) == 3
     assert len(pt) == 3
 
-    assert len(InfinityPoint(coords)) == 0
-    assert len(tuple(InfinityPoint(coords))) == 0
+    assert len(InfinityPoint(secp128r1_coords)) == 0
+    assert len(tuple(InfinityPoint(secp128r1_coords))) == 0

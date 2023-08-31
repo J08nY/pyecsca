@@ -214,7 +214,7 @@ def _create_params(curve, coords, infty):
                 else:
                     raise_unsatisified_assumption(
                         getconfig().ec.unsatisfied_coordinate_assumption_action,
-                        f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
+                        f"Coordinate model {coord_model} has an unsatisifed assumption on the {param} parameter (0 = {expr} mod {field})."
                     )
 
     # Construct the point at infinity
