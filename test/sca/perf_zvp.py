@@ -29,7 +29,7 @@ def main(profiler, mod, operations, directory):
         cfg.ec.mod_implementation = mod
         p128 = get_params("secg", "secp128r1", "projective")
         formula = p128.curve.coordinate_model.formulas["add-2016-rcb"]
-        unrolled = unroll_formula(formula, p128.curve.prime)
+        unrolled = unroll_formula(formula)
         poly = unrolled[7]
         k = 5
 

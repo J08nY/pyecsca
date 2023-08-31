@@ -154,16 +154,20 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
         u_powers.append(u_powers[i - 1] * u)
         v_powers.append(v_powers[i - 1] * v)
 
+    uv_factors = {}
+    for term in poly.terms():
+        u_power = term[0][X2i]
+        v_power = max_degree - u_power
+        uv_factors[(u_power, v_power)] = u_powers[u_power] * v_powers[v_power]
+
     res = 0
     for term in poly.terms():
         powers = list(term[0])
         u_power = powers[X2i]
-        u_factor = u_powers[u_power]
         v_power = max_degree - u_power
-        v_factor = v_powers[v_power]
         powers[X2i] = 0
         monom = Monomial(powers, gens).as_expr() * term[1]
-        res += Poly(monom, *new_gens, domain=poly.domain) * u_factor * v_factor
+        res += Poly(monom, *new_gens, domain=poly.domain) * uv_factors[(u_power, v_power)]
     return Poly(res, domain=poly.domain)
 
 
