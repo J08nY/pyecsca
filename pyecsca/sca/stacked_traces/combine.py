@@ -87,6 +87,9 @@ class BaseTraceManager:
         raise NotImplementedError
 
 
+CHUNK_MEMORY_RATIO = 0.4
+
+
 @public
 class GPUTraceManager(BaseTraceManager):
     """Manager for operations with stacked traces on GPU"""
@@ -97,10 +100,30 @@ class GPUTraceManager(BaseTraceManager):
     def __init__(self,
                  traces: StackedTraces,
                  tpb: TPB = 128,
-                 chunk_size: Optional[int] = None) -> None:
+                 chunk: bool = False,
+                 chunk_size: Optional[int] = None,
+                 chunk_memory_ratio: Optional[float] = None) -> None:
         if not cuda.is_available():
             raise RuntimeError("CUDA is not available, "
                                "use CPUTraceManager instead")
+
+        if chunk_size and chunk_memory_ratio:
+            raise ValueError("Only one of chunk_size and chunk_memory_ratio "
+                             "can be specified")
+
+        if chunk_memory_ratio is not None \
+           and (chunk_memory_ratio <= 0 or chunk_memory_ratio > 0.5):
+            raise ValueError("Chunk memory ratio should be in (0, 0.5], "
+                             "because two chunks are stored in memory "
+                             "at once")
+
+        if chunk_size is not None and chunk_size <= 0:
+            raise ValueError("Chunk size should be positive")
+        
+        chunk = (chunk
+                 or chunk_size is not None
+                 or chunk_memory_ratio is not None)
+
         dev = cuda.get_current_device()
         warp_size = dev.WARP_SIZE
         max_tpb = dev.MAX_THREADS_PER_BLOCK
@@ -123,19 +146,33 @@ class GPUTraceManager(BaseTraceManager):
                 'in each dimension'
             )
 
-        if chunk_size is not None and chunk_size <= 0:
-            raise ValueError("Chunk size should be positive")
-
         super().__init__(traces)
         # If chunking is used, the samples are stored in Fortran order
         # for contiguous memory access
-        if chunk_size is not None:
+        if chunk:
             self._traces.samples = np.asfortranarray(self._traces.samples)
 
         self._tpb = tpb
-        self._chunk_size = chunk_size
-        self._combine_func = self._gpu_combine1D_all if chunk_size is None \
-            else self._gpu_combine1D_chunked
+        if not chunk:
+            self._combine_func = self._gpu_combine1D_all
+            self._chunk_size = None
+        else:
+            self._combine_func = self._gpu_combine1D_chunked
+            if chunk_size is not None:
+                self._chunk_size = chunk_size
+            else:
+                self._chunk_size = self.chunk_size_from_ratio(
+                    chunk_memory_ratio
+                    if chunk_memory_ratio is not None
+                    else CHUNK_MEMORY_RATIO,
+                    self._traces.samples.itemsize)
+
+    @staticmethod
+    def chunk_size_from_ratio(chunk_memory_ratio: float,
+                              item_size: int) -> int:
+        mem_size = cuda.current_context().get_memory_info().free
+        return int(
+            chunk_memory_ratio * mem_size / item_size)
 
     def _gpu_combine1D(self, func, output_count: int = 1) \
             -> Union[CombinedTrace, List[CombinedTrace]]:

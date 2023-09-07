@@ -220,9 +220,22 @@ def _get_parser() -> argparse.ArgumentParser:
         help="Operations to perform on the traces"
     )
     combine.add_argument(
+        "-c", "--chunk",
+        action="store_true",
+        default=False,
+        help="Use chunking for the operations",
+    )
+    combine.add_argument(
         "--chunk-size",
         help="Chunk size for the operations",
         type=int,
+        required=False,
+        default=None
+    )
+    combine.add_argument(
+        "--chunk-memory-ratio",
+        help="Chunk memory ratio for the operations",
+        type=float,
         required=False,
         default=None
     )
@@ -304,6 +317,13 @@ def _get_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
             and not args.stack_traceset):
         args.stack = True
         args.stack_traceset = False
+
+    if args.chunk_size and args.chunk_memory_ratio:
+        parser.error("Cannot specify both chunk size and chunk memory ratio")
+
+    args.chunk = (args.chunk
+                  or args.chunk_size is not None
+                  or args.chunk_memory_ratio is not None)
 
     return args
 
@@ -472,7 +492,10 @@ def repetition(args: argparse.Namespace,
         trace_manager = (CPUTraceManager(data)
                          if args.device == "cpu"
                          else GPUTraceManager(
-                             data, chunk_size=args.chunk_size))
+                             data,
+                             chunk=args.chunk,
+                             chunk_size=args.chunk_size,
+                             chunk_memory_ratio=args.chunk_memory_ratio))
 
         # Perform operations
         for op in args.operations:
