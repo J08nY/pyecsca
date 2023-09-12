@@ -119,7 +119,7 @@ class GPUTraceManager(BaseTraceManager):
 
         if chunk_size is not None and chunk_size <= 0:
             raise ValueError("Chunk size should be positive")
-        
+
         chunk = (chunk
                  or chunk_size is not None
                  or chunk_memory_ratio is not None)
@@ -231,8 +231,8 @@ class GPUTraceManager(BaseTraceManager):
             self._traces.samples.shape[1] + self._chunk_size - 1
         ) // self._chunk_size
 
-        data_stream = cuda.stream()
-        compute_stream = cuda.stream()
+        stream_count = 4
+        streams = [cuda.stream() for _ in range(stream_count)]
 
         chunk_results: List[List[npt.NDArray[np.number]]] = [
             list()
@@ -245,23 +245,26 @@ class GPUTraceManager(BaseTraceManager):
 
             device_input = cuda.to_device(
                 self._traces.samples[:, start:end],
-                stream=data_stream
+                stream=streams[chunk % stream_count]
             )
             device_outputs = [cuda.device_array(
-                end - start, stream=data_stream) for _ in range(output_count)]
+                end - start,
+                stream=streams[chunk % stream_count])
+                              for _ in range(output_count)]
 
             bpg = (end - start + self._tpb - 1) // self._tpb
-            func[bpg, self._tpb, compute_stream](
+            func[bpg, self._tpb, streams[chunk % stream_count]](
                 device_input, *device_outputs
             )
 
-            compute_stream.synchronize()
+            # streams[chunk % stream_count].synchronize()
             for output_i, device_output in enumerate(device_outputs):
                 chunk_results[output_i].append(
-                    device_output.copy_to_host(stream=data_stream))
+                    device_output.copy_to_host(
+                        stream=streams[chunk % stream_count]))
 
-        data_stream.synchronize()
-
+        # data_stream.synchronize()
+        cuda.synchronize()
         return [np.concatenate(chunk_result)
                 for chunk_result in chunk_results]
 
