@@ -88,6 +88,7 @@ class BaseTraceManager:
 
 
 CHUNK_MEMORY_RATIO = 0.4
+STREAM_COUNT = 4
 
 
 @public
@@ -96,13 +97,54 @@ class GPUTraceManager(BaseTraceManager):
 
     _tpb: TPB
     _chunk_size: Optional[int]
+    _stream_count: Optional[int]
 
     def __init__(self,
                  traces: StackedTraces,
                  tpb: TPB = 128,
                  chunk: bool = False,
                  chunk_size: Optional[int] = None,
-                 chunk_memory_ratio: Optional[float] = None) -> None:
+                 chunk_memory_ratio: Optional[float] = None,
+                 stream_count: Optional[int] = None) -> None:
+        self._check_init_args(chunk_size,
+                              chunk_memory_ratio,
+                              tpb)
+
+        chunk = (chunk
+                 or stream_count is not None
+                 or chunk_size is not None
+                 or chunk_memory_ratio is not None)
+
+        super().__init__(traces)
+        # If chunking is used, the samples are stored in Fortran order
+        # for contiguous memory access
+        if chunk:
+            self._traces.samples = np.asfortranarray(self._traces.samples)
+
+        self._tpb = tpb
+        if not chunk:
+            self._combine_func = self._gpu_combine1D_all
+            self._chunk_size = None
+            self._stream_count = None
+        else:
+            self._combine_func = self._gpu_combine1D_chunked
+            self._stream_count = (stream_count
+                                  if stream_count is not None
+                                  else STREAM_COUNT)
+            if chunk_size is not None:
+                self._chunk_size = chunk_size
+            else:
+                self._chunk_size = self.chunk_size_from_ratio(
+                    chunk_memory_ratio
+                    if chunk_memory_ratio is not None
+                    else CHUNK_MEMORY_RATIO,
+                    item_size=self._traces.samples.itemsize,
+                    chunk_item_count=self._traces.samples.shape[0])
+
+    def _check_init_args(self,
+                         chunk_size: Optional[int],
+                         chunk_memory_ratio: Optional[float],
+                         tpb: TPB) -> None:
         if not cuda.is_available():
             raise RuntimeError("CUDA is not available, "
                                "use CPUTraceManager instead")
@@ -119,10 +161,6 @@ class GPUTraceManager(BaseTraceManager):
 
         if chunk_size is not None and chunk_size <= 0:
             raise ValueError("Chunk size should be positive")
-
-        chunk = (chunk
-                 or chunk_size is not None
-                 or chunk_memory_ratio is not None)
 
         dev = cuda.get_current_device()
         warp_size = dev.WARP_SIZE
@@ -146,33 +184,25 @@ class GPUTraceManager(BaseTraceManager):
                 'in each dimension'
             )
 
-        super().__init__(traces)
-        # If chunking is used, the samples are stored in Fortran order
-        # for contiguous memory access
-        if chunk:
-            self._traces.samples = np.asfortranarray(self._traces.samples)
-
-        self._tpb = tpb
-        if not chunk:
-            self._combine_func = self._gpu_combine1D_all
-            self._chunk_size = None
-        else:
-            self._combine_func = self._gpu_combine1D_chunked
-            if chunk_size is not None:
-                self._chunk_size = chunk_size
-            else:
-                self._chunk_size = self.chunk_size_from_ratio(
-                    chunk_memory_ratio
-                    if chunk_memory_ratio is not None
-                    else CHUNK_MEMORY_RATIO,
-                    self._traces.samples.itemsize)
-
     @staticmethod
     def chunk_size_from_ratio(chunk_memory_ratio: float,
-                              item_size: int) -> int:
-        mem_size = cuda.current_context().get_memory_info().free
+                              element_size: int | None = None,
+                              item_size: int | None = None,
+                              chunk_item_count: int | None = None) -> int:
+        if ((element_size is None)
+                == (item_size is None and chunk_item_count is None)):
+            raise ValueError(
+                "Either element_size or item_size and chunk_item_count "
+                "should be specified"
+            )
+        if element_size is None:
+            assert item_size is not None
+            assert chunk_item_count is not None
+            element_size = item_size * chunk_item_count
+
+        mem_size = cuda.current_context().get_memory_info().total
         return int(
-            chunk_memory_ratio * mem_size / item_size)
+            chunk_memory_ratio * mem_size / element_size)
 
     def _gpu_combine1D(self, func, output_count: int = 1) \
             -> Union[CombinedTrace, List[CombinedTrace]]:
@@ -216,57 +246,60 @@ class GPUTraceManager(BaseTraceManager):
 
     def _gpu_combine1D_chunked(self, func, output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
-        """
-        Runs a combination function on the samples column-wise.
-
-        The samples are processed in chunks.
-        :param func: Function to run.
-        :param output_count: Number of outputs expected from the GPU function.
-        :return: Combined trace output from the GPU function
-        """
         assert self._chunk_size is not None
+        assert self._stream_count is not None
         assert isinstance(self._tpb, int)
 
         chunk_count = (
             self._traces.samples.shape[1] + self._chunk_size - 1
         ) // self._chunk_size
+        streams = [cuda.stream() for _ in range(self._stream_count)]
 
-        stream_count = 4
-        streams = [cuda.stream() for _ in range(stream_count)]
+        # Pre-allocate pinned memory for each stream
+        pinned_input_buffers = [
+            cuda.pinned_array((self._traces.samples.shape[0],
+                               self._chunk_size),
+                              dtype=self._traces.samples.dtype,
+                              order="F")
+            for _ in range(self._stream_count)
+        ]
 
         chunk_results: List[List[npt.NDArray[np.number]]] = [
-            list()
-            for _ in range(output_count)]
+            list() for _ in range(output_count)]
 
-        for chunk in range(chunk_count):
-            start = chunk * self._chunk_size
-            end = min((chunk + 1) * self._chunk_size,
-                      self._traces.samples.shape[1])
+        with cuda.defer_cleanup():
+            for chunk in range(chunk_count):
+                start = chunk * self._chunk_size
+                end = min((chunk + 1) * self._chunk_size,
+                          self._traces.samples.shape[1])
+                stream = streams[chunk % self._stream_count]
 
-            device_input = cuda.to_device(
-                self._traces.samples[:, start:end],
-                stream=streams[chunk % stream_count]
-            )
-            device_outputs = [cuda.device_array(
-                end - start,
-                stream=streams[chunk % stream_count])
-                              for _ in range(output_count)]
+                pinned_input = pinned_input_buffers[chunk % self._stream_count]
+                np.copyto(pinned_input, self._traces.samples[:, start:end])
 
-            bpg = (end - start + self._tpb - 1) // self._tpb
-            func[bpg, self._tpb, streams[chunk % stream_count]](
-                device_input, *device_outputs
-            )
+                device_input = cuda.to_device(
+                    pinned_input[:, :end-start], stream=stream)
+                device_outputs = [
+                    cuda.device_array(
+                        (end - start,),
+                        dtype=pinned_input.dtype,
+                        stream=stream)
+                    for _ in range(output_count)
+                ]
 
-            # streams[chunk % stream_count].synchronize()
-            for output_i, device_output in enumerate(device_outputs):
-                chunk_results[output_i].append(
-                    device_output.copy_to_host(
-                        stream=streams[chunk % stream_count]))
+                bpg = (end - start + self._tpb - 1) // self._tpb
+                func[bpg, self._tpb, stream](device_input, *device_outputs)
 
-        # data_stream.synchronize()
-        cuda.synchronize()
-        return [np.concatenate(chunk_result)
-                for chunk_result in chunk_results]
+                for output_i, device_output in enumerate(device_outputs):
+                    # Allocating pinned memory for results
+                    host_output = cuda.pinned_array(
+                        (end - start,), dtype=pinned_input.dtype)
+                    device_output.copy_to_host(host_output, stream=stream)
+                    chunk_results[output_i].append(host_output)
+
+            cuda.synchronize()
+
+        return [np.concatenate(chunk_result) for chunk_result in chunk_results]
 
     def average(self) -> CombinedTrace:
         return cast(CombinedTrace, self._gpu_combine1D(gpu_average, 1))

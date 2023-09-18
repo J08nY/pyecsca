@@ -219,20 +219,33 @@ def _get_parser() -> argparse.ArgumentParser:
         choices=traceset_ops.keys(),
         help="Operations to perform on the traces"
     )
-    combine.add_argument(
+
+    chunking = parser.add_argument_group(
+        "chunking",
+        "Options for chunking"
+    )
+    chunking.add_argument(
         "-c", "--chunk",
         action="store_true",
         default=False,
         help="Use chunking for the operations",
     )
-    combine.add_argument(
+    chunking.add_argument(
+        "--stream-count",
+        type=int,
+        default=None,
+        required=False,
+        help="Number of streams to use for chunking",
+    )
+    chunk_sizing = chunking.add_mutually_exclusive_group()
+    chunk_sizing.add_argument(
         "--chunk-size",
         help="Chunk size for the operations",
         type=int,
         required=False,
         default=None
     )
-    combine.add_argument(
+    chunk_sizing.add_argument(
         "--chunk-memory-ratio",
         help="Chunk memory ratio for the operations",
         type=float,
@@ -321,7 +334,11 @@ def _get_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
     if args.chunk_size and args.chunk_memory_ratio:
         parser.error("Cannot specify both chunk size and chunk memory ratio")
 
+    if args.stream_count is not None and args.stream_count <= 1:
+        parser.error("Stream count must be greater than 1")
+
     args.chunk = (args.chunk
+                  or args.stream_count is not None
                   or args.chunk_size is not None
                   or args.chunk_memory_ratio is not None)
 
@@ -495,7 +512,8 @@ def repetition(args: argparse.Namespace,
                              data,
                              chunk=args.chunk,
                              chunk_size=args.chunk_size,
-                             chunk_memory_ratio=args.chunk_memory_ratio))
+                             chunk_memory_ratio=args.chunk_memory_ratio,
+                             stream_count=args.stream_count))
 
         # Perform operations
         for op in args.operations:
