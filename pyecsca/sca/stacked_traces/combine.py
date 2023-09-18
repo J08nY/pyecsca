@@ -141,27 +141,8 @@ class GPUTraceManager(BaseTraceManager):
                     item_size=self._traces.samples.itemsize,
                     chunk_item_count=self._traces.samples.shape[0])
 
-    def _check_init_args(self,
-                         chunk_size: Optional[int],
-                         chunk_memory_ratio: Optional[float],
-                         tpb: TPB) -> None:
-        if not cuda.is_available():
-            raise RuntimeError("CUDA is not available, "
-                               "use CPUTraceManager instead")
-
-        if chunk_size and chunk_memory_ratio:
-            raise ValueError("Only one of chunk_size and chunk_memory_ratio "
-                             "can be specified")
-
-        if chunk_memory_ratio is not None \
-           and (chunk_memory_ratio <= 0 or chunk_memory_ratio > 0.5):
-            raise ValueError("Chunk memory ratio should be in (0, 0.5], "
-                             "because two chunks are stored in memory "
-                             "at once")
-
-        if chunk_size is not None and chunk_size <= 0:
-            raise ValueError("Chunk size should be positive")
-
+    @staticmethod
+    def _check_tpb(tpb: TPB) -> None:
         dev = cuda.get_current_device()
         warp_size = dev.WARP_SIZE
         max_tpb = dev.MAX_THREADS_PER_BLOCK
@@ -183,6 +164,33 @@ class GPUTraceManager(BaseTraceManager):
                 f'and smaller than MAX_THREADS_PER_BLOCK ({max_tpb})'
                 'in each dimension'
             )
+
+    @staticmethod
+    def _check_chunk_sizing(chunk_size: Optional[int],
+                            chunk_memory_ratio: Optional[float]) -> None:
+        if chunk_size and chunk_memory_ratio:
+            raise ValueError("Only one of chunk_size and chunk_memory_ratio "
+                             "can be specified")
+
+        if chunk_memory_ratio is not None \
+           and (chunk_memory_ratio <= 0 or chunk_memory_ratio > 0.5):
+            raise ValueError("Chunk memory ratio should be in (0, 0.5], "
+                             "because two chunks are stored in memory "
+                             "at once")
+
+        if chunk_size is not None and chunk_size <= 0:
+            raise ValueError("Chunk size should be positive")
+
+    @staticmethod
+    def _check_init_args(chunk_size: Optional[int],
+                         chunk_memory_ratio: Optional[float],
+                         tpb: TPB) -> None:
+        if not cuda.is_available():
+            raise RuntimeError("CUDA is not available, "
+                               "use CPUTraceManager instead")
+
+        GPUTraceManager._check_chunk_sizing(chunk_size, chunk_memory_ratio)
+        GPUTraceManager._check_tpb(tpb)
 
     @staticmethod
     def chunk_size_from_ratio(chunk_memory_ratio: float,
@@ -230,8 +238,9 @@ class GPUTraceManager(BaseTraceManager):
         :param output_count: Number of outputs expected from the GPU function.
         :return: Combined trace output from the GPU function
         """
-        assert self._chunk_size is None
-        assert isinstance(self._tpb, int)
+        if not isinstance(self._tpb, int):
+            raise ValueError("Something went wrong. "
+                             "TPB should be an int")
 
         device_input = cuda.to_device(self._traces.samples)
         device_outputs = [
@@ -246,9 +255,15 @@ class GPUTraceManager(BaseTraceManager):
 
     def _gpu_combine1D_chunked(self, func, output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
-        assert self._chunk_size is not None
-        assert self._stream_count is not None
-        assert isinstance(self._tpb, int)
+        if self._chunk_size is None:
+            raise ValueError("Something went wrong. "
+                             "Chunk size should be specified")
+        if self._stream_count is None:
+            raise ValueError("Something went wrong. "
+                             "Stream count should be specified")
+        if not isinstance(self._tpb, int):
+            raise ValueError("Something went wrong. "
+                             "TPB should be an int")
 
         chunk_count = (
             self._traces.samples.shape[1] + self._chunk_size - 1
@@ -265,7 +280,7 @@ class GPUTraceManager(BaseTraceManager):
         ]
 
         chunk_results: List[List[npt.NDArray[np.number]]] = [
-            list() for _ in range(output_count)]
+            [] for _ in range(output_count)]
 
         with cuda.defer_cleanup():
             for chunk in range(chunk_count):
