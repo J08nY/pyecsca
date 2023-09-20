@@ -106,6 +106,15 @@ class GPUTraceManager(BaseTraceManager):
                  chunk_size: Optional[int] = None,
                  chunk_memory_ratio: Optional[float] = None,
                  stream_count: Optional[int] = None) -> None:
+        """
+        :param traces: Stacked traces on which to operate.
+        :param tpb: Threads per block to use for GPU operations.
+        :param chunk: Whether to chunk the traces.
+        :param chunk_size: Number of samples to use for chunking.
+                           Chunks will be `chunk_size` x `trace_count`.
+        :param chunk_memory_ratio: Part of available memory to use for chunking.
+        :param stream_count: Number of streams to use for chunking.
+        """
         self._check_init_args(chunk_size,
                               chunk_memory_ratio,
                               tpb)
@@ -208,7 +217,7 @@ class GPUTraceManager(BaseTraceManager):
             assert chunk_item_count is not None
             element_size = item_size * chunk_item_count
 
-        mem_size = cuda.current_context().get_memory_info().total
+        mem_size = cuda.current_context().get_memory_info().free
         return int(
             chunk_memory_ratio * mem_size / element_size)
 
