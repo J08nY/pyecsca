@@ -9,7 +9,7 @@ Implements ZVP point construction from [FFD]_.
 from typing import List, Set
 from public import public
 
-from sympy import symbols, FF, Poly, Monomial, Symbol, Expr
+from sympy import symbols, FF, Poly, Monomial, Symbol, Expr, sympify
 
 from ...ec.curve import EllipticCurve
 from ...ec.divpoly import mult_by_n
@@ -29,6 +29,15 @@ def unroll_formula(formula: Formula) -> List[Poly]:
     params = {var: symbols(var) for var in formula.coordinate_model.curve_model.parameter_names}
     inputs = {f"{var}{i}": symbols(f"{var}{i}") for var in formula.coordinate_model.variables for i in
               range(1, formula.num_inputs + 1)}
+    for assumption, assumption_string in zip(formula.assumptions, formula.assumptions_str):
+        lhs, rhs = assumption_string.split(" == ")
+        if lhs in formula.parameters:
+            # Handle a symbolic assignment to a new parameter.
+            expr = sympify(rhs, evaluate=False)
+            for curve_param, value in params.items():
+                expr = expr.subs(curve_param, value)
+            params[lhs] = expr
+
     locals = {**params, **inputs}
     values = []
     for op in formula.code:

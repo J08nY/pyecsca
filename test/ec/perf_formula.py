@@ -28,8 +28,8 @@ def main(profiler, mod, operations, directory):
         cfg.ec.mod_implementation = mod
         p256 = get_params("secg", "secp256r1", "projective")
         coords = p256.curve.coordinate_model
-        add = coords.formulas["add-2016-rcb"]
-        dbl = coords.formulas["dbl-2016-rcb"]
+        add = coords.formulas["add-2015-rcb"]
+        dbl = coords.formulas["dbl-2015-rcb"]
         click.echo(
             f"Profiling {operations} {p256.curve.prime.bit_length()}-bit doubling formula (dbl2016rcb) executions..."
         )

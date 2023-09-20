@@ -123,8 +123,8 @@ def test_ecdsa_nist():
 
     P192 = get_params("nist", "P-192", "projective")
     affine_model = AffineCoordinateModel(P192.curve.model)
-    add = P192.curve.coordinate_model.formulas["add-2016-rcb"]
-    dbl = P192.curve.coordinate_model.formulas["dbl-2016-rcb"]
+    add = P192.curve.coordinate_model.formulas["add-2015-rcb"]
+    dbl = P192.curve.coordinate_model.formulas["dbl-2015-rcb"]
     mult = LTRMultiplier(add, dbl)
     priv = Mod(int(nist_data["priv"], 16), P192.order)
 

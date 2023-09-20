@@ -327,8 +327,8 @@ def test_ecdh(target, secp256r1_affine, secp256r1_projective):
     )
 
     mult = LTRMultiplier(
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
-        secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["dbl-2015-rcb"],
     )
     ecdh = ECDH_SHA1(mult, secp256r1_projective, pubkey_projective, privkey)
     expected = ecdh.perform()
@@ -348,8 +348,8 @@ def test_ecdh_raw(target, secp256r1_projective):
     )
     target.generate(KeypairEnum.KEYPAIR_LOCAL)
     mult = LTRMultiplier(
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
-        secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["dbl-2015-rcb"],
     )
     keygen = KeyGeneration(copy(mult), secp256r1_projective)
     _, pubkey_projective = keygen.generate()
@@ -412,13 +412,13 @@ def test_ecdsa(target, secp256r1_affine, secp256r1_projective):
 
     sig = SignatureResult.from_DER(ecdsa_resp.signature)
     mult = LTRMultiplier(
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
-        secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["dbl-2015-rcb"],
     )
     ecdsa = ECDSA_SHA1(
         copy(mult),
         secp256r1_projective,
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
         pubkey_projective,
     )
     assert ecdsa.verify_data(sig, data)
@@ -454,13 +454,13 @@ def test_ecdsa_sign(target, secp256r1_affine, secp256r1_projective):
 
     sig = SignatureResult.from_DER(ecdsa_resp.signature)
     mult = LTRMultiplier(
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
-        secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["dbl-2015-rcb"],
     )
     ecdsa = ECDSA_SHA1(
         copy(mult),
         secp256r1_projective,
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
         pubkey_projective,
     )
     assert ecdsa.verify_data(sig, data)
@@ -478,8 +478,8 @@ def test_ecdsa_verify(target, secp256r1_projective):
         KeypairEnum.KEYPAIR_LOCAL, CurveEnum.secp256r1, ParameterEnum.DOMAIN_FP
     )
     mult = LTRMultiplier(
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
-        secp256r1_projective.curve.coordinate_model.formulas["dbl-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["dbl-2015-rcb"],
     )
     keygen = KeyGeneration(copy(mult), secp256r1_projective)
     priv, pubkey_projective = keygen.generate()
@@ -494,7 +494,7 @@ def test_ecdsa_verify(target, secp256r1_projective):
     ecdsa = ECDSA_SHA1(
         copy(mult),
         secp256r1_projective,
-        secp256r1_projective.curve.coordinate_model.formulas["add-2016-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
         pubkey_projective,
         priv,
     )

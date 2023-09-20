@@ -32,8 +32,8 @@ def main(profiler, mod, operations, directory):
         cfg.ec.mod_implementation = mod
         p256 = get_params("secg", "secp256r1", "projective")
         coords = p256.curve.coordinate_model
-        add = cast(AdditionFormula, coords.formulas["add-2016-rcb"])
-        dbl = cast(DoublingFormula, coords.formulas["dbl-2016-rcb"])
+        add = cast(AdditionFormula, coords.formulas["add-2015-rcb"])
+        dbl = cast(DoublingFormula, coords.formulas["dbl-2015-rcb"])
         mult = LTRMultiplier(add, dbl)
         click.echo(
             f"Profiling {operations} {p256.curve.prime.bit_length()}-bit scalar multiplication executions..."

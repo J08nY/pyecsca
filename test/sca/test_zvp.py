@@ -9,7 +9,7 @@ from pyecsca.ec.context import local, DefaultContext
 from sympy import symbols, Poly, sympify, FF
 
 
-@pytest.fixture(params=["add-2007-bl", "add-2016-rcb"])
+@pytest.fixture(params=["add-2007-bl", "add-2015-rcb"])
 def formula(secp128r1, request):
     return secp128r1.curve.coordinate_model.formulas[request.param]
 
@@ -19,6 +19,11 @@ def test_unroll(formula):
     assert results is not None
     for res in results:
         assert isinstance(res, Poly)
+
+
+def test_model_map(secp128r1):
+    # to_model_map(secp128r1.curve.coordinate_model)
+    pass
 
 
 @pytest.mark.xfail(reason="Not removing Zs so far.")
@@ -43,7 +48,7 @@ def test_factor_set(formula):
             "2*X1^4 + 4*X1^3*X2 + 6*X1^2*X2^2 + 4*X1*X2^3 + 2*X2^4 - 3*X1*Y1^2 - 3*X2*Y1^2 - 6*X1*Y1*Y2 - 6*X2*Y1*Y2 - 3*X1*Y2^2 - 3*X2*Y2^2 + 4*X1^2*a + 4*X1*X2*a + 4*X2^2*a + 2*a^2",
             "2*X1^6 + 6*X1^5*X2 + 12*X1^4*X2^2 + 14*X1^3*X2^3 + 12*X1^2*X2^4 + 6*X1*X2^5 + 2*X2^6 - 3*X1^3*Y1^2 - 6*X1^2*X2*Y1^2 - 6*X1*X2^2*Y1^2 - 3*X2^3*Y1^2 - 6*X1^3*Y1*Y2 - 12*X1^2*X2*Y1*Y2 - 12*X1*X2^2*Y1*Y2 - 6*X2^3*Y1*Y2 - 3*X1^3*Y2^2 - 6*X1^2*X2*Y2^2 - 6*X1*X2^2*Y2^2 - 3*X2^3*Y2^2 + 6*X1^4*a + 12*X1^3*X2*a + 18*X1^2*X2^2*a + 12*X1*X2^3*a + 6*X2^4*a + Y1^4 + 4*Y1^3*Y2 + 6*Y1^2*Y2^2 + 4*Y1*Y2^3 + Y2^4 - 3*X1*Y1^2*a - 3*X2*Y1^2*a - 6*X1*Y1*Y2*a - 6*X2*Y1*Y2*a - 3*X1*Y2^2*a - 3*X2*Y2^2*a + 6*X1^2*a^2 + 6*X1*X2*a^2 + 6*X2^2*a^2 + 2*a^3"
         },
-        "add-2016-rcb": {
+        "add-2015-rcb": {
             "Y2",
             "Y2 + 1",
             "Y1",

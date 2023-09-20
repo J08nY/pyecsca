@@ -55,8 +55,8 @@ def test_ka_secg():
         secg_data = json.load(f)
     secp160r1 = get_params("secg", "secp160r1", "projective")
     affine_model = AffineCoordinateModel(secp160r1.curve.model)
-    add = secp160r1.curve.coordinate_model.formulas["add-2016-rcb"]
-    dbl = secp160r1.curve.coordinate_model.formulas["dbl-2016-rcb"]
+    add = secp160r1.curve.coordinate_model.formulas["add-2015-rcb"]
+    dbl = secp160r1.curve.coordinate_model.formulas["dbl-2015-rcb"]
     mult = LTRMultiplier(add, dbl)
     privA = Mod(int(secg_data["keyA"]["priv"], 16), secp160r1.order)
     pubA_affine = Point(affine_model,

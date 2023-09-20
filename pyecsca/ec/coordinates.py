@@ -33,6 +33,10 @@ class CoordinateModel:
     """Variables that the coordinate model uses."""
     satisfying: List[Module]
     """Relationship between the coordinate system and affine coordinates."""
+    toaffine: List[Module]
+    """Map to affine coordinates from system coordinates."""
+    tosystem: List[Module]
+    """Map from coordinate system to affine coordinates."""
     parameters: List[str]
     """Coordinate system parameters."""
     assumptions: List[Module]
@@ -78,6 +82,8 @@ class EFDCoordinateModel(CoordinateModel):
         self.curve_model = curve_model
         self.variables = []
         self.satisfying = []
+        self.toaffine = []
+        self.tosystem = []
         self.parameters = []
         self.assumptions = []
         self.neutral = []
@@ -124,6 +130,18 @@ class EFDCoordinateModel(CoordinateModel):
                     try:
                         code = parse(line[11:].replace("^", "**"), mode="exec")
                         self.satisfying.append(code)
+                    except SyntaxError:
+                        pass
+                elif line.startswith("toaffine"):
+                    try:
+                        code = parse(line[9:].replace("^", "**"), mode="exec")
+                        self.toaffine.append(code)
+                    except SyntaxError:
+                        pass
+                elif line.startswith("tosystem"):
+                    try:
+                        code = parse(line[9:].replace("^", "**"), mode="exec")
+                        self.tosystem.append(code)
                     except SyntaxError:
                         pass
                 elif line.startswith("parameter"):
