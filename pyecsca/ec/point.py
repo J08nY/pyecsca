@@ -106,13 +106,15 @@ class Point:
         with CoordinateMappingAction(
             self.coordinate_model, coordinate_model, self
         ) as action:
+            if isinstance(coordinate_model, AffineCoordinateModel):
+                return action.exit(Point(coordinate_model, **self.coords))
             ops = []
-            for s in coordinate_model.satisfying:
+            for s in coordinate_model.tosystem:
                 try:
                     ops.append(CodeOp(s))
                 except Exception:
                     pass
-            locls = {**self.coords, **curve.parameters, "Z": Mod(1, curve.prime)}
+            locls = {**self.coords, **curve.parameters}
             for op in ops:
                 try:
                     locls[op.result] = op(**locls)
@@ -121,29 +123,7 @@ class Point:
             result = {}
             for var in coordinate_model.variables:
                 if var in locls:  # Try this first.
-                    result[var] = locls[var]
-                elif var == "X":
-                    result[var] = self.coords["x"]
-                    if (
-                        isinstance(coordinate_model, EFDCoordinateModel)
-                        and coordinate_model.name == "inverted"
-                    ):
-                        result[var] = result[var].inverse()
-                elif var == "Y":
-                    result[var] = self.coords["y"]
-                    if isinstance(coordinate_model, EFDCoordinateModel):
-                        if coordinate_model.name == "inverted":
-                            result[var] = result[var].inverse()
-                        elif coordinate_model.name == "yz":
-                            result[var] = result[var] * curve.parameters["r"]
-                        elif coordinate_model.name == "yzsquared":
-                            result[var] = result[var] ** 2 * curve.parameters["r"]
-                elif var.startswith("Z"):
-                    result[var] = Mod(1, curve.prime)
-                elif var == "T":
-                    result[var] = Mod(
-                        int(self.coords["x"] * self.coords["y"]), curve.prime
-                    )
+                    result[var] = Mod(locls[var], curve.prime) if not isinstance(locls[var], Mod) else locls[var]
                 else:
                     raise NotImplementedError
             return action.exit(Point(coordinate_model, **result))

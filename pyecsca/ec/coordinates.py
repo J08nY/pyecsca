@@ -60,6 +60,8 @@ class AffineCoordinateModel(CoordinateModel):
         self.curve_model = curve_model
         self.variables = ["x", "y"]
         self.satisfying = []
+        self.toaffine = []
+        self.tosystem = []
         self.parameters = []
         self.assumptions = []
         self.neutral = []
