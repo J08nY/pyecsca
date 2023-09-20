@@ -3,29 +3,27 @@ from __future__ import annotations
 from numba import cuda
 from numba.cuda import devicearray
 import numpy as np
+import numpy.typing as npt
 from math import sqrt
 
 from public import public
-from typing import Callable, Union, Tuple, cast
+from typing import Callable, Union, Tuple, Optional, cast, List
 
 from ...sca.trace.trace import CombinedTrace
 from ...sca.stacked_traces import StackedTraces
 
 TPB = Union[int, Tuple[int, ...]]
-CudaCTX = Tuple[
-    Tuple[devicearray.DeviceNDArray, ...],
-    Union[int, Tuple[int, ...]]
-]
+CudaCTX = Tuple[devicearray.DeviceNDArray, ...]
 
 
 @public
 class BaseTraceManager:
     """Base class for trace managers"""
 
-    traces: StackedTraces
+    _traces: StackedTraces
 
     def __init__(self, traces: StackedTraces) -> None:
-        self.traces = traces
+        self._traces = traces
 
     def average(self) -> CombinedTrace:
         """
@@ -36,7 +34,8 @@ class BaseTraceManager:
         """
         raise NotImplementedError
 
-    def conditional_average(self, cond: Callable[[np.ndarray], bool]) \
+    def conditional_average(self,
+                            cond: Callable[[npt.NDArray[np.number]], bool]) \
             -> CombinedTrace:
         """
         Average :paramref:`~.conditional_average.traces` for which the
@@ -88,79 +87,249 @@ class BaseTraceManager:
         raise NotImplementedError
 
 
+CHUNK_MEMORY_RATIO = 0.4
+STREAM_COUNT = 4
+
+
 @public
 class GPUTraceManager(BaseTraceManager):
     """Manager for operations with stacked traces on GPU"""
 
     _tpb: TPB
-    _samples_global: devicearray.DeviceNDArray
+    _chunk_size: Optional[int]
+    _stream_count: Optional[int]
 
-    def __init__(self, traces: StackedTraces, tpb: TPB = 128) -> None:
+    def __init__(self,
+                 traces: StackedTraces,
+                 tpb: TPB = 128,
+                 chunk: bool = False,
+                 chunk_size: Optional[int] = None,
+                 chunk_memory_ratio: Optional[float] = None,
+                 stream_count: Optional[int] = None) -> None:
+        """
+        :param traces: Stacked traces on which to operate.
+        :param tpb: Threads per block to use for GPU operations.
+        :param chunk: Whether to chunk the traces.
+        :param chunk_size: Number of samples to use for chunking.
+                           Chunks will be `chunk_size` x `trace_count`.
+        :param chunk_memory_ratio: Part of available memory to use for chunking.
+        :param stream_count: Number of streams to use for chunking.
+        """
+        self._check_init_args(chunk_size,
+                              chunk_memory_ratio,
+                              tpb)
+
+        chunk = (chunk
+                 or stream_count is not None
+                 or chunk_size is not None
+                 or chunk_memory_ratio is not None)
+
+        super().__init__(traces)
+        # If chunking is used, the samples are stored in Fortran order
+        # for contiguous memory access
+        if chunk:
+            self._traces.samples = np.asfortranarray(self._traces.samples)
+
+        self._tpb = tpb
+        if not chunk:
+            self._combine_func = self._gpu_combine1D_all
+            self._chunk_size = None
+            self._stream_count = None
+        else:
+            self._combine_func = self._gpu_combine1D_chunked
+            self._stream_count = (stream_count
+                                  if stream_count is not None
+                                  else STREAM_COUNT)
+            if chunk_size is not None:
+                self._chunk_size = chunk_size
+            else:
+                self._chunk_size = self.chunk_size_from_ratio(
+                    chunk_memory_ratio
+                    if chunk_memory_ratio is not None
+                    else CHUNK_MEMORY_RATIO,
+                    item_size=self._traces.samples.itemsize,
+                    chunk_item_count=self._traces.samples.shape[0])
+
+    @staticmethod
+    def _check_tpb(tpb: TPB) -> None:
+        dev = cuda.get_current_device()
+        warp_size = dev.WARP_SIZE
+        max_tpb = dev.MAX_THREADS_PER_BLOCK
+        if isinstance(tpb, int):
+            if tpb % warp_size != 0:
+                raise ValueError(
+                    f'TPB should be a multiple of WARP_SIZE ({warp_size})'
+                )
+            if tpb > max_tpb:
+                raise ValueError(
+                    'TPB should be smaller than '
+                    'MAX_THREADS_PER_BLOCK ({max_tpb})'
+                )
+        if isinstance(tpb, tuple) and any(
+            t > max_tpb or t % warp_size != 0 for t in tpb
+        ):
+            raise ValueError(
+                f'TPB should be a multiple of WARP_SIZE ({warp_size}) '
+                f'and smaller than MAX_THREADS_PER_BLOCK ({max_tpb})'
+                'in each dimension'
+            )
+
+    @staticmethod
+    def _check_chunk_sizing(chunk_size: Optional[int],
+                            chunk_memory_ratio: Optional[float]) -> None:
+        if chunk_size and chunk_memory_ratio:
+            raise ValueError("Only one of chunk_size and chunk_memory_ratio "
+                             "can be specified")
+
+        if chunk_memory_ratio is not None \
+           and (chunk_memory_ratio <= 0 or chunk_memory_ratio > 0.5):
+            raise ValueError("Chunk memory ratio should be in (0, 0.5], "
+                             "because two chunks are stored in memory "
+                             "at once")
+
+        if chunk_size is not None and chunk_size <= 0:
+            raise ValueError("Chunk size should be positive")
+
+    @staticmethod
+    def _check_init_args(chunk_size: Optional[int],
+                         chunk_memory_ratio: Optional[float],
+                         tpb: TPB) -> None:
         if not cuda.is_available():
             raise RuntimeError("CUDA is not available, "
                                "use CPUTraceManager instead")
-        if isinstance(tpb, int) and tpb % 32 != 0:
-            raise ValueError('TPB should be a multiple of 32')
-        if isinstance(tpb, tuple) and any(t % 32 != 0 for t in tpb):
+
+        GPUTraceManager._check_chunk_sizing(chunk_size, chunk_memory_ratio)
+        GPUTraceManager._check_tpb(tpb)
+
+    @staticmethod
+    def chunk_size_from_ratio(chunk_memory_ratio: float,
+                              element_size: int | None = None,
+                              item_size: int | None = None,
+                              chunk_item_count: int | None = None) -> int:
+        if ((element_size is None)
+                == (item_size is None and chunk_item_count is None)):
             raise ValueError(
-                'TPB should be a multiple of 32 in each dimension'
+                "Either element_size or item_size and chunk_item_count "
+                "should be specified"
             )
+        if element_size is None:
+            assert item_size is not None
+            assert chunk_item_count is not None
+            element_size = item_size * chunk_item_count
 
-        super().__init__(traces)
-        self.tpb = tpb
-        self._samples_global = cuda.to_device(self.traces.samples)
-
-    def _setup1D(self, output_count: int) -> CudaCTX:
-        """
-        Creates context for 1D GPU CUDA functions
-
-        :param traces: The input stacked traces.
-        :param tpb: Threads per block to invoke the kernel with.
-        :param output_count: Number of outputs expected from the GPU function.
-        :return: Created context of input and output arrays and calculated
-                 blocks per grid dimensions.
-        """
-        if not isinstance(self.tpb, int):
-            raise TypeError("tpb is not an int for a 1D kernel")
-
-        device_output = tuple((
-            cuda.device_array(self.traces.samples.shape[1])
-            for _ in range(output_count)
-        ))
-        bpg = (self.traces.samples.size + (self.tpb - 1)) // self.tpb
-
-        return device_output, bpg
+        mem_size = cuda.current_context().get_memory_info().free
+        return int(
+            chunk_memory_ratio * mem_size / element_size)
 
     def _gpu_combine1D(self, func, output_count: int = 1) \
-            -> Union[CombinedTrace, Tuple[CombinedTrace, ...]]:
-        """
-        Runs GPU Cuda StackedTrace 1D combine function
+            -> Union[CombinedTrace, List[CombinedTrace]]:
+        results = self._combine_func(func, output_count)
 
+        if output_count == 1:
+            return CombinedTrace(
+                results[0],
+                self._traces.meta
+            )
+
+        return [
+            CombinedTrace(result, self._traces.meta)
+            for result
+            in results
+        ]
+
+    def _gpu_combine1D_all(self, func, output_count: int = 1) \
+            -> List[npt.NDArray[np.number]]:
+        """
+        Runs a combination function on the samples column-wise.
+
+        All samples are processed at once.
         :param func: Function to run.
-        :param traces: Stacked traces to provide as input to the function.
-        :param tpb: Threads per block to invoke the kernel with
         :param output_count: Number of outputs expected from the GPU function.
         :return: Combined trace output from the GPU function
         """
-        device_outputs, bpg = self._setup1D(output_count)
+        if not isinstance(self._tpb, int):
+            raise ValueError("Something went wrong. "
+                             "TPB should be an int")
 
-        func[bpg, self.tpb](self._samples_global, *device_outputs)
+        device_input = cuda.to_device(self._traces.samples)
+        device_outputs = [
+            cuda.device_array(self._traces.samples.shape[1])
+            for _ in range(output_count)
+        ]
 
-        if len(device_outputs) == 1:
-            return CombinedTrace(
-                device_outputs[0].copy_to_host(),
-                self.traces.meta
-            )
-        return tuple(
-            CombinedTrace(device_output.copy_to_host(), self.traces.meta)
-            for device_output
-            in device_outputs
-        )
+        bpg = (self._traces.samples.shape[1] + self._tpb - 1) // self._tpb
+        func[bpg, self._tpb](device_input, *device_outputs)
+        return [device_output.copy_to_host()
+                for device_output in device_outputs]
+
+    def _gpu_combine1D_chunked(self, func, output_count: int = 1) \
+            -> List[npt.NDArray[np.number]]:
+        if self._chunk_size is None:
+            raise ValueError("Something went wrong. "
+                             "Chunk size should be specified")
+        if self._stream_count is None:
+            raise ValueError("Something went wrong. "
+                             "Stream count should be specified")
+        if not isinstance(self._tpb, int):
+            raise ValueError("Something went wrong. "
+                             "TPB should be an int")
+
+        chunk_count = (
+            self._traces.samples.shape[1] + self._chunk_size - 1
+        ) // self._chunk_size
+        streams = [cuda.stream() for _ in range(self._stream_count)]
+
+        # Pre-allocate pinned memory for each stream
+        pinned_input_buffers = [
+            cuda.pinned_array((self._traces.samples.shape[0],
+                               self._chunk_size),
+                              dtype=self._traces.samples.dtype,
+                              order="F")
+            for _ in range(self._stream_count)
+        ]
+
+        chunk_results: List[List[npt.NDArray[np.number]]] = [
+            [] for _ in range(output_count)]
+
+        with cuda.defer_cleanup():
+            for chunk in range(chunk_count):
+                start = chunk * self._chunk_size
+                end = min((chunk + 1) * self._chunk_size,
+                          self._traces.samples.shape[1])
+                stream = streams[chunk % self._stream_count]
+
+                pinned_input = pinned_input_buffers[chunk % self._stream_count]
+                np.copyto(pinned_input, self._traces.samples[:, start:end])
+
+                device_input = cuda.to_device(
+                    pinned_input[:, :end-start], stream=stream)
+                device_outputs = [
+                    cuda.device_array(
+                        (end - start,),
+                        dtype=pinned_input.dtype,
+                        stream=stream)
+                    for _ in range(output_count)
+                ]
+
+                bpg = (end - start + self._tpb - 1) // self._tpb
+                func[bpg, self._tpb, stream](device_input, *device_outputs)
+
+                for output_i, device_output in enumerate(device_outputs):
+                    # Allocating pinned memory for results
+                    host_output = cuda.pinned_array(
+                        (end - start,), dtype=pinned_input.dtype)
+                    device_output.copy_to_host(host_output, stream=stream)
+                    chunk_results[output_i].append(host_output)
+
+            cuda.synchronize()
+
+        return [np.concatenate(chunk_result) for chunk_result in chunk_results]
 
     def average(self) -> CombinedTrace:
         return cast(CombinedTrace, self._gpu_combine1D(gpu_average, 1))
 
-    def conditional_average(self, cond: Callable[[np.ndarray], bool]) \
+    def conditional_average(self,
+                            cond: Callable[[npt.NDArray[np.number]], bool]) \
             -> CombinedTrace:
         raise NotImplementedError()
 
@@ -178,8 +347,9 @@ class GPUTraceManager(BaseTraceManager):
         return cast(CombinedTrace, self._gpu_combine1D(gpu_add, 1))
 
 
-@cuda.jit(device=True)
-def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
+@cuda.jit(device=True, cache=True)
+def _gpu_average(col: int, samples: npt.NDArray[np.number],
+                 result: npt.NDArray[np.number]):
     """
     Cuda device thread function computing the average of a sample of stacked traces.
 
@@ -193,8 +363,9 @@ def _gpu_average(col: int, samples: np.ndarray, result: np.ndarray):
     result[col] = acc / samples.shape[0]
 
 
-@cuda.jit
-def gpu_average(samples: np.ndarray, result: np.ndarray):
+@cuda.jit(cache=True)
+def gpu_average(samples: npt.NDArray[np.number],
+                result: npt.NDArray[np.number]):
     """
     Sample average of stacked traces, sample-wise.
 
@@ -209,9 +380,10 @@ def gpu_average(samples: np.ndarray, result: np.ndarray):
     _gpu_average(col, samples, result)
 
 
-@cuda.jit(device=True)
-def _gpu_var_from_avg(col: int, samples: np.ndarray,
-                      averages: np.ndarray, result: np.ndarray):
+@cuda.jit(device=True, cache=True)
+def _gpu_var_from_avg(col: int, samples: npt.NDArray[np.number],
+                      averages: npt.NDArray[np.number],
+                      result: npt.NDArray[np.number]):
     """
     Cuda device thread function computing the variance from the average of a sample of stacked traces.
 
@@ -227,8 +399,9 @@ def _gpu_var_from_avg(col: int, samples: np.ndarray,
     result[col] = var / samples.shape[0]
 
 
-@cuda.jit(device=True)
-def _gpu_variance(col: int, samples: np.ndarray, result: np.ndarray):
+@cuda.jit(device=True, cache=True)
+def _gpu_variance(col: int, samples: npt.NDArray[np.number],
+                  result: npt.NDArray[np.number]):
     """
     Cuda device thread function computing the variance of a sample of stacked traces.
 
@@ -240,8 +413,9 @@ def _gpu_variance(col: int, samples: np.ndarray, result: np.ndarray):
     _gpu_var_from_avg(col, samples, result, result)
 
 
-@cuda.jit
-def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
+@cuda.jit(cache=True)
+def gpu_std_dev(samples: npt.NDArray[np.number],
+                result: npt.NDArray[np.number]):
     """
     Sample standard deviation of stacked traces, sample-wise.
 
@@ -258,8 +432,9 @@ def gpu_std_dev(samples: np.ndarray, result: np.ndarray):
     result[col] = sqrt(result[col])
 
 
-@cuda.jit
-def gpu_variance(samples: np.ndarray, result: np.ndarray):
+@cuda.jit(cache=True)
+def gpu_variance(samples: npt.NDArray[np.number],
+                 result: npt.NDArray[np.number]):
     """
     Sample variance of stacked traces, sample-wise.
 
@@ -274,9 +449,10 @@ def gpu_variance(samples: np.ndarray, result: np.ndarray):
     _gpu_variance(col, samples, result)
 
 
-@cuda.jit
-def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
-                result_var: np.ndarray):
+@cuda.jit(cache=True)
+def gpu_avg_var(samples: npt.NDArray[np.number],
+                result_avg: npt.NDArray[np.number],
+                result_var: npt.NDArray[np.number]):
     """
     Sample average and variance of stacked traces, sample-wise.
 
@@ -293,8 +469,9 @@ def gpu_avg_var(samples: np.ndarray, result_avg: np.ndarray,
     _gpu_var_from_avg(col, samples, result_avg, result_var)
 
 
-@cuda.jit
-def gpu_add(samples: np.ndarray, result: np.ndarray):
+@cuda.jit(cache=True)
+def gpu_add(samples: npt.NDArray[np.number],
+            result: npt.NDArray[np.number]):
     """
     Add samples of stacked traces, sample-wise.
 
@@ -333,7 +510,10 @@ class CPUTraceManager:
             self.traces.meta
         )
 
-    def conditional_average(self, condition: Callable[[np.ndarray], bool]) -> CombinedTrace:
+    def conditional_average(self,
+                            condition: Callable[[npt.NDArray[np.number]],
+                                                bool]) \
+            -> CombinedTrace:
         """
         Compute the conditional average of the :paramref:`~.conditional_average.traces`, sample-wise.
 
