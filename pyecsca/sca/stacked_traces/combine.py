@@ -278,6 +278,8 @@ class GPUTraceManager(BaseTraceManager):
             self._traces.samples.shape[1] + self._chunk_size - 1
         ) // self._chunk_size
         streams = [cuda.stream() for _ in range(self._stream_count)]
+        events: List[Union[None, cuda.Event]] = [
+            None for _ in range(self._stream_count)]
 
         # Pre-allocate pinned memory for each stream
         pinned_input_buffers = [
@@ -297,6 +299,10 @@ class GPUTraceManager(BaseTraceManager):
                 end = min((chunk + 1) * self._chunk_size,
                           self._traces.samples.shape[1])
                 stream = streams[chunk % self._stream_count]
+                event = events[chunk % self._stream_count]
+                if event is not None:
+                    event.wait(stream=stream)
+                # stream.synchronize()
 
                 pinned_input = pinned_input_buffers[chunk % self._stream_count]
                 np.copyto(pinned_input, self._traces.samples[:, start:end])
@@ -313,6 +319,9 @@ class GPUTraceManager(BaseTraceManager):
 
                 bpg = (end - start + self._tpb - 1) // self._tpb
                 func[bpg, self._tpb, stream](device_input, *device_outputs)
+                event = cuda.event()
+                event.record(stream=stream)
+                events[chunk % self._stream_count] = event
 
                 for output_i, device_output in enumerate(device_outputs):
                     # Allocating pinned memory for results
