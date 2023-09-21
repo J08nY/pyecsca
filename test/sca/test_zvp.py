@@ -14,8 +14,9 @@ def formula(secp128r1, request):
     return secp128r1.curve.coordinate_model.formulas[request.param]
 
 
-def test_unroll(formula):
-    results = unroll_formula(formula)
+@pytest.mark.parametrize("affine", [True, False])
+def test_unroll(formula, affine):
+    results = unroll_formula(formula, affine=affine)
     assert results is not None
     for res in results:
         assert isinstance(res, Poly)
@@ -77,7 +78,7 @@ def test_factor_set(formula):
 
 
 def test_curve_elimination(secp128r1, formula):
-    unrolled = unroll_formula(formula)
+    unrolled = unroll_formula(formula, affine=True)
     subbed = subs_curve_equation(unrolled[-1], secp128r1.curve)
     assert subbed is not None
     Y1, Y2 = symbols("Y1,Y2")
@@ -90,44 +91,44 @@ def test_curve_elimination(secp128r1, formula):
 
 
 def test_remove_z(secp128r1, formula):
-    unrolled = unroll_formula(formula)
+    unrolled = unroll_formula(formula, affine=True)
     removed = remove_z(unrolled[-1])
     for gen in removed.gens:
         assert not str(gen).startswith("Z")
 
 
 def test_eliminate_y(secp128r1, formula):
-    unrolled = unroll_formula(formula)
+    unrolled = unroll_formula(formula, affine=True)
     subbed = subs_curve_equation(unrolled[-1], secp128r1.curve)
     eliminated = eliminate_y(subbed, secp128r1.curve)
     assert eliminated is not None
     assert isinstance(eliminated, Poly)
-    Y1, Y2 = symbols("Y1,Y2")
+    y1, y2 = symbols("y1,y2")
 
-    assert Y1 not in eliminated.gens
-    assert Y2 not in eliminated.gens
+    assert y1 not in eliminated.gens
+    assert y2 not in eliminated.gens
 
 
 def test_full(secp128r1, formula):
-    unrolled = unroll_formula(formula)
+    unrolled = unroll_formula(formula, affine=True)
     subbed = subs_curve_equation(unrolled[-1], secp128r1.curve)
     removed = remove_z(subbed)
     eliminated = eliminate_y(removed, secp128r1.curve)
     dlog = subs_dlog(eliminated, 3, secp128r1.curve)
     assert dlog is not None
     assert isinstance(dlog, Poly)
-    X1, X2 = symbols("X1,X2")
-    assert X2 not in dlog.gens
+    x1, x2 = symbols("x1,x2")
+    assert x2 not in dlog.gens
 
     final = subs_curve_params(dlog, secp128r1.curve)
     assert final is not None
     assert isinstance(final, Poly)
-    assert final.gens == (X1,)
+    assert final.gens == (x1,)
 
 
 @pytest.mark.slow
 def test_zvp(secp128r1, formula):
-    unrolled = unroll_formula(formula)
+    unrolled = unroll_formula(formula, affine=True)
     # Try all intermediates, zvp_point should return empty set if ZVP points do not exist
     for poly in unrolled:
         points = zvp_points(poly, secp128r1.curve, 5)
@@ -146,10 +147,10 @@ def test_zvp(secp128r1, formula):
 
 
 @pytest.mark.parametrize("poly_str,point,k", [
-    ("Y1 + Y2", (54027047743185503031379008986257148598, 42633567686060343012155773792291852040), 4),
-    ("X1 + X2", (285130337309757533508049972949147801522, 55463852278545391044040942536845640298), 3),
-    ("X1*X2 + Y1*Y2", (155681799415564546404955983367992137717, 227436010604106449719780498844151836756), 5),
-    ("Y1*Y2 - X1*a - X2*a - 3*b", (169722400242675158455680894146658513260, 33263376472545436059176357032150610796), 4)
+    ("y1 + y2", (54027047743185503031379008986257148598, 42633567686060343012155773792291852040), 4),
+    ("x1 + x2", (285130337309757533508049972949147801522, 55463852278545391044040942536845640298), 3),
+    ("x1*x2 + y1*y2", (155681799415564546404955983367992137717, 227436010604106449719780498844151836756), 5),
+    ("y1*y2 - x1*a - x2*a - 3*b", (169722400242675158455680894146658513260, 33263376472545436059176357032150610796), 4)
 ])
 def test_points(secp128r1, poly_str, point, k):
     pt = Point(AffineCoordinateModel(secp128r1.curve.model),
