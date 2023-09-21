@@ -1,7 +1,7 @@
 """
 Provides functions for computing division polynomials and the multiplication-by-n map on an elliptic curve.
 """
-from typing import Tuple, Dict, Set, Mapping
+from typing import Tuple, Dict, Set, Mapping, Optional
 from public import public
 
 from sympy import symbols, FF, Poly
@@ -203,12 +203,13 @@ def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> 
 
 
 @public
-def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Poly, Poly]]:
+def mult_by_n(curve: EllipticCurve, n: int, x_only: bool = False) -> Tuple[Tuple[Poly, Poly], Optional[Tuple[Poly, Poly]]]:
     """
     Compute the multiplication-by-n map on an elliptic curve.
 
     :param curve: Curve to compute on.
     :param n: Scalar.
+    :param x_only: Whether to skip the my computation.
     :return: A tuple (mx, my) where each is a tuple (numerator, denominator).
     """
     xs, ys = symbols("x y")
@@ -241,6 +242,8 @@ def mult_by_n(curve: EllipticCurve, n: int) -> Tuple[Tuple[Poly, Poly], Tuple[Po
     # > lc = K(mx_denom.LC())
     # > mx = (mx_num.quo(lc), mx_denom.monic())
     mx = (mx_num, mx_denom)
+    if x_only:
+        return mx, None
 
     # The following lines compute
     # my = ((2*y+a1*x+a3)*mx.derivative(x)/m - a1*mx-a3)/2

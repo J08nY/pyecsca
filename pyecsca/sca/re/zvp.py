@@ -190,8 +190,7 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
     new_gens = set(gens)
     new_gens.remove(x2)
 
-    mx, my = mult_by_n(curve, k)
-    # TODO: my is unnecessary here so maybe add a function to not compute it (speedup).
+    mx, _ = mult_by_n(curve, k, x_only=True)
     u, v = mx[0].subs("x", x1), mx[1].subs("x", x1)
 
     # The polynomials are quite dense, hence it makes sense
