@@ -8,6 +8,7 @@ Implements ZVP point construction from [FFD]_.
 """
 from typing import List, Set
 from public import public
+from astunparse import unparse
 
 from sympy import symbols, FF, Poly, Monomial, Symbol, Expr, sympify
 
@@ -47,25 +48,55 @@ def unroll_formula(formula: Formula) -> List[Poly]:
     return [Poly(value) for value in values]
 
 
-def compute_factor_set(formula: Formula) -> Set[Poly]:
+def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
     """
+    Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
+
+    If :paramref:`~.compute_factor_set.affine` is set, the polynomials are transformed
+    to affine form, using some assumptions along the way (e.g. `Z = 1`).
 
     :param formula:
+    :param affine:
     :return:
     """
     unrolled = unroll_formula(formula)
+    subs_map = {}
+    if affine:
+        # tosystem_map is the mapping of system variables (without indices) in affine variables (without indices)
+        tosystem_map = {}
+        for code in formula.coordinate_model.tosystem:
+            un = unparse(code).strip()
+            lhs, rhs = un.split(" = ")
+            tosystem_map[lhs] = sympify(rhs, evaluate=False)
+        # subs_map specializes the tosystem_map by adding appropriate indices
+        for i in range(1, formula.num_inputs + 1):
+            for lhs, rhs in tosystem_map.items():
+                subs_lhs = lhs + str(i)
+                subs_rhs = rhs.subs("x", f"x{i}").subs("y", f"y{i}")
+                subs_map[subs_lhs] = subs_rhs
     factors = set()
     # Go over all of the unrolled intermediates
     for poly in unrolled:
+        if affine:
+            expr = poly
+            for lhs, rhs in subs_map.items():
+                expr = expr.subs(lhs, rhs)
+            if expr.free_symbols:
+                symbols = list(expr.free_symbols)
+                symbols.sort(key=str)
+                poly = Poly(expr, *symbols, domain=poly.domain)
+            else:
+                # Skip if no variables remain (constant poly)
+                continue
         # Factor the intermediate, don't worry about the coeff
         coeff, factor_list = poly.factor_list()
         # Go over all the factors of the intermediate, forget the power
         for factor, power in factor_list:
             # Remove unnecessary variables from the Poly
             reduced = factor.exclude()
-            # If there are only lowercase variables remaining, those are only curve parameters
+            # If there are only one-letter variables remaining, those are only curve parameters
             # so we do not care about the polynomial
-            if all(str(gen).islower() for gen in reduced.gens):  # type: ignore[attr-defined]
+            if all(len(str(gen)) == 1 for gen in reduced.gens):  # type: ignore[attr-defined]
                 continue
             # Divide out the GCD of the coefficients from the poly
             _, reduced = reduced.primitive()

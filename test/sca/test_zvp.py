@@ -21,66 +21,59 @@ def test_unroll(formula):
         assert isinstance(res, Poly)
 
 
-def test_model_map(secp128r1):
-    # to_model_map(secp128r1.curve.coordinate_model)
-    pass
-
-
-@pytest.mark.xfail(reason="Not removing Zs so far.")
 def test_factor_set(formula):
-    factor_set = compute_factor_set(formula)
+    factor_set = compute_factor_set(formula, affine=True)
     assert factor_set is not None
     assert isinstance(factor_set, set)
+    expr_set = set(map(lambda poly: poly.as_expr(), factor_set))
 
     expected_factors = {
         "add-2007-bl": {
-            "Y2",
-            "Y1",
-            "Y1 + Y2",
-            "X2",
-            "X1",
-            "X1 + X2",
-            "Y1^2 + 2*Y1*Y2 + Y2^2 + X1 + X2",
-            "Y1^2 + 2*Y1*Y2 + Y2^2 + 2*X1 + 2*X2",
-            "X1^2 + X1*X2 + X2^2",
-            "X1^2 + X1*X2 + X2^2 + a",
-            "X1^4 + 2*X1^3*X2 + 3*X1^2*X2^2 + 2*X1*X2^3 + X2^4 - X1*Y1^2 - X2*Y1^2 - 2*X1*Y1*Y2 - 2*X2*Y1*Y2 - X1*Y2^2 - X2*Y2^2 + 2*X1^2*a + 2*X1*X2*a + 2*X2^2*a + a^2",
-            "2*X1^4 + 4*X1^3*X2 + 6*X1^2*X2^2 + 4*X1*X2^3 + 2*X2^4 - 3*X1*Y1^2 - 3*X2*Y1^2 - 6*X1*Y1*Y2 - 6*X2*Y1*Y2 - 3*X1*Y2^2 - 3*X2*Y2^2 + 4*X1^2*a + 4*X1*X2*a + 4*X2^2*a + 2*a^2",
-            "2*X1^6 + 6*X1^5*X2 + 12*X1^4*X2^2 + 14*X1^3*X2^3 + 12*X1^2*X2^4 + 6*X1*X2^5 + 2*X2^6 - 3*X1^3*Y1^2 - 6*X1^2*X2*Y1^2 - 6*X1*X2^2*Y1^2 - 3*X2^3*Y1^2 - 6*X1^3*Y1*Y2 - 12*X1^2*X2*Y1*Y2 - 12*X1*X2^2*Y1*Y2 - 6*X2^3*Y1*Y2 - 3*X1^3*Y2^2 - 6*X1^2*X2*Y2^2 - 6*X1*X2^2*Y2^2 - 3*X2^3*Y2^2 + 6*X1^4*a + 12*X1^3*X2*a + 18*X1^2*X2^2*a + 12*X1*X2^3*a + 6*X2^4*a + Y1^4 + 4*Y1^3*Y2 + 6*Y1^2*Y2^2 + 4*Y1*Y2^3 + Y2^4 - 3*X1*Y1^2*a - 3*X2*Y1^2*a - 6*X1*Y1*Y2*a - 6*X2*Y1*Y2*a - 3*X1*Y2^2*a - 3*X2*Y2^2*a + 6*X1^2*a^2 + 6*X1*X2*a^2 + 6*X2^2*a^2 + 2*a^3"
+            "y2",
+            "y1",
+            "y1 + y2",
+            "x2",
+            "x1",
+            "x1 + x2",
+            "y1^2 + 2*y1*y2 + y2^2 + x1 + x2",
+            "y1^2 + 2*y1*y2 + y2^2 + 2*x1 + 2*x2",
+            "x1^2 + x1*x2 + x2^2",
+            "a + x1^2 + x1*x2 + x2^2",
+            "a^2 + x1^4 + 2*x1^3*x2 + 3*x1^2*x2^2 + 2*x1*x2^3 + x2^4 - x1*y1^2 - x2*y1^2 - 2*x1*y1*y2 - 2*x2*y1*y2 - x1*y2^2 - x2*y2^2 + 2*x1^2*a + 2*x1*x2*a + 2*x2^2*a",
+            "2*a^2 + 2*x1^4 + 4*x1^3*x2 + 6*x1^2*x2^2 + 4*x1*x2^3 + 2*x2^4 - 3*x1*y1^2 - 3*x2*y1^2 - 6*x1*y1*y2 - 6*x2*y1*y2 - 3*x1*y2^2 - 3*x2*y2^2 + 4*x1^2*a + 4*x1*x2*a + 4*x2^2*a",
+            "2*a^3 + 2*x1^6 + 6*x1^5*x2 + 12*x1^4*x2^2 + 14*x1^3*x2^3 + 12*x1^2*x2^4 + 6*x1*x2^5 + 2*x2^6 - 3*x1^3*y1^2 - 6*x1^2*x2*y1^2 - 6*x1*x2^2*y1^2 - 3*x2^3*y1^2 - 6*x1^3*y1*y2 - 12*x1^2*x2*y1*y2 - 12*x1*x2^2*y1*y2 - 6*x2^3*y1*y2 - 3*x1^3*y2^2 - 6*x1^2*x2*y2^2 - 6*x1*x2^2*y2^2 - 3*x2^3*y2^2 + 6*x1^4*a + 12*x1^3*x2*a + 18*x1^2*x2^2*a + 12*x1*x2^3*a + 6*x2^4*a + y1^4 + 4*y1^3*y2 + 6*y1^2*y2^2 + 4*y1*y2^3 + y2^4 - 3*x1*y1^2*a - 3*x2*y1^2*a - 6*x1*y1*y2*a - 6*x2*y1*y2*a - 3*x1*y2^2*a - 3*x2*y2^2*a + 6*x1^2*a^2 + 6*x1*x2*a^2 + 6*x2^2*a^2"
         },
         "add-2015-rcb": {
-            "Y2",
-            "Y2 + 1",
-            "Y1",
-            "Y1 + 1",
-            "Y1 + Y2",
-            "X2",
-            "X2 + 1",
-            "X2 + Y2",
-            "X1",
-            "X1 + 1",
-            "X1 + Y1",
-            "X1 + X2",
-            "X1*a + X2*a + 3*b",
-            "-Y1*Y2 + X1*a + X2*a + 3*b",
-            "Y1*Y2 + 1",
-            "Y1*Y2 + X1*a + X2*a + 3*b",
-            "X2*Y1 + X1*Y2",
-            "-X1*X2 + a",
-            "X1*X2 + 1",
-            "X1*X2 + Y1*Y2",
-            "3*X1*X2 + a",
-            "X1*X2*a - a^2 + 3*X1*b + 3*X2*b",
-            "-X2*Y1^2*Y2 - X1*Y1*Y2^2 + 2*X1*X2*Y1*a + X2^2*Y1*a + X1^2*Y2*a + 2*X1*X2*Y2*a - Y1*a^2 - Y2*a^2 + 3*X1*Y1*b + 6*X2*Y1*b + 6*X1*Y2*b + 3*X2*Y2*b",
-            "3*X1*X2^2*Y1 + 3*X1^2*X2*Y2 + Y1^2*Y2 + Y1*Y2^2 + X1*Y1*a + 2*X2*Y1*a + 2*X1*Y2*a + X2*Y2*a + 3*Y1*b + 3*Y2*b",
-            "-3*X1^2*X2^2*a - Y1^2*Y2^2 + X1^2*a^2 + 4*X1*X2*a^2 + X2^2*a^2 - 9*X1^2*X2*b - 9*X1*X2^2*b + a^3 + 3*X1*a*b + 3*X2*a*b + 9*b^2"
+            "y2",
+            "y2 + 1",
+            "y1",
+            "y1 + 1",
+            "y1 + y2",
+            "x2",
+            "x2 + 1",
+            "x2 + y2",
+            "x1",
+            "x1 + 1",
+            "x1 + y1",
+            "x1 + x2",
+            "x1*a + x2*a + 3*b",
+            "-y1*y2 + x1*a + x2*a + 3*b",
+            "y1*y2 + 1",
+            "y1*y2 + x1*a + x2*a + 3*b",
+            "x2*y1 + x1*y2",
+            "-x1*x2 + a",
+            "x1*x2 + 1",
+            "x1*x2 + y1*y2",
+            "3*x1*x2 + a",
+            "a^2 - x1*x2*a - 3*x1*b - 3*x2*b",
+            "x2*y1^2*y2 + x1*y1*y2^2 - 2*x1*x2*y1*a - x2^2*y1*a - x1^2*y2*a - 2*x1*x2*y2*a + y1*a^2 + y2*a^2 - 3*x1*y1*b - 6*x2*y1*b - 6*x1*y2*b - 3*x2*y2*b",
+            "3*x1*x2^2*y1 + 3*x1^2*x2*y2 + y1^2*y2 + y1*y2^2 + x1*y1*a + 2*x2*y1*a + 2*x1*y2*a + x2*y2*a + 3*y1*b + 3*y2*b",
+            "-3*x1^2*x2^2*a - y1^2*y2^2 + x1^2*a^2 + 4*x1*x2*a^2 + x2^2*a^2 - 9*x1^2*x2*b - 9*x1*x2^2*b + a^3 + 3*x1*a*b + 3*x2*a*b + 9*b^2"
         }
     }
     if formula.name in expected_factors:
-        expected_set = set(map(lambda s: Poly(s), expected_factors[formula.name]))
-        print(expected_set)
-        print(len(expected_set), len(factor_set))
-        assert factor_set == expected_set
+        expected_set = set(map(lambda s: Poly(s).as_expr(), expected_factors[formula.name]))
+        assert expr_set == expected_set
 
 
 def test_curve_elimination(secp128r1, formula):
