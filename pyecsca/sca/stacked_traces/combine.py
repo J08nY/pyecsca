@@ -221,9 +221,17 @@ class GPUTraceManager(BaseTraceManager):
         return int(
             chunk_memory_ratio * mem_size / element_size)
 
-    def _gpu_combine1D(self, func, output_count: int = 1) \
+    def _gpu_combine1D(self,
+                       func,
+                       inputs: Optional[
+                           List[npt.NDArray[np.number]]] = None,
+                       output_count: int = 1) \
             -> Union[CombinedTrace, List[CombinedTrace]]:
-        results = self._combine_func(func, output_count)
+        if inputs is None:
+            inputs = [self._traces.samples]
+        else:
+            inputs = [self._traces.samples] + inputs
+        results = self._combine_func(func, inputs, output_count)
 
         if output_count == 1:
             return CombinedTrace(
@@ -237,7 +245,10 @@ class GPUTraceManager(BaseTraceManager):
             in results
         ]
 
-    def _gpu_combine1D_all(self, func, output_count: int = 1) \
+    def _gpu_combine1D_all(self,
+                           func,
+                           inputs: List[npt.NDArray[np.number]],
+                           output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
         """
         Runs a combination function on the samples column-wise.
@@ -251,18 +262,24 @@ class GPUTraceManager(BaseTraceManager):
             raise ValueError("Something went wrong. "
                              "TPB should be an int")
 
-        device_input = cuda.to_device(self._traces.samples)
+        device_inputs = [
+            cuda.to_device(input_)
+            for input_ in inputs
+        ]
         device_outputs = [
             cuda.device_array(self._traces.samples.shape[1])
             for _ in range(output_count)
         ]
 
         bpg = (self._traces.samples.shape[1] + self._tpb - 1) // self._tpb
-        func[bpg, self._tpb](device_input, *device_outputs)
+        func[bpg, self._tpb](*device_inputs, *device_outputs)
         return [device_output.copy_to_host()
                 for device_output in device_outputs]
 
-    def _gpu_combine1D_chunked(self, func, output_count: int = 1) \
+    def _gpu_combine1D_chunked(self,
+                               func,
+                               inputs: List[npt.NDArray[np.number]],
+                               output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
         if self._chunk_size is None:
             raise ValueError("Something went wrong. "
@@ -348,12 +365,19 @@ class GPUTraceManager(BaseTraceManager):
     def variance(self) -> CombinedTrace:
         return cast(CombinedTrace, self._gpu_combine1D(gpu_variance, 1))
 
-    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> List[CombinedTrace]:
         averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
-        return averages, variances
+        return [averages, variances]
 
     def add(self) -> CombinedTrace:
         return cast(CombinedTrace, self._gpu_combine1D(gpu_add, 1))
+
+    def run(self,
+            func: Callable,
+            inputs: Optional[List[npt.NDArray[np.number]]] = None,
+            output_count: int = 1) \
+            -> Union[CombinedTrace, List[CombinedTrace]]:
+        return self._gpu_combine1D(func, inputs, output_count)
 
 
 @cuda.jit(device=True, cache=True)
@@ -390,7 +414,8 @@ def gpu_average(samples: npt.NDArray[np.number],
 
 
 @cuda.jit(device=True, cache=True)
-def _gpu_var_from_avg(col: int, samples: npt.NDArray[np.number],
+def _gpu_var_from_avg(col: int,
+                      samples: npt.NDArray[np.number],
                       averages: npt.NDArray[np.number],
                       result: npt.NDArray[np.number]):
     """
@@ -531,7 +556,8 @@ class CPUTraceManager:
         """
         # TODO: Consider other ways to implement this
         return CombinedTrace(
-            np.average(self.traces.samples[np.apply_along_axis(condition, 1, self.traces.samples)], 1),
+            np.average(self.traces.samples[np.apply_along_axis(
+                condition, 1, self.traces.samples)], 1),
             self.traces.meta
         )
 
