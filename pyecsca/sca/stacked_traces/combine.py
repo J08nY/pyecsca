@@ -87,6 +87,9 @@ class BaseTraceManager:
         raise NotImplementedError
 
 
+ConstInputType = Union[npt.NDArray[np.number], npt.ArrayLike]
+
+
 CHUNK_MEMORY_RATIO = 0.4
 STREAM_COUNT = 4
 
@@ -221,17 +224,17 @@ class GPUTraceManager(BaseTraceManager):
         return int(
             chunk_memory_ratio * mem_size / element_size)
 
+    def get_traces_shape(self) -> Tuple[int, ...]:
+        return self._traces.samples.shape
+
     def _gpu_combine1D(self,
                        func,
-                       inputs: Optional[
-                           List[npt.NDArray[np.number]]] = None,
+                       const_inputs: Optional[
+                           List[ConstInputType]] = None,
                        output_count: int = 1) \
             -> Union[CombinedTrace, List[CombinedTrace]]:
-        if inputs is None:
-            inputs = [self._traces.samples]
-        else:
-            inputs = [self._traces.samples] + inputs
-        results = self._combine_func(func, inputs, output_count)
+        const_inputs = [] if const_inputs is None else const_inputs
+        results = self._combine_func(func, const_inputs, output_count)
 
         if output_count == 1:
             return CombinedTrace(
@@ -247,7 +250,7 @@ class GPUTraceManager(BaseTraceManager):
 
     def _gpu_combine1D_all(self,
                            func,
-                           inputs: List[npt.NDArray[np.number]],
+                           const_inputs: List[ConstInputType],
                            output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
         """
@@ -262,9 +265,10 @@ class GPUTraceManager(BaseTraceManager):
             raise ValueError("Something went wrong. "
                              "TPB should be an int")
 
-        device_inputs = [
-            cuda.to_device(input_)
-            for input_ in inputs
+        samples_input = cuda.to_device(self._traces.samples)
+        device_const_inputs = [
+            cuda.const.array_like(const_input)  # type: ignore
+            for const_input in const_inputs
         ]
         device_outputs = [
             cuda.device_array(self._traces.samples.shape[1])
@@ -272,13 +276,15 @@ class GPUTraceManager(BaseTraceManager):
         ]
 
         bpg = (self._traces.samples.shape[1] + self._tpb - 1) // self._tpb
-        func[bpg, self._tpb](*device_inputs, *device_outputs)
+        func[bpg, self._tpb](samples_input,
+                             *device_const_inputs,
+                             *device_outputs)
         return [device_output.copy_to_host()
                 for device_output in device_outputs]
 
     def _gpu_combine1D_chunked(self,
                                func,
-                               inputs: List[npt.NDArray[np.number]],
+                               inputs: List[ConstInputType],
                                output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
         if self._chunk_size is None:
@@ -307,6 +313,11 @@ class GPUTraceManager(BaseTraceManager):
             for _ in range(self._stream_count)
         ]
 
+        device_const_inputs = [
+            cuda.const.array_like(const_input)  # type: ignore
+            for const_input in inputs
+        ]
+
         chunk_results: List[List[npt.NDArray[np.number]]] = [
             [] for _ in range(output_count)]
 
@@ -319,7 +330,6 @@ class GPUTraceManager(BaseTraceManager):
                 event = events[chunk % self._stream_count]
                 if event is not None:
                     event.wait(stream=stream)
-                # stream.synchronize()
 
                 pinned_input = pinned_input_buffers[chunk % self._stream_count]
                 np.copyto(pinned_input, self._traces.samples[:, start:end])
@@ -335,7 +345,9 @@ class GPUTraceManager(BaseTraceManager):
                 ]
 
                 bpg = (end - start + self._tpb - 1) // self._tpb
-                func[bpg, self._tpb, stream](device_input, *device_outputs)
+                func[bpg, self._tpb, stream](device_input,
+                                             *device_const_inputs,
+                                             *device_outputs)
                 event = cuda.event()
                 event.record(stream=stream)
                 events[chunk % self._stream_count] = event
@@ -374,10 +386,10 @@ class GPUTraceManager(BaseTraceManager):
 
     def run(self,
             func: Callable,
-            inputs: Optional[List[npt.NDArray[np.number]]] = None,
+            const_inputs: Optional[List[ConstInputType]] = None,
             output_count: int = 1) \
             -> Union[CombinedTrace, List[CombinedTrace]]:
-        return self._gpu_combine1D(func, inputs, output_count)
+        return self._gpu_combine1D(func, const_inputs, output_count)
 
 
 @cuda.jit(device=True, cache=True)
