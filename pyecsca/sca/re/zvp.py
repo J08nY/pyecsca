@@ -31,9 +31,15 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Poly]:
     :param affine: Whether to transform the unrolled polynomials (and thus the resulting factors) into affine form.
     :return: List of symbolic intermediate values, in formula coordinate model.
     """
-    params = {var: symbols(var) for var in formula.coordinate_model.curve_model.parameter_names}
-    inputs = {f"{var}{i}": symbols(f"{var}{i}") for var in formula.coordinate_model.variables for i in
-              range(1, formula.num_inputs + 1)}
+    params = {
+        var: symbols(var)
+        for var in formula.coordinate_model.curve_model.parameter_names
+    }
+    inputs = {
+        f"{var}{i}": symbols(f"{var}{i}")
+        for var in formula.coordinate_model.variables
+        for i in range(1, formula.num_inputs + 1)
+    }
     for assumption_string in formula.assumptions_str:
         lhs, rhs = assumption_string.split(" == ")
         if lhs in formula.parameters:
@@ -83,6 +89,7 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Poly]:
     return results
 
 
+@public
 def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
@@ -110,7 +117,9 @@ def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
                 continue
             # Divide out the GCD of the coefficients from the poly
             _, reduced = reduced.primitive()
-            factors.add(reduced)
+            # Make sure the poly has canonical gens order
+            canonical = reduced.reorder()
+            factors.add(canonical)
     return factors
 
 
@@ -124,7 +133,10 @@ def curve_equation(x: Symbol, curve: EllipticCurve, symbolic: bool = True) -> Ex
     :param symbolic: Whether to get the symbolic equation for the curve (with symbolic parameters) or actual curve parameter values.
     :return: The sympy expression of the "ysquared" curve polynomial.
     """
-    parameters = {name: symbols(name) if symbolic else curve.parameters[name] for name in curve.model.parameter_names}
+    parameters = {
+        name: symbols(name) if symbolic else curve.parameters[name]
+        for name in curve.model.parameter_names
+    }
     return eval(compile(curve.model.ysquared, "", mode="eval"), {"x": x, **parameters})
 
 
@@ -218,7 +230,9 @@ def subs_dlog(poly: Poly, k: int, curve: EllipticCurve):
         v_power = max_degree - u_power
         powers[x2i] = 0
         monom = Monomial(powers, gens).as_expr() * term[1]
-        res += Poly(monom, *new_gens, domain=poly.domain) * uv_factors[(u_power, v_power)]
+        res += (
+            Poly(monom, *new_gens, domain=poly.domain) * uv_factors[(u_power, v_power)]
+        )
     return Poly(res, domain=poly.domain)
 
 
@@ -271,8 +285,10 @@ def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
     fe_x2 = curve_equation(x2, curve)
 
     # [FFD] page 11
-    f_prime = fe_x2 * (fe_x1 * 2 * f1 * f12 - 2 * f0 * f2) ** 2 - \
-        (f0 ** 2 + f2 ** 2 * fe_x2 - fe_x1 * (f1 ** 2 + f12 ** 2 * fe_x2)) ** 2
+    f_prime = (
+        fe_x2 * (fe_x1 * 2 * f1 * f12 - 2 * f0 * f2) ** 2
+        - (f0**2 + f2**2 * fe_x2 - fe_x1 * (f1**2 + f12**2 * fe_x2)) ** 2
+    )
     return Poly(f_prime, domain=poly.domain)
 
 
@@ -309,7 +325,13 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
         # Check that the points zero out the original polynomial to filter out erroneous candidates
         for point in pt:
             other = curve.affine_multiply(point, k)
-            inputs = {"x1": point.x, "y1": point.y, "x2": other.x, "y2": other.y, **curve.parameters}
+            inputs = {
+                "x1": point.x,
+                "y1": point.y,
+                "x2": other.x,
+                "y2": other.y,
+                **curve.parameters,
+            }
             res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
             if res == 0:
                 points.add(point)
