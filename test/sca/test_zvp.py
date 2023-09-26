@@ -131,7 +131,7 @@ def test_zvp(secp128r1, formula):
     unrolled = unroll_formula(formula, affine=True)
     # Try all intermediates, zvp_point should return empty set if ZVP points do not exist
     for poly in unrolled:
-        points = zvp_points(poly, secp128r1.curve, 5)
+        points = zvp_points(poly, secp128r1.curve, 5, secp128r1.order)
         assert isinstance(points, set)
 
         # If points are produced, try them all.
@@ -150,7 +150,9 @@ def test_zvp(secp128r1, formula):
     ("y1 + y2", (54027047743185503031379008986257148598, 42633567686060343012155773792291852040), 4),
     ("x1 + x2", (285130337309757533508049972949147801522, 55463852278545391044040942536845640298), 3),
     ("x1*x2 + y1*y2", (155681799415564546404955983367992137717, 227436010604106449719780498844151836756), 5),
-    ("y1*y2 - x1*a - x2*a - 3*b", (169722400242675158455680894146658513260, 33263376472545436059176357032150610796), 4)
+    ("y1*y2 - x1*a - x2*a - 3*b", (169722400242675158455680894146658513260, 33263376472545436059176357032150610796), 4),
+    ("x1", (0, 594107526960909229279178399525926007), 3),
+    ("x2", (234937379492809870217296988280059595814, 101935882302108071650074851009662355573), 4),
 ])
 def test_points(secp128r1, poly_str, point, k):
     pt = Point(AffineCoordinateModel(secp128r1.curve.model),
@@ -158,5 +160,5 @@ def test_points(secp128r1, poly_str, point, k):
                y=Mod(point[1], secp128r1.curve.prime))
     poly_expr = sympify(poly_str)
     poly = Poly(poly_expr, domain=FF(secp128r1.curve.prime))
-    res = zvp_points(poly, secp128r1.curve, k)
+    res = zvp_points(poly, secp128r1.curve, k, secp128r1.order)
     assert pt in res

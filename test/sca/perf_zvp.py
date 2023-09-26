@@ -38,7 +38,7 @@ def main(profiler, mod, operations, directory):
         )
         with Profiler(profiler, directory, f"zvp_p128_{operations}_{mod}"):
             for _ in range(operations):
-                zvp_points(poly, p128.curve, k)
+                zvp_points(poly, p128.curve, k, p128.order)
 
 
 if __name__ == "__main__":

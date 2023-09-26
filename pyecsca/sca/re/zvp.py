@@ -293,46 +293,84 @@ def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
 
 
 @public
-def zvp_points(poly: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
+def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
     """
     Find a set of (affine) ZVP points for a given intermediate value and dlog relationship.
 
     :param poly: The polynomial to zero out, obtained as a result of :py:meth:`.unroll_formula` (or its factor).
     :param curve: The curve to compute over.
     :param k: The discrete-log relationship between the two points, i.e. (x2, x2) = [k](x1, x1)
+    :param n: The curve order.
     :return: The set of points (x1, x1).
     """
     # If input poly is trivial (only in params), abort early
     if not set(symbols("x1,x2,y1,y2")).intersection(poly.gens):  # type: ignore[attr-defined]
         return set()
     poly = Poly(poly, domain=FF(curve.prime))
+    only_1 = all((not str(gen).endswith("2")) for gen in poly.gens)
+    only_2 = all((not str(gen).endswith("1")) for gen in poly.gens)
     # Start with removing all squares of Y1, Y2
     subbed = subs_curve_equation(poly, curve)
     # Remove the Zs by setting them to 1
     removed = remove_z(subbed)
-    # Now remove the rest of the Ys by clever curve equation use
+    # Now remove the rest of the Ys by clever curve equation use, the poly is x-only now
     eliminated = eliminate_y(removed, curve)
-    # Substitute in the mult-by-k map
-    dlog = subs_dlog(eliminated, k, curve)
-    # Put in concrete curve parameters
-    final = subs_curve_params(dlog, curve)
-    # Find the roots (X1)
-    roots = final.ground_roots()
     points = set()
-    # Finally lift the roots to find the points (if any)
-    for root, multiplicity in roots.items():
-        pt = curve.affine_lift_x(Mod(int(root), curve.prime))
-        # Check that the points zero out the original polynomial to filter out erroneous candidates
-        for point in pt:
-            other = curve.affine_multiply(point, k)
-            inputs = {
-                "x1": point.x,
-                "y1": point.y,
-                "x2": other.x,
-                "y2": other.y,
-                **curve.parameters,
-            }
-            res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
-            if res == 0:
-                points.add(point)
+    # Now decide on the special case:
+    if only_1:
+        # if only_1, dlog sub is not necessary, also computing the other point is not necessary
+        final = subs_curve_params(eliminated, curve)
+        roots = final.ground_roots()
+        for root, multiplicity in roots.items():
+            pt = curve.affine_lift_x(Mod(int(root), curve.prime))
+            for point in pt:
+                inputs = {
+                    "x1": point.x,
+                    "y1": point.y,
+                    **curve.parameters
+                }
+                res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
+                if res == 0:
+                    points.add(point)
+    elif only_2:
+        # if only_2, dlog sub is not necessary, then multiply with k_inverse to obtain target point
+        final = subs_curve_params(eliminated, curve)
+        roots = final.ground_roots()
+        k_inv = Mod(k, n).inverse()
+        for root, multiplicity in roots.items():
+            pt = curve.affine_lift_x(Mod(int(root), curve.prime))
+            for point in pt:
+                inputs = {
+                    "x2": point.x,
+                    "y2": point.y,
+                    **curve.parameters
+                }
+                res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
+                if res == 0:
+                    one = curve.affine_multiply(point, int(k_inv))
+                    points.add(one)
+    else:
+        # otherwise we need to sub in the dlog and solve the general case
+        # Substitute in the mult-by-k map
+        dlog = subs_dlog(eliminated, k, curve)
+        # Put in concrete curve parameters
+        final = subs_curve_params(dlog, curve)
+        # Find the roots (X1)
+        roots = final.ground_roots()
+        # Finally lift the roots to find the points (if any)
+        for root, multiplicity in roots.items():
+            pt = curve.affine_lift_x(Mod(int(root), curve.prime))
+            # Check that the points zero out the original polynomial to filter out erroneous candidates
+            for point in pt:
+                other = curve.affine_multiply(point, k)
+                inputs = {
+                    "x1": point.x,
+                    "y1": point.y,
+                    "x2": other.x,
+                    "y2": other.y,
+                    **curve.parameters,
+                }
+                res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
+                if res == 0:
+                    points.add(point)
     return points
