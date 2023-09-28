@@ -18,10 +18,10 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('setup.py') }}
+          key: pip-${{ runner.os }}-3.9-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             pip-${{ runner.os }}-
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python 3.9
         uses: actions/setup-python@v3
         with:
           python-version: "3.9"

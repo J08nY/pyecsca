@@ -25,7 +25,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ matrix.gmp }}-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
+          key: pip-${{ runner.os }}-${{ matrix.gmp }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             pip-${{ runner.os }}-${{ matrix.gmp }}-${{ matrix.python-version }}-
             pip-${{ runner.os }}-${{ matrix.gmp }}-
