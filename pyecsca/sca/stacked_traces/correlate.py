@@ -70,7 +70,8 @@ def _gpu_pearson_corr(samples: DeviceNDArray,
         product_sum += samples[row, col] * intermediate_values[row]
 
     numerator = float(n) * product_sum - samples_sum * intermed_sum[0]
-    denominator = (sqrt(float(n) * samples_sq_sum - samples_sum ** 2)
-                   * sqrt(float(n) * intermed_sq_sum[0] - intermed_sum[0] ** 2))
+    denom_samp = sqrt(float(n) * samples_sq_sum - samples_sum ** 2)
+    denom_int = sqrt(float(n) * intermed_sq_sum[0] - intermed_sum[0] ** 2)
+    denominator = denom_samp * denom_int
 
     result[col] = numerator / denominator
