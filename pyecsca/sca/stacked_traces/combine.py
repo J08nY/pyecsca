@@ -67,7 +67,7 @@ class BaseTraceManager:
         """
         raise NotImplementedError
 
-    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> List[CombinedTrace]:
         """
         Compute the sample average and variance of the
         :paramref:`~.average_and_variance.traces`, sample-wise.
@@ -596,17 +596,17 @@ class CPUTraceManager:
             self.traces.meta
         )
 
-    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> List[CombinedTrace]:
         """
         Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        return (
+        return [
             self.average(),
             self.variance()
-        )
+        ]
 
     def add(self) -> CombinedTrace:
         """
