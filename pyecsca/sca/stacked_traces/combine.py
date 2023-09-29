@@ -363,7 +363,7 @@ class GPUTraceManager(BaseTraceManager):
         return [np.concatenate(chunk_result) for chunk_result in chunk_results]
 
     def average(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_average, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_average))
 
     def conditional_average(self,
                             cond: Callable[[npt.NDArray[np.number]], bool]) \
@@ -371,17 +371,17 @@ class GPUTraceManager(BaseTraceManager):
         raise NotImplementedError()
 
     def standard_deviation(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_std_dev, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_std_dev))
 
     def variance(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_variance, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_variance))
 
     def average_and_variance(self) -> List[CombinedTrace]:
-        averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
+        averages, variances = self._gpu_combine1D(gpu_avg_var, output_count=2)
         return [averages, variances]
 
     def add(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_add, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_add))
 
     def run(self,
             func: Callable,
@@ -416,7 +416,7 @@ def gpu_average(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -467,7 +467,7 @@ def gpu_std_dev(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -486,7 +486,7 @@ def gpu_variance(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -505,7 +505,7 @@ def gpu_avg_var(samples: npt.NDArray[np.number],
     :param result_avg: Result average output array.
     :param result_var: Result variance output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -523,7 +523,7 @@ def gpu_add(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
