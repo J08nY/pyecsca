@@ -4,7 +4,7 @@ from numba import cuda
 from numba.cuda.cudadrv.devicearray import DeviceNDArray
 from math import sqrt
 from typing import List, Optional, Union
-from .combine import GPUTraceManager
+from .combine import InputType, GPUTraceManager
 from .stacked_traces import StackedTraces
 from ..trace.trace import CombinedTrace
 
@@ -28,14 +28,17 @@ def gpu_pearson_corr(intermediate_values: npt.NDArray[np.number],
 
     intermed_sum: np.number = np.sum(intermediate_values)
     intermed_sq_sum: np.number = np.sum(np.square(intermediate_values))
+    inputs: List[InputType] = [intermediate_values,
+                               np.array([intermed_sum]),
+                               np.array([intermed_sq_sum])]
 
     return trace_manager.run(
         _gpu_pearson_corr,
-        [intermediate_values, [intermed_sum], [intermed_sq_sum]]
+        inputs
     )
 
 
-@cuda.jit(device=True, cache=True)
+@cuda.jit(cache=True)
 def _gpu_pearson_corr(samples: DeviceNDArray,
                       intermediate_values: DeviceNDArray,
                       intermed_sum: DeviceNDArray,
@@ -66,8 +69,8 @@ def _gpu_pearson_corr(samples: DeviceNDArray,
         samples_sq_sum += samples[row, col] ** 2
         product_sum += samples[row, col] * intermediate_values[row]
 
-    numerator = n * product_sum - samples_sum * intermed_sum
-    denominator = (sqrt(n * samples_sq_sum - samples_sum ** 2)
-                   * sqrt(n * intermed_sq_sum[0] - intermed_sum[0] ** 2))
+    numerator = float(n) * product_sum - samples_sum * intermed_sum[0]
+    denominator = (sqrt(float(n) * samples_sq_sum - samples_sum ** 2)
+                   * sqrt(float(n) * intermed_sq_sum[0] - intermed_sum[0] ** 2))
 
     result[col] = numerator / denominator
