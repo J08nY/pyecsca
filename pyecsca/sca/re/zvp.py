@@ -307,8 +307,8 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
     if not set(symbols("x1,x2,y1,y2")).intersection(poly.gens):  # type: ignore[attr-defined]
         return set()
     poly = Poly(poly, domain=FF(curve.prime))
-    only_1 = all((not str(gen).endswith("2")) for gen in poly.gens)
-    only_2 = all((not str(gen).endswith("1")) for gen in poly.gens)
+    only_1 = all((not str(gen).endswith("2")) for gen in poly.gens)  # type: ignore[attr-defined]
+    only_2 = all((not str(gen).endswith("1")) for gen in poly.gens)  # type: ignore[attr-defined]
     # Start with removing all squares of Y1, Y2
     subbed = subs_curve_equation(poly, curve)
     # Remove the Zs by setting them to 1
