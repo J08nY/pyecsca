@@ -6,11 +6,11 @@ Provides functionality inspired by the Zero-value point attack.
 
 Implements ZVP point construction from [FFD]_.
 """
-from typing import List, Set
+from typing import List, Set, Tuple
 from public import public
 from astunparse import unparse
 
-from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols
+from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
 
 from ...ec.curve import EllipticCurve
 from ...ec.divpoly import mult_by_n
@@ -21,6 +21,10 @@ from ...ec.point import Point
 
 @public
 def unroll_formula(formula: Formula, affine: bool = False) -> List[Poly]:
+    return [poly for _,poly in unroll_formula_with_names(formula, affine)]
+
+
+def unroll_formula_with_names(formula: Formula, affine: bool = False) -> List[Tuple[str, Poly]]:
     """
     Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
 
@@ -68,10 +72,10 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Poly]:
     for op in formula.code:
         result = op(**locls)
         locls[op.result] = result
-        values.append(result)
+        values.append((op.result,result))
 
     results = []
-    for value in values:
+    for result_var, value in values:
         if affine:
             expr = value
             for lhs, rhs in subs_map.items():
@@ -80,12 +84,12 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Poly]:
                 gens = list(expr.free_symbols)
                 gens.sort(key=str)
                 poly = Poly(expr, *gens)
-                results.append(poly)
+                results.append((result_var, poly))
             else:
                 # Skip if no variables remain (constant poly)
                 continue
         else:
-            results.append(Poly(value))
+            results.append((result_var, Poly(value)))
     return results
 
 
@@ -101,10 +105,10 @@ def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
     :param affine: Whether to transform the unrolled polynomials (and thus the resulting factors) into affine form.
     :return: The set of factors present in the formula.
     """
-    unrolled = unroll_formula(formula, affine=affine)
+    unrolled = unroll_formula_with_names(formula, affine=affine)
     factors = set()
     # Go over all of the unrolled intermediates
-    for poly in unrolled:
+    for name, poly in unrolled:
         # Factor the intermediate, don't worry about the coeff
         coeff, factor_list = poly.factor_list()
         # Go over all the factors of the intermediate, forget the power
@@ -120,9 +124,37 @@ def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
             # Make sure the poly has canonical gens order
             canonical = reduced.reorder()
             factors.add(canonical)
+
+    factors = filter_out_rpa_polynomials(factors, formula, unrolled)
     return factors
 
 
+def filter_out_rpa_polynomials(factor_set: Set[Poly], formula: Formula, unrolled: List[Tuple[str, Poly]]) -> Set[Poly]:
+    """
+    Remove polynomials from factorset that imply RPA
+    """
+    
+    # Find polynomials that define the output variables
+    # We save the latest occurence of output variable in the list of ops
+    output_polynomials = {}
+    for name, polynomial in unrolled:
+        if name in formula.outputs:
+            output_polynomials[name] = polynomial
+
+    filtered_factorset = set()
+    for poly in factor_set:
+        # ignore poly = constant*input_variable
+        if poly.is_monomial and poly.is_linear:
+            continue
+        divisible = False
+        for _, output_poly in output_polynomials.items():
+            if div(output_poly, poly)[1] == 0:
+                divisible = True
+        if not divisible:
+            filtered_factorset.add(poly)
+    return filtered_factorset
+                
+    
 def curve_equation(x: Symbol, curve: EllipticCurve, symbolic: bool = True) -> Expr:
     """
     Get the "ysquared" curve polynomial in :paramref:`~.x` for the :paramref:`~.curve`,
