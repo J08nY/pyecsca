@@ -20,11 +20,7 @@ from ...ec.point import Point
 
 
 @public
-def unroll_formula(formula: Formula, affine: bool = False) -> List[Poly]:
-    return [poly for _,poly in unroll_formula_with_names(formula, affine)]
-
-
-def unroll_formula_with_names(formula: Formula, affine: bool = False) -> List[Tuple[str, Poly]]:
+def unroll_formula(formula: Formula, affine: bool = False) -> List[Tuple[str, Poly]]:
     """
     Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
 
@@ -33,7 +29,7 @@ def unroll_formula_with_names(formula: Formula, affine: bool = False) -> List[Tu
 
     :param formula: Formula to unroll.
     :param affine: Whether to transform the unrolled polynomials (and thus the resulting factors) into affine form.
-    :return: List of symbolic intermediate values, in formula coordinate model.
+    :return: List of symbolic intermediate values, with associated variable names.
     """
     params = {
         var: symbols(var)
@@ -72,7 +68,7 @@ def unroll_formula_with_names(formula: Formula, affine: bool = False) -> List[Tu
     for op in formula.code:
         result = op(**locls)
         locls[op.result] = result
-        values.append((op.result,result))
+        values.append((op.result, result))
 
     results = []
     for result_var, value in values:
@@ -105,9 +101,9 @@ def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
     :param affine: Whether to transform the unrolled polynomials (and thus the resulting factors) into affine form.
     :return: The set of factors present in the formula.
     """
-    unrolled = unroll_formula_with_names(formula, affine=affine)
+    unrolled = unroll_formula(formula, affine=affine)
     factors = set()
-    # Go over all of the unrolled intermediates
+    # Go over all the unrolled intermediates
     for name, poly in unrolled:
         # Factor the intermediate, don't worry about the coeff
         coeff, factor_list = poly.factor_list()
@@ -129,13 +125,20 @@ def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
     return factors
 
 
-def filter_out_rpa_polynomials(factor_set: Set[Poly], formula: Formula, unrolled: List[Tuple[str, Poly]]) -> Set[Poly]:
+def filter_out_rpa_polynomials(
+    factor_set: Set[Poly], formula: Formula, unrolled: List[Tuple[str, Poly]]
+) -> Set[Poly]:
     """
-    Remove polynomials from factorset that imply RPA
+    Remove polynomials from factorset that imply RPA points (on input or output).
+
+    :param factor_set: The factor set to filter.
+    :param formula: The formula that the factor set belongs to.
+    :param unrolled: The unrolled formula.
+    :return: The filtered factor set.
     """
-    
+
     # Find polynomials that define the output variables
-    # We save the latest occurence of output variable in the list of ops
+    # We save the latest occurrence of output variable in the list of ops
     output_polynomials = {}
     for name, polynomial in unrolled:
         if name in formula.outputs:
@@ -153,8 +156,8 @@ def filter_out_rpa_polynomials(factor_set: Set[Poly], formula: Formula, unrolled
         if not divisible:
             filtered_factorset.add(poly)
     return filtered_factorset
-                
-    
+
+
 def curve_equation(x: Symbol, curve: EllipticCurve, symbolic: bool = True) -> Expr:
     """
     Get the "ysquared" curve polynomial in :paramref:`~.x` for the :paramref:`~.curve`,
@@ -356,11 +359,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
         for root, multiplicity in roots.items():
             pt = curve.affine_lift_x(Mod(int(root), curve.prime))
             for point in pt:
-                inputs = {
-                    "x1": point.x,
-                    "y1": point.y,
-                    **curve.parameters
-                }
+                inputs = {"x1": point.x, "y1": point.y, **curve.parameters}
                 res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
                 if res == 0:
                     points.add(point)
@@ -372,11 +371,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
         for root, multiplicity in roots.items():
             pt = curve.affine_lift_x(Mod(int(root), curve.prime))
             for point in pt:
-                inputs = {
-                    "x2": point.x,
-                    "y2": point.y,
-                    **curve.parameters
-                }
+                inputs = {"x2": point.x, "y2": point.y, **curve.parameters}
                 res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
                 if res == 0:
                     one = curve.affine_multiply(point, int(k_inv))

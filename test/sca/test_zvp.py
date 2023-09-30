@@ -18,7 +18,7 @@ def formula(secp128r1, request):
 def test_unroll(formula, affine):
     results = unroll_formula(formula, affine=affine)
     assert results is not None
-    for res in results:
+    for name, res in results:
         assert isinstance(res, Poly)
 
 
@@ -30,11 +30,11 @@ def test_factor_set(formula):
 
     expected_factors = {
         "add-2007-bl": {
-            #"y2", RPA
-            #"y1", RPA
-            #"y1 + y2", RPA
-            #"x2", RPA
-            #"x1", RPA
+            # "y2", RPA
+            # "y1", RPA
+            # "y1 + y2", RPA
+            # "x2", RPA
+            # "x1", RPA
             "x1 + x2",
             "y1^2 + 2*y1*y2 + y2^2 + x1 + x2",
             "y1^2 + 2*y1*y2 + y2^2 + 2*x1 + 2*x2",
@@ -45,15 +45,15 @@ def test_factor_set(formula):
             # "2*a^3 + 2*x1^6 + 6*x1^5*x2 + 12*x1^4*x2^2 + 14*x1^3*x2^3 + 12*x1^2*x2^4 + 6*x1*x2^5 + 2*x2^6 - 3*x1^3*y1^2 - 6*x1^2*x2*y1^2 - 6*x1*x2^2*y1^2 - 3*x2^3*y1^2 - 6*x1^3*y1*y2 - 12*x1^2*x2*y1*y2 - 12*x1*x2^2*y1*y2 - 6*x2^3*y1*y2 - 3*x1^3*y2^2 - 6*x1^2*x2*y2^2 - 6*x1*x2^2*y2^2 - 3*x2^3*y2^2 + 6*x1^4*a + 12*x1^3*x2*a + 18*x1^2*x2^2*a + 12*x1*x2^3*a + 6*x2^4*a + y1^4 + 4*y1^3*y2 + 6*y1^2*y2^2 + 4*y1*y2^3 + y2^4 - 3*x1*y1^2*a - 3*x2*y1^2*a - 6*x1*y1*y2*a - 6*x2*y1*y2*a - 3*x1*y2^2*a - 3*x2*y2^2*a + 6*x1^2*a^2 + 6*x1*x2*a^2 + 6*x2^2*a^2" RPA
         },
         "add-2015-rcb": {
-            #"y2", RPA
+            # "y2", RPA
             "y2 + 1",
-            #"y1", RPA
+            # "y1", RPA
             "y1 + 1",
             "y1 + y2",
-            #"x2", RPA
+            # "x2", RPA
             "x2 + 1",
             "x2 + y2",
-            #"x1", RPA
+            # "x1", RPA
             "x1 + 1",
             "x1 + y1",
             "x1 + x2",
@@ -67,9 +67,9 @@ def test_factor_set(formula):
             "x1*x2 + y1*y2",
             "3*x1*x2 + a",
             "a^2 - x1*x2*a - 3*x1*b - 3*x2*b",
-            #"x2*y1^2*y2 + x1*y1*y2^2 - 2*x1*x2*y1*a - x2^2*y1*a - x1^2*y2*a - 2*x1*x2*y2*a + y1*a^2 + y2*a^2 - 3*x1*y1*b - 6*x2*y1*b - 6*x1*y2*b - 3*x2*y2*b", RPA
-            #"3*x1*x2^2*y1 + 3*x1^2*x2*y2 + y1^2*y2 + y1*y2^2 + x1*y1*a + 2*x2*y1*a + 2*x1*y2*a + x2*y2*a + 3*y1*b + 3*y2*b", RPA
-            #"-3*x1^2*x2^2*a - y1^2*y2^2 + x1^2*a^2 + 4*x1*x2*a^2 + x2^2*a^2 - 9*x1^2*x2*b - 9*x1*x2^2*b + a^3 + 3*x1*a*b + 3*x2*a*b + 9*b^2" RPA
+            # "x2*y1^2*y2 + x1*y1*y2^2 - 2*x1*x2*y1*a - x2^2*y1*a - x1^2*y2*a - 2*x1*x2*y2*a + y1*a^2 + y2*a^2 - 3*x1*y1*b - 6*x2*y1*b - 6*x1*y2*b - 3*x2*y2*b", RPA
+            # "3*x1*x2^2*y1 + 3*x1^2*x2*y2 + y1^2*y2 + y1*y2^2 + x1*y1*a + 2*x2*y1*a + 2*x1*y2*a + x2*y2*a + 3*y1*b + 3*y2*b", RPA
+            # "-3*x1^2*x2^2*a - y1^2*y2^2 + x1^2*a^2 + 4*x1*x2*a^2 + x2^2*a^2 - 9*x1^2*x2*b - 9*x1*x2^2*b + a^3 + 3*x1*a*b + 3*x2*a*b + 9*b^2" RPA
         }
     }
     if formula.name in expected_factors:
@@ -79,7 +79,7 @@ def test_factor_set(formula):
 
 def test_curve_elimination(secp128r1, formula):
     unrolled = unroll_formula(formula, affine=True)
-    subbed = subs_curve_equation(unrolled[-1], secp128r1.curve)
+    subbed = subs_curve_equation(unrolled[-1][1], secp128r1.curve)
     assert subbed is not None
     Y1, Y2 = symbols("Y1,Y2")
 
@@ -92,14 +92,14 @@ def test_curve_elimination(secp128r1, formula):
 
 def test_remove_z(secp128r1, formula):
     unrolled = unroll_formula(formula, affine=True)
-    removed = remove_z(unrolled[-1])
+    removed = remove_z(unrolled[-1][1])
     for gen in removed.gens:
         assert not str(gen).startswith("Z")
 
 
 def test_eliminate_y(secp128r1, formula):
     unrolled = unroll_formula(formula, affine=True)
-    subbed = subs_curve_equation(unrolled[-1], secp128r1.curve)
+    subbed = subs_curve_equation(unrolled[-1][1], secp128r1.curve)
     eliminated = eliminate_y(subbed, secp128r1.curve)
     assert eliminated is not None
     assert isinstance(eliminated, Poly)
@@ -111,7 +111,7 @@ def test_eliminate_y(secp128r1, formula):
 
 def test_full(secp128r1, formula):
     unrolled = unroll_formula(formula, affine=True)
-    subbed = subs_curve_equation(unrolled[-1], secp128r1.curve)
+    subbed = subs_curve_equation(unrolled[-1][1], secp128r1.curve)
     removed = remove_z(subbed)
     eliminated = eliminate_y(removed, secp128r1.curve)
     dlog = subs_dlog(eliminated, 3, secp128r1.curve)
@@ -130,7 +130,7 @@ def test_full(secp128r1, formula):
 def test_zvp(secp128r1, formula):
     unrolled = unroll_formula(formula, affine=True)
     # Try all intermediates, zvp_point should return empty set if ZVP points do not exist
-    for poly in unrolled:
+    for name, poly in unrolled:
         points = zvp_points(poly, secp128r1.curve, 5, secp128r1.order)
         assert isinstance(points, set)
 
