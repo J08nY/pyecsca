@@ -35,17 +35,7 @@ def intermediate_values():
 
 
 def pearson_corr(samples, intermediate_values):
-    int_sum = np.sum(intermediate_values)
-    int_sq_sum = np.sum(np.square(intermediate_values))
-    samples_sum = np.sum(samples, axis=0)
-    samples_sq_sum = np.sum(np.square(samples), axis=0)
-    samples_intermed_sum = np.sum(
-        samples * intermediate_values[:, None], axis=0)
-    n = samples.shape[0]
-
-    return (n * samples_intermed_sum - int_sum * samples_sum) / \
-        (np.sqrt(n * int_sq_sum - int_sum ** 2) *
-         np.sqrt(n * samples_sq_sum - np.square(samples_sum)))
+    return np.corrcoef(samples, intermediate_values, rowvar=False)[-1, :-1]
 
 
 def test_pearson_coef_no_chunking(samples, gpu_manager, intermediate_values):

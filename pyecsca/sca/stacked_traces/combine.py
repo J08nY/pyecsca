@@ -224,7 +224,8 @@ class GPUTraceManager(BaseTraceManager):
         return int(
             chunk_memory_ratio * mem_size / element_size)
 
-    def get_traces_shape(self) -> Tuple[int, ...]:
+    @property
+    def traces_shape(self) -> Tuple[int, ...]:
         return self._traces.samples.shape
 
     def _gpu_combine1D(self,

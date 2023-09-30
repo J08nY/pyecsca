@@ -22,7 +22,7 @@ def gpu_pearson_corr(intermediate_values: npt.NDArray[np.number],
 
     if (len(intermediate_values.shape) != 1
         or (intermediate_values.shape[0]
-            != trace_manager.get_traces_shape()[0])):
+            != trace_manager.traces_shape[0])):
         raise ValueError("Intermediate values have to be a vector "
                          "as long as trace_count")
 
@@ -51,6 +51,9 @@ def _gpu_pearson_corr(samples: DeviceNDArray,
     :type samples: npt.NDArray[np.number]
     :param intermediate_values: A 1D array of shape (n,) containing the intermediate values.
     :type intermediate_values: npt.NDArray[np.number]
+    :param intermed_sum: A 1D array of shape (1,) containing the precomputed sum of the intermediate values.
+    :type intermed_sum: npt.NDArray[np.number]
+    :param intermed_sq_sum: A 1D array of shape (1,) containing the precomputed sum of the squares of the intermediate values.
     :param result: A 1D array of shape (m,) to store the resulting correlation coefficients.
     :type result: cuda.devicearray.DeviceNDArray
     """
