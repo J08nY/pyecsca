@@ -30,7 +30,7 @@ def main(profiler, mod, operations, directory):
         p128 = get_params("secg", "secp128r1", "projective")
         formula = p128.curve.coordinate_model.formulas["add-2015-rcb"]
         unrolled = unroll_formula(formula, affine=True)
-        poly = unrolled[6]
+        poly = unrolled[6][1]
         k = 5
 
         click.echo(
