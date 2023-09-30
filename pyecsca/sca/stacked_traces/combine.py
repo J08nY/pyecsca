@@ -67,7 +67,7 @@ class BaseTraceManager:
         """
         raise NotImplementedError
 
-    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> List[CombinedTrace]:
         """
         Compute the sample average and variance of the
         :paramref:`~.average_and_variance.traces`, sample-wise.
@@ -85,6 +85,9 @@ class BaseTraceManager:
         :return:
         """
         raise NotImplementedError
+
+
+InputType = Union[npt.NDArray[np.number], npt.ArrayLike]
 
 
 CHUNK_MEMORY_RATIO = 0.4
@@ -221,9 +224,17 @@ class GPUTraceManager(BaseTraceManager):
         return int(
             chunk_memory_ratio * mem_size / element_size)
 
-    def _gpu_combine1D(self, func, output_count: int = 1) \
+    @property
+    def traces_shape(self) -> Tuple[int, ...]:
+        return self._traces.samples.shape
+
+    def _gpu_combine1D(self,
+                       func,
+                       inputs: Optional[List[InputType]] = None,
+                       output_count: int = 1) \
             -> Union[CombinedTrace, List[CombinedTrace]]:
-        results = self._combine_func(func, output_count)
+        inputs = [] if inputs is None else inputs
+        results = self._combine_func(func, inputs, output_count)
 
         if output_count == 1:
             return CombinedTrace(
@@ -237,7 +248,10 @@ class GPUTraceManager(BaseTraceManager):
             in results
         ]
 
-    def _gpu_combine1D_all(self, func, output_count: int = 1) \
+    def _gpu_combine1D_all(self,
+                           func,
+                           inputs: List[InputType],
+                           output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
         """
         Runs a combination function on the samples column-wise.
@@ -251,18 +265,27 @@ class GPUTraceManager(BaseTraceManager):
             raise ValueError("Something went wrong. "
                              "TPB should be an int")
 
-        device_input = cuda.to_device(self._traces.samples)
+        samples_input = cuda.to_device(self._traces.samples)
+        device_inputs = [
+            cuda.to_device(inp)  # type: ignore
+            for inp in inputs
+        ]
         device_outputs = [
             cuda.device_array(self._traces.samples.shape[1])
             for _ in range(output_count)
         ]
 
         bpg = (self._traces.samples.shape[1] + self._tpb - 1) // self._tpb
-        func[bpg, self._tpb](device_input, *device_outputs)
+        func[bpg, self._tpb](samples_input,
+                             *device_inputs,
+                             *device_outputs)
         return [device_output.copy_to_host()
                 for device_output in device_outputs]
 
-    def _gpu_combine1D_chunked(self, func, output_count: int = 1) \
+    def _gpu_combine1D_chunked(self,
+                               func,
+                               inputs: List[InputType],
+                               output_count: int = 1) \
             -> List[npt.NDArray[np.number]]:
         if self._chunk_size is None:
             raise ValueError("Something went wrong. "
@@ -290,6 +313,11 @@ class GPUTraceManager(BaseTraceManager):
             for _ in range(self._stream_count)
         ]
 
+        device_inputs = [
+            cuda.const.array_like(inp)  # type: ignore
+            for inp in inputs
+        ]
+
         chunk_results: List[List[npt.NDArray[np.number]]] = [
             [] for _ in range(output_count)]
 
@@ -302,7 +330,6 @@ class GPUTraceManager(BaseTraceManager):
                 event = events[chunk % self._stream_count]
                 if event is not None:
                     event.wait(stream=stream)
-                # stream.synchronize()
 
                 pinned_input = pinned_input_buffers[chunk % self._stream_count]
                 np.copyto(pinned_input, self._traces.samples[:, start:end])
@@ -318,7 +345,9 @@ class GPUTraceManager(BaseTraceManager):
                 ]
 
                 bpg = (end - start + self._tpb - 1) // self._tpb
-                func[bpg, self._tpb, stream](device_input, *device_outputs)
+                func[bpg, self._tpb, stream](device_input,
+                                             *device_inputs,
+                                             *device_outputs)
                 event = cuda.event()
                 event.record(stream=stream)
                 events[chunk % self._stream_count] = event
@@ -335,7 +364,7 @@ class GPUTraceManager(BaseTraceManager):
         return [np.concatenate(chunk_result) for chunk_result in chunk_results]
 
     def average(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_average, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_average))
 
     def conditional_average(self,
                             cond: Callable[[npt.NDArray[np.number]], bool]) \
@@ -343,17 +372,24 @@ class GPUTraceManager(BaseTraceManager):
         raise NotImplementedError()
 
     def standard_deviation(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_std_dev, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_std_dev))
 
     def variance(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_variance, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_variance))
 
-    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
-        averages, variances = self._gpu_combine1D(gpu_avg_var, 2)
-        return averages, variances
+    def average_and_variance(self) -> List[CombinedTrace]:
+        averages, variances = self._gpu_combine1D(gpu_avg_var, output_count=2)
+        return [averages, variances]
 
     def add(self) -> CombinedTrace:
-        return cast(CombinedTrace, self._gpu_combine1D(gpu_add, 1))
+        return cast(CombinedTrace, self._gpu_combine1D(gpu_add))
+
+    def run(self,
+            func: Callable,
+            inputs: Optional[List[InputType]] = None,
+            output_count: int = 1) \
+            -> Union[CombinedTrace, List[CombinedTrace]]:
+        return self._gpu_combine1D(func, inputs, output_count)
 
 
 @cuda.jit(device=True, cache=True)
@@ -381,7 +417,7 @@ def gpu_average(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -390,7 +426,8 @@ def gpu_average(samples: npt.NDArray[np.number],
 
 
 @cuda.jit(device=True, cache=True)
-def _gpu_var_from_avg(col: int, samples: npt.NDArray[np.number],
+def _gpu_var_from_avg(col: int,
+                      samples: npt.NDArray[np.number],
                       averages: npt.NDArray[np.number],
                       result: npt.NDArray[np.number]):
     """
@@ -431,7 +468,7 @@ def gpu_std_dev(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -450,7 +487,7 @@ def gpu_variance(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -469,7 +506,7 @@ def gpu_avg_var(samples: npt.NDArray[np.number],
     :param result_avg: Result average output array.
     :param result_var: Result variance output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -487,7 +524,7 @@ def gpu_add(samples: npt.NDArray[np.number],
     :param samples: Stacked traces' samples.
     :param result: Result output array.
     """
-    col = cuda.grid(1)
+    col = cuda.grid(1)  # type: ignore
 
     if col >= samples.shape[1]:
         return
@@ -531,7 +568,8 @@ class CPUTraceManager:
         """
         # TODO: Consider other ways to implement this
         return CombinedTrace(
-            np.average(self.traces.samples[np.apply_along_axis(condition, 1, self.traces.samples)], 1),
+            np.average(self.traces.samples[np.apply_along_axis(
+                condition, 1, self.traces.samples)], 1),
             self.traces.meta
         )
 
@@ -559,17 +597,17 @@ class CPUTraceManager:
             self.traces.meta
         )
 
-    def average_and_variance(self) -> Tuple[CombinedTrace, CombinedTrace]:
+    def average_and_variance(self) -> List[CombinedTrace]:
         """
         Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
 
         :param traces:
         :return:
         """
-        return (
+        return [
             self.average(),
             self.variance()
-        )
+        ]
 
     def add(self) -> CombinedTrace:
         """
