@@ -6,7 +6,7 @@ from pyecsca.ec.point import Point, InfinityPoint
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.key_agreement import KeyAgreement
-from pyecsca.ec.signature import Signature
+from pyecsca.ec.signature import Signature, SignatureResult
 from pyecsca.ec.formula import FormulaAction
 from pyecsca.ec.context import Context, DefaultContext, local
 from pyecsca.sca.attack import LeakageModel
@@ -24,7 +24,7 @@ class EmulatorTarget(Target):
     mult: ScalarMultiplier
     params: Optional[DomainParameters]
     leakage_model: LeakageModel
-    privkey: Optional[int]
+    privkey: Optional[Mod]
     pubkey: Optional[Point]
 
     def __init__(self, model: CurveModel, coords: CoordinateModel, mult: ScalarMultiplier):
@@ -81,7 +81,7 @@ class EmulatorTarget(Target):
             priv, pub =  keygen.generate()
         return (priv, pub), self.get_trace(ctx)
 
-    def set_privkey(self, privkey: int) -> None:
+    def set_privkey(self, privkey: Mod) -> None:
         self.privkey = privkey
 
     def set_pubkey(self, pubkey: Point) -> None:
@@ -93,13 +93,13 @@ class EmulatorTarget(Target):
             shared_secret = ecdh.perform()
         return shared_secret, self.get_trace(ctx)
 
-    def ecdsa_sign(self, data: bytes, hash_algo=None) -> Tuple[bytes, Trace]:
+    def ecdsa_sign(self, data: bytes, hash_algo=None) -> Tuple[SignatureResult, Trace]:
         with local(DefaultContext()) as ctx:
             ecdsa = Signature(self.mult, self.params, self.mult.formulas["add"], self.pubkey, self.privkey, hash_algo)
             signed_data = ecdsa.sign_data(data)
         return signed_data, self.get_trace(ctx)
 
-    def ecdsa_verify(self, data: bytes, signature: bytes, hash_algo=None) -> Tuple[bool, Trace]:
+    def ecdsa_verify(self, data: bytes, signature: SignatureResult, hash_algo=None) -> Tuple[bool, Trace]:
         with local(DefaultContext()) as ctx:
             ecdsa = Signature(self.mult, self.params, self.mult.formulas["add"], self.pubkey, hash_algo) 
             verified = ecdsa.verify_data(signature, data)
@@ -109,12 +109,12 @@ class EmulatorTarget(Target):
         return self.model.shortname, self.coords.name
 
     def connect(self):
-        super().connect()
+        pass
 
     def disconnect(self):
-        super().disconnect()
+        pass
     
-    def set_strigger(self):
+    def set_trigger(self):
         pass
 
     def quit(self):
