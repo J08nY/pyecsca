@@ -86,6 +86,7 @@ class EFDCoordinateModel(CoordinateModel):
         self.satisfying = []
         self.toaffine = []
         self.tosystem = []
+        self.homogweights = {}
         self.parameters = []
         self.assumptions = []
         self.neutral = []
@@ -144,6 +145,12 @@ class EFDCoordinateModel(CoordinateModel):
                     try:
                         code = parse(line[9:].replace("^", "**"), mode="exec")
                         self.tosystem.append(code)
+                    except SyntaxError:
+                        pass
+                elif line.startswith("homogweight"):
+                    try:
+                        var, weight = line[11:].split("=")
+                        self.homogweights[var.strip()] = int(weight)
                     except SyntaxError:
                         pass
                 elif line.startswith("parameter"):

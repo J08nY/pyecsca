@@ -70,6 +70,8 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Tuple[str, Po
         locls[op.result] = result
         values.append((op.result, result))
 
+    values = filter_out_nonhomogenous_polynomials(formula, values)
+
     results = []
     for result_var, value in values:
         if affine:
@@ -87,6 +89,61 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Tuple[str, Po
         else:
             results.append((result_var, Poly(value)))
     return results
+
+
+def filter_out_nonhomogenous_polynomials(formula: Formula, unrolled: List[Tuple[str, Poly]]) -> List[Tuple[str, Poly]]:
+    """
+    Remove unrolled polynomials from unrolled formula that are not homogenous.
+
+    :param formula: The original formula.
+    :param unrolled: The unrolled formula to filter.
+    :return: The filtered unrolled formula.
+    """
+    if "mmadd" in formula.name:
+        return unrolled
+    homogenity_weights = formula.coordinate_model.homogweights
+    
+    # we have to group variables by points and check homogenity for each group
+    input_variables_grouped = {}
+    for var in formula.inputs:
+        # here we assume that the index of the variable is <10 and on the last position
+        group = input_variables_grouped.setdefault(var[-1],[])
+        group.append(var)
+
+    # zadd formulas have Z1=Z2 and so we put all variables in the same group
+    if "zadd" in formula.name:
+        input_variables_grouped = {1: sum(input_variables_grouped.values(), [])}
+
+    filtered_unroll = []
+    for name, polynomial in unrolled:
+        homogenous = True
+        for point_index, variables in input_variables_grouped.items():
+            weighted_variables = [(var, homogenity_weights[var[:-1]]) for var in variables]
+
+            # we dont check homogenity for the second point in madd formulas (which is affine)
+            if "madd" in formula.name and point_index == 2:
+                continue
+            homogenous &= is_homogeneous(Poly(polynomial), weighted_variables)
+        if homogenous:
+            filtered_unroll.append((name, polynomial))
+    return filtered_unroll   
+            
+
+def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) -> bool:
+    """
+    Determines whether the polynomial is homogenous with respect to the variables and their weights.
+
+    :param polynomial: The polynomial.
+    :param weighted_variables: The variables and their weights.
+    :return: True if the polynomial is homogenous, otherwise False.
+    """
+    hom = symbols('hom')
+    new_gens = polynomial.gens+(hom,)
+    univariate_poly = polynomial.subs({var: hom**weight for var, weight in weighted_variables})
+    univariate_poly = Poly(univariate_poly, *new_gens, domain = polynomial.domain)
+    hom_index = univariate_poly.gens.index(hom)
+    degrees = set(monom[hom_index] for monom in univariate_poly.monoms())
+    return len(degrees)<=1
 
 
 @public
