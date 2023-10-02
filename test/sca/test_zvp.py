@@ -9,7 +9,7 @@ from pyecsca.ec.context import local, DefaultContext
 from sympy import symbols, Poly, sympify, FF
 
 
-@pytest.fixture(params=["add-2007-bl", "add-2015-rcb"])
+@pytest.fixture(params=["add-2007-bl", "add-2015-rcb", "dbl-2007-bl"])
 def formula(secp128r1, request):
     return secp128r1.curve.coordinate_model.formulas[request.param]
 
@@ -36,8 +36,8 @@ def test_factor_set(formula):
             # "x2", RPA
             # "x1", RPA
             "x1 + x2",
-            "y1^2 + 2*y1*y2 + y2^2 + x1 + x2",
-            "y1^2 + 2*y1*y2 + y2^2 + 2*x1 + 2*x2",
+            #"y1^2 + 2*y1*y2 + y2^2 + x1 + x2", Non-homogenous
+            #"y1^2 + 2*y1*y2 + y2^2 + 2*x1 + 2*x2", Non-homogenous
             "x1^2 + x1*x2 + x2^2",
             "a + x1^2 + x1*x2 + x2^2",
             # "a^2 + x1^4 + 2*x1^3*x2 + 3*x1^2*x2^2 + 2*x1*x2^3 + x2^4 - x1*y1^2 - x2*y1^2 - 2*x1*y1*y2 - 2*x2*y1*y2 - x1*y2^2 - x2*y2^2 + 2*x1^2*a + 2*x1*x2*a + 2*x2^2*a", RPA
@@ -70,7 +70,9 @@ def test_factor_set(formula):
             # "x2*y1^2*y2 + x1*y1*y2^2 - 2*x1*x2*y1*a - x2^2*y1*a - x1^2*y2*a - 2*x1*x2*y2*a + y1*a^2 + y2*a^2 - 3*x1*y1*b - 6*x2*y1*b - 6*x1*y2*b - 3*x2*y2*b", RPA
             # "3*x1*x2^2*y1 + 3*x1^2*x2*y2 + y1^2*y2 + y1*y2^2 + x1*y1*a + 2*x2*y1*a + 2*x1*y2*a + x2*y2*a + 3*y1*b + 3*y2*b", RPA
             # "-3*x1^2*x2^2*a - y1^2*y2^2 + x1^2*a^2 + 4*x1*x2*a^2 + x2^2*a^2 - 9*x1^2*x2*b - 9*x1*x2^2*b + a^3 + 3*x1*a*b + 3*x2*a*b + 9*b^2" RPA
-        }
+        },
+        "dbl-2007-bl": {"a + 3*x1^2", "a^2 + 6*x1^2*a + 9*x1^4 - 12*x1*y1^2"}
+
     }
     if formula.name in expected_factors:
         expected_set = set(map(lambda s: Poly(s).as_expr(), expected_factors[formula.name]))
