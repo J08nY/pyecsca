@@ -59,19 +59,18 @@ It is currently in an alpha stage of development and thus only provides:
 
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
-The data was partially changed, to make working with it easier.
+The data was partially changed, to make working with it easier. It is available on Github at [crocs-muni/efd](https://github.com/crocs-muni/efd).
 
-It also supports working with [Riscure](https://www.riscure.com) Inspector trace sets, which are of a proprietary format.
+It uses [ChipWhisperer](https://chipwhisperer.com) as one of its targets. It also supports working with [Riscure](https://www.riscure.com) Inspector
+trace sets, which are of a proprietary format.
 
 ### Testing & Development
 
 See the [Makefile](Makefile) for tests, performance measurement, codestyle and type checking commands.
 Use [black](https://github.com/psf/black) for code-formatting.
 
- - [nose2](https://nose2.readthedocs.io)
- - [green](https://github.com/CleanCut/green)
+ - [pytest](https://pytest.org)
  - [mypy](http://mypy-lang.org/)
- - [parameterized](https://github.com/wolever/parameterized)
  - [flake8](https://flake8.pycqa.org/)
  - [coverage](https://coverage.readthedocs.io/)
  - [interrogate](https://interrogate.readthedocs.io/)
@@ -112,5 +111,7 @@ Use [black](https://github.com/psf/black) for code-formatting.
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
+Thanks alot to contributors: Tomas Jusko, Andrej Batora, Vojtech Suchanek and
+to ChipWhisperer/NewAE.
 
 *Development was supported by the Masaryk University grant [MUNI/C/1701/2018](https://www.muni.cz/en/research/projects/46834).*

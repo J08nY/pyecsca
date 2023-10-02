@@ -8,7 +8,8 @@
   authors = [
     { name = "Jan Jancar", email = "johny@neuromancer.sk" },
     { name = "Tomas Jusko" },
-    { name = "Andrej Batora"}
+    { name = "Andrej Batora" },
+    { name = "Vojtech Suchanek" }
   ]
   description = "Python Elliptic Curve cryptography Side Channel Analysis toolkit."
   readme = "README.md"

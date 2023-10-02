@@ -154,8 +154,9 @@ Requirements
 	     - gmpy2_ (and also GMP library)
 
 	*pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
+	The data was partially changed, to make working with it easier. It is available on Github at `crocs-muni/efd`_.
 
-	It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
+	It uses `ChipWhisperer`_ as one of its targets. It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
 
 
 .. dropdown:: Testing & Development
@@ -163,9 +164,7 @@ Requirements
 	See the Makefile for tests, performance measurement, codestyle and type checking commands.
 	Use black_ for code-formatting.
 
-	 - nose2_
-	 - green_
-	 - parameterized_
+	 - pytest_
 	 - mypy_
 	 - flake8_
 	 - coverage_
@@ -210,6 +209,9 @@ License
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
+Thanks alot to contributors: Tomas Jusko, Andrej Batora, Vojtech Suchanek and
+to ChipWhisperer/NewAE.
+
 Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <https://www.muni.cz/en/research/projects/46834>`_.
 
 .. _Numpy: https://www.numpy.org
@@ -232,9 +234,7 @@ Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <htt
 .. _pyscard: https://pyscard.sourceforge.io/
 .. _leia: https://pypi.org/project/smartleia/
 .. _gmpy2: https://gmpy2.readthedocs.io/
-.. _nose2: https://nose2.readthedocs.io
-.. _green: https://github.com/CleanCut/green
-.. _parameterized: https://github.com/wolever/parameterized
+.. _pytest: https://pytest.org
 .. _mypy: http://mypy-lang.org/
 .. _flake8: https://flake8.pycqa.org/
 .. _coverage: https://coverage.readthedocs.io/
@@ -248,4 +248,6 @@ Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <htt
 .. _sphinx-paramlinks: https://pypi.org/project/sphinx-paramlinks/
 .. _sphinx-design: https://pypi.org/project/sphinx_design/
 .. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
+.. _crocs-muni/efd: https://github.com/crocs-muni/efd
+.. _ChipWhisperer: https://chipwhisperer.com
 .. _Riscure: https://www.riscure.com/
