@@ -164,16 +164,20 @@ def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) 
 
 
 @public
-def compute_factor_set(formula: Formula) -> Set[Poly]:
+def compute_factor_set(formula: Formula, affine: bool = True) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
 
     :param formula: Formula to compute the factor set of.
+    :param affine: Whether to transform the polynomials into affine form.
     :return: The set of factors present in the formula.
     """
     unrolled = unroll_formula(formula)
     unrolled = filter_out_nonhomogenous_polynomials(formula, unrolled)
-    unrolled = map_to_affine(formula, unrolled)
+    if affine:
+        unrolled = map_to_affine(formula, unrolled)
+
+    curve_params = set(formula.coordinate_model.curve_model.parameter_names)
 
     factors = set()
     # Go over all the unrolled intermediates
@@ -184,9 +188,8 @@ def compute_factor_set(formula: Formula) -> Set[Poly]:
         for factor, power in factor_list:
             # Remove unnecessary variables from the Poly
             reduced = factor.exclude()
-            # If there are only one-letter variables remaining, those are only curve parameters
-            # so we do not care about the polynomial
-            if all(len(str(gen)) == 1 for gen in reduced.gens):  # type: ignore[attr-defined]
+            # If there are only curve parameters, we do not care about the polynomial
+            if set(reduced.gens).issubset(curve_params):  # type: ignore[attr-defined]
                 continue
             # Divide out the GCD of the coefficients from the poly
             _, reduced = reduced.primitive()

@@ -39,7 +39,7 @@ def test_map_to_affine(formula):
 
 
 def test_factor_set(formula):
-    factor_set = compute_factor_set(formula)
+    factor_set = compute_factor_set(formula, affine=True)
     assert factor_set is not None
     assert isinstance(factor_set, set)
     expr_set = set(map(lambda poly: poly.as_expr(), factor_set))
@@ -154,15 +154,19 @@ def test_zvp(secp128r1, formula):
     unrolled = unroll_formula(formula)
     unrolled = map_to_affine(formula, unrolled)
     # Try all intermediates, zvp_point should return empty set if ZVP points do not exist
+    # Try with a few scalars to actually test more resulting ZVP points
     for name, poly in unrolled:
-        points = zvp_points(poly, secp128r1.curve, 5, secp128r1.order)
+        for k in (2, 3, 5):
+            points = zvp_points(poly, secp128r1.curve, k, secp128r1.order)
+            if points:
+                break
         assert isinstance(points, set)
 
         # If points are produced, try them all.
         for point in points:
             inputs = [point.to_model(formula.coordinate_model, secp128r1.curve)]
             if formula.num_inputs > 1:
-                second_point = secp128r1.curve.affine_multiply(point, 5)
+                second_point = secp128r1.curve.affine_multiply(point, k)
                 inputs.append(
                     second_point.to_model(formula.coordinate_model, secp128r1.curve)
                 )
