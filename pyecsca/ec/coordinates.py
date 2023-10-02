@@ -37,6 +37,8 @@ class CoordinateModel:
     """Map to affine coordinates from system coordinates."""
     tosystem: List[Module]
     """Map from coordinate system to affine coordinates."""
+    homogweights: MutableMapping[str, int]
+    """Weights that homogenize the coordinates."""
     parameters: List[str]
     """Coordinate system parameters."""
     assumptions: List[Module]

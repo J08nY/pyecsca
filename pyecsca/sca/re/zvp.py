@@ -6,7 +6,7 @@ Provides functionality inspired by the Zero-value point attack.
 
 Implements ZVP point construction from [FFD]_.
 """
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Dict
 from public import public
 from astunparse import unparse
 
@@ -20,15 +20,11 @@ from ...ec.point import Point
 
 
 @public
-def unroll_formula(formula: Formula, affine: bool = False) -> List[Tuple[str, Poly]]:
+def unroll_formula(formula: Formula) -> List[Tuple[str, Poly]]:
     """
     Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
 
-    If :paramref:`~.compute_factor_set.affine` is set, the polynomials are transformed
-    to affine form, using some assumptions along the way (e.g. `Z = 1`).
-
     :param formula: Formula to unroll.
-    :param affine: Whether to transform the unrolled polynomials (and thus the resulting factors) into affine form.
     :return: List of symbolic intermediate values, with associated variable names.
     """
     params = {
@@ -48,50 +44,67 @@ def unroll_formula(formula: Formula, affine: bool = False) -> List[Tuple[str, Po
             for curve_param, value in params.items():
                 expr = expr.subs(curve_param, value)
             params[lhs] = expr
-    subs_map = {}
-    if affine:
-        # tosystem_map is the mapping of system variables (without indices) in affine variables (without indices)
-        tosystem_map = {}
-        for code in formula.coordinate_model.tosystem:
-            un = unparse(code).strip()
-            lhs, rhs = un.split(" = ")
-            tosystem_map[lhs] = sympify(rhs, evaluate=False)
-        # subs_map specializes the tosystem_map by adding appropriate indices
-        for i in range(1, formula.num_inputs + 1):
-            for lhs, rhs in tosystem_map.items():
-                subs_lhs = lhs + str(i)
-                subs_rhs = rhs.subs("x", f"x{i}").subs("y", f"y{i}")
-                subs_map[subs_lhs] = subs_rhs
 
     locls = {**params, **inputs}
-    values = []
+    values: List[Tuple[str, Poly]] = []
     for op in formula.code:
-        result = op(**locls)
+        result: Expr = op(**locls)  # type: ignore
         locls[op.result] = result
-        values.append((op.result, result))
+        if result.free_symbols:
+            gens = list(result.free_symbols)
+            gens.sort(key=str)
+            poly = Poly(result, *gens)
+            values.append((op.result, poly))
+        else:
+            # TODO: We cannot create a Poly here, because the result does not have free symbols (i.e. it is a constant)
+            pass
 
-    values = filter_out_nonhomogenous_polynomials(formula, values)
+    return values
+
+
+@public
+def map_to_affine(formula: Formula, polys: List[Tuple[str, Poly]]) -> List[Tuple[str, Poly]]:
+    """
+    Map unrolled polynomials of a formula to affine form, using some assumptions along the way (e.g. `Z = 1`).
+
+    :param formula: The formula the polynomials belong to.
+    :param polys: The polynomials (intermediate values) to map.
+    :return: The mapped intermediate values, with associated variable names.
+    """
+    # tosystem_map is the mapping of system variables (without indices) in affine variables (without indices)
+    tosystem_map = {}
+    for code in formula.coordinate_model.tosystem:
+        un = unparse(code).strip()
+        lhs, rhs = un.split(" = ")
+        tosystem_map[lhs] = sympify(rhs, evaluate=False)
+    subs_map = {}
+    # subs_map specializes the tosystem_map by adding appropriate indices
+    for i in range(1, formula.num_inputs + 1):
+        for lhs, rhs in tosystem_map.items():
+            subs_lhs = lhs + str(i)
+            subs_rhs = rhs.subs("x", f"x{i}").subs("y", f"y{i}")
+            subs_map[subs_lhs] = subs_rhs
 
     results = []
-    for result_var, value in values:
-        if affine:
-            expr = value
-            for lhs, rhs in subs_map.items():
-                expr = expr.subs(lhs, rhs)
-            if expr.free_symbols:
-                gens = list(expr.free_symbols)
-                gens.sort(key=str)
-                poly = Poly(expr, *gens)
-                results.append((result_var, poly))
-            else:
-                # Skip if no variables remain (constant poly)
-                continue
+    for result_var, value in polys:
+        expr = value
+        for lhs, rhs in subs_map.items():
+            expr = expr.subs(lhs, rhs)
+        if expr.free_symbols:
+            gens = list(expr.free_symbols)
+            gens.sort(key=str)
+            poly = Poly(expr, *gens)
+            results.append((result_var, poly))
         else:
-            results.append((result_var, Poly(value)))
+            # TODO: We cannot create a Poly here, because the result does not have free symbols (i.e. it is a constant)
+            #       Though here we do not care.
+            pass
     return results
 
 
-def filter_out_nonhomogenous_polynomials(formula: Formula, unrolled: List[Tuple[str, Poly]]) -> List[Tuple[str, Poly]]:
+def filter_out_nonhomogenous_polynomials(
+    formula: Formula, unrolled: List[Tuple[str, Poly]]
+) -> List[Tuple[str, Poly]]:
     """
     Remove unrolled polynomials from unrolled formula that are not homogenous.
 
@@ -102,12 +115,12 @@ def filter_out_nonhomogenous_polynomials(formula: Formula, unrolled: List[Tuple[
     if "mmadd" in formula.name:
         return unrolled
     homogenity_weights = formula.coordinate_model.homogweights
-    
+
     # we have to group variables by points and check homogenity for each group
-    input_variables_grouped = {}
+    input_variables_grouped: Dict[int, List[str]] = {}
     for var in formula.inputs:
         # here we assume that the index of the variable is <10 and on the last position
-        group = input_variables_grouped.setdefault(var[-1],[])
+        group = input_variables_grouped.setdefault(int(var[-1]), [])
         group.append(var)
 
     # zadd formulas have Z1=Z2 and so we put all variables in the same group
@@ -118,7 +131,9 @@ def filter_out_nonhomogenous_polynomials(formula: Formula, unrolled: List[Tuple[
     for name, polynomial in unrolled:
         homogenous = True
         for point_index, variables in input_variables_grouped.items():
-            weighted_variables = [(var, homogenity_weights[var[:-1]]) for var in variables]
+            weighted_variables = [
+                (var, homogenity_weights[var[:-1]]) for var in variables
+            ]
 
             # we dont check homogenity for the second point in madd formulas (which is affine)
             if "madd" in formula.name and point_index == 2:
@@ -126,8 +141,8 @@ def filter_out_nonhomogenous_polynomials(formula: Formula, unrolled: List[Tuple[
             homogenous &= is_homogeneous(Poly(polynomial), weighted_variables)
         if homogenous:
             filtered_unroll.append((name, polynomial))
-    return filtered_unroll   
-            
+    return filtered_unroll
+
 
 def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) -> bool:
     """
@@ -137,28 +152,29 @@ def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) 
     :param weighted_variables: The variables and their weights.
     :return: True if the polynomial is homogenous, otherwise False.
     """
-    hom = symbols('hom')
-    new_gens = polynomial.gens+(hom,)
-    univariate_poly = polynomial.subs({var: hom**weight for var, weight in weighted_variables})
-    univariate_poly = Poly(univariate_poly, *new_gens, domain = polynomial.domain)
+    hom = symbols("hom")
+    new_gens = polynomial.gens + (hom,)  # type: ignore[attr-defined]
+    univariate_poly = polynomial.subs(
+        {var: hom**weight for var, weight in weighted_variables}
+    )
+    univariate_poly = Poly(univariate_poly, *new_gens, domain=polynomial.domain)
     hom_index = univariate_poly.gens.index(hom)
     degrees = set(monom[hom_index] for monom in univariate_poly.monoms())
-    return len(degrees)<=1
+    return len(degrees) <= 1
 
 
 @public
-def compute_factor_set(formula: Formula, affine: bool = False) -> Set[Poly]:
+def compute_factor_set(formula: Formula) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
 
-    If :paramref:`~.compute_factor_set.affine` is set, the polynomials are transformed
-    to affine form, using some assumptions along the way (e.g. `Z = 1`).
-
     :param formula: Formula to compute the factor set of.
-    :param affine: Whether to transform the unrolled polynomials (and thus the resulting factors) into affine form.
     :return: The set of factors present in the formula.
     """
-    unrolled = unroll_formula(formula, affine=affine)
+    unrolled = unroll_formula(formula)
+    unrolled = filter_out_nonhomogenous_polynomials(formula, unrolled)
+    unrolled = map_to_affine(formula, unrolled)
+
     factors = set()
     # Go over all the unrolled intermediates
     for name, poly in unrolled:
