@@ -3,7 +3,7 @@ import click
 
 from pyecsca.ec.mod import has_gmp
 from pyecsca.misc.cfg import TemporaryConfig
-from pyecsca.sca.re.zvp import zvp_points, unroll_formula
+from pyecsca.sca.re.zvp import zvp_points, unroll_formula, map_to_affine
 from pyecsca.ec.params import get_params
 from test.utils import Profiler
 
@@ -29,7 +29,8 @@ def main(profiler, mod, operations, directory):
         cfg.ec.mod_implementation = mod
         p128 = get_params("secg", "secp128r1", "projective")
         formula = p128.curve.coordinate_model.formulas["add-2015-rcb"]
-        unrolled = unroll_formula(formula, affine=True)
+        unrolled = unroll_formula(formula)
+        unrolled = map_to_affine(formula, unrolled)
         poly = unrolled[6][1]
         k = 5
 
