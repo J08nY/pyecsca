@@ -153,8 +153,8 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
                     if j & (1 << i):
                         points.append(base_points[i])
                 self._points[j] = points[0]
-                for point in points[1:]:
-                    self._points[j] = self._accumulate(self._points[j], point)
+                for other in points[1:]:
+                    self._points[j] = self._accumulate(self._points[j], other)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
