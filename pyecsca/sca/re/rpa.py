@@ -1,8 +1,5 @@
 """
-Provides functionality inspired by the Refined-Power Analysis attack by Goubin.
-
-  A Refined Power-Analysis Attack on Elliptic Curve Cryptosystems, Louis Goubin, PKC '03
-  `<https://dl.acm.org/doi/10.5555/648120.747060>`_
+Provides functionality inspired by the Refined-Power Analysis attack by Goubin [RPA]_.
 """
 from public import public
 from typing import MutableMapping, Optional, Callable, List

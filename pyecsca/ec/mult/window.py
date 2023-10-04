@@ -1,3 +1,4 @@
+"""Provides sliding window and fixed window scalar multipliers (including m-ary, for non power-of-2 m)."""
 from copy import copy
 from typing import Optional, MutableMapping
 from public import public
@@ -49,6 +50,9 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
             return False
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.recoding_direction == other.recoding_direction and self.accumulation_order == other.accumulation_order
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, width={self.width}, recoding_direction={self.recoding_direction}, accumulation_order={self.accumulation_order})"
+
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
             super().init(params, point)
@@ -81,7 +85,15 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
 
 @public
 class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
-    """Like LTRMultiplier, but not binary, but m-ary."""
+    """
+    Like LTRMultiplier, but m-ary, not binary.
+
+    For `m` a power-of-2 this is a fixed window multiplier
+    that works on `log_2(m)` wide windows and uses only doublings
+    to perform the multiplication-by-m between each window addition.
+
+    For other `m` values, this is the m-ary multiplier.
+    """
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
@@ -113,6 +125,9 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         if not isinstance(other, FixedWindowLTRMultiplier):
             return False
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.m == other.m and self.accumulation_order == other.accumulation_order
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, m={self.m}, accumulation_order={self.accumulation_order})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):

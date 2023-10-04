@@ -66,13 +66,13 @@ It is currently in an alpha stage of development and thus only provides:
 
     .. grid-item-card::  Codegen
 
-    	The `codegen <https://github.com/J08nY/pyecsca-codegen>`_ package contains
-    	the code generation functionality.
+        The `codegen <https://github.com/J08nY/pyecsca-codegen>`_ package contains
+        the code generation functionality.
 
     .. grid-item-card::  Notebook
 
-    	The `notebook <https://github.com/J08nY/pyecsca-notebook>`_ repository contains
-    	example notebooks that showcase functionality of the toolkit.
+        The `notebook <https://github.com/J08nY/pyecsca-notebook>`_ repository contains
+        example notebooks that showcase functionality of the toolkit.
 
 
 :fas:`book` Notebooks
@@ -121,66 +121,66 @@ Requirements
 
 .. dropdown:: General
 
-	 - Numpy_
-	 - Scipy_
-	 - sympy_
-	 - atpublic_
-	 - fastdtw_
-	 - asn1crypto_
-	 - h5py_
-	 - holoviews_
-	 - bokeh_
-	 - datashader_
-	 - matplotlib_
-	 - xarray_
-	 - astunparse_
-	 - numba_
+     - Numpy_
+     - Scipy_
+     - sympy_
+     - atpublic_
+     - fastdtw_
+     - asn1crypto_
+     - h5py_
+     - holoviews_
+     - bokeh_
+     - datashader_
+     - matplotlib_
+     - xarray_
+     - astunparse_
+     - numba_
 
-	 - **Optionally**:
+     - **Optionally**:
 
-	   - **Oscilloscope support:**
+       - **Oscilloscope support:**
 
-	     - picosdk_
-	     - picoscope_
-	     - chipwhisperer_
-	   - **Smartcard support:**
+         - picosdk_
+         - picoscope_
+         - chipwhisperer_
+       - **Smartcard support:**
 
-	     - pyscard_
-	   - **LEIA support:**
+         - pyscard_
+       - **LEIA support:**
 
-	     - leia_
-	   - **Faster arithmetic:**
+         - leia_
+       - **Faster arithmetic:**
 
-	     - gmpy2_ (and also GMP library)
+         - gmpy2_ (and also GMP library)
 
-	*pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
-	The data was partially changed, to make working with it easier. It is available on Github at `crocs-muni/efd`_.
+    *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
+    The data was partially changed, to make working with it easier. It is available on Github at `crocs-muni/efd`_.
 
-	It uses `ChipWhisperer`_ as one of its targets. It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
+    It uses `ChipWhisperer`_ as one of its targets. It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
 
 
 .. dropdown:: Testing & Development
 
-	See the Makefile for tests, performance measurement, codestyle and type checking commands.
-	Use black_ for code-formatting.
+    See the Makefile for tests, performance measurement, codestyle and type checking commands.
+    Use black_ for code-formatting.
 
-	 - pytest_
-	 - mypy_
-	 - flake8_
-	 - coverage_
-	 - interrogate_
-	 - pyinstrument_
-	 - pre-commit_
-	 - black_
+     - pytest_
+     - mypy_
+     - flake8_
+     - coverage_
+     - interrogate_
+     - pyinstrument_
+     - pre-commit_
+     - black_
 
 
 .. dropdown:: Docs
 
-	 - sphinx_
-	 - sphinx-autodoc-typehints_
-	 - nbsphinx_
-	 - sphinx-paramlinks_
-	 - sphinx-design_
+     - sphinx_
+     - sphinx-autodoc-typehints_
+     - nbsphinx_
+     - sphinx-paramlinks_
+     - sphinx-design_
 
 License
 =======
@@ -230,7 +230,6 @@ Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <htt
 .. _numba: https://numba.pydata.org/
 .. _picosdk: https://github.com/picotech/picosdk-python-wrappers/
 .. _picoscope: https://github.com/colinoflynn/pico-python
-.. _chipwhisperer: https://github.com/newaetech/chipwhisperer
 .. _pyscard: https://pyscard.sourceforge.io/
 .. _leia: https://pypi.org/project/smartleia/
 .. _gmpy2: https://gmpy2.readthedocs.io/

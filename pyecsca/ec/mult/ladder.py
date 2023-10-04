@@ -1,3 +1,4 @@
+"""Provides ladder-based scalar multipliers, either using the ladder formula, or (diffadd, dbl) or (add, dbl)."""
 from copy import copy
 from typing import Optional
 from public import public
@@ -15,11 +16,20 @@ from ..point import Point
 
 @public
 class LadderMultiplier(ScalarMultiplier):
-    """Montgomery ladder multiplier, using a three input, two output ladder formula."""
+    """
+    Montgomery ladder multiplier, using a three input, two output ladder formula.
+
+    Optionally takes a doubling formula, and if `complete` is false, it requires one.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param complete: Whether it starts processing at full order-bit-length.
+    """
 
     requires = {LadderFormula}
     optionals = {DoublingFormula, ScalingFormula}
     complete: bool
+    """Whether it starts processing at full order-bit-length."""
 
     def __init__(
             self,
@@ -41,6 +51,9 @@ class LadderMultiplier(ScalarMultiplier):
         if not isinstance(other, LadderMultiplier):
             return False
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, complete={self.complete})"
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -69,11 +82,18 @@ class LadderMultiplier(ScalarMultiplier):
 
 @public
 class SimpleLadderMultiplier(ScalarMultiplier):
-    """Montgomery ladder multiplier, using addition and doubling formulas."""
+    """
+    Montgomery ladder multiplier, using addition and doubling formulas.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param complete: Whether it starts processing at full order-bit-length.
+    """
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     complete: bool
+    """Whether it starts processing at full order-bit-length."""
 
     def __init__(
             self,
@@ -93,6 +113,9 @@ class SimpleLadderMultiplier(ScalarMultiplier):
         if not isinstance(other, SimpleLadderMultiplier):
             return False
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, complete={self.complete})"
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -120,11 +143,18 @@ class SimpleLadderMultiplier(ScalarMultiplier):
 
 @public
 class DifferentialLadderMultiplier(ScalarMultiplier):
-    """Montgomery ladder multiplier, using differential addition and doubling formulas."""
+    """
+    Montgomery ladder multiplier, using differential addition and doubling formulas.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param complete: Whether it starts processing at full order-bit-length.
+    """
 
     requires = {DifferentialAdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     complete: bool
+    """Whether it starts processing at full order-bit-length."""
 
     def __init__(
             self,
@@ -144,6 +174,9 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
         if not isinstance(other, DifferentialLadderMultiplier):
             return False
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, complete={self.complete})"
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

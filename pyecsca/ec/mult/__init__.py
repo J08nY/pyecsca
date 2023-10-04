@@ -2,6 +2,7 @@
 
 from .base import *
 from .binary import *
+from .comb import *
 from .ladder import *
 from .naf import *
 from .window import *

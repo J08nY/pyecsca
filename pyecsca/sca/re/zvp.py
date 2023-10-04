@@ -1,8 +1,5 @@
 """
-Provides functionality inspired by the Zero-value point attack.
-
-  Zero-Value Point Attacks on Elliptic Curve Cryptosystem, Toru Akishita & Tsuyoshi Takagi , ISC '03
-  `<https://doi.org/10.1007/10958513_17>`_
+Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
