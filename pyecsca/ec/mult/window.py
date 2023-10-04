@@ -17,13 +17,20 @@ from ..scalar import convert_base, sliding_window_rtl, sliding_window_ltr
 
 @public
 class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
-    """Sliding window scalar multiplier."""
+    """
+    Sliding window scalar multiplier.
+
+    :param width: The width of the sliding-window recoding.
+    :param recoding_direction: The direction for the sliding-window recoding.
+    :param accumulation_order: The order of accumulation of points.
+    """
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
-    complete: bool
     width: int
+    """The width of the sliding-window recoding."""
     recoding_direction: ProcessingDirection
+    """The direction for the sliding-window recoding."""
     _points: MutableMapping[int, Point]
 
     def __init__(
@@ -93,12 +100,15 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     to perform the multiplication-by-m between each window addition.
 
     For other `m` values, this is the m-ary multiplier.
+
+    :param m: The arity of the multiplier.
+    :param accumulation_order: The order of accumulation of points.
     """
 
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
-    complete: bool
     m: int
+    """The arity of the multiplier."""
     _points: MutableMapping[int, Point]
 
     def __init__(

@@ -4,11 +4,11 @@ from typing import MutableMapping, Optional
 
 from public import public
 
-from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
-from pyecsca.ec.mult import AccumulatorMultiplier, ScalarMultiplier, ProcessingDirection, AccumulationOrder, \
+from ..formula import AdditionFormula, DoublingFormula, ScalingFormula
+from ..mult import AccumulatorMultiplier, ScalarMultiplier, ProcessingDirection, AccumulationOrder, \
     PrecomputationAction, ScalarMultiplicationAction
-from pyecsca.ec.params import DomainParameters
-from pyecsca.ec.point import Point
+from ..params import DomainParameters
+from ..point import Point
 
 
 @public
@@ -22,6 +22,7 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
 
     :param always: Whether the addition is always performed.
     :param direction: Whether it is LTR or RTL.
+    :param accumulation_order: The order of accumulation of points.
     :param complete: Whether it starts processing at full order-bit-length.
     """
 
@@ -71,7 +72,8 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
             current_point = point
             for i in range(params.order.bit_length() + 1):
                 self._points[i] = current_point
-                current_point = self._dbl(current_point)
+                if i != params.order.bit_length():
+                    current_point = self._dbl(current_point)
 
     def _ltr(self, scalar: int) -> Point:
         if self.complete:

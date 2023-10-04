@@ -18,6 +18,8 @@ from pyecsca.ec.mult import (
     AccumulationOrder,
     ScalarMultiplier,
     SlidingWindowMultiplier,
+    BGMWMultiplier,
+    CombMultiplier,
 )
 from pyecsca.ec.mult.fixed import FullPrecompMultiplier
 from pyecsca.ec.point import InfinityPoint, Point
@@ -306,8 +308,15 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
                        "direction": tuple(ProcessingDirection),
                        "accumulation_order": tuple(AccumulationOrder)}
     precomps = [FullPrecompMultiplier(add, dbl, scl=scale, **dict(zip(precomp_options.keys(), combination))) for combination in product(*precomp_options.values())]
+    bgmw_options = {"width": (3, 5),
+                    "direction": tuple(ProcessingDirection),
+                    "accumulation_order": tuple(AccumulationOrder)}
+    bgmws = [BGMWMultiplier(add, dbl, scl=scale, **dict(zip(bgmw_options.keys(), combination))) for combination in product(*bgmw_options.values())]
+    comb_options = {"width": (2, 3, 5),
+                    "accumulation_order": tuple(AccumulationOrder)}
+    combs = [CombMultiplier(add, dbl, scl=scale, **dict(zip(comb_options.keys(), combination))) for combination in product(*comb_options.values())]
 
-    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds + slides + precomps
+    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds + slides + precomps + bgmws + combs
     results = []
     for mult in mults:
         mult.init(secp128r1, secp128r1.generator)
