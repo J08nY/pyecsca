@@ -15,8 +15,11 @@ from pyecsca.ec.mult import (
     CoronMultiplier,
     FixedWindowLTRMultiplier,
     ProcessingDirection,
-    AccumulationOrder, ScalarMultiplier, SlidingWindowMultiplier
+    AccumulationOrder,
+    ScalarMultiplier,
+    SlidingWindowMultiplier,
 )
+from pyecsca.ec.mult.fixed import FullPrecompMultiplier
 from pyecsca.ec.point import InfinityPoint, Point
 
 
@@ -298,8 +301,13 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
                        "recoding_direction": tuple(ProcessingDirection),
                        "accumulation_order": tuple(AccumulationOrder)}
     slides = [SlidingWindowMultiplier(add, dbl, scl=scale, **dict(zip(sliding_options.keys(), combination))) for combination in product(*sliding_options.values())]
+    precomp_options = {"always": (True, False),
+                       "complete": (True, False),
+                       "direction": tuple(ProcessingDirection),
+                       "accumulation_order": tuple(AccumulationOrder)}
+    precomps = [FullPrecompMultiplier(add, dbl, scl=scale, **dict(zip(precomp_options.keys(), combination))) for combination in product(*precomp_options.values())]
 
-    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds + slides
+    mults: Sequence[ScalarMultiplier] = ltrs + rtls + bnafs + wnafs + [CoronMultiplier(add, dbl, scale)] + ladders + fixeds + slides + precomps
     results = []
     for mult in mults:
         mult.init(secp128r1, secp128r1.generator)

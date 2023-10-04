@@ -31,7 +31,7 @@ def test_weierstrass_projective(base_independents):
     coords = model.coordinates["projective"]
     configs = list(all_configurations(model=model, coords=coords, **base_independents))
     assert len(set(map(lambda cfg: cfg.scalarmult, configs))) == len(configs)
-    assert len(configs) == 6880
+    assert len(configs) == 9440
 
 
 def test_mult_class(base_independents):
