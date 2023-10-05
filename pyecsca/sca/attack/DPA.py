@@ -7,6 +7,7 @@ from pyecsca.sca.trace.plot import plot_trace
 from typing import Tuple, Dict
 from public import public
 
+
 @public
 class DPA():
 
@@ -30,7 +31,7 @@ class DPA():
         self.doms = {'guess_one' : [], 'guess_zero' : []}
 
     def compute_split_point(self, guessed_scalar: int, target_bit: int, point: Point) -> Point:
-        with(local(DefaultContext())) as ctx:
+        with local(DefaultContext()) as ctx:
             self.mult.init(self.params, point)
             self.mult.multiply(guessed_scalar)
         action_index = -1
@@ -46,8 +47,8 @@ class DPA():
         one_traces = []
         zero_traces = []
         for i in range(len(self.points)):
-            #TODO: works only if the computed split point has "X" coordinate
-            split_value = self.compute_split_point(guessed_scalar, target_bit, self.points[i]).X 
+            # TODO: works only if the computed split point has "X" coordinate
+            split_value = self.compute_split_point(guessed_scalar, target_bit, self.points[i]).X
             if int(split_value) & 1 == 1:
                 one_traces.append(self.traces[i])
             elif int(split_value) & 1 == 0:
@@ -57,7 +58,7 @@ class DPA():
     def calculate_difference_of_means(self, one_traces: list[Trace], zero_traces: list[Trace]) -> Trace:
         avg_ones = average(*one_traces)
         avg_zeros = average(*zero_traces)
-        return subtract(avg_ones, avg_zeros)
+        return subtract(avg_ones, avg_zeros)  # type: ignore
 
     def plot_difference_of_means(self, dom):
         return plot_trace(dom).opts(width=950, height=600)
