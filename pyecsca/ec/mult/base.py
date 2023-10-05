@@ -1,3 +1,6 @@
+"""Provides (mostly abstract) base classes for scalar multipliers, enums used to specify their parameters
+and actions used in them."""
+
 from abc import ABC, abstractmethod
 from copy import copy
 from enum import Enum
@@ -71,9 +74,9 @@ class ScalarMultiplier(ABC):
     """
 
     requires: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
-    """The set of formulas that the multiplier requires."""
+    """The set of formula types that the multiplier requires."""
     optionals: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
-    """The optional set of formulas that the multiplier can use."""
+    """The optional set of formula types that the multiplier can use."""
     short_circuit: bool
     """Whether the formulas will short-circuit upon input of the point at infinity."""
     formulas: Mapping[str, Formula]
@@ -93,9 +96,23 @@ class ScalarMultiplier(ABC):
                 )
                 != 1
         ):
-            raise ValueError
+            raise ValueError("Formulas need to belong to the same coordinate model.")
         self.short_circuit = short_circuit
         self.formulas = {k: v for k, v in formulas.items() if v is not None}
+        found_required = set()
+        for formula in self.formulas.values():
+            for required in self.requires:
+                if isinstance(formula, required):
+                    found_required.add(required)
+                    break
+            else:
+                for optional in self.optionals:
+                    if isinstance(formula, optional):
+                        break
+                else:
+                    raise ValueError("Not required or optional formulas provided.")
+        if found_required != self.requires:
+            raise ValueError("Required formulas missing.")
 
     def _add(self, one: Point, other: Point) -> Point:
         if "add" not in self.formulas:
@@ -216,6 +233,7 @@ class AccumulatorMultiplier(ScalarMultiplier, ABC):
     :param accumulation_order: The order of accumulation of points.
     """
     accumulation_order: AccumulationOrder
+    """The order of accumulation of points."""
 
     def __init__(self, *args, accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR, **kwargs):
         super().__init__(*args, **kwargs)

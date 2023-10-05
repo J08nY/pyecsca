@@ -1,3 +1,4 @@
+"""Provides binary scalar multipliers (LTR and RTL), that process the scalar as-is, bit-by-bit."""
 from abc import ABC
 from copy import copy
 from typing import Optional
@@ -19,16 +20,24 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
     """
     Classic double and add scalar multiplication algorithm.
 
+    .. note::
+        This is an ABC, you should use the `LTRMultiplier` and `RTLMultiplier` classes.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
     :param always: Whether the double and add always method is used.
     :param direction: Whether it is LTR or RTL.
     :param accumulation_order: The order of accumulation of points.
-    :param complete: (Only for LTR, always false for RTL) Whether it starts processing at full order-bit-length.
+    :param complete: Whether it starts processing at full order-bit-length.
     """
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     always: bool
+    """Whether the double and add always method is used."""
     direction: ProcessingDirection
+    """Whether it is LTR or RTL."""
     complete: bool
+    """Whether it starts processing at full order-bit-length."""
 
     def __init__(
             self,
@@ -55,7 +64,7 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order and self.always == other.always and self.complete == other.complete
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order}, always={self.always}, complete={self.complete})"
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, direction={self.direction}, accumulation_order={self.accumulation_order}, always={self.always}, complete={self.complete})"
 
     def _ltr(self, scalar: int) -> Point:
         if self.complete:
@@ -112,6 +121,12 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
 class LTRMultiplier(DoubleAndAddMultiplier):
     """
     Classic double and add scalar multiplication algorithm, that scans the scalar left-to-right (msb to lsb).
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param always: Whether the double and add always method is used.
+    :param accumulation_order: The order of accumulation of points.
+    :param complete: Whether it starts processing at full order-bit-length.
     """
 
     def __init__(
@@ -133,6 +148,12 @@ class LTRMultiplier(DoubleAndAddMultiplier):
 class RTLMultiplier(DoubleAndAddMultiplier):
     """
     Classic double and add scalar multiplication algorithm, that scans the scalar right-to-left (lsb to msb).
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param always: Whether the double and add always method is used.
+    :param accumulation_order: The order of accumulation of points.
+    :param complete: Whether it starts processing at full order-bit-length.
     """
 
     def __init__(
@@ -155,10 +176,10 @@ class CoronMultiplier(ScalarMultiplier):
     """
     Coron's double and add resistant against SPA.
 
-    From:
-    **Resistance against Differential Power Analysis for Elliptic Curve Cryptosystems**
+    From [CO2002]_.
 
-    https://link.springer.com/content/pdf/10.1007/3-540-48059-5_25.pdf
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula}

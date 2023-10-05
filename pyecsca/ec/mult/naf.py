@@ -1,3 +1,4 @@
+"""Provides scalar multipliers based on the Non Adjacent Form (NAF) recoding."""
 from copy import copy
 from typing import Optional, List, MutableMapping
 from public import public
@@ -17,7 +18,14 @@ from ..scalar import naf, wnaf
 
 @public
 class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
-    """Binary NAF (Non Adjacent Form) multiplier."""
+    """
+    Binary NAF (Non Adjacent Form) multiplier.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param direction: Whether it is LTR or RTL.
+    :param accumulation_order: The order of accumulation of points.
+    """
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
@@ -45,7 +53,10 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, BinaryNAFMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, direction={self.direction}, accumulation_order={self.accumulation_order})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
@@ -93,14 +104,25 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
 
 @public
 class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
-    """Window NAF (Non Adjacent Form) multiplier, left-to-right."""
+    """
+    Window NAF (Non Adjacent Form) multiplier, left-to-right.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param width: The width of the window.
+    :param accumulation_order: The order of accumulation of points.
+    :param precompute_negation: Whether to precompute the negation of the precomputed points as well.
+                                It is computed on the fly otherwise.
+    """
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
     _points: MutableMapping[int, Point]
     _points_neg: MutableMapping[int, Point]
     precompute_negation: bool = False
+    """Whether to precompute the negation of the precomputed points as well."""
     width: int
+    """The width of the window."""
 
     def __init__(
             self,
@@ -126,6 +148,9 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         if not isinstance(other, WindowNAFMultiplier):
             return False
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.precompute_negation == other.precompute_negation and self.accumulation_order == other.accumulation_order
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
