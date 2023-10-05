@@ -2,16 +2,16 @@ from pyecsca.ec.coordinates import CoordinateModel
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import CurveModel
 from pyecsca.ec.params import DomainParameters
-from pyecsca.ec.point import Point, InfinityPoint
+from pyecsca.ec.point import Point
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.key_agreement import KeyAgreement
 from pyecsca.ec.signature import Signature, SignatureResult
 from pyecsca.ec.formula import FormulaAction
-from pyecsca.ec.context import Context, DefaultContext, local
+from pyecsca.ec.context import DefaultContext, local
 from pyecsca.sca.attack import LeakageModel
-from pyecsca.sca.trace import Trace, average, subtract
-from typing import Mapping, Union, Optional, Tuple
+from pyecsca.sca.trace import Trace
+from typing import Optional, Tuple
 from public import public
 from .base import Target
 import numpy as np
@@ -23,7 +23,7 @@ class EmulatorTarget(Target):
     coords: CoordinateModel
     mult: ScalarMultiplier
     params: Optional[DomainParameters]
-    leakage_model: LeakageModel
+    leakage_model: Optional[LeakageModel]
     privkey: Optional[Mod]
     pubkey: Optional[Point]
 
@@ -55,7 +55,7 @@ class EmulatorTarget(Target):
             traces.append(trace)
         return points, traces
 
-    def emulate_ecdh_traces(self, num_of_traces: int) -> Tuple[list[Trace], list[Trace]]:
+    def emulate_ecdh_traces(self, num_of_traces: int) -> Tuple[list[Point], list[Trace]]:
         other_pubs = [self.params.curve.affine_random().to_model(self.coords, self.params.curve) for _ in range(num_of_traces)]
         traces = []
         for pub in other_pubs:

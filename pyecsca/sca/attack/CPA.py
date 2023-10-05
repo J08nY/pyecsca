@@ -7,6 +7,7 @@ from pyecsca.sca.trace import Trace
 from public import public
 from scipy.stats import pearsonr
 from pyecsca.sca.attack.leakage_model import LeakageModel
+from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
@@ -45,7 +46,7 @@ class CPA():
         result = ctx.actions.get_by_index([0, action_index])[0]
         return result.output_points[0].X
 
-    def compute_correlation_trace(self, guessed_scalar: int, target_bit: int) -> list[any]:
+    def compute_correlation_trace(self, guessed_scalar: int, target_bit: int) -> list[Any]:
         correlation_trace = []
         intermediate_values = []
         for i in range(len(self.points)):
