@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 @public
 class CPA():
 
-    traces: list[Trace]
+    traces: NDArray
     points: list[Point]
     mult: ScalarMultiplier
     params: DomainParameters
@@ -45,7 +45,7 @@ class CPA():
         result = ctx.actions.get_by_index([0, action_index])[0]
         return result.output_points[0].X
 
-    def compute_correlation_trace(self, guessed_scalar: int, target_bit: int) -> NDArray:
+    def compute_correlation_trace(self, guessed_scalar: int, target_bit: int) -> list[any]:
         correlation_trace = []
         intermediate_values = []
         for i in range(len(self.points)):
