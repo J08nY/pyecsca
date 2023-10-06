@@ -9,7 +9,8 @@ from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from importlib_resources.abc import Traversable
 from public import public
-from sympy import sympify, FF, symbols, Poly, Rational
+from sympy import FF, symbols, Poly, Rational
+from ..misc.cache import sympify
 
 from .context import ResultAction
 from . import context
