@@ -76,4 +76,3 @@ class CPA():
         for target_bit in range(1, scalar_bit_length):
             recovered_scalar = self.recover_bit(recovered_scalar, target_bit, scalar_bit_length, real_pub_key)
         return recovered_scalar
-    
