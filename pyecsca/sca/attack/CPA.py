@@ -7,9 +7,9 @@ from pyecsca.sca.trace import Trace
 from public import public
 from scipy.stats import pearsonr
 from pyecsca.sca.attack.leakage_model import LeakageModel
-from typing import Any
 import numpy as np
 from numpy.typing import NDArray
+
 
 @public
 class CPA():
@@ -34,7 +34,7 @@ class CPA():
         self.leakage_model = leakage_model
 
     def compute_intermediate_value(self, guessed_scalar: int, target_bit: int, point: Point) -> Mod:
-        with(local(DefaultContext())) as ctx:
+        with (local(DefaultContext())) as ctx:
             self.mult.init(self.params, point)
             self.mult.multiply(guessed_scalar)
         action_index = -1
@@ -46,14 +46,14 @@ class CPA():
         result = ctx.actions.get_by_index([0, action_index])[0]
         return result.output_points[0].X
 
-    def compute_correlation_trace(self, guessed_scalar: int, target_bit: int) -> list[Any]:
+    def compute_correlation_trace(self, guessed_scalar: int, target_bit: int) -> list[float]:
         correlation_trace = []
         intermediate_values = []
         for i in range(len(self.points)):
             intermediate_value = self.compute_intermediate_value(guessed_scalar, target_bit, self.points[i])
             intermediate_values.append(self.leakage_model(intermediate_value))
         for trace in self.traces:
-            correlation_trace.append(pearsonr(intermediate_values, trace)[0]) 
+            correlation_trace.append(pearsonr(intermediate_values, trace)[0])
         return correlation_trace
 
     def recover_bit(self, recovered_scalar: int, target_bit: int, scalar_bit_length: int, real_pub_key: Point) -> int:
@@ -68,7 +68,7 @@ class CPA():
         correlation_trace_0 = self.compute_correlation_trace(guessed_scalar_0, target_bit)
         correlation_trace_1 = self.compute_correlation_trace(guessed_scalar_1, target_bit)
         if np.nanmax(np.abs(correlation_trace_0)) > np.nanmax(np.abs(correlation_trace_1)):
-           return guessed_scalar_0
+            return guessed_scalar_0
         return guessed_scalar_1
 
     def perform(self, scalar_bit_length: int, real_pub_key: Point) -> int:
@@ -76,3 +76,4 @@ class CPA():
         for target_bit in range(1, scalar_bit_length):
             recovered_scalar = self.recover_bit(recovered_scalar, target_bit, scalar_bit_length, real_pub_key)
         return recovered_scalar
+    
