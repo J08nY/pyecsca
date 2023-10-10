@@ -2,16 +2,16 @@ from pyecsca.ec.coordinates import CoordinateModel
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.model import CurveModel
 from pyecsca.ec.params import DomainParameters
-from pyecsca.ec.point import Point, InfinityPoint
+from pyecsca.ec.point import Point
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.key_agreement import KeyAgreement
 from pyecsca.ec.signature import Signature, SignatureResult
 from pyecsca.ec.formula import FormulaAction
-from pyecsca.ec.context import Context, DefaultContext, local
+from pyecsca.ec.context import DefaultContext, local
 from pyecsca.sca.attack import LeakageModel
-from pyecsca.sca.trace import Trace, average, subtract
-from typing import Mapping, Union, Optional, Tuple
+from pyecsca.sca.trace import Trace
+from typing import Optional, Tuple
 from public import public
 from .base import Target
 import numpy as np
