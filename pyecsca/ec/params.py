@@ -5,7 +5,7 @@ It also provides a domain parameter class and a class for a whole category of do
 """
 import json
 import csv
-from sympy import Poly, FF, symbols, sympify
+from sympy import Poly, FF, symbols
 from astunparse import unparse
 from io import RawIOBase, BufferedIOBase
 from pathlib import Path
@@ -14,6 +14,7 @@ from importlib_resources import files
 
 from public import public
 
+from ..misc.cache import sympify
 from .coordinates import AffineCoordinateModel, CoordinateModel
 from .curve import EllipticCurve
 from .error import raise_unsatisified_assumption

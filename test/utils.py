@@ -62,7 +62,7 @@ class Profiler:
         if self._state != "out":
             raise ValueError
         if self._prof_type == "py":
-            print(self._prof.output_text(unicode=True, color=True, show_all=True))
+            print(self._prof.output_text(unicode=True, color=True))
         else:
             self._prof.print_stats("cumtime")
 

@@ -81,3 +81,6 @@ markers = [
 filterwarnings = [
     "ignore:Deprecated call to `pkg_resources.declare_namespace"
 ]
+
+[tool.mypy]
+plugins = "numpy.typing.mypy_plugin"

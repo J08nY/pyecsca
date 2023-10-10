@@ -5,7 +5,8 @@ from copy import copy
 from typing import MutableMapping, Union, List, Optional, Dict, Set
 
 from public import public
-from sympy import FF, sympify
+from sympy import FF
+from ..misc.cache import sympify
 
 from .coordinates import CoordinateModel, AffineCoordinateModel
 from .error import raise_unsatisified_assumption

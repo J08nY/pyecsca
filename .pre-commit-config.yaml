@@ -16,6 +16,7 @@ repos:
     -   id: mypy
         additional_dependencies:
             - "types-setuptools"
+            - "numpy"
         args: [--ignore-missing-imports, --show-error-codes, --namespace-packages, --explicit-package-bases, --check-untyped-defs]
 -   repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
