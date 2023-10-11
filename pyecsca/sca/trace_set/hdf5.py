@@ -84,6 +84,8 @@ class HDF5TraceSet(TraceSet):
             hdf5 = h5py.File(input, mode="r")
         else:
             raise TypeError
+        if "traces" not in hdf5:
+            hdf5.create_group("traces", track_order=True)
         group = hdf5["traces"]
         kwargs = dict(group.attrs)
         ordering = []
@@ -103,6 +105,8 @@ class HDF5TraceSet(TraceSet):
             hdf5 = h5py.File(input, mode="a")
         else:
             raise TypeError
+        if "traces" not in hdf5:
+            hdf5.create_group("traces", track_order=True)
         group = hdf5["traces"]
         kwargs = dict(group.attrs)
         ordering = []
