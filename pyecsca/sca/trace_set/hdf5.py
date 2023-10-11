@@ -73,7 +73,8 @@ class HDF5TraceSet(TraceSet):
         self._file = _file
         if _ordering is None:
             _ordering = [str(uuid.uuid4()) for _ in traces]
-        super().__init__(*traces, **kwargs, _ordering=_ordering)
+        self._ordering = _ordering
+        super().__init__(*traces, **kwargs)
 
     @classmethod
     def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
@@ -83,17 +84,16 @@ class HDF5TraceSet(TraceSet):
             hdf5 = h5py.File(input, mode="r")
         else:
             raise TypeError
-        kwargs = dict(hdf5.attrs)
-        kwargs["_ordering"] = (
-            list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
-        )
+        group = hdf5["traces"]
+        kwargs = dict(group.attrs)
+        ordering = []
         traces = []
-        for k in kwargs["_ordering"]:
-            meta = dict(HDF5Meta(hdf5[k].attrs))
-            samples = hdf5[k]
+        for k, samples in group.items():
+            meta = dict(HDF5Meta(samples.attrs))
             traces.append(Trace(np.array(samples, dtype=samples.dtype), meta))
+            ordering.append(k)
         hdf5.close()
-        return HDF5TraceSet(*traces, **kwargs)
+        return HDF5TraceSet(*traces, **kwargs, _ordering=ordering)
 
     @classmethod
     def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
@@ -103,37 +103,33 @@ class HDF5TraceSet(TraceSet):
             hdf5 = h5py.File(input, mode="a")
         else:
             raise TypeError
-        kwargs = dict(hdf5.attrs)
-        kwargs["_ordering"] = (
-            list(kwargs["_ordering"]) if "_ordering" in kwargs else list(hdf5.keys())
-        )
+        group = hdf5["traces"]
+        kwargs = dict(group.attrs)
+        ordering = []
         traces = []
-        for k in kwargs["_ordering"]:
-            meta = HDF5Meta(hdf5[k].attrs)
-            samples = hdf5[k]
+        for k, samples in group.items():
+            meta = HDF5Meta(samples.attrs)
             traces.append(Trace(samples, meta))
-        return HDF5TraceSet(*traces, **kwargs, _file=hdf5)  # type: ignore[misc]
+            ordering.append(k)
+        return HDF5TraceSet(*traces, **kwargs, _file=hdf5, _ordering=ordering)  # type: ignore[misc]
 
-    def insert(self, index: int, value: Trace) -> Trace:
+    def append(self, value: Trace) -> Trace:
         key = str(uuid.uuid4())
-        self._ordering.insert(index, key)
         if self._file is not None:
-            new_samples = self._file.create_dataset(key, data=value.samples)
+            group = self._file["traces"]
+            new_samples = group.create_dataset(key, data=value.samples)
             new_meta = HDF5Meta(new_samples.attrs)
             if value.meta:
                 for k, v in value.meta.items():
                     new_meta[k] = v
             value = Trace(new_samples, new_meta)
-            self._file.attrs["_ordering"] = self._ordering
 
-        self._traces.insert(index, value)
+        self._ordering.append(key)
+        self._traces.append(value)
         return value
 
     def get(self, index: int) -> Trace:
         return self[index]
-
-    def append(self, value: Trace) -> Trace:
-        return self.insert(len(self), value)
 
     def remove(self, value: Trace):
         if value in self._traces:
@@ -142,8 +138,8 @@ class HDF5TraceSet(TraceSet):
             self._ordering.remove(key)
             self._traces.remove(value)
             if self._file:
-                self._file.pop(key)
-                self._file.attrs["_ordering"] = self._ordering
+                group = self._file["traces"]
+                group.pop(key)
         else:
             raise KeyError
 
@@ -173,12 +169,11 @@ class HDF5TraceSet(TraceSet):
             hdf5 = h5py.File(output, "w")
         else:
             raise ValueError
+        group = hdf5.create_group("traces", track_order=True)
         for k in self._keys:
-            hdf5.attrs[k] = getattr(self, k)
-        hdf5.attrs["_ordering"] = self._ordering
-        for i, k in enumerate(self._ordering):
-            trace = self[i]
-            dset = hdf5.create_dataset(k, data=trace.samples)
+            group.attrs[k] = getattr(self, k)
+        for k, trace in zip(self._ordering, self):
+            dset = group.create_dataset(k, data=trace.samples)
             if trace.meta:
                 meta = HDF5Meta(dset.attrs)
                 for key, val in trace.meta.items():
@@ -201,4 +196,4 @@ class HDF5TraceSet(TraceSet):
                 if not key.startswith("_")
             ]
         )
-        return f"HDF5TraceSet('{fname}'{status}, {args})"
+        return f"HDF5TraceSet('{fname}'{status}, {args} <{len(self)}>)"

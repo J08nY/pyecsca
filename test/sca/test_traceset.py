@@ -117,20 +117,20 @@ def test_h5_inplace():
         shutil.copy(orig_path, path)
         trace_set = HDF5TraceSet.inplace(path)
         assert trace_set is not None
-        test_trace = Trace(np.array([6, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
-        other_trace = Trace(np.array([15, 7], dtype=np.dtype("i1")), meta={"a": "b"})
+        test_trace = Trace(np.array([4, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
+        other_trace = Trace(np.array([8, 7], dtype=np.dtype("i1")), meta={"a": "b"})
         trace_set.append(test_trace)
-        assert len(trace_set) == 4
+        assert len(trace_set) == 3
         trace_set.append(other_trace)
         trace_set.remove(other_trace)
-        assert len(trace_set) == 4
+        assert len(trace_set) == 3
         trace_set.save()
         trace_set.close()
         test_set = HDF5TraceSet.read(path)
-        assert test_set.get(3) == test_set[3]
-        assert np.array_equal(test_set[3].samples, test_trace.samples)
-        assert test_set[3].meta["thing"] == test_trace.meta["thing"]
-        assert test_set[3] == test_trace
+        assert test_set.get(2) == test_set[2]
+        assert np.array_equal(test_set[2].samples, test_trace.samples)
+        assert test_set[2].meta["thing"] == test_trace.meta["thing"]
+        assert test_set[2] == test_trace
 
 
 def test_h5_save(example_traces, example_kwargs):
