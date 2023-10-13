@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyecsca.sca import Trace, trim, reverse, pad
+from pyecsca.sca import Trace, trim, reverse, pad, stretch
 
 
 @pytest.fixture()
@@ -48,3 +48,11 @@ def test_pad(trace):
         result.samples,
         np.array([0, 10, 20, 30, 40, 50, 0, 0, 0], dtype=np.dtype("i1")),
     )
+
+
+def test_stretch(trace):
+    result = stretch(trace, 10)
+    assert result is not None
+    assert np.min(result) == min(trace)
+    assert np.max(result) == max(trace)
+    assert len(result) == 10

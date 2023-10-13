@@ -11,9 +11,9 @@ def trim(trace: Trace, start: Optional[int] = None, end: Optional[int] = None) -
     """
     Trim the `trace` samples, output contains samples between the `start` and `end` indices.
 
-    :param trace:
-    :param start:
-    :param end:
+    :param trace: The trace to trim.
+    :param start: Starting index (inclusive).
+    :param end: Ending index (exclusive).
     :return:
     """
     if start is None:
@@ -30,7 +30,7 @@ def reverse(trace: Trace) -> Trace:
     """
     Reverse the samples of the `trace`.
 
-    :param trace:
+    :param trace: The trace to reverse.
     :return:
     """
     return trace.with_samples(np.flipud(trace.samples))
@@ -45,9 +45,9 @@ def pad(
     """
     Pad the samples of the `trace` by `values` at the beginning and end.
 
-    :param trace:
+    :param trace: The trace to pad.
     :param lengths: How much to pad at the beginning and end, either symmetric (if integer) or asymmetric (if tuple).
-    :param values: What value to pad with,  either symmetric or asymmetric (if tuple).
+    :param values: What value to pad with, either symmetric or asymmetric (if tuple).
     :return:
     """
     if not isinstance(lengths, tuple):
@@ -57,3 +57,17 @@ def pad(
     return trace.with_samples(
         np.pad(trace.samples, lengths, "constant", constant_values=values)
     )
+
+
+@public
+def stretch(trace: Trace, length: int) -> Trace:
+    """
+    Stretch (or squeeze) a trace linearly to fit a given length.
+
+    :param trace: The trace to stretch (or squeeze).
+    :param length: The length it should be.
+    :return:
+    """
+    current_indices = np.arange(len(trace))
+    target_indices = np.linspace(0, len(trace) - 1, length)
+    return trace.with_samples(np.interp(target_indices, current_indices, trace.samples))
