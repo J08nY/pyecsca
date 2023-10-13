@@ -43,7 +43,7 @@ def test_rolling_mean(trace):
     assert result is not None
     assert len(result.samples) == 3
     assert result.samples[0] == -15
-    assert result.samples[1] == 42
+    assert result.samples[1] == 42.5
     assert result.samples[2] == 196
 
 

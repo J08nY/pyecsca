@@ -1,7 +1,7 @@
 """Provides functions for sample-wise processing of single traces."""
-from typing import cast
 
 import numpy as np
+from scipy.signal import convolve
 from public import public
 
 from .trace import Trace
@@ -44,12 +44,6 @@ def threshold(trace: Trace, value) -> Trace:
     return trace.with_samples(result_samples)
 
 
-def _rolling_window(samples: np.ndarray, window: int) -> np.ndarray:
-    shape = samples.shape[:-1] + (samples.shape[-1] - window + 1, window)
-    strides = samples.strides + (samples.strides[-1],)
-    return np.lib.stride_tricks.as_strided(samples, shape=shape, strides=strides)  # type: ignore[attr-defined]
-
-
 @public
 def rolling_mean(trace: Trace, window: int) -> Trace:
     """
@@ -61,14 +55,7 @@ def rolling_mean(trace: Trace, window: int) -> Trace:
     :param window:
     :return:
     """
-    return trace.with_samples(
-        cast(
-            np.ndarray,
-            np.mean(_rolling_window(trace.samples, window), -1).astype(
-                dtype=trace.samples.dtype, copy=False
-            ),
-        )
-    )
+    return trace.with_samples(convolve(trace.samples, np.ones(window, dtype=trace.samples.dtype), "valid") / window)
 
 
 @public
