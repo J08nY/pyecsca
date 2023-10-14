@@ -15,11 +15,13 @@ from ast import (
     operator as ast_operator,
     unaryop as ast_unaryop,
     USub,
+    parse,
 )
 from enum import Enum
 from types import CodeType
 from typing import FrozenSet, cast, Any, Optional, Union, Tuple
 
+from astunparse import unparse
 from public import public
 
 from .mod import Mod
@@ -131,11 +133,22 @@ class CodeOp:
     @property
     def parents(self) -> Tuple[Union[str, int]]:
         if self.operator in (OpType.Inv, OpType.Neg):
-            return self.right,  # type: ignore
+            return (self.right,)  # type: ignore
         elif self.operator in (OpType.Sqr, OpType.Id):
-            return self.left,  # type: ignore
+            return (self.left,)  # type: ignore
         else:
             return self.left, self.right  # type: ignore
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["code"] = unparse(state["code"])
+        del state["compiled"]
+        return state
+
+    def __setstate__(self, state):
+        state["code"] = parse(state["code"], mode="exec")
+        state["compiled"] = compile(state["code"], "", mode="exec")
+        self.__dict__.update(state)
 
     def __str__(self):
         return f"{self.result} = {self.left if self.left is not None else ''}{self.operator.op_str}{self.right if self.right is not None else ''}"

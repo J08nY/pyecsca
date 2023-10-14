@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 from sympy import FF, symbols
 
@@ -120,3 +122,7 @@ def test_symbolic(secp128r1, dbl):
                 inner_var, k(getattr(secp128r1.generator, inner_var).x)
             )
         assert Mod(int(symbolic_val), p) == Mod(generator_val, p)
+
+
+def test_pickle(add, dbl):
+    assert add == pickle.loads(pickle.dumps(add))

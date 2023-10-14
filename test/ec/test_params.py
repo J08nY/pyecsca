@@ -1,3 +1,5 @@
+import pickle
+
 from importlib_resources import files, as_file
 
 import pytest
@@ -142,3 +144,7 @@ def test_custom_params():
     assert params is not None
     res = params.curve.affine_double(generator.to_affine())
     assert res is not None
+
+
+def test_pickle(secp128r1):
+    assert secp128r1 == pickle.loads(pickle.dumps(secp128r1))

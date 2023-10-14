@@ -18,6 +18,7 @@ from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from .mod import Mod, SymbolicMod
 from .op import CodeOp, OpType
 from ..misc.cfg import getconfig
+from ..misc.utils import peval
 
 
 @public
@@ -31,7 +32,9 @@ class OpResult:
 
     def __init__(self, name: str, value: Mod, op: OpType, *parents: Any):
         if len(parents) != op.num_inputs:
-            raise ValueError(f"Wrong number of parents ({len(parents)}) to OpResult: {op} ({op.num_inputs}).")
+            raise ValueError(
+                f"Wrong number of parents ({len(parents)}) to OpResult: {op} ({op.num_inputs})."
+            )
         self.parents = tuple(parents)
         self.name = name
         self.value = value
@@ -156,7 +159,9 @@ class Formula(ABC):
         # Validate assumptions and compute formula parameters.
         # TODO: Should this also validate coordinate assumptions and compute their parameters?
         is_symbolic = any(isinstance(x, SymbolicMod) for x in params.values())
-        for assumption, assumption_string in zip(self.assumptions, self.assumptions_str):
+        for assumption, assumption_string in zip(
+            self.assumptions, self.assumptions_str
+        ):
             lhs, rhs = assumption_string.split(" == ")
             if lhs in params:
                 # Handle an assumption check on value of input points.
@@ -275,6 +280,15 @@ class Formula(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["assumptions"] = list(map(unparse, state["assumptions"]))
+        return state
+
+    def __setstate__(self, state):
+        state["assumptions"] = list(map(peval, state["assumptions"]))
+        self.__dict__.update(state)
+
     @property
     @abstractmethod
     def input_index(self):
@@ -340,7 +354,13 @@ class Formula(ABC):
 class EFDFormula(Formula):
     """Formula from the [EFD]_."""
 
-    def __init__(self, meta_path: Traversable, op3_path: Traversable, name: str, coordinate_model: Any):
+    def __init__(
+        self,
+        meta_path: Traversable,
+        op3_path: Traversable,
+        name: str,
+        coordinate_model: Any,
+    ):
         self.name = name
         self.coordinate_model = coordinate_model
         self.meta = {}

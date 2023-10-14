@@ -1,3 +1,4 @@
+import pickle
 from contextlib import nullcontext as does_not_raise
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.params import get_params
@@ -174,3 +175,14 @@ def test_iter(secp128r1, secp128r1_coords):
 
     assert len(InfinityPoint(secp128r1_coords)) == 0
     assert len(tuple(InfinityPoint(secp128r1_coords))) == 0
+
+
+def test_pickle(secp128r1, secp128r1_coords):
+    pt = Point(
+        secp128r1_coords,
+        X=Mod(0x4, secp128r1.curve.prime),
+        Y=Mod(0x6, secp128r1.curve.prime),
+        Z=Mod(2, secp128r1.curve.prime),
+    )
+    pickle.dumps(secp128r1_coords)
+    assert pt == pickle.loads(pickle.dumps(pt))

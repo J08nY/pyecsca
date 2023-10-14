@@ -1,5 +1,6 @@
 """Provides a coordinate model class."""
 from ast import parse, Module
+from astunparse import unparse
 from importlib_resources.abc import Traversable
 from importlib_resources import as_file
 from typing import List, Any, MutableMapping
@@ -17,6 +18,7 @@ from .formula import (
     ScalingEFDFormula,
     NegationEFDFormula,
 )
+from ..misc.utils import pexec
 
 
 @public
@@ -51,6 +53,23 @@ class CoordinateModel:
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.name}" on {self.curve_model.name})'
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["satisfying"] = list(map(unparse, state["satisfying"]))
+        state["toaffine"] = list(map(unparse, state["toaffine"]))
+        state["tosystem"] = list(map(unparse, state["tosystem"]))
+        state["assumptions"] = list(map(unparse, state["assumptions"]))
+        state["neutral"] = list(map(unparse, state["neutral"]))
+        return state
+
+    def __setstate__(self, state):
+        state["satisfying"] = list(map(pexec, state["satisfying"]))
+        state["toaffine"] = list(map(pexec, state["toaffine"]))
+        state["tosystem"] = list(map(pexec, state["tosystem"]))
+        state["assumptions"] = list(map(pexec, state["assumptions"]))
+        state["neutral"] = list(map(pexec, state["neutral"]))
+        self.__dict__.update(state)
 
 
 @public
@@ -115,7 +134,9 @@ class EFDCoordinateModel(CoordinateModel):
                     "negation": NegationEFDFormula,
                 }
                 cls = formula_types.get(formula_type, EFDFormula)
-                self.formulas[fpath.stem] = cls(fpath, fpath.with_suffix(".op3"), fpath.stem, self)
+                self.formulas[fpath.stem] = cls(
+                    fpath, fpath.with_suffix(".op3"), fpath.stem, self
+                )
 
     def __read_coordinates_file(self, file_path: Traversable):
         with file_path.open("rb") as f:

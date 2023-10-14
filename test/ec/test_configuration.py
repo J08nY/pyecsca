@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 
 from pyecsca.ec.configuration import (
@@ -57,3 +59,14 @@ def test_one(base_independents):
     assert len(configs) == 1
     configs = list(all_configurations(model=model, scalarmult=scalarmult, **base_independents))
     assert len(configs) == 1
+
+
+def test_pickle(base_independents):
+    model = ShortWeierstrassModel()
+    coords = model.coordinates["projective"]
+    scalarmult = {"cls": LTRMultiplier, "add": coords.formulas["add-1998-cmo"], "dbl": coords.formulas["dbl-1998-cmo"],
+                  "scl": None, "always": True, "complete": False, "short_circuit": True,
+                  "accumulation_order": AccumulationOrder.PeqRP}
+    configs = list(all_configurations(model=model, coords=coords, scalarmult=scalarmult, **base_independents))
+    config = configs[0]
+    assert config == pickle.loads(pickle.dumps(config))
