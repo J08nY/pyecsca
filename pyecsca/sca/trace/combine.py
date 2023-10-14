@@ -1,5 +1,5 @@
 """Provides functions for combining traces sample-wise."""
-from typing import Callable, Optional, Tuple
+from typing import Callable, Tuple
 
 import numpy as np
 from public import public
@@ -8,7 +8,7 @@ from .trace import Trace, CombinedTrace
 
 
 @public
-def average(*traces: Trace) -> Optional[CombinedTrace]:
+def average(*traces: Trace) -> CombinedTrace:
     """
     Average :paramref:`~.average.traces`, sample-wise.
 
@@ -16,7 +16,7 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
     :return:
     """
     if not traces:
-        return None
+        raise ValueError("Nothing to combine")
     if len(traces) == 1:
         return CombinedTrace(traces[0].samples.copy())
     min_samples = min(map(len, traces))
@@ -31,7 +31,7 @@ def average(*traces: Trace) -> Optional[CombinedTrace]:
 @public
 def conditional_average(
     *traces: Trace, condition: Callable[[Trace], bool]
-) -> Optional[CombinedTrace]:
+) -> CombinedTrace:
     """
     Average :paramref:`~.conditional_average.traces` for which the :paramref:`~.conditional_average.condition` is ``True``, sample-wise.
 
@@ -43,7 +43,7 @@ def conditional_average(
 
 
 @public
-def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
+def standard_deviation(*traces: Trace) -> CombinedTrace:
     """
     Compute the sample standard-deviation of the :paramref:`~.standard_deviation.traces`, sample-wise.
 
@@ -51,7 +51,7 @@ def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
     :return:
     """
     if not traces:
-        return None
+        raise ValueError("Nothing to combine")
     if len(traces) == 1:
         return CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64))
     min_samples = min(map(len, traces))
@@ -70,7 +70,7 @@ def standard_deviation(*traces: Trace) -> Optional[CombinedTrace]:
 
 
 @public
-def variance(*traces: Trace) -> Optional[CombinedTrace]:
+def variance(*traces: Trace) -> CombinedTrace:
     """
     Compute the sample variance of the :paramref:`~.variance.traces`, sample-wise.
 
@@ -78,7 +78,7 @@ def variance(*traces: Trace) -> Optional[CombinedTrace]:
     :return:
     """
     if not traces:
-        return None
+        raise ValueError("Nothing to combine")
     if len(traces) == 1:
         return CombinedTrace(np.zeros(len(traces[0]), dtype=np.float64))
     min_samples = min(map(len, traces))
@@ -97,7 +97,7 @@ def variance(*traces: Trace) -> Optional[CombinedTrace]:
 
 
 @public
-def average_and_variance(*traces) -> Optional[Tuple[CombinedTrace, CombinedTrace]]:
+def average_and_variance(*traces) -> Tuple[CombinedTrace, CombinedTrace]:
     """
     Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
 
@@ -105,7 +105,7 @@ def average_and_variance(*traces) -> Optional[Tuple[CombinedTrace, CombinedTrace
     :return:
     """
     if not traces:
-        return None
+        raise ValueError("Nothing to combine")
     if len(traces) == 1:
         return (
             CombinedTrace(traces[0].samples.copy()),
@@ -126,7 +126,7 @@ def average_and_variance(*traces) -> Optional[Tuple[CombinedTrace, CombinedTrace
 
 
 @public
-def add(*traces: Trace) -> Optional[CombinedTrace]:
+def add(*traces: Trace) -> CombinedTrace:
     """
     Add :paramref:`~.add.traces`, sample-wise.
 
@@ -134,7 +134,7 @@ def add(*traces: Trace) -> Optional[CombinedTrace]:
     :return:
     """
     if not traces:
-        return None
+        raise ValueError("Nothing to combine")
     if len(traces) == 1:
         return CombinedTrace(traces[0].samples.copy())
     min_samples = min(map(len, traces))

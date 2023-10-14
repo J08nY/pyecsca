@@ -1,5 +1,5 @@
 """Provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...)."""
-from typing import Sequence, Optional, Tuple
+from typing import Sequence, Tuple
 
 import numpy as np
 from public import public
@@ -12,9 +12,9 @@ from .edit import trim
 
 def _ttest_func(
     first_set: Sequence[Trace], second_set: Sequence[Trace], equal_var: bool
-) -> Optional[CombinedTrace]:
+) -> CombinedTrace:
     if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
-        return None
+        raise ValueError("Nothing to compute")
     first_stack = np.stack([first.samples for first in first_set])
     second_stack = np.stack([second.samples for second in second_set])
     result = ttest_ind(first_stack, second_stack, axis=0, equal_var=equal_var)
@@ -27,7 +27,7 @@ def welch_ttest(
     second_set: Sequence[Trace],
     dof: bool = False,
     p_value: bool = False,
-) -> Optional[Tuple[CombinedTrace, ...]]:
+) -> Tuple[CombinedTrace, ...]:
     """
     Perform the Welch's t-test sample wise on two sets of traces :paramref:`~.welch_ttest.first_set` and :paramref:`~.welch_ttest.second_set`.
 
@@ -40,7 +40,8 @@ def welch_ttest(
     :return: Welch's t-values (samplewise) (+ degrees-of-freedom, + p-values)
     """
     if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
-        return None
+        raise ValueError("Nothing to compute")
+    dof |= p_value
     n0 = len(first_set)
     n1 = len(second_set)
     mean_0, var_0 = average_and_variance(*first_set)  # type: ignore
@@ -73,7 +74,7 @@ def welch_ttest(
 @public
 def student_ttest(
     first_set: Sequence[Trace], second_set: Sequence[Trace]
-) -> Optional[CombinedTrace]:
+) -> CombinedTrace:
     """
     Perform the Students's t-test sample wise on two sets of traces :paramref:`~.student_ttest.first_set` and :paramref:`~.student_ttest.second_set`.
 
@@ -89,7 +90,7 @@ def student_ttest(
 @public
 def ks_test(
     first_set: Sequence[Trace], second_set: Sequence[Trace]
-) -> Optional[CombinedTrace]:
+) -> CombinedTrace:
     """
     Perform the Kolmogorov-Smirnov two sample test on equality of distributions sample wise on two sets of traces :paramref:`~.ks_test.first_set` and :paramref:`~.ks_test.second_set`.
 
@@ -98,7 +99,7 @@ def ks_test(
     :return: Kolmogorov-Smirnov test statistic values (samplewise)
     """
     if not first_set or not second_set or len(first_set) == 0 or len(second_set) == 0:
-        return None
+        raise ValueError("Nothing to compute")
     first_stack = np.stack([first.samples for first in first_set])
     second_stack = np.stack([second.samples for second in second_set])
     results = np.empty(len(first_set[0].samples), dtype=first_set[0].samples.dtype)

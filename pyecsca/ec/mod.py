@@ -10,7 +10,7 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 import random
 import secrets
 from functools import wraps, lru_cache
-from typing import Type, Dict, Any, Tuple, Union, Optional
+from typing import Type, Dict, Any, Tuple, Union
 
 from public import public
 from sympy import Expr, FF

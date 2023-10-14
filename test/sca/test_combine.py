@@ -24,7 +24,8 @@ def data():
 
 
 def test_average(data):
-    assert average() is None
+    with pytest.raises(ValueError):
+        average()
     result = average(data.a, data.b)
     assert result is not None
     assert isinstance(result, CombinedTrace)
@@ -42,21 +43,24 @@ def test_conditional_average(data):
 
 
 def test_standard_deviation(data):
-    assert standard_deviation() is None
+    with pytest.raises(ValueError):
+        standard_deviation()
     result = standard_deviation(data.a, data.b)
     assert isinstance(result, CombinedTrace)
     assert len(result.samples) == 2
 
 
 def test_variance(data):
-    assert variance() is None
+    with pytest.raises(ValueError):
+        variance()
     result = variance(data.a, data.b)
     assert isinstance(result, CombinedTrace)
     assert len(result.samples) == 2
 
 
 def test_average_and_variance(data):
-    assert average_and_variance() is None
+    with pytest.raises(ValueError):
+        average_and_variance()
     mean, var = average_and_variance(data.a, data.b)
     assert isinstance(mean, CombinedTrace)
     assert isinstance(var, CombinedTrace)
@@ -67,7 +71,8 @@ def test_average_and_variance(data):
 
 
 def test_add(data):
-    assert add() is None
+    with pytest.raises(ValueError):
+        add()
     result = add(data.a, data.b)
     assert isinstance(result, CombinedTrace)
     assert result.samples[0] == 50
