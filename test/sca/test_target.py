@@ -5,7 +5,6 @@ from copy import copy
 import pytest
 from importlib_resources import files, as_file
 
-from smartcard.pcsc.PCSCExceptions import BaseSCardException
 import test.data.sca
 from pyecsca.ec.key_agreement import ECDH_SHA1
 from pyecsca.ec.key_generation import KeyGeneration
@@ -88,6 +87,7 @@ def target():
     if not has_pyscard:
         pytest.skip("No pyscard.")
     from smartcard.System import readers
+    from smartcard.pcsc.PCSCExceptions import BaseSCardException
     rs = None
     try:
         rs = readers()
