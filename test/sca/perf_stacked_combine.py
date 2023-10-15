@@ -169,10 +169,14 @@ def to_traceset(dataset: np.ndarray) -> TraceSet:
 
 def stack(dataset: np.ndarray,
           from_array: bool,
-          time: bool,
-          timing_type: str,
+          time: bool = False,
+          timing_type: str | None = None,
           time_storage: List[TimeRecord] | None = None,
           log: bool = True) -> StackedTraces:
+    if timing_type is None:
+        timing_type = "perf_counter"
+    if time and time_storage is None:
+        time_storage = []
     time_fun = timed(time_storage, log, timing_type) if time else lambda x: x
     data = (dataset
             if from_array
