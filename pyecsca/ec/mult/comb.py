@@ -60,6 +60,9 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.direction = direction
         self.width = width
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
+
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
             super().init(params, point)
@@ -134,6 +137,9 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
             scl=scl,
         )
         self.width = width
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
