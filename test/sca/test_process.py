@@ -11,6 +11,7 @@ from pyecsca.sca import (
     recenter,
     normalize,
     normalize_wl,
+    transform
 )
 
 
@@ -62,8 +63,19 @@ def test_recenter(trace):
 def test_normalize(trace):
     result = normalize(trace)
     assert result is not None
+    assert np.isclose(0, np.mean(result.samples))
+    assert np.isclose(1, np.var(result.samples))
 
 
 def test_normalize_wl(trace):
     result = normalize_wl(trace)
     assert result is not None
+    assert np.isclose(0, np.mean(result.samples))
+    assert np.isclose(1/len(result), np.std(result.samples))
+
+
+def test_transform(trace):
+    result = transform(trace, 5, 10)
+    assert result is not None
+    assert min(result) == 5
+    assert max(result) == 10

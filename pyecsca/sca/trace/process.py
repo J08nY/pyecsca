@@ -1,4 +1,5 @@
 """Provides functions for sample-wise processing of single traces."""
+from typing import Any
 
 import numpy as np
 from scipy.signal import convolve
@@ -113,3 +114,20 @@ def normalize_wl(trace: Trace) -> Trace:
         (trace.samples - np.mean(trace.samples))
         / (np.std(trace.samples) * len(trace.samples))
     )
+
+
+@public
+def transform(trace: Trace, min_value: Any = 0, max_value: Any = 1) -> Trace:
+    """
+    Scale a :paramref:`~.transform.trace` so that its minimum is at :paramref:`~.transform.min_value` and its maximum is at :paramref:`~.transform.max_value`.
+
+    :param trace:
+    :param min_value:
+    :param max_value:
+    :return:
+    """
+    t_min = np.min(trace.samples)
+    t_max = np.max(trace.samples)
+    t_range = t_max - t_min
+    d = max_value - min_value
+    return trace.with_samples(((trace.samples - t_min) * (d/t_range)) + min_value)
