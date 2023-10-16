@@ -150,7 +150,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.precompute_negation == other.precompute_negation and self.accumulation_order == other.accumulation_order
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):

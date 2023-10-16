@@ -121,6 +121,12 @@ class ECConfig:
             raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp' or 'symbolic'.")
         self._mod_implementation = value
 
+@public
+class LoggingConfig:
+    """Logging configuration."""
+
+    enabled: bool = True
+    """Whether logging is enabled."""
 
 @public
 class Config:
@@ -128,9 +134,12 @@ class Config:
 
     ec: ECConfig
     """Configuration for the :py:mod:`pyecsca.ec` package."""
+    log: LoggingConfig
+    """Logging configuration."""
 
     def __init__(self):
         self.ec = ECConfig()
+        self.log = LoggingConfig()
 
 
 _config: ContextVar[Config] = ContextVar("config", default=Config())

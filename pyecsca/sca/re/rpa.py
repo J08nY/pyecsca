@@ -23,6 +23,7 @@ from ...ec.params import DomainParameters
 from ...ec.model import ShortWeierstrassModel, MontgomeryModel
 from ...ec.point import Point
 from ...ec.context import Context, Action, local
+from ...misc.utils import log, warn
 
 
 @public
@@ -126,7 +127,14 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
 
 
 @public
-def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool]) -> List[ScalarMultiplier]:
+def rpa_input_point(k: Mod, rpa_point: Point, params: DomainParameters) -> Point:
+    """Construct an (affine) input point P that will lead to an RPA point [k]P."""
+    kinv = k.inverse()
+    return params.curve.affine_multiply(rpa_point, int(kinv))
+
+
+@public
+def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool], bound: Optional[int] = None) -> List[ScalarMultiplier]:
     """
     Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.mults`) using
     an [RPA]_ :paramref:`~.rpa_distinguish.oracle`.
@@ -134,25 +142,42 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
     :param params: The domain parameters to use.
     :param mults: The list of possible multipliers.
     :param oracle: An oracle that returns `True` when an RPA point is encountered during scalar multiplication of the input by the scalar.
+    :param bound: A bound on the size of the scalar to consider.
     :return: The list of possible multipliers after distinguishing (ideally just one).
     """
-    P0 = rpa_point_0y(params) or rpa_point_x0(params)
+    # Try (x, 0) point first, as it is better for distinguishing (negatives).
+    if P0 := rpa_point_x0(params):
+        pm_equal = False
+    else:
+        P0 = rpa_point_0y(params)
+        pm_equal = True
+        warn("An (x, 0) RPA point could not be found. Distinguishing may be incomplete.")
     if not P0:
         raise ValueError("There are no RPA-points on the provided curve.")
-    print(f"Got RPA point {P0}")
+    log(f"Got RPA point {P0}.")
+    if not bound:
+        bound = params.order
+    tries = 0
     while True:
-        scalar = int(Mod.random(params.order))
-        print(f"Got scalar {scalar}")
-        print([mult.__class__.__name__ for mult in mults])
+        tries += 1
+        if tries > 10:
+            warn("Tried more than 10 times. Aborting.")
+            return mults
+        scalar = int(Mod.random(bound))
+        log(f"Got scalar {scalar}")
+        log([mult.__class__.__name__ for mult in mults])
         mults_to_multiples = {}
         counts: Counter = Counter()
         for mult in mults:
             with local(MultipleContext()) as ctx:
                 mult.init(params, params.generator)
                 mult.multiply(scalar)
-            multiples = set(ctx.points.values())
+            multiples = set(map(lambda v: Mod(v, params.order), ctx.points.values()))
+            if pm_equal:
+                multiples |= set(map(lambda v: -v, multiples))
             mults_to_multiples[mult] = multiples
             counts.update(multiples)
+        # TODO: Make this more noise resistant.
 
         # TODO: This lower part can be repeated a few times for the same scalar above, which could reuse
         #       the computed multiples. Can be done until there is some distinguishing multiple.
@@ -166,20 +191,19 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
                 best_distinguishing_multiple = multiple
                 best_count = count
                 best_nhalf_distance = abs(count - nhalf)
-        print(f"Chosen best distinguishing multiple {best_distinguishing_multiple} count={best_count} n={len(mults)}")
+        log(f"Chosen best distinguishing multiple {best_distinguishing_multiple} count={best_count} n={len(mults)}")
         if best_count in (0, len(mults)):
             continue
 
-        multiple_inverse = Mod(best_distinguishing_multiple, params.order).inverse()
-        P0_inverse = params.curve.affine_multiply(P0, int(multiple_inverse))
+        P0_inverse = rpa_input_point(best_distinguishing_multiple, P0, params)
         response = oracle(scalar, P0_inverse)
-        print(f"Oracle response -> {response}")
+        log(f"Oracle response -> {response}")
         for mult in mults:
-            print(mult.__class__.__name__, best_distinguishing_multiple in mults_to_multiples[mult])
+            log(mult.__class__.__name__, best_distinguishing_multiple in mults_to_multiples[mult])
         filt = (lambda mult: best_distinguishing_multiple in mults_to_multiples[mult]) if response else (lambda mult: best_distinguishing_multiple not in mults_to_multiples[mult])
         mults = list(filter(filt, mults))
-        print([mult.__class__.__name__ for mult in mults])
-        print()
+        log([mult.__class__.__name__ for mult in mults])
+        log()
 
         if len(mults) == 1:
             return mults
