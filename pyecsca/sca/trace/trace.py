@@ -94,9 +94,8 @@ class Trace:
 
     def __deepcopy__(self, memodict):
         return Trace(
-            deepcopy(self.samples, memo=memodict),
-            deepcopy(self.meta, memo=memodict),
-            deepcopy(self.trace_set, memo=memodict),
+            deepcopy(self.samples, memo=memodict) if isinstance(self.samples, np.ndarray) else np.array(self.samples),
+            deepcopy(self.meta, memo=memodict)
         )
 
     def __repr__(self):

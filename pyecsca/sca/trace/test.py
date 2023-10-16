@@ -47,11 +47,11 @@ def welch_ttest(
     mean_0, var_0 = average_and_variance(*first_set)  # type: ignore
     mean_1, var_1 = average_and_variance(*second_set)  # type: ignore
     if len(mean_0) < len(mean_1):
-        mean_1 = trim(mean_1, end=len(mean_0))
-        var_1 = trim(var_1, end=len(mean_0))
+        mean_1 = trim(mean_1, end=len(mean_0))  # type: ignore
+        var_1 = trim(var_1, end=len(mean_0))  # type: ignore
     if len(mean_1) < len(mean_0):
-        mean_0 = trim(mean_0, end=len(mean_1))
-        var_0 = trim(var_0, end=len(mean_1))
+        mean_0 = trim(mean_0, end=len(mean_1))  # type: ignore
+        var_0 = trim(var_0, end=len(mean_1))  # type: ignore
     varn_0 = var_0.samples / n0
     varn_1 = var_1.samples / n1
     tval = (mean_0.samples - mean_1.samples) / np.sqrt(varn_0 + varn_1)
