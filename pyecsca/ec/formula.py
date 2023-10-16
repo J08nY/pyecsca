@@ -397,6 +397,9 @@ class EFDFormula(Formula):
                 )
                 self.code.append(CodeOp(code_module))
 
+    def __str__(self):
+        return f"{self.coordinate_model!s}/{self.name}"
+
     @cached_property
     def input_index(self):
         return 1

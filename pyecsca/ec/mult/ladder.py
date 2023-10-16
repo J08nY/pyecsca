@@ -53,7 +53,7 @@ class LadderMultiplier(ScalarMultiplier):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, complete={self.complete})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, complete={self.complete})"
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -115,7 +115,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, complete={self.complete})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, complete={self.complete})"
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -176,7 +176,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, complete={self.complete})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, complete={self.complete})"
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

@@ -58,7 +58,7 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.recoding_direction == other.recoding_direction and self.accumulation_order == other.accumulation_order
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, width={self.width}, recoding_direction={self.recoding_direction}, accumulation_order={self.accumulation_order})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, recoding_direction={self.recoding_direction.name}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):
@@ -137,7 +137,7 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.m == other.m and self.accumulation_order == other.accumulation_order
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit}, m={self.m}, accumulation_order={self.accumulation_order})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, m={self.m}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
         with PrecomputationAction(params, point):

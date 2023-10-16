@@ -189,7 +189,7 @@ class ScalarMultiplier(ABC):
         return self.formulas == other.formulas and self.short_circuit == other.short_circuit
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({tuple(self.formulas.values())}, short_circuit={self.short_circuit})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit})"
 
     def init(self, params: DomainParameters, point: Point):
         """
