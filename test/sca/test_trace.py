@@ -7,3 +7,9 @@ def test_basic():
     assert trace is not None
     assert "Trace" in str(trace)
     assert trace.trace_set is None
+
+
+def test_astype():
+    trace = Trace(np.array([10, 15, 24], dtype=np.dtype("i1")))
+    ta = trace.astype(np.float32)
+    assert ta.samples.dtype == np.float32

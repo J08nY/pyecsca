@@ -5,6 +5,7 @@ from copy import copy, deepcopy
 
 from numpy import ndarray
 import numpy as np
+from numpy.typing import DTypeLike
 from public import public
 
 
@@ -88,6 +89,15 @@ class Trace:
         :return: The new trace.
         """
         return Trace(samples, deepcopy(self.meta))
+
+    def astype(self, dtype: DTypeLike) -> "Trace":
+        """
+        Construct a copy of this trace, with the same samples retyped using `dtype`.
+
+        :param dtype: The numpy dtype.
+        :return: The new trace
+        """
+        return self.with_samples(np.array(self.samples.astype(dtype)))
 
     def __copy__(self):
         return Trace(copy(self.samples), copy(self.meta), copy(self.trace_set))
