@@ -44,7 +44,8 @@
     "astunparse",
     "numba==0.57.1",
     "networkx",
-    "importlib-resources"
+    "importlib-resources",
+    "anytree"
   ]
 
 [project.urls]

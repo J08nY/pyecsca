@@ -13,6 +13,7 @@ from pyecsca.ec.mult import (
     BinaryNAFMultiplier,
     WindowNAFMultiplier,
     SimpleLadderMultiplier, AccumulationOrder, ProcessingDirection, SlidingWindowMultiplier, FixedWindowLTRMultiplier,
+    FullPrecompMultiplier, BGMWMultiplier, CombMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -73,18 +74,28 @@ def test_0y_point(rpa_params):
 
 
 def test_distinguish(secp128r1, add, dbl, neg):
-    multipliers = [LTRMultiplier(add, dbl, None, False, AccumulationOrder.PeqRP, True, True),
-                   LTRMultiplier(add, dbl, None, True, AccumulationOrder.PeqRP, True, True),
-                   RTLMultiplier(add, dbl, None, False, AccumulationOrder.PeqRP, True),
-                   RTLMultiplier(add, dbl, None, True, AccumulationOrder.PeqRP, True),
-                   SimpleLadderMultiplier(add, dbl, None, True, True),
-                   BinaryNAFMultiplier(add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqRP, True),
-                   WindowNAFMultiplier(add, dbl, neg, 3, None, AccumulationOrder.PeqRP, True),
-                   WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqRP, True),
-                   SlidingWindowMultiplier(add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqRP, True),
-                   SlidingWindowMultiplier(add, dbl, 3, None, ProcessingDirection.RTL, AccumulationOrder.PeqRP, True),
-                   FixedWindowLTRMultiplier(add, dbl, 3, None, AccumulationOrder.PeqRP, True),
-                   FixedWindowLTRMultiplier(add, dbl, 8, None, AccumulationOrder.PeqRP, True)]
+    multipliers = [
+        LTRMultiplier(add, dbl, None, False, AccumulationOrder.PeqPR, True, True),
+        LTRMultiplier(add, dbl, None, True, AccumulationOrder.PeqPR, True, True),
+        RTLMultiplier(add, dbl, None, False, AccumulationOrder.PeqPR, True),
+        RTLMultiplier(add, dbl, None, True, AccumulationOrder.PeqPR, False),
+        SimpleLadderMultiplier(add, dbl, None, True, True),
+        BinaryNAFMultiplier(add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        WindowNAFMultiplier(add, dbl, neg, 3, None, AccumulationOrder.PeqPR, True, True),
+        WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True),
+        #WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqPR, False, True),
+        SlidingWindowMultiplier(add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        SlidingWindowMultiplier(add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        FixedWindowLTRMultiplier(add, dbl, 4, None, AccumulationOrder.PeqPR, True),
+        FixedWindowLTRMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True),
+        FullPrecompMultiplier(add, dbl, None, True, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True, True),
+        FullPrecompMultiplier(add, dbl, None, False, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True, True),
+        #FullPrecompMultiplier(add, dbl, None, False, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True, True),
+        BGMWMultiplier(add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        BGMWMultiplier(add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 3, None, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True)
+    ]
     for real_mult in multipliers:
         def simulated_oracle(scalar, affine_point):
             point = affine_point.to_model(secp128r1.curve.coordinate_model, secp128r1.curve)
