@@ -48,4 +48,4 @@ class TraceSet:
         args = ", ".join(
             [f"{key}={getattr(self, key)!r}" for key in self._keys]
         )
-        return f"TraceSet({args})"
+        return f"{self.__class__.__name__}({args})"

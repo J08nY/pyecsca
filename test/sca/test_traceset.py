@@ -15,6 +15,7 @@ from pyecsca.sca import (
     PickleTraceSet,
     HDF5TraceSet,
     Trace,
+    SampleCoding,
 )
 
 
@@ -38,6 +39,27 @@ def test_create():
     assert ChipWhispererTraceSet() is not None
     assert PickleTraceSet() is not None
     assert HDF5TraceSet() is not None
+
+
+def test_repr(example_traces, tmp_path):
+    trs = InspectorTraceSet(
+        *example_traces, num_traces=len(example_traces), sample_coding=SampleCoding.Int8, num_samples=5, y_scale=1
+    )
+    r1 = repr(trs)
+    trs.write(tmp_path / "test.trs")
+    r2 = repr(InspectorTraceSet.read(tmp_path / "test.trs"))
+    assert r1
+    assert r2
+
+    cw = ChipWhispererTraceSet(*example_traces)
+    r1 = repr(cw)
+    assert r1
+
+    pickle = PickleTraceSet(*example_traces)
+    r1 = repr(pickle)
+    pickle.write(tmp_path / "test.pickle")
+    r2 = repr(PickleTraceSet.read(tmp_path / "test.pickle"))
+    assert r1 == r2
 
 
 def test_trs_load_fname():
@@ -112,12 +134,16 @@ def test_h5_load_file():
 
 
 def test_h5_inplace():
-    with tempfile.TemporaryDirectory() as dirname, as_file(files(test.data.sca).joinpath("test.h5")) as orig_path:
+    with tempfile.TemporaryDirectory() as dirname, as_file(
+        files(test.data.sca).joinpath("test.h5")
+    ) as orig_path:
         path = os.path.join(dirname, "test.h5")
         shutil.copy(orig_path, path)
         trace_set = HDF5TraceSet.inplace(path)
         assert trace_set is not None
-        test_trace = Trace(np.array([4, 7], dtype=np.dtype("i1")), meta={"thing": "ring"})
+        test_trace = Trace(
+            np.array([4, 7], dtype=np.dtype("i1")), meta={"thing": "ring"}
+        )
         other_trace = Trace(np.array([8, 7], dtype=np.dtype("i1")), meta={"a": "b"})
         trace_set.append(test_trace)
         assert len(trace_set) == 3
