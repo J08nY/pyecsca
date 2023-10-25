@@ -106,15 +106,17 @@ are the best source of documentation on how to use **pyecsca**.
    api/pyecsca.sca
    api/pyecsca.codegen
 
-:fas:`file` References
+:fas:`file` Miscellaneous
 ======================
 
 .. toctree::
-   :caption: References
+   :caption: Miscellaneous
    :titlesonly:
    :maxdepth: 1
 
+   libraries
    references
+
 
 Requirements
 ============
