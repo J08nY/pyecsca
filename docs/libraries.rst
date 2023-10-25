@@ -240,3 +240,63 @@ Verify:
  - Sliding window (signed) with interleaving? via ``ED25519_verify -> ge_double_scalarmult_vartime``.
  - Has `multiple coordinate systems <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/curve25519/internal.h#L79>`__: projective, extended, completed, Duif
  - Unknown formulas. `dbl <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/curve25519/curve25519.c#L617>`__, `add <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/curve25519/curve25519.c#L624>`__
+
+
+Botan
+=====
+
+| Version: ``3.2.0`` (tag 3.2.0)
+| Repository: https://github.com/randombit/botan/
+| Docs: https://botan.randombit.net/handbook/
+
+Primitives
+----------
+
+Has coordinate and scalar blinding,
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - Something like FullPrecomputation and Comb (no doublings), via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
+ - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+ - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+
+Derive:
+ - Short-Weierstrass
+ - Fixed Window (w=4) via ``blinded_var_point_multiply -> EC_Point_Var_Point_Precompute::mul``.
+ - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+ - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__,
+   `dbl-1986-cc <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L278>`__
+
+ECDSA
+^^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - Something like FullPrecomputation and Comb (no doublings), via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
+ - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+ - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+
+Sign:
+ - Short-Weierstrass
+ - Something like FullPrecomputation and Comb (no doublings), via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
+ - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+ - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+
+Verify:
+ - Short-Weierstrass
+ - Multi-scalar (interleaved) (signed) fixed-window? via ``ECDSA::verify -> EC_Point_Multi_Point_Precompute::multi_exp``.
+ - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
+ - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__,
+   `dbl-1986-cc <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L278>`__
+
+X25519
+^^^^^^
+Based on curve2551_donna.
+
+Ed25519
+^^^^^^^
+Based on ref10 of Ed255119.
+See `BoringSSL`_.
