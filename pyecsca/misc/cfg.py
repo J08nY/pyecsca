@@ -121,12 +121,14 @@ class ECConfig:
             raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp' or 'symbolic'.")
         self._mod_implementation = value
 
+
 @public
 class LoggingConfig:
     """Logging configuration."""
 
     enabled: bool = True
     """Whether logging is enabled."""
+
 
 @public
 class Config:
