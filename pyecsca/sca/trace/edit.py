@@ -33,7 +33,7 @@ def reverse(trace: Trace) -> Trace:
     :param trace: The trace to reverse.
     :return:
     """
-    return trace.with_samples(np.flipud(trace.samples))
+    return trace.with_samples(np.flipud(trace.samples).copy())
 
 
 @public
