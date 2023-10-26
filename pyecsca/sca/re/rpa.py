@@ -147,7 +147,7 @@ def build_distinguishing_tree(mults_to_multiples: MutableMapping[ScalarMultiplie
     if n_mults == 1:
         return Node(None, mults=list(mults_to_multiples.keys()), **kwargs)
 
-    counts = Counter()
+    counts: Counter = Counter()
     for multiples in mults_to_multiples.values():
         counts.update(multiples)
 
