@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-import argparse
+from argparse import Namespace, FileType, ArgumentParser
+from contextlib import contextmanager
+from itertools import product
+from pathlib import Path
+from copy import copy
 import json
 import sys
-from typing import Any, Callable, Dict, List, TextIO, Tuple
+from typing import (Any, Callable, Dict, List, Optional, TextIO,
+                    Tuple, Union, cast)
 
 import numpy as np
 import numpy.random as npr
@@ -25,6 +30,12 @@ traceset_ops = {
     "average_and_variance": average_and_variance,
     "add": add,
 }
+
+OPERATIONS = list(traceset_ops.keys())
+DTYPES = ["float32", "float16", "float64", "int8", "int16", "int32", "int64"]
+TIMING_TYPES = ["perf_counter", "process_time"]
+DISTRIBUTIONS = ["uniform", "normal"]
+DEVICES = ["cpu", "gpu"]
 
 
 def _generate_floating(rng: npr.Generator,
@@ -185,23 +196,33 @@ def stack(dataset: np.ndarray,
     return time_fun(stack_fun)(data)
 
 
-def _get_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--repetitions", type=int,
-                        default=1, help="Number of repetitions")
+def _get_parser() -> ArgumentParser:
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-r", "--repetitions",
+        type=int,
+        default=1,
+        help="Number of repetitions"
+    )
     parser.add_argument(
         "-o", "--output",
-        type=argparse.FileType("w"),
-        default=sys.stdout,
+        type=Path,
         help="Output file"
     )
+    parser.add_argument(
+        "-p", "--param-file",
+        type=FileType("r"),
+        default=None,
+        help="Parameters file"
+    )
+
     combine = parser.add_argument_group(
         "operations",
         "Operations to perform on the traces"
     )
     combine.add_argument(
         "-d", "--device",
-        choices=["cpu", "gpu"],
+        choices=DEVICES,
         help="Device to use for the computation"
     )
     stacking = combine.add_mutually_exclusive_group()
@@ -220,7 +241,7 @@ def _get_parser() -> argparse.ArgumentParser:
     combine.add_argument(
         "--operations",
         nargs="*",
-        choices=traceset_ops.keys(),
+        choices=OPERATIONS,
         help="Operations to perform on the traces"
     )
 
@@ -269,34 +290,45 @@ def _get_parser() -> argparse.ArgumentParser:
     )
     timing.add_argument(
         "-t", "--time",
-        choices=["perf_counter", "process_time"],
-        default="perf_counter",
-        help="Timing function to use"
+        choices=TIMING_TYPES,
+        default=TIMING_TYPES[0],
+        help="Timing function to use",
     )
 
     dataset = parser.add_argument_group(
         "data generation",
         "Options for data generation"
     )
-    dataset.add_argument("--trace-count", type=int,
-                         default=1024, help="Number of traces")
-    dataset.add_argument("--trace-length", type=int,
-                         default=1024, help="Number of samples per trace")
-    dataset.add_argument("--seed", type=int, default=None,
-                         help="Seed for the random number generator")
+    dataset.add_argument(
+        "--trace-count",
+        type=int,
+        default=None,
+        help="Number of traces"
+    )
+    dataset.add_argument(
+        "--trace-length",
+        type=int,
+        default=None,
+        help="Number of samples per trace"
+    )
+    dataset.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Seed for the random number generator"
+    )
     dataset.add_argument(
         "--dtype",
         type=str,
-        default="float32",
-        choices=["float16", "float32", "float64", "int8",
-                 "int16", "int32", "int64"],
+        default=DTYPES[0],
+        choices=DTYPES,
         help="Data type of the samples"
     )
     dataset.add_argument(
         "--distribution",
         type=str,
-        default="uniform",
-        choices=["uniform", "normal"],
+        default=DISTRIBUTIONS[0],
+        choices=DISTRIBUTIONS,
         help="Distribution of the samples")
     dataset.add_argument("--low", type=float, default=0.0,
                          help="Inclusive lower bound for generated samples")
@@ -313,21 +345,62 @@ def _get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _get_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
-    args = parser.parse_args()
+ParamValueScalar = Union[int, float, str, bool, list[str]]
+ParamValueMixed = Union[ParamValueScalar,
+                        list[int], list[float], list[str], list[bool]]
+SCALAR_PARAMS = {
+    "repetitions": int,
+    "seed": int,
+    "operations": OPERATIONS,
+}
+LIST_PARAMS = {
+    "device": DEVICES,
+    "stack": bool,
+    "stack_traceset": bool,
+    "chunk": bool,
+    "stream_count": int,
+    "chunk_size": int,
+    "chunk_memory_ratio": float,
+    "time_stack": bool,
+    "time": TIMING_TYPES,
+    "n_trace_count": int,
+    "e_trace_count": int,
+    "n_trace_length": int,
+    "e_trace_length": int,
+    "n_n_samples": int,
+    "e_n_samples": int,
+    "dtype": DTYPES,
+    "distribution": DISTRIBUTIONS,
+    "low": float,
+    "high": float,
+    "mean": float,
+    "std": float,
+}
 
+
+def _check_args(args: Namespace) -> Optional[str]:
     if args.time_stack and not args.stack and not args.stack_traceset:
-        parser.error("Cannot time stack without stacking")
+        return "Cannot time stack without stacking"
 
     if not args.operations and not args.stack:
-        parser.error("No operation specified")
+        return "No operation specified"
 
     if args.low >= args.high:
-        parser.error("Lower bound must be smaller than upper bound")
+        return "Lower bound must be smaller than upper bound"
 
     if args.operations and not args.device:
-        parser.error("Device must be specified when performing operations")
+        return "Device must be specified when performing operations"
 
+    if args.chunk_size and args.chunk_memory_ratio:
+        return "Cannot specify both chunk size and chunk memory ratio"
+
+    if args.stream_count is not None and args.stream_count <= 1:
+        return "Stream count must be greater than 1"
+
+    return None
+
+
+def _postprocess_args(args: Namespace) -> None:
     if (args.operations
             and args.device == "gpu"
             and not args.stack
@@ -335,18 +408,218 @@ def _get_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
         args.stack = True
         args.stack_traceset = False
 
-    if args.chunk_size and args.chunk_memory_ratio:
-        parser.error("Cannot specify both chunk size and chunk memory ratio")
-
-    if args.stream_count is not None and args.stream_count <= 1:
-        parser.error("Stream count must be greater than 1")
-
     args.chunk = (args.chunk
                   or args.stream_count is not None
                   or args.chunk_size is not None
                   or args.chunk_memory_ratio is not None)
 
-    return args
+    if args.param_file is not None:
+        args.trace_count, args.trace_length = get_dimensions(**args.__dict__)
+
+        outdir: Optional[Path] = args.output
+        assert outdir is not None
+        filename = params_filename(**args.__dict__)
+        args.output = outdir / filename
+
+
+def generate_params_combinations(params: Dict[str, ParamValueMixed]) \
+        -> List[Dict[str, ParamValueScalar]]:
+    # Items of dict retain order since Python 3.7
+    scalar_params = cast(Dict[str, ParamValueScalar],
+                         {k: v
+                          for k, v
+                          in params.items()
+                          if k in SCALAR_PARAMS})
+    comb_keys = [k for k in params.keys() if k in LIST_PARAMS]
+    comb_values = [
+        v if isinstance(v, list) else [v]
+        for k, v in params.items()
+        if k in LIST_PARAMS
+    ]
+
+    return [
+        scalar_params | dict(zip(comb_keys, comb))
+        for comb
+        in product(*comb_values)
+    ]
+
+
+def _check_dimensions_params(n_trace_count: Optional[int] = None,
+                             e_trace_count: Optional[int] = None,
+                             n_trace_length: Optional[int] = None,
+                             e_trace_length: Optional[int] = None,
+                             n_n_samples: Optional[int] = None,
+                             e_n_samples: Optional[int] = None) -> None:
+    count_ok = 2 == sum(
+        1 if x is not None else 0
+        for x
+        in (e_trace_count, n_trace_count, e_trace_length, n_trace_length)
+    )
+    if not count_ok:
+        raise ValueError(
+            "Exactly two of dimensions' parameters must be specified")
+
+    pairs_ok = not (
+        (n_trace_count is not None and e_trace_count is not None)
+        or (n_trace_length is not None and e_trace_length is not None)
+        or (n_n_samples is not None and e_n_samples is not None)
+    )
+    if not pairs_ok:
+        raise ValueError(
+            "At most one of each dimension's parameters must be specified")
+
+    positive_ok = all(
+        x is None or x > 0
+        for x
+        in (n_trace_count, e_trace_count, n_trace_length, e_trace_length,
+            n_n_samples, e_n_samples)
+    )
+    if not positive_ok:
+        raise ValueError(
+            "All dimensions' parameters must be positive")
+
+
+def get_dimensions(n_trace_count: Optional[int] = None,
+                   e_trace_count: Optional[int] = None,
+                   n_trace_length: Optional[int] = None,
+                   e_trace_length: Optional[int] = None,
+                   n_n_samples: Optional[int] = None,
+                   e_n_samples: Optional[int] = None,
+                   **kwargs) -> Tuple[int, int]:
+    _check_dimensions_params(n_trace_count, e_trace_count,
+                             n_trace_length, e_trace_length,
+                             n_n_samples, e_n_samples)
+
+    if e_trace_count is not None:
+        n_trace_count = 2 ** e_trace_count
+    if e_trace_length is not None:
+        n_trace_length = 2 ** e_trace_length
+    if e_n_samples is not None:
+        n_n_samples = 2 ** e_n_samples
+
+    if n_n_samples is None:
+        assert n_trace_count is not None and n_trace_length is not None
+        return n_trace_count, n_trace_length
+
+    if n_trace_count is None:
+        assert n_trace_length is not None
+        if n_n_samples % n_trace_length != 0 or n_n_samples < n_trace_length:
+            raise ValueError(
+                "Number of samples must be divisible by "
+                "and greater than trace length")
+        n_trace_count = n_n_samples // n_trace_length
+        return n_trace_count, n_trace_length
+
+    if n_n_samples % n_trace_count != 0 or n_n_samples < n_trace_count:
+        raise ValueError(
+            "Number of samples must be divisible by "
+            "and greater than trace count")
+    n_trace_length = n_n_samples // n_trace_count
+    return n_trace_count, n_trace_length
+
+
+def params_filename(device: str,
+                    dtype: str,
+                    distribution: str,
+                    time: str,
+                    trace_count: Optional[int] = None,
+                    trace_length: Optional[int] = None,
+                    **params) -> str:
+    timing = ''.join(map(lambda x: x[0], time.split('_')))
+    dtype = dtype[0] + dtype[-2:]
+    distrib = distribution[:4]
+
+    if trace_count is None or trace_length is None:
+        trace_count, trace_length = get_dimensions(**params)
+    dims = f"{trace_count}x{trace_length}"
+
+    return f"{device}_{timing}_{dtype}_{distrib}_{dims}.json"
+
+
+def parse_params_dict(params: dict[str, ParamValueMixed],
+                      base_args: Namespace) -> tuple[list[Namespace],
+                                                     Optional[str]]:
+    params_combs = generate_params_combinations(params)
+    args_list: list[Namespace] = []
+    error: Optional[str] = None
+    for p in params_combs:
+        args = copy(base_args)
+        for k, v in p.items():
+            setattr(args, k, v)
+
+        cur_error = _check_args(args)
+        if cur_error is not None:
+            error = cur_error
+
+        _postprocess_args(args)
+        args_list.append(args)
+    return args_list, error
+
+
+def load_params_file(file: TextIO,
+                     base_args: Namespace) -> tuple[list[Namespace],
+                                                    Optional[str]]:
+    with file:
+        params = json.load(file)
+
+    if isinstance(params, dict):
+        params = [params]
+
+    args_list = []
+    error = None
+    for p in params:
+        if not isinstance(p, dict):
+            raise ValueError("Parameters must be a dictionary")
+        cur_args_list, cur_error = parse_params_dict(p, base_args)
+        if not cur_args_list and cur_error is not None:
+            error = cur_error
+        args_list.extend(cur_args_list)
+
+    return args_list, error
+
+
+def _check_output(output: Optional[Path],
+                  param_file: Optional[TextIO]) -> None:
+
+    # Single output file
+    if param_file is None:
+        if output is None or not output.exists() or output.is_file():
+            return
+        raise ValueError("Output must be a file")
+
+    # Output directory
+    if output is None:
+        raise ValueError(
+            "Output must be specified when using a parameter file"
+        )
+
+    if output.exists() and not output.is_dir():
+        raise ValueError("Output must be a directory")
+
+
+def _get_args(parser: ArgumentParser) -> list[Namespace]:
+    args = parser.parse_args()
+
+    output: Optional[Path] = args.output
+    _check_output(output, args.param_file)
+    if output is not None and not output.exists():
+        output.mkdir(parents=True)
+
+    # Single run, command line arguments
+    if args.param_file is None:
+        error = _check_args(args)
+        if error is not None:
+            parser.error(error)
+        return [args]
+
+    # Multiple runs, parameter file
+    args_list, error = load_params_file(args.param_file, args)
+    if not args_list:
+        if error is None:
+            parser.error("No parameters found")
+        parser.error(error)
+
+    return args_list
 
 
 def report(time_storage: List[TimeRecord],
@@ -386,9 +659,18 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
+@contextmanager
+def default_open(path: Optional[Path]):
+    if path is None:
+        yield sys.stdout
+    else:
+        with path.open("w") as f:
+            yield f
+
+
 def export_report(time_storage: List[List[TimeRecord]],
-                  args: argparse.Namespace,
-                  output: TextIO) -> None:
+                  args: Namespace,
+                  out_path: Optional[Path]) -> None:
     by_operation = group_times_by_operation(time_storage)
     data: Dict[str, Any] = {}
     data["config"] = {
@@ -460,14 +742,15 @@ def export_report(time_storage: List[List[TimeRecord]],
         for op in operations
     }
 
-    json.dump(data,
-              output,
-              cls=NumpyEncoder,
-              indent=4)
-    output.write("\n")
+    with default_open(out_path) as output:
+        json.dump(data,
+                  output,
+                  cls=NumpyEncoder,
+                  indent=4)
+        output.write("\n")
 
 
-def repetition(args: argparse.Namespace,
+def repetition(args: Namespace,
                rng: npr.Generator) -> List[TimeRecord]:
     # Prepare time storage
     time_storage: List[TimeRecord] | None = []
@@ -542,7 +825,7 @@ def repetition(args: argparse.Namespace,
     return time_storage
 
 
-def main(args: argparse.Namespace) -> None:
+def main(args: Namespace) -> None:
     if args.verbose:
         print(f"Repetitions: {args.repetitions}")
         print(f"Dataset: {args.trace_count} x {args.trace_length} "
@@ -565,5 +848,6 @@ def main(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
-    args = _get_args(_get_parser())
-    main(args)
+    args_list = _get_args(_get_parser())
+    for args in args_list:
+        main(args)
