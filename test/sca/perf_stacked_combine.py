@@ -205,19 +205,42 @@ def _get_parser() -> ArgumentParser:
         help="Number of repetitions"
     )
     parser.add_argument(
-        "-o", "--output",
-        type=Path,
-        help="Output file"
-    )
-    parser.add_argument(
         "-p", "--param-file",
         type=FileType("r"),
         default=None,
         help="Parameters file"
     )
 
+    output = parser.add_argument_group(
+        "Output",
+        "Options for output"
+    )
+    output.add_argument(
+        "-o", "--output",
+        type=Path,
+        help="Output file or directory"
+    )
+    output.add_argument(
+        "--format",
+        choices=["json", "csv"],
+        default="json",
+        help="Output format"
+    )
+    output.add_argument(
+        "--report-total",
+        action="store_true",
+        default=False,
+        help="Add total times to the report"
+    )
+    output.add_argument(
+        "--report-summary",
+        action="store_true",
+        default=False,
+        help="Add summary to the report"
+    )
+
     combine = parser.add_argument_group(
-        "operations",
+        "Operations",
         "Operations to perform on the traces"
     )
     combine.add_argument(
@@ -246,7 +269,7 @@ def _get_parser() -> ArgumentParser:
     )
 
     chunking = parser.add_argument_group(
-        "chunking",
+        "Chunking",
         "Options for chunking"
     )
     chunking.add_argument(
@@ -279,7 +302,7 @@ def _get_parser() -> ArgumentParser:
     )
 
     timing = parser.add_argument_group(
-        "timing",
+        "Timing",
         "Options for timing"
     )
     timing.add_argument(
@@ -296,7 +319,7 @@ def _get_parser() -> ArgumentParser:
     )
 
     dataset = parser.add_argument_group(
-        "data generation",
+        "Data generation",
         "Options for data generation"
     )
     dataset.add_argument(
@@ -602,7 +625,9 @@ def _get_args(parser: ArgumentParser) -> list[Namespace]:
 
     output: Optional[Path] = args.output
     _check_output(output, args.param_file)
-    if output is not None and not output.exists():
+    if (args.param_file is not None
+            and output is not None
+            and not output.exists()):
         output.mkdir(parents=True)
 
     # Single run, command line arguments
@@ -612,7 +637,7 @@ def _get_args(parser: ArgumentParser) -> list[Namespace]:
             parser.error(error)
         return [args]
 
-    # Multiple runs, parameter file
+    # Multiple runs, parameter file and command line arguments
     args_list, error = load_params_file(args.param_file, args)
     if not args_list:
         if error is None:
@@ -622,8 +647,8 @@ def _get_args(parser: ArgumentParser) -> list[Namespace]:
     return args_list
 
 
-def report(time_storage: List[TimeRecord],
-           total_only: bool = False) -> None:
+def print_times(time_storage: List[TimeRecord],
+                total_only: bool = False) -> None:
     if total_only:
         print(f"Total: {sum(duration for _, duration in time_storage):,} ns")
         return
@@ -671,7 +696,6 @@ def default_open(path: Optional[Path]):
 def export_report(time_storage: List[List[TimeRecord]],
                   args: Namespace,
                   out_path: Optional[Path]) -> None:
-    by_operation = group_times_by_operation(time_storage)
     data: Dict[str, Any] = {}
     data["config"] = {
         "repetitions": args.repetitions,
@@ -696,7 +720,7 @@ def export_report(time_storage: List[List[TimeRecord]],
     }
     data["timing"] = [
         {
-            "repetition": rep_num + 1,
+            "repetition": rep_num,
             "timings": {
                 ("stack"
                  if name.startswith("stack")
@@ -706,41 +730,44 @@ def export_report(time_storage: List[List[TimeRecord]],
             }
         }
         for rep_num, rep
-        in enumerate(time_storage)
+        in enumerate(time_storage, start=1)
     ]
-    data["timing"].append({
-        "repetition": "total",
-        "timings": {
-            name: sum(durations)
-            for name, durations
-            in by_operation.items()
-        },
-    })
-    data["timing"][-1]["total"] = sum(
-        duration
-        for duration
-        in data["timing"][-1]["timings"].values()
-    )
 
-    operations = []
-    if args.time_stack:
-        operations.append("stack")
-    operations.extend(args.operations)
+    by_operation: Dict[Operation, List[Duration]] = {}
+    if args.report_total or args.report_summary:
+        by_operation = group_times_by_operation(time_storage)
 
-    data["summary"] = {
-        op: {
-            "sum": np.sum(by_operation[op]),
-            "average": np.mean(by_operation[op]),
-            "min": np.min(by_operation[op]),
-            "max": np.max(by_operation[op]),
-            "std_dev": np.std(by_operation[op]),
-            "variance": np.var(by_operation[op]),
-            "median": np.median(by_operation[op]),
-            "q25": np.quantile(by_operation[op], 0.25),
-            "q75": np.quantile(by_operation[op], 0.75),
+    if args.report_total:
+        data["timing"].append({
+            "repetition": "total",
+            "timings": {
+                name: sum(durations)
+                for name, durations
+                in by_operation.items()
+            },
+        })
+        data["timing"][-1]["total"] = sum(
+            duration
+            for duration
+            in data["timing"][-1]["timings"].values()
+        )
+
+    if args.report_summary:
+        operations = (["stack"] if args.time_stack else []) + args.operations
+        data["summary"] = {
+            op: {
+                "sum": np.sum(by_operation[op]),
+                "average": np.mean(by_operation[op]),
+                "min": np.min(by_operation[op]),
+                "max": np.max(by_operation[op]),
+                "std_dev": np.std(by_operation[op]),
+                "variance": np.var(by_operation[op]),
+                "median": np.median(by_operation[op]),
+                "q25": np.quantile(by_operation[op], 0.25),
+                "q75": np.quantile(by_operation[op], 0.75),
+            }
+            for op in operations
         }
-        for op in operations
-    }
 
     with default_open(out_path) as output:
         json.dump(data,
@@ -783,7 +810,7 @@ def repetition(args: Namespace,
         data = to_traceset(dataset)
 
     if not args.operations:
-        report(time_storage)
+        print_times(time_storage)
         return time_storage
 
     if args.verbose:
@@ -820,7 +847,7 @@ def repetition(args: Namespace,
 
     if args.verbose:
         print("------------------------")
-    report(time_storage)
+    print_times(time_storage)
     print("-" * 41 + "\n")
     return time_storage
 
