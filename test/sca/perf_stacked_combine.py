@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from argparse import Namespace, FileType, ArgumentParser
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from itertools import product
 from pathlib import Path
 from copy import copy
+from csv import DictWriter
 import json
 import sys
 from typing import (Any, Callable, Dict, List, Optional, TextIO,
@@ -22,7 +23,7 @@ Operation = str
 Duration = int
 TimeRecord = Tuple[Operation, Duration]
 
-traceset_ops = {
+TRACESET_OPS = {
     "average": average,
     "conditional_average": conditional_average,
     "standard_deviation": standard_deviation,
@@ -31,7 +32,7 @@ traceset_ops = {
     "add": add,
 }
 
-OPERATIONS = list(traceset_ops.keys())
+OPERATIONS = list(TRACESET_OPS.keys())
 DTYPES = ["float32", "float16", "float64", "int8", "int16", "int32", "int64"]
 TIMING_TYPES = ["perf_counter", "process_time"]
 DISTRIBUTIONS = ["uniform", "normal"]
@@ -238,6 +239,20 @@ def _get_parser() -> ArgumentParser:
         default=False,
         help="Add summary to the report"
     )
+    output.add_argument(
+        "--aggregate",
+        action="store_true",
+        default=True,
+        help="Aggregate results from all parameter combinations "
+             "(only with --param-file and --format csv)",
+    )
+    output.add_argument(
+        "--aggregate-only",
+        action="store_true",
+        default=False,
+        help="Aggregate results from all parameter combinations "
+             "(only with --param-file and --format csv)",
+    )
 
     combine = parser.add_argument_group(
         "Operations",
@@ -436,6 +451,9 @@ def _postprocess_args(args: Namespace) -> None:
                   or args.chunk_size is not None
                   or args.chunk_memory_ratio is not None)
 
+    if args.aggregate_only:
+        args.aggregate = True
+
     if args.param_file is not None:
         args.trace_count, args.trace_length = get_dimensions(**args.__dict__)
 
@@ -625,10 +643,6 @@ def _get_args(parser: ArgumentParser) -> list[Namespace]:
 
     output: Optional[Path] = args.output
     _check_output(output, args.param_file)
-    if (args.param_file is not None
-            and output is not None
-            and not output.exists()):
-        output.mkdir(parents=True)
 
     # Single run, command line arguments
     if args.param_file is None:
@@ -638,6 +652,9 @@ def _get_args(parser: ArgumentParser) -> list[Namespace]:
         return [args]
 
     # Multiple runs, parameter file and command line arguments
+    assert output is not None
+    output.mkdir(parents=True, exist_ok=True)
+
     args_list, error = load_params_file(args.param_file, args)
     if not args_list:
         if error is None:
@@ -685,17 +702,16 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 @contextmanager
-def default_open(path: Optional[Path]):
+def default_open(path: Optional[Path], mode: str = "r"):
     if path is None:
         yield sys.stdout
     else:
-        with path.open("w") as f:
+        with path.open(mode) as f:
             yield f
 
 
-def export_report(time_storage: List[List[TimeRecord]],
-                  args: Namespace,
-                  out_path: Optional[Path]) -> None:
+def _report_json_single(time_storage: List[List[TimeRecord]],
+                        args: Namespace) -> Dict[str, Any]:
     data: Dict[str, Any] = {}
     data["config"] = {
         "repetitions": args.repetitions,
@@ -704,24 +720,24 @@ def export_report(time_storage: List[List[TimeRecord]],
             "operations": args.operations,
             "stack": args.stack,
             "stack_traceset": args.stack_traceset,
-            "time_function": args.time,
+            "time": args.time,
         },
         "dataset": {
             "seed": args.seed,
             "trace_count": args.trace_count,
             "trace_length": args.trace_length,
-            "data_type": args.dtype,
+            "dtype": args.dtype,
             "distribution": args.distribution,
             "low": args.low,
             "high": args.high,
             "mean": args.mean,
-            "std_dev": args.std,
+            "std": args.std,
         }
     }
     data["timing"] = [
         {
             "repetition": rep_num,
-            "timings": {
+            "durations": {
                 ("stack"
                  if name.startswith("stack")
                  else name): duration
@@ -740,7 +756,7 @@ def export_report(time_storage: List[List[TimeRecord]],
     if args.report_total:
         data["timing"].append({
             "repetition": "total",
-            "timings": {
+            "durations": {
                 name: sum(durations)
                 for name, durations
                 in by_operation.items()
@@ -749,7 +765,7 @@ def export_report(time_storage: List[List[TimeRecord]],
         data["timing"][-1]["total"] = sum(
             duration
             for duration
-            in data["timing"][-1]["timings"].values()
+            in data["timing"][-1]["durations"].values()
         )
 
     if args.report_summary:
@@ -769,12 +785,131 @@ def export_report(time_storage: List[List[TimeRecord]],
             for op in operations
         }
 
-    with default_open(out_path) as output:
-        json.dump(data,
-                  output,
-                  cls=NumpyEncoder,
-                  indent=4)
-        output.write("\n")
+    return data
+
+
+def _export_report_json(time_storage: List[tuple[Namespace,
+                                           List[List[TimeRecord]]]],
+                        aggregate: bool,
+                        aggregate_only: bool) -> None:
+    reports = list(map(lambda x: (x[0], _report_json_single(x[1], x[0])),
+                       time_storage))
+
+    if not aggregate_only:
+        for args, report in reports:
+            with default_open(args.output, "w") as outfile:
+                json.dump(report, outfile)
+
+    if aggregate:
+        args, _ = time_storage[0]
+        output: Path = args.output
+        aggr_path = output.parent / "all.json"
+
+        with aggr_path.open("w") as outfile:
+            json.dump([r for _, r in reports], outfile)
+        return
+
+
+_CSV_BASE_FIELDS = [
+    "device",
+    "stack",
+    "stack_traceset",
+    "chunk",
+    "stream_count",
+    "chunk_size",
+    "chunk_memory_ratio",
+    "time",
+    "trace_count",
+    "trace_length",
+    "seed",
+    "dtype",
+    "distribution",
+    "low",
+    "high",
+    "mean",
+    "std",
+]
+_CSV_ALL_FIELDS = _CSV_BASE_FIELDS + ["repetition", "operation", "duration"]
+
+
+def _report_csv_base(args: Namespace) -> Dict[str, Any]:
+    return {k: getattr(args, k) for k in _CSV_BASE_FIELDS}
+
+
+def _export_report_csv_single(time_storage: List[List[TimeRecord]],
+                              args: Namespace,
+                              current_writer: Optional[DictWriter[str]],
+                              aggr_writer: Optional[DictWriter[str]]):
+    data = _report_csv_base(args)
+    for repnum, rep in enumerate(time_storage, start=1):
+        # Saves time by not copying and just always rewriting
+        # these 3 fields
+        data["repetition"] = repnum
+        for operation, duration in rep:
+            data["operation"] = operation
+            data["duration"] = duration
+            if aggr_writer is not None:
+                aggr_writer.writerow(data)
+            if current_writer is not None:
+                current_writer.writerow(data)
+
+
+@contextmanager
+def conditional_dictwriter(condition: bool,
+                           path: Optional[Path],
+                           mode: str = "r",
+                           *args,
+                           **kwargs):
+    cm = default_open(path, mode) if condition else nullcontext()
+    with cm as f:
+        if f is None:
+            yield None
+        else:
+            writer = DictWriter(f, *args, **kwargs)
+            writer.writeheader()
+            yield writer
+
+
+def _export_report_csv(time_storage: List[tuple[Namespace,
+                                          List[List[TimeRecord]]]],
+                       aggregate: bool,
+                       aggregate_only: bool) -> None:
+    args, _ = time_storage[0]
+    output: Path = args.output
+    aggr_path = output.parent / "all.json"
+    aggr_cm = conditional_dictwriter(aggregate,
+                                     aggr_path,
+                                     "w",
+                                     _CSV_ALL_FIELDS,
+                                     extrasaction="ignore",
+                                     dialect="unix",
+                                     delimiter=";")
+    with aggr_cm as aggr_writer:
+        for args, times in time_storage:
+            current_cm = conditional_dictwriter(not aggregate_only,
+                                                args.output,
+                                                "w",
+                                                _CSV_ALL_FIELDS,
+                                                extrasaction="ignore",
+                                                dialect="unix",
+                                                delimiter=";")
+            with current_cm as current_writer:
+                _export_report_csv_single(times,
+                                          args,
+                                          current_writer,
+                                          aggr_writer)
+
+
+def export_report(time_storage: List[tuple[Namespace,
+                                           List[List[TimeRecord]]]],
+                  export_format: str,
+                  **kwargs) -> None:
+    if export_format == "json":
+        _export_report_json(time_storage, **kwargs)
+    elif export_format == "csv":
+        _export_report_csv(time_storage, **kwargs)
+    else:
+        raise ValueError("Unknown export format")
 
 
 def repetition(args: Namespace,
@@ -842,7 +977,7 @@ def repetition(args: Namespace,
         for op in args.operations:
             if args.verbose:
                 print(f"Performing {op}...")
-            op_func = traceset_ops[op]
+            op_func = TRACESET_OPS[op]
             timed(time_storage, args.verbose, args.time)(op_func)(*data)
 
     if args.verbose:
@@ -852,7 +987,7 @@ def repetition(args: Namespace,
     return time_storage
 
 
-def main(args: Namespace) -> None:
+def main(args: Namespace) -> List[List[TimeRecord]]:
     if args.verbose:
         print(f"Repetitions: {args.repetitions}")
         print(f"Dataset: {args.trace_count} x {args.trace_length} "
@@ -871,10 +1006,18 @@ def main(args: Namespace) -> None:
                      for rep in time_storage)
     print("\nSummary")
     print(f"Total: {total_time:,} ns")
-    export_report(time_storage, args, args.output)
+    # export_report(time_storage, args, args.output)
+    return time_storage
 
 
 if __name__ == "__main__":
     args_list = _get_args(_get_parser())
+    results = []
     for args in args_list:
-        main(args)
+        results.append(main(args))
+
+    common_args = args_list[0]
+    export_report(list(zip(args_list, results)),
+                  common_args.format,
+                  aggregate=common_args.aggregate,
+                  aggregate_only=common_args.aggregate_only)
