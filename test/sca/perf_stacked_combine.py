@@ -209,7 +209,12 @@ def _get_parser() -> ArgumentParser:
         "-p", "--param-file",
         type=FileType("r"),
         default=None,
-        help="Parameters file"
+        help=("Parameters file - JSON file containing an object or array "
+              "of objects with keys corresponding to the arguments "
+              "of this script and values being either a single value "
+              "or a list of values to be used for the parameters. In case "
+              "of a list, all combinations of the values are used. "
+              "\"repetitions\", \"seed\" and \"operations\" are left as-is.")
     )
 
     output = parser.add_argument_group(
@@ -219,7 +224,7 @@ def _get_parser() -> ArgumentParser:
     output.add_argument(
         "-o", "--output",
         type=Path,
-        help="Output file or directory"
+        help="Output file (no --param-file) or directory (--param-file)"
     )
     output.add_argument(
         "--format",
@@ -231,13 +236,13 @@ def _get_parser() -> ArgumentParser:
         "--report-total",
         action="store_true",
         default=False,
-        help="Add total times to the report"
+        help="Add total times to the report (only for --format json)"
     )
     output.add_argument(
         "--report-summary",
         action="store_true",
         default=False,
-        help="Add summary to the report"
+        help="Add summary to the report (only for --format json)"
     )
     output.add_argument(
         "--aggregate",
@@ -268,7 +273,7 @@ def _get_parser() -> ArgumentParser:
         "-s", "--stack",
         action="store_true",
         default=True,
-        help="Use stacked traces"
+        help="Use stacked traces (necessary for --device gpu, default: True)"
     )
     stacking.add_argument(
         "--stack-traceset",
@@ -285,13 +290,14 @@ def _get_parser() -> ArgumentParser:
 
     chunking = parser.add_argument_group(
         "Chunking",
-        "Options for chunking"
+        "Options for chunking (only for --device gpu)"
     )
     chunking.add_argument(
         "-c", "--chunk",
         action="store_true",
         default=False,
-        help="Use chunking for the operations",
+        help=("Use chunking for the operations "
+              "(set automatically if other chunking arguments are set)"),
     )
     chunking.add_argument(
         "--stream-count",
@@ -455,7 +461,7 @@ def _postprocess_args(args: Namespace) -> None:
         args.aggregate = True
 
     if args.param_file is not None:
-        args.trace_count, args.trace_length = get_dimensions(**args.__dict__)
+        args.trace_count, args.trace_length = get_dimensions(**vars(args))
 
         outdir: Optional[Path] = args.output
         assert outdir is not None
@@ -563,6 +569,7 @@ def params_filename(device: str,
                     dtype: str,
                     distribution: str,
                     time: str,
+                    format: str,
                     trace_count: Optional[int] = None,
                     trace_length: Optional[int] = None,
                     **params) -> str:
@@ -574,7 +581,7 @@ def params_filename(device: str,
         trace_count, trace_length = get_dimensions(**params)
     dims = f"{trace_count}x{trace_length}"
 
-    return f"{device}_{timing}_{dtype}_{distrib}_{dims}.json"
+    return f"{device}_{timing}_{dtype}_{distrib}_{dims}.{format}"
 
 
 def parse_params_dict(params: dict[str, ParamValueMixed],
@@ -876,7 +883,7 @@ def _export_report_csv(time_storage: List[tuple[Namespace,
                        aggregate_only: bool) -> None:
     args, _ = time_storage[0]
     output: Path = args.output
-    aggr_path = output.parent / "all.json"
+    aggr_path = output.parent / "all.csv"
     aggr_cm = conditional_dictwriter(aggregate,
                                      aggr_path,
                                      "w",
@@ -989,12 +996,8 @@ def repetition(args: Namespace,
 
 def main(args: Namespace) -> List[List[TimeRecord]]:
     if args.verbose:
-        print(f"Repetitions: {args.repetitions}")
-        print(f"Dataset: {args.trace_count} x {args.trace_length} "
-              "(count x length)")
-        print(f"Device: {args.device},",
-              "stacked" if args.stack else "not stacked")
-        print(f"Operations: {', '.join(args.operations)}")
+        print("Arguments:")
+        print('\n'.join(f"\t{k}: {v}" for k, v in vars(args).items()))
 
     time_storage: List[List[TimeRecord]] = []
     rng = np.random.default_rng(args.seed)
