@@ -500,7 +500,9 @@ def _check_dimensions_params(n_trace_count: Optional[int] = None,
     count_ok = 2 == sum(
         1 if x is not None else 0
         for x
-        in (e_trace_count, n_trace_count, e_trace_length, n_trace_length)
+        in (e_trace_count, n_trace_count,
+            e_trace_length, n_trace_length,
+            e_n_samples, n_n_samples)
     )
     if not count_ok:
         raise ValueError(
