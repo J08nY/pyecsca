@@ -470,51 +470,12 @@ ECDH
 KeyGen:
  - Short-Weierstrass
  - `(signed, Booth) Fixed Window with full precomputation? (width = 5) <https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/pcpgfpec_mulbase.c#L34>`__ via ``ippsGFpECPublicKey -> gfec_MulBasePoint -> gfec_base_point_mul or gfec_point_mul``.
+    - Has special functions for NIST curves, but those implement the same scalarmult.
  - `Jacobian coords <https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/pcpgfpecstuff.h#L76>`__
- - Has special functions for NIST curves, but those implement the same scalarmult.
+ - `add-1998-cmo-2 <https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/pcpgfpec_add.c#L35>`__
+   `dbl-1998-cmo-2 <https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/pcpgfpec_dblpoint.c#L36>`__
  - Weirdly mentions "Enhanced Montgomery Multiplication" DOI:10.1155/2008/583926 in each of the formulas.
    Does actually use Montgomery arithmetic.
-
-Add (P-256)::
-
-     * A = x1*z2^2    B = x2*z1^2      C = y1*z2^3      D = y2*z1^3
-     * E = B - A      F = D - C
-     * x3 = -E^3 - 2*A*E^2 + F^2
-     * y3 = -C*E^3 + F*(A*E^2 - x3)
-     * z3 = z1*z2*E
-
-Dbl (P-256)::
-
-     * l1 = 3x^2 + a*z^4 = [a = -3]= 3*(x^2 - z^4) = 3*(x - z^2)*(x + z^2)
-     * z2 = 2*y*z
-     * l2 = 4*x*y^2
-     * x2 = l1^2 - 2*l2
-     * l3 = 8*y^4
-     * y2 = l1*(l2 - x2) - l3
-
-Add::
-
-    // S1 = y1*z2^3
-    // S2 = y2*z1^3
-    //
-    // U1 = x1*z2^2
-    // U2 = x2*z1^2
-
-    //  R = S2-S1
-    //  H = U2-U1
-    //
-    //  x3 = -H^3 -2*U1*H^2 +R2
-    //  y3 = -S1*H^3 +R*(U1*H^2 -x3)
-    //  z3 = z1*z2*H
-
-Dbl::
-
-    // A = 4*x*y^2
-    // B = 3*x^2 + a*z^4
-    //
-    // x3 = -2*A + B^2
-    // y3 = -8y^4 +B*(A-x3)
-    // z3 = 2*y*z
 
 Derive:
  - Short-Weierstrass
@@ -604,3 +565,69 @@ Verify:
  - Twisted-Edwards
  - `Fixed window with full precomputation? (width = 4) <https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/crypto_mb/src/ed25519/ifma_arith_ed25519.c#L287>`__ for base point mult, then just Fixed window (width = 4) for the other mult, all via ``mbx_ed25519_verify -> ifma_ed25519_prod_point -> ifma_ed25519_mul_point + ifma_ed25519_mul_basepoint``
  - Same as KeyGen.
+
+LibreSSL
+========
+
+| Version: ``v3.8.2``
+| Repository: https://github.com/libressl/portable
+| Docs:
+
+Primitives
+----------
+
+Supports ECDH, ECDSA as well as x25519 and Ed25519.
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - Ladder via ``kmethod.keygen -> ec_key_gen -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
+   Also does coordinate blinding and fixes scalar bit-length.
+ - Jacobian coordinates.
+ - `add-1998-hnm <https://github.com/libressl/openbsd/blob/libressl-v3.8.2/src/lib/libcrypto/ec/ecp_smpl.c#L472>`__ likely, due to the division by 2.
+
+Dbl::
+
+    n1 = 3 * X_a^2 + a_curve * Z_a^4
+    Z_r = 2 * Y_a * Z_a
+    n2 = 4 * X_a * Y_a^2
+    X_r = n1^2 - 2 * n2
+    n3 = 8 * Y_a^4
+    Y_r = n1 * (n2 - X_r) - n3
+
+Derive:
+ - Short-Weierstrass
+ - Ladder via ``kmethod.compute_key -> ecdh_compute_key -> EC_POINT_mul -> method.mul_single_ct -> ec_GFp_simple_mul_single_ct -> ec_GFp_simple_mul_ct``.
+   Also does coordinate blinding and fixes scalar bit-length.
+ - Same as KeyGen.
+
+
+ECDSA
+^^^^^
+
+KeyGen:
+ - Same as ECDH.
+
+Sign:
+ - Short-Weierstrass
+ - Ladder via ``ECDSA_sign -> kmethod.sign -> ecdsa_sign -> ECDSA_do_sign -> kmethod.sign_sig -> ecdsa_sign_sig -> ECDSA_sign_setup -> kmethod.sign_setup -> ecdsa_sign_setup -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
+ - Same as ECDH.
+
+Verify:
+ - Short-Weierstrass
+ - Window NAF interleaving multi-exponentation method ``ECDSA_verify -> kmethod.verify -> ecdsa_verify -> ECDSA_do_verify -> kmethod.verify_sig -> ecdsa_verify_sig -> EC_POINT_mul -> method.mul_double_nonct -> ec_GFp_simple_mul_double_nonct -> ec_wNAF_mul``.
+   Refers to http://www.informatik.tu-darmstadt.de/TI/Mitarbeiter/moeller.html#multiexp and https://www.informatik.tu-darmstadt.de/TI/Mitarbeiter/moeller.html#fastexp
+ - Same coordinates and formulas as ECDH.
+
+
+X25519
+^^^^^^
+Based on ref10 of Ed255119.
+See `BoringSSL`_. Not exactly the same.
+
+Ed25519
+^^^^^^^
+Based on ref10 of Ed255119.
+See `BoringSSL`_. Not exactly the same.
