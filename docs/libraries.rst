@@ -304,17 +304,17 @@ Based on ref10 of Ed255119.
 See `BoringSSL`_.
 
 
-SymCrypt 
+SymCrypt
 ============
 
 | Version: ``103.1.0`` (tag v103.1.0)
 | Repository: https://github.com/microsoft/SymCrypt
-| Docs: 
+| Docs:
 
 Primitives
 ----------
 
-Supports ECDH and ECDSA with `NIST <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ec_internal_curves.c#L16C19-L16C25>`__ curves (192, 224, 256, 384, 521) and Twisted Edwards `NUMS <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ec_internal_curves.c#L303>`__ curves (NumsP256t1, NumsP384t1, NumsP512t1).
+Supports ECDH and ECDSA with `NIST <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_internal_curves.c#L16C19-L16C25>`__ curves (192, 224, 256, 384, 521) and Twisted Edwards `NUMS <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_internal_curves.c#L303>`__ curves (NumsP256t1, NumsP384t1, NumsP512t1).
 Supports X25519.
 
 
@@ -322,57 +322,59 @@ ECDH
 ^^^^
 
 KeyGen:
- - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcpointGenericSetRandom -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__. 
- - NIST use `Jacobian <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ecurve.c#L101>`__.
-    - `jacobian-dbl-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L381>`__ for generic double via ``SymCryptEcpointDouble`` or a `tweak of  dbl-2007-bl/dbl-2001-b <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_short_weierstrass.c#L499>`__ formulae via ``SymCryptShortWeierstrassDoubleSpecializedAm3`` for ``a=-3``.
-    - Tweak of `jacobian-add-2007-bl <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_short_weierstrass.c#L603>`__ via ``SymCryptEcpointAddDiffNonZero``. It also has side-channel unsafe version ``SymCryptShortWeierstrassAddSideChannelUnsafe`` and a generic wrapper for both via ``SymCryptEcpointAdd``.
- 
- - NUMS curves use `Extended projective <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ecurve.c#L104>`__.
-    - `dbl-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ec_twisted_edwards.c#L195>`__ via ``SymCryptTwistedEdwardsDouble``.
-    - `add-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ec_twisted_edwards.c#L313>`__ via ``SymCryptTwistedEdwardsAdd`` or ``SymCryptTwistedEdwardsAddDiffNonZero``.
+ - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcpointGenericSetRandom -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - NIST (Short-Weierstrass) use `Jacobian <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ecurve.c#L101>`__.
+    - `dbl-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L381>`__ for generic double via ``SymCryptEcpointDouble`` or a `tweak of  dbl-2007-bl/dbl-2001-b <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L499>`__ formulae via ``SymCryptShortWeierstrassDoubleSpecializedAm3`` for ``a=-3``.
+    - `add-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L490>`__ via ``SymCryptEcpointAddDiffNonZero``. It also has side-channel unsafe version ``SymCryptShortWeierstrassAddSideChannelUnsafe`` and a generic wrapper for both via ``SymCryptEcpointAdd``.
+ - NUMS (Twisted-Edwards) curves use `Extended projective <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ecurve.c#L104>`__.
+    - `dbl-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_twisted_edwards.c#L195>`__ via ``SymCryptTwistedEdwardsDouble``.
+    - `add-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_twisted_edwards.c#L313>`__ via ``SymCryptTwistedEdwardsAdd`` or ``SymCryptTwistedEdwardsAddDiffNonZero``.
 
 Derive:
- - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDhSecretAgreement -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__. 
- - Same coordinates and formulas as KeyGen
+ - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDhSecretAgreement -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - Same coordinates and formulas as KeyGen.
 
 
 ECDSA
 ^^^^^
 
 KeyGen:
- - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcpointGenericSetRandom -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__. 
- - NIST use `Jacobian <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ecurve.c#L101>`__.
-    - `jacobian-dbl-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L381>`__ for generic double via ``SymCryptEcpointDouble`` or a `tweak of  dbl-2007-bl/dbl-2001-b <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_short_weierstrass.c#L499>`__ formulae via ``SymCryptShortWeierstrassDoubleSpecializedAm3`` for ``a=-3``.
-    - Tweak of `jacobian-add-2007-bl <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_short_weierstrass.c#L603>`__ via ``SymCryptEcpointAddDiffNonZero``. It also has side-channel unsafe version ``SymCryptShortWeierstrassAddSideChannelUnsafe`` and a generic wrapper for both via ``SymCryptEcpointAdd``.
- 
- - NUMS curves use `Extended projective <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ecurve.c#L104>`__.
-    - `dbl-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ec_twisted_edwards.c#L195>`__ via ``SymCryptTwistedEdwardsDouble``.
-    - `add-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/4d3fd5136855648d2a5e987f3b95473b056876b1/lib/ec_twisted_edwards.c#L313>`__ via ``SymCryptTwistedEdwardsAdd`` or ``SymCryptTwistedEdwardsAddDiffNonZero``.
+ - Short-Weierstrass
+ - `(signed) Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcpointGenericSetRandom -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - NIST (Short-Weierstrass) use `Jacobian <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ecurve.c#L101>`__.
+    - `dbl-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L381>`__ for generic double via ``SymCryptEcpointDouble`` or a `tweak of  dbl-2007-bl/dbl-2001-b <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L499>`__ formulae via ``SymCryptShortWeierstrassDoubleSpecializedAm3`` for ``a=-3``.
+    - `add-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L490>`__ via ``SymCryptEcpointAddDiffNonZero``. It also has side-channel unsafe version ``SymCryptShortWeierstrassAddSideChannelUnsafe`` and a generic wrapper for both via ``SymCryptEcpointAdd``.
+ - NUMS (Twisted-Edwards) curves use `Extended projective <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ecurve.c#L104>`__.
+    - `dbl-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_twisted_edwards.c#L195>`__ via ``SymCryptTwistedEdwardsDouble``.
+    - `add-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_twisted_edwards.c#L313>`__ via ``SymCryptTwistedEdwardsAdd`` or ``SymCryptTwistedEdwardsAddDiffNonZero``.
 
 
 Sign:
- - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDsaSignEx -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__. 
- - Same coordinates and formulas as KeyGen
+ - Short-Weierstrass
+ - `(signed) Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDsaSignEx -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - Same coordinates and formulas as KeyGen.
 
 Verify:
- - `Double-scalar multiplication using the width-w NAF with interleaving <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDsaVerify > SymCryptEcpointMultiScalarMul -> SymCryptEcpointMultiScalarMulWnafWithInterleaving``. Algorithm 9 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__. 
- - Same coordinates and formulas as KeyGen
+ - Short-Weierstrass
+ - `Double-scalar multiplication using the width-w NAF with interleaving <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDsaVerify > SymCryptEcpointMultiScalarMul -> SymCryptEcpointMultiScalarMulWnafWithInterleaving``. Algorithm 9 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - Same coordinates and formulas as KeyGen.
 
 X25519
 ^^^^^^
 
 KeyGen:
- - `Ladder <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_montgomery.c#L297>`__ via
+ - Montgomery
+ - `Ladder <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_montgomery.c#L297>`__ via
    ``SymCryptMontgomeryPointScalarMul``.
- - `xz <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_montgomery.c#L173>`__.
- - `ladd-1987-m-3 <https://github.com/microsoft/SymCrypt/blob/b4f07a34bdb970e8690dc13a98fb9fb77edc0f50/lib/ec_montgomery.c#L151>`__  via ``SymCryptMontgomeryDoubleAndAdd``.
+ - `xz <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_montgomery.c#L173>`__.
+ - `ladd-1987-m-3 <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_montgomery.c#L151>`__  via ``SymCryptMontgomeryDoubleAndAdd``.
 
 
 Derive:
  - Same as Keygen.
 
 
-fastecdsa 
+fastecdsa
 ============
 
 | Version: ``v2.3.1``
@@ -382,19 +384,22 @@ fastecdsa
 Primitives
 ----------
 
-Offers only ECDSA. 
-Supported `curves <https://github.com/AntonKueltz/fastecdsa/blob/main/fastecdsa/curve.py>`__: all SECP curves (8) for 192-256 bits, all (7) Brainpool curves as well as custom curves.
+Offers only ECDSA.
+Supported `curves <https://github.com/AntonKueltz/fastecdsa/blob/v2.3.1/fastecdsa/curve.py>`__: all SECP curves (8) for 192-256 bits, all (7) Brainpool curves as well as custom curves.
 
 
 ECDSA
 ^^^^^
 
 KeyGen:
+ - Short-Weierstrass
  - `Ladder <https://github.com/AntonKueltz/fastecdsa/blob/v2.3.1/src/curveMath.c#L124>`__ via ``get_public_key -> pointZZ_pMul``.
  -  Affine and schoolbook `add <https://github.com/AntonKueltz/fastecdsa/blob/v2.3.1/src/curveMath.c#L68>`__ and `double <https://github.com/AntonKueltz/fastecdsa/blob/v2.3.1/src/curveMath.c#L2>`__.
 
 Sign:
- - Same ladder as Keygen via ``sign``. 
+ - Short-Weierstrass
+ - Same ladder as Keygen via ``sign``.
 
 Verify:
+ - Short-Weierstrass
  - `Shamir's trick <https://github.com/AntonKueltz/fastecdsa/blob/v2.3.1/src/curveMath.c#L163>`__ via ``verify -> pointZZ_pShamirsTrick``.
