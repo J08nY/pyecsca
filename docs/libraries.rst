@@ -2,7 +2,10 @@
 ECC in Libraries
 ================
 
-.. contents::
+.. contents:: Table of Contents
+   :backlinks: none
+   :depth: 1
+   :local:
 
 BouncyCastle
 ============
@@ -305,7 +308,7 @@ See `BoringSSL`_.
 
 
 SymCrypt
-============
+========
 
 | Version: ``103.1.0`` (tag v103.1.0)
 | Repository: https://github.com/microsoft/SymCrypt
@@ -322,7 +325,7 @@ ECDH
 ^^^^
 
 KeyGen:
- - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcpointGenericSetRandom -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - `(signed) Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcpointGenericSetRandom -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
  - NIST (Short-Weierstrass) use `Jacobian <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ecurve.c#L101>`__.
     - `dbl-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L381>`__ for generic double via ``SymCryptEcpointDouble`` or a `tweak of  dbl-2007-bl/dbl-2001-b <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L499>`__ formulae via ``SymCryptShortWeierstrassDoubleSpecializedAm3`` for ``a=-3``.
     - `add-2007-bl <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_short_weierstrass.c#L490>`__ via ``SymCryptEcpointAddDiffNonZero``. It also has side-channel unsafe version ``SymCryptShortWeierstrassAddSideChannelUnsafe`` and a generic wrapper for both via ``SymCryptEcpointAdd``.
@@ -331,7 +334,7 @@ KeyGen:
     - `add-2008-hwcd <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_twisted_edwards.c#L313>`__ via ``SymCryptTwistedEdwardsAdd`` or ``SymCryptTwistedEdwardsAddDiffNonZero``.
 
 Derive:
- - `Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDhSecretAgreement -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
+ - `(signed) Fixed-window <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_mul.c#L90>`__ via ``SymCryptEcDhSecretAgreement -> SymCryptEcpointScalarMul -> SymCryptEcpointScalarMulFixedWindow``. Algorithm 1 in `Selecting Elliptic Curves for Cryptography: An Efficiency and Security Analysis <https://eprint.iacr.org/2014/130.pdf>`__.
  - Same coordinates and formulas as KeyGen.
 
 
@@ -375,7 +378,7 @@ Derive:
 
 
 fastecdsa
-============
+=========
 
 | Version: ``v2.3.1``
 | Repository: https://github.com/AntonKueltz/fastecdsa/
@@ -403,3 +406,46 @@ Sign:
 Verify:
  - Short-Weierstrass
  - `Shamir's trick <https://github.com/AntonKueltz/fastecdsa/blob/v2.3.1/src/curveMath.c#L163>`__ via ``verify -> pointZZ_pShamirsTrick``.
+
+
+micro-ecc
+=========
+
+| Version: ``v1.1``
+| Repository: https://github.com/kmackay/micro-ecc/
+| Docs:
+
+Primitives
+----------
+
+Offers ECDH and ECDSA on secp160r1, secp192r1, secp224r1, secp256r1, and secp256k1.
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - `Montgomery ladder <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_make_key -> EccPoint_compute_public_key -> EccPoint_mult`` (also has coordinate randomization).
+ - `Jacobian coZ coordinates (Z1 == Z2) <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L748>`__ from https://eprint.iacr.org/2011/338.pdf.
+ - `coZ formulas <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L793>`__ from https://eprint.iacr.org/2011/338.pdf.
+
+Derive:
+ - Short-Weierstrass
+ - `Montgomery ladder <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_shared_secret -> EccPoint_compute_public_key -> EccPoint_mult`` (also has coordinate randomization).
+ - Same coords and formulas as KeyGen.
+
+ECDSA
+^^^^^
+
+Keygen:
+ - Same as ECDH.
+
+Sign:
+ - Short-Weierstrass
+ - `Montgomery ladder <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_sign -> uECC_sign_with_k_internal -> EccPoint_mult`` (also has coordinate randomization).
+ - Same coords and formulas as KeyGen.
+
+Verify:
+ - Short-Weierstrass
+ - `Shamir's trick <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L1558>`__ via ``uECC_verify``.
+ - Same coords and formulas as KeyGen.
