@@ -2,6 +2,8 @@
 ECC in Libraries
 ================
 
+.. contents::
+
 BouncyCastle
 ============
 
@@ -161,7 +163,7 @@ P-384
 
 P-521
 ^^^^^
-- Uses defaults (described below).
+ - Uses defaults (described below).
 
 ECDH
 ^^^^
