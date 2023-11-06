@@ -697,6 +697,90 @@ Go
 libgcrypt
 =========
 
+| Version: ``1.10.2``
+| Repository: https://git.gnupg.org/
+| Docs: https://gnupg.org/documentation/manuals/gcrypt/
+
+Primitives
+----------
+
+Supports ECDH, X25519 and EdDSA `on <https://gnupg.org/documentation/manuals/gcrypt/ECC-key-parameters.html#ECC-key-parameters>`__ C25519, X448, Ed25519, Ed448, NIST curves, Brainpool curves and secp256k1.
+Also supports GOST and SM2 signatures.
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - `Left to right double-and-add-always <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1824>`__ via ``gcry_pk_genkey -> _gcry_pk_genkey -> generate -> ecc_generate -> nist_generate_key -> _gcry_mpi_ec_mul_point``.
+ - `ADD <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1406>`__  (via ``_gcry_mpi_ec_add_points``)::
+
+     l1 = x1 z2^2  
+     l2 = x2 z1^2  
+     l3 = l1 - l2 
+     l4 = y1 z2^3  
+     l5 = y2 z1^3  
+     l6 = l4 - l5  
+     l7 = l1 + l2  
+     l8 = l4 + l5  
+     z3 = z1 z2 l3  
+     x3 = l6^2 - l7 l3^2  
+     l9 = l7 l3^2 - 2 x3  
+     y3 = (l9 l6 - l8 l3^3)/2 
+
+ - `DBL <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1219>`__ (via ``_gcry_mpi_ec_dup_point``)::
+     
+     L1 = 3X^2 + aZ^4 
+     Z3 = 2YZ 
+     L2 = 4XY^2 
+     X3 = L1^2 - 2L2 
+     L3 = 8Y^4 
+     Y3 = L1(L2 - X3) - L3 
+
+
+Derive:
+ - Same as Keygen via ``gcry_pk_encrypt -> _gcry_pk_encrypt -> generate -> ecc_encrypt_raw -> _gcry_mpi_ec_mul_point``.
+
+
+ECDSA
+^^^^^
+
+Keygen:
+ - Same as ECDH.
+
+Sign:
+ - Same as Keygen via ``gcry_ecc_ecdsa_sign -> _gcry_ecc_ecdsa_sign -> _gcry_mpi_ec_mul_point``.
+
+Verify:
+ - Two separate scalar multiplications via ``gcry_ecc_ecdsa_verify -> _gcry_ecc_ecdsa_verify``.
+
+EdDSA
+^^^^^
+
+Keygen:
+ - Twisted Edwards
+ - `Left to right double-and-add-always <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1824>`__ via ``gcry_pk_genkey -> _gcry_pk_genkey -> generate -> ecc_generate -> _gcry_ecc_eddsa_genkey -> _gcry_mpi_ec_mul_point``.
+ - Projective, `dbl-2008-bbjlp <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1314>`__ and `add-2008-bbjlp <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1563>`__
+
+Sign:
+ - Same as Keygen via ``gcry_ecc_eddsa_sign -> _gcry_ecc_eddsa_sign -> _gcry_mpi_ec_mul_point``.
+
+Verify:
+ - Two separate scalar multiplications via ``gcry_ecc_eddsa_verify -> _gcry_ecc_eddsa_verify``.
+
+
+X25519
+^^^^^^
+
+KeyGen:
+ - Montgomery
+ - `Montgomery ladder <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1858>`__ via ``gcry_pk_genkey -> _gcry_pk_genkey -> generate -> ecc_generate -> nist_generate_key -> _gcry_mpi_ec_mul_point``.
+ - xz coordinates with a shuffled version of `ladd-1987-m-3 <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1661>`__
+
+
+Derive:
+ - Same as Keygen via ``gcry_pk_encrypt -> _gcry_pk_encrypt -> generate -> ecc_encrypt_raw -> _gcry_mpi_ec_mul_point``.
+
 BearSSL
 =======
 
