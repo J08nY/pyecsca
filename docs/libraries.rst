@@ -669,3 +669,127 @@ Sign:
 Verify:
  - `Shamir's trick <https://github.com/libtom/libtomcrypt/blob/v1.18.2/src/pk/ecc/ltc_ecc_mul2add.c#L35>`__ via ``ecc_verify_hash -> _ecc_verify_hash -> ecc_mul2add`` or two separate sliding windows.
  - Same coords and formulas as KeyGen.
+
+wolfSSL
+=======
+
+OpenSSL
+=======
+
+NSS
+===
+
+libsecp256k1
+============
+
+Nettle
+======
+
+mbedTLS
+=======
+
+SunEC
+=====
+
+Go
+==
+
+libgcrypt
+=========
+
+BearSSL
+=======
+
+| Version: ``v0.6``
+| Repository: https://bearssl.org/gitweb/?p=BearSSL;a=summary
+| Docs: https://bearssl.org/index.html
+
+Primitives
+----------
+
+Supports SECG prime field curves, as well as Brainpool and Curve25519, Curve448.
+Has API functions for ECDSA, but does ECDH only implicitly in its TLS implementation (no public API exposed).
+Unclear whether Ed25519 is supported.
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - (width=2) Fixed Window via ``br_ec_compute_pub -> impl.mulgen -> impl.mul``, but (width=4) Fixed Window via ``br_ec_compute_pub -> impl.mulgen`` for special (P-256) curves.
+ - Jacobian coordinates
+
+Add::
+
+   u1 = x1 * z2^2
+   u2 = x2 * z1^2
+   s1 = y1 * z2^3
+   s2 = y2 * z1^3
+   h = u2 - u1
+   r = s2 - s1
+   x3 = r^2 - h^3 - 2 * u1 * h^2
+   y3 = r * (u1 * h^2 - x3) - s1 * h^3
+   z3 = h * z1 * z2
+
+Dbl::
+
+   s = 4*x*y^2
+   m = 3*(x + z^2)*(x - z^2)
+   x' = m^2 - 2*s
+   y' = m*(s - x') - 8*y^4
+   z' = 2*y*z
+
+Derive:
+ - Short-Weierstrass
+ - (width=2) Fixed Window via ``impl.mul``.
+ - Coordinates and formulas same as in KeyGen.
+
+ECDSA
+^^^^^
+
+KeyGen:
+ - Same as ECDH.
+
+Sign:
+ - Short-Weierstrass
+ - (width=2) Fixed Window via ``br_ecdsa_*_sign_raw -> impl.mulgen -> impl.mul``, but (width=4) Fixed Window via ``br_ecdsa_*_sign_raw -> impl.mulgen`` for special (P-256) curves.
+ - Coordinates and formulas same as in KeyGen.
+
+Verify:
+ - Short-Weierstrass
+ - Simple scalarmult then add via ``br_ecdsa_*_verify_raw -> impl.muladd -> impl.mul + add``
+ - Coordinates and formulas same as in KeyGen.
+
+x25519
+------
+
+KeyGen:
+ - Montgomery
+ - Montgomery ladder via ``br_ec_compute_pub -> impl.mulgen -> impl.mul``.
+ - xz coordinates
+ - mladd-1987-m
+
+Ladder::
+
+ 269                 c255_add(a, x2, z2); // a = x2 + z2
+ 270                 c255_mul(aa, a, a);  // aa = a^2
+ 271                 c255_sub(b, x2, z2); // b = x2 - z2
+ 272                 c255_mul(bb, b, b);  // bb = b^2
+ 273                 c255_sub(e, aa, bb); // e = aa * bb
+ 274                 c255_add(c, x3, z3); // c = x3 + z3
+ 275                 c255_sub(d, x3, z3); // d = x3 - z3
+ 276                 c255_mul(da, d, a);  // da = d * a
+ 277                 c255_mul(cb, c, b);  // cb = c * b
+
+ 291                 c255_add(x3, da, cb);// x3 = da + cb
+ 292                 c255_mul(x3, x3, x3);// x3 = x3^2
+ 293                 c255_sub(z3, da, cb);// z3 = da - cb
+ 294                 c255_mul(z3, z3, z3);// z3 = z3^2
+ 295                 c255_mul(z3, z3, x1);// z3 = z3 * x1
+ 296                 c255_mul(x2, aa, bb);// x2 = aa * bb
+ 297                 c255_mul(z2, C255_A24, e);// z2 = e * A24
+ 298                 c255_add(z2, z2, aa);// z2 = z2 + aa
+ 299                 c255_mul(z2, e, z2); // z2 = z2 * e
+
+Derive:
+ - Same as KeyGen.
