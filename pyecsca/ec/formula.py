@@ -9,7 +9,7 @@ from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from importlib_resources.abc import Traversable
 from public import public
-from sympy import FF, symbols, Poly, Rational
+from sympy import FF, symbols, Poly, Rational, simplify
 from ..misc.cache import sympify
 
 from .context import ResultAction
@@ -214,7 +214,7 @@ class Formula(ABC):
                         args.append(res)
                     return expression.func(*args)
 
-                expr = resolve(expr, k)
+                expr = resolve(simplify(expr), k)
                 poly = Poly(expr, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots:

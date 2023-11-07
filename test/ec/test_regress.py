@@ -125,3 +125,10 @@ def test_issue_14():
     R = formula(p, P, Q, **curve.parameters)[0]
     Raff = R.to_affine()
     assert PQaff == Raff
+
+
+def test_issue_53():
+    secp128r1 = get_params("secg", "secp128r1", "jacobian")
+    coords = secp128r1.curve.coordinate_model
+    formula = coords.formulas["dbl-1998-hnm"]
+    formula(secp128r1.curve.prime, secp128r1.generator, **secp128r1.curve.parameters)
