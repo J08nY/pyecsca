@@ -1018,11 +1018,12 @@ def main(args: Namespace) -> List[List[TimeRecord]]:
 if __name__ == "__main__":
     args_list = _get_args(_get_parser())
     results = []
-    for args in args_list:
-        results.append(main(args))
-
-    common_args = args_list[0]
-    export_report(list(zip(args_list, results)),
-                  common_args.format,
-                  aggregate=common_args.aggregate,
-                  aggregate_only=common_args.aggregate_only)
+    try:
+        for args in args_list:
+            results.append(main(args))
+    finally:
+        common_args = args_list[0]
+        export_report(list(zip(args_list, results)),
+                      common_args.format,
+                      aggregate=common_args.aggregate,
+                      aggregate_only=common_args.aggregate_only)
