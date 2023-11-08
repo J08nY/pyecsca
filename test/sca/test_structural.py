@@ -18,14 +18,14 @@ import itertools
 def test_formula_match():
     model = ShortWeierstrassModel()
     coords = model.coordinates["jacobian"]
-    secp128r1 = get_params("secg", "secp128r1", "jacobian")
+    secp128r1 = get_params("secg", "secp224r1", "jacobian-3")
     with as_file(
-        files(test.data.formulas).joinpath("dbl-bc-r1rv76-jac")
+        files(test.data.formulas).joinpath("dbl-boringssl-p224")
     ) as meta_path, as_file(
-        files(test.data.formulas).joinpath("dbl-bc-r1rv76-jac.op3")
+        files(test.data.formulas).joinpath("dbl-boringssl-p224.op3")
     ) as op3_path:
         bc_formula = DoublingEFDFormula(
-            meta_path, op3_path, "dbl-bc-r1rv76-jac", coords
+            meta_path, op3_path, "dbl-boringssl-p224", coords
         )
     print()
     for other_name, other_formula in coords.formulas.items():
@@ -129,6 +129,20 @@ def test_efd_formula_match():
             ("other", "Curve25519"),
             LadderEFDFormula,
         ],
+        [
+            "dbl-boringssl-p224",
+            ShortWeierstrassModel,
+            "jacobian-3",
+            ("secg", "secp224r1"),
+            DoublingEFDFormula,
+        ],
+        [
+            "add-boringssl-p224",
+            ShortWeierstrassModel,
+            "jacobian-3",
+            ("secg", "secp224r1"),
+            AdditionEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):
@@ -153,7 +167,7 @@ def test_formula_correctness(name, model, coords, param_spec, formula_type):
         P = Paff.to_model(coordinate_model, params.curve)
         P2 = P2aff.to_model(coordinate_model, params.curve)
         Q = Qaff.to_model(coordinate_model, params.curve)
-        Q2 = Q2aff.to_model(coordinate_model, params.curve)  # noqa
+        Q2 = Q2aff.to_model(coordinate_model, params.curve)
         R = Raff.to_model(coordinate_model, params.curve)
         R2 = R2aff.to_model(coordinate_model, params.curve)  # noqa
         QR = QRaff.to_model(coordinate_model, params.curve)
@@ -176,7 +190,7 @@ def test_formula_correctness(name, model, coords, param_spec, formula_type):
                 )
         elif issubclass(formula_type, LadderFormula):
             try:
-                # assert res[0].to_affine() == Q2aff
+                assert res[0].to_affine() == Q2aff
                 assert res[1].to_affine() == QRaff
             except NotImplementedError:
                 # print(scale(params.curve.prime, res[0], **params.curve.parameters)[0])
@@ -193,7 +207,7 @@ def test_formula_correctness(name, model, coords, param_spec, formula_type):
                     scale(params.curve.prime, res[1], **params.curve.parameters)[0]
                     == QR
                 )
-                # assert (
-                #    scale(params.curve.prime, res[0], **params.curve.parameters)[0]
-                #    == Q2
-                # )
+                assert (
+                   scale(params.curve.prime, res[0], **params.curve.parameters)[0]
+                   == Q2
+                )
