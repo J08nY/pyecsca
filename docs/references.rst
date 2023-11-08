@@ -14,3 +14,4 @@ References
 .. [FFD] A formula for disaster: a unified approach to elliptic curve special-point-based attacks, https://eprint.iacr.org/2021/1595.pdf
 .. [MT1991] Mazur, B., & Tate, J. (1991). The `p`-adic sigma function. Duke Mathematical Journal, 62 (3), 663-688.
 .. [CO2002] Jean-Sébastien Coron. Resistance against Differential Power Analysis for Elliptic Curve Cryptosystems, https://link.springer.com/chapter/10.1007/3-540-48059-5_25
+.. [DJB02] D.J. Bernstein: Pippenger's Exponentiation Algorithm, https://cr.yp.to/papers/pippenger.pdf
