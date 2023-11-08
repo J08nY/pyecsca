@@ -1,0 +1,4 @@
+source LibreSSL v3.8.2 https://github.com/libressl/openbsd/blob/libressl-v3.8.2/src/lib/libcrypto/ec/ecp_smpl.c#L472
+coords Jacobian
+parameter half
+assume half = 1 / 2

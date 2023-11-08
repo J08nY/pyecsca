@@ -143,6 +143,27 @@ def test_efd_formula_match():
             ("secg", "secp224r1"),
             AdditionEFDFormula,
         ],
+        [
+            "add-libressl-v382",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp128r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "dbl-libressl-v382",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp128r1"),
+            DoublingEFDFormula,
+        ],
+        [
+            "dbl-secp256k1-v040",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp256k1"),
+            DoublingEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):
@@ -208,6 +229,6 @@ def test_formula_correctness(name, model, coords, param_spec, formula_type):
                     == QR
                 )
                 assert (
-                   scale(params.curve.prime, res[0], **params.curve.parameters)[0]
-                   == Q2
+                    scale(params.curve.prime, res[0], **params.curve.parameters)[0]
+                    == Q2
                 )

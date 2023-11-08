@@ -14,13 +14,13 @@ def formula_similarity(one: Formula, other: Formula) -> Dict[str, float]:
 
     one_unroll = unroll_formula(one)
     other_unroll = unroll_formula(other)
-    one_results = {name: None for name in one.outputs}
+    one_results = {}
     for name, value in one_unroll:
-        if name in one_results:
+        if name in one.outputs:
             one_results[name] = value
-    other_results = {name: None for name in other.outputs}
+    other_results = {}
     for name, value in other_unroll:
-        if name in other_results:
+        if name in other.outputs:
             other_results[name] = value
     one_result_polys = set(one_results.values())
     other_result_polys = set(other_results.values())
