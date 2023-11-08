@@ -43,16 +43,21 @@ def formula_similarity_fuzz(
     output_matches = 0.0
     iv_matches = 0.0
     for _ in range(samples):
-        P = curve.affine_random().to_model(one.coordinate_model, curve)
-        Q = curve.affine_random().to_model(other.coordinate_model, curve)
+        Paff = curve.affine_random()
+        Qaff = curve.affine_random()
+        Raff = curve.affine_add(Paff, Qaff)
+        P = Paff.to_model(one.coordinate_model, curve)
+        Q = Qaff.to_model(one.coordinate_model, curve)
+        R = Raff.to_model(one.coordinate_model, curve)
+        inputs = (P, Q, R)[:one.num_inputs]
         with local(DefaultContext()) as ctx:
-            res_one = one(curve.prime, P, Q, **curve.parameters)
+            res_one = one(curve.prime, *inputs, **curve.parameters)
         action_one = ctx.actions.get_by_index([0])
         ivs_one = set(
             map(attrgetter("value"), sum(action_one[0].intermediates.values(), []))
         )
         with local(DefaultContext()) as ctx:
-            res_other = other(curve.prime, P, Q, **curve.parameters)
+            res_other = other(curve.prime, *inputs, **curve.parameters)
         action_other = ctx.actions.get_by_index([0])
         ivs_other = set(
             map(attrgetter("value"), sum(action_other[0].intermediates.values(), []))

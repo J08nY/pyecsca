@@ -1,0 +1,5 @@
+source BouncyCastle r1rv76 https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L111
+parameter a24
+assume a24 = (a+2)/4
+assume Z1 = 1
+coords xz
