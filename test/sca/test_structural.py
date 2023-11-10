@@ -164,6 +164,27 @@ def test_efd_formula_match():
             ("secg", "secp256k1"),
             DoublingEFDFormula,
         ],
+        [
+            "add-openssl-z256",
+            ShortWeierstrassModel,
+            "jacobian-3",
+            ("secg", "secp256r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "add-openssl-z256a",
+            ShortWeierstrassModel,
+            "jacobian-3",
+            ("secg", "secp256r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "ladd-openssl-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            LadderEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):
