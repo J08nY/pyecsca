@@ -185,6 +185,13 @@ def test_efd_formula_match():
             ("other", "Curve25519"),
             LadderEFDFormula,
         ],
+        [
+            "ladd-hacl-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            LadderEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):

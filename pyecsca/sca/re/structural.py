@@ -49,7 +49,7 @@ def formula_similarity_fuzz(
         P = Paff.to_model(one.coordinate_model, curve)
         Q = Qaff.to_model(one.coordinate_model, curve)
         R = Raff.to_model(one.coordinate_model, curve)
-        inputs = (P, Q, R)[:one.num_inputs]
+        inputs = (P, Q, R)[: one.num_inputs]
         with local(DefaultContext()) as ctx:
             res_one = one(curve.prime, *inputs, **curve.parameters)
         action_one = ctx.actions.get_by_index([0])
@@ -62,11 +62,12 @@ def formula_similarity_fuzz(
         ivs_other = set(
             map(attrgetter("value"), sum(action_other[0].intermediates.values(), []))
         )
-        iv_matches += len(ivs_one.intersection(ivs_other)) / max(len(ivs_one), len(ivs_other))
+        iv_matches += len(ivs_one.intersection(ivs_other)) / max(
+            len(ivs_one), len(ivs_other)
+        )
         one_coords = set(res_one)
         other_coords = set(res_other)
-        output_matches += len(one_coords.intersection(other_coords)) / max(len(one_coords), len(other_coords))
-    return {
-        "output": output_matches / samples,
-        "ivs": iv_matches / samples
-    }
+        output_matches += len(one_coords.intersection(other_coords)) / max(
+            len(one_coords), len(other_coords)
+        )
+    return {"output": output_matches / samples, "ivs": iv_matches / samples}
