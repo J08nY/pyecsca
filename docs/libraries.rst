@@ -676,8 +676,213 @@ wolfSSL
 OpenSSL
 =======
 
+| Version: ``3.1.4``
+| Repository: https://github.com/openssl/openssl
+| Docs: https://www.openssl.org/docs/
+
+Primitives
+----------
+
+ECDH, ECDSA on standard and custom curves.
+x25519, x448 and Ed25519, Ed448.
+
+Has several EC_METHODs.
+ - EC_GFp_simple_method
+ - EC_GFp_mont_method
+ - EC_GFp_nist_method
+ - EC_GFp_nistp224_method
+ - EC_GFp_nistp256_method
+ - EC_GFp_nistz256_method
+ - EC_GFp_nistp521_method
+
+`ossl_ec_GFp_simple_ladder_pre <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_smpl.c#L1493>`__:
+ - Short-Weierstrass
+ - xz
+ - dbl-2002-it-2
+
+`ossl_ec_GFp_simple_ladder_step <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_smpl.c#L1563>`__:
+ - Short-Weierstrass
+ - xz
+ - mladd-2002-it-4
+
+`ossl_ec_GFp_simple_ladder_post <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_smpl.c#L1651>`__:
+ - Short-Weierstrass
+ - xz to y-recovery
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - ? via ``EVP_EC_gen -> EVP_PKEY_Q_keygen -> evp_pkey_keygen -> EVP_PKEY_generate -> evp_keymgmt_util_gen -> evp_keymgmt_gen -> EC_KEYMGMT.gen -> ec_gen -> EC_KEY_generate_key -> ec_method.keygen  -> ossl_ec_key_simple_generate_key -> EC_POINT_mul(k, G, NULL, NULL)`` all methods then either ec_method.mul or ossl_ec_wNAF_mul
+    - EC_GFp_simple_method -> ossl_ec_wNAF_mul -> `ossl_ec_scalar_mul_ladder <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ec_mult.c#L145>`__ (Lopez-Dahab ladder) for [k]G and [k]P. Otherwise multi-scalar wNAF with interleaving?
+    - EC_GFp_mont_method -> ossl_ec_wNAF_mul -> `ossl_ec_scalar_mul_ladder <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ec_mult.c#L145>`__ (Lopez-Dahab ladder) for [k]G and [k]P. Otherwise multi-scalar wNAF with interleaving?
+    - EC_GFp_nist_method -> ossl_ec_wNAF_mul -> `ossl_ec_scalar_mul_ladder <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ec_mult.c#L145>`__ (Lopez-Dahab ladder) for [k]G and [k]P. Otherwise multi-scalar wNAF with interleaving?
+       - ec_point_ladder_pre -> ec_method.ladder_pre or EC_POINT_dbl
+       - ec_point_ladder_step -> ec_method.ladder_step or EC_POINT_add + EC_POINT_dbl
+       - ec_point_ladder_post -> ec_method.ladder_post
+       - the methods all use ossl_ec_GFp_simple_ladder_* functions as ladder_*.
+    - EC_GFp_nistp224_method -> ossl_ec_GFp_nistp224_points_mul -> Comb for generator, (signed, Booth) Fixed Window (width = 5) for other points.
+    - EC_GFp_nistp256_method -> ossl_ec_GFp_nistp256_points_mul -> Comb for generator, (signed, Booth) Fixed Window (width = 5) for other points.
+    - EC_GFp_nistz256_method -> ecp_nistz256_points_mul -> (signed, `Booth <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistputil.c#L141>`__) Fixed Window (width = 7) with full precomputation from [SG14]_.
+    - EC_GFp_nistp521_method -> ossl_ec_GFp_nistp521_points_mul -> Comb for generator, (signed, Booth) Fixed Window (width = 5) for other points.
+ - Jacobian (or Jacobian-3 for NIST)
+ - Formulas:
+    - EC_GFp_simple_method -> LibreSSL add and LibreSSL dbl
+    - EC_GFp_mont_method -> LibreSSL add and LibreSSL dbl
+    - EC_GFp_nist_method -> LibreSSL add and LibreSSL dbl
+    - EC_GFp_nistp224_method -> BoringSSL P-224 add and dbl
+    - EC_GFp_nistp256_method -> `add-2007-bl <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp256.c#L1235>`__, `dbl-2001-b <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp256.c#L1104>`__
+    - EC_GFp_nistz256_method -> unknown
+    - EC_GFp_nistp521_method -> `add-2007-bl <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp521.c#L1205>`__, `dbl-2001-b <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp521.c#L1087>`__
+
+Derive:
+ - Same as KeyGen, except for:
+    - nistp{224,256,521} methods, where the Fixed Window branch of the scalar multiplier is taken,
+    - nistz256 where a (signed, `Booth <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistputil.c#L141>`__) Fixed Window (width = 5) is taken.
+
+ECDSA
+^^^^^
+
+KeyGen:
+ - Same as ECDH.
+
+Sign:
+ - Same as KeyGen.
+
+Verify:
+ - Short-Weierstrass
+ - EC_GFp_simple_method, EC_GFp_mont_method, EC_GFp_nist_method: Interleaved multi-scalar wNAF via ``ec_method.verify_sig -> ossl_ecdsa_simple_verify_sig -> EC_POINT_mul -> ossl_ec_wNAF_mul``.
+ - EC_GFp_nistp224_method, EC_GFp_nistp256_method, EC_GFp_nistp521_method: Interleaved Comb for G and (signed, Booth) Fixed Window (width = 5) for other point.
+ - EC_GFp_nistz256_method: Same as KeyGen for G and same as ECDH Derive for other point.
+
+x25519
+^^^^^^
+Taken from ref10 of Ed25519. See BoringSSL_.
+
+KeyGen:
+ - Twisted-Edwards
+ - Pippenger via ``ossl_x25519_public_from_private -> ge_scalarmult_base``.
+ - Mixes coordinate models::
+
+     ge_p2 (projective): (X:Y:Z) satisfying x=X/Z, y=Y/Z
+     ge_p3 (extended): (X:Y:Z:T) satisfying x=X/Z, y=Y/Z, XY=ZT
+     ge_p1p1 (completed): ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
+     ge_precomp (Duif): (y+x,y-x,2dxy)
+
+Derive:
+ - Montgomery
+ - Montgomery ladder via ``ossl_x25519 -> x25519_scalar_mult``
+ - xz coords
+ - Unknown ladder formula.
+
+Ed25519
+^^^^^^^
+Taken from ref10 of Ed25519. See BoringSSL_.
+
+KeyGen:
+ - Same as x25519 KeyGen via ``ossl_ed25519_public_from_private -> ge_scalarmult_base``.
+
+Sign:
+ - Same as x25519 KeyGen via ``ossl_ed25519_sign -> ge_scalarmult_base``.
+
+Verify:
+ - Sliding window (signed) with interleaving? via ``ossl_ed25519_verify -> ge_double_scalarmult_vartime``.
+ - Otherwise same mixed coordinates and formulas.
+
 NSS
 ===
+
+| Version: ``3.94``
+| Repository: https://hg.mozilla.org/projects/nss
+| Docs:
+
+
+Primitives
+----------
+
+ECDH, ECDSA, also x25519.
+
+Two ECMethods:
+ - Curve25519
+    - 32-bit -> own impl
+    - 64-bit -> HACL*
+ - P-256 from HACL*
+
+Several ECGroups:
+ - generic ``ECGroup_consGFp``
+ - Montgomery arithmetic ``ECGroup_consGFp_mont``
+ - P-256
+ - P-384 from ECCkiila
+ - P-521 from ECCkiila
+
+The ECMethods override the scalarmult of the ECGroups in:
+ - ``ec_NewKey`` via ``ec_get_method_from_name`` and then calling the ``method.mul``.
+ - ``EC_ValidatePublicKey`` via ``ec_get_method_from_name`` and then calling the ``method.validate``.
+ - ``ECDH_Derive`` via ``ec_get_method_from_name`` and then calling the ``method.mul``.
+ - ``ECDSA_SignDigest`` and ``ECDSA_SignDigestWithSeed`` via ``ec_SignDigestWithSeed``, then ``ec_get_method_from_name`` and then calling the ``method.mul``.
+
+
+P-256 from HACL*
+^^^^^^^^^^^^^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - Fixed Window (width = 4)? points to https://eprint.iacr.org/2013/816.pdf? via ``ec_secp256r1_pt_mul -> (Hacl*) Hacl_P256_dh_initiator -> point_mul_g``
+ - projective-3 coords.
+ - `add-2015-rcb`, `dbl-2015-rcb-3`
+
+Derive:
+ - Same as KeyGen.
+
+Sign:
+ - Same as Keygen.
+
+Verify:
+ - Short-Weierstrass
+ - Multi-scalar simultaneous Fixed Window
+ - Same coords and formulas as KeyGen.
+
+P-384
+^^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - Comb from ecckiila: ``EC_NewKeyFromSeed -> ec_NewKey -> ec_points_mul -> ECPoints_mul -> ecgroup.points_mul -> point_mul_two_secp384r1_wrap -> point_mul_g_secp384r1_wrap -> point_mul_g_secp384r1 -> fixed_smul_cmb``.
+ - projective-3 coords.
+ - `dbl-2015-rcb-3`, `madd-2015-rcb-3` also `add-2015-rcb` in point_add_proj.
+
+Derive:
+ - Short-Weierstrass
+ - Regular Window NAF (width = 5) from ecckiila: ``ECDH_Derive -> ec_points_mul -> ECPoints_mul -> ecgroup.points_mul -> point_mul_secp384r1_wrap -> point_mul_secp384r1 -> var_smul_rwnaf``.
+ - projective-3 coords.
+ - `dbl-2015-rcb-3`, `add-2015-rcb`.
+
+Sign:
+ - Same as KeyGen.
+
+Verify:
+ - Short-Weierstrass
+ - Interleaved multi-scalar window NAF (width = 5) with Shamir's trick from ecckiila: ``ECDSA_SignDigest -> ECDSA_SignDigestWithSeed -> ec_SignDigestWithSeed -> ec_points_mul -> ECPoints_mul -> ecgroup.points_mul -> point_mul_two_secp384r1_wrap -> point_mul_two_secp384r1 -> var_smul_wnaf_two``
+ - projective-3 coords.
+ - `dbl-2015-rcb-3`, `madd-2015-rcb-3` also `add-2015-rcb` in point_add_proj.
+
+P-521
+^^^^^
+
+Same as P-384.
+
+x25519
+^^^^^^
+
+KeyGen:
+ - Montgomery
+ - Montgomery ladder via ``-> ec_Curve25519_pt_mul -> ec_Curve25519_mul``.
+ - xz coords
+ - Unknown ladder and double formula.
+
+Derive:
+ - Same as KeyGen.
 
 libsecp256k1
 ============
@@ -696,7 +901,7 @@ ECDH
 
 KeyGen:
  - Short-Weierstrass
- - `Fixed findow with full precomputation <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/ecmult_gen_impl.h#L45>`__ via ``secp256k1_ec_pubkey_create -> secp256k1_ec_pubkey_create_helper -> secp256k1_ecmult_gen``. Window of size 4.
+ - `Fixed window with full precomputation <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/ecmult_gen_impl.h#L45>`__ via ``secp256k1_ec_pubkey_create -> secp256k1_ec_pubkey_create_helper -> secp256k1_ecmult_gen``. Window of size 4.
  - Uses scalar blinding.
  - `Jacobian version of add-2002-bj <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/group_impl.h#L670>`__  (via ``secp256k1_gej_add_ge``).
  - No doubling.
@@ -896,12 +1101,71 @@ Derive:
 SunEC
 =====
 
+| Version: ``jdk-21-ga`` (JDK 21)
+| Repository: https://github.com/openjdk/jdk/
+| Docs:
+
+
+Primitives
+----------
+
+ECDH, ECDSA, x25519, Ed25519
+
+P-256
+^^^^^
+
+The only special thing is the generator scalarmult, ``Secp256R1GeneratorMultiplier`` which is a Comb.
+
+ECDH
+^^^^
+
+KeyGen:
+ - Short-Weierstrass
+ - Fixed Window (width = 4) via ``ECKeyPairGenerator.generateKeyPair -> ECKeyPairGenerator.generateKeyPairImpl -> ECPrivateKeyImpl.calculatePublicKey -> ECOperations.multiply -> Default(PointMultiplier).pointMultiply``
+ - projective-3 coords
+ - RCB-based formulas: ``add-sunec-v21``, ``dbl-sunec-v21``
+
+Derive:
+ - Same as KeyGen.
+
+ECDSA
+^^^^^
+
+Same as ECDH.
+
+x25519
+^^^^^^
+
+KeyGen:
+ - Montgomery
+ - Montgomery ladder
+ - xz
+ - Ladder formula from RFC 7748
+
+Derive:
+ - Same as KeyGen.
+
+Ed25519
+^^^^^^^
+
+KeyGen:
+ - Twisted-Edwards
+ - Double and add always
+ - Extended coords
+ - Some HWCD formulas.
+
+Sign:
+ - Same as KeyGen.
+
+Verify:
+ - Same as KeyGen.
+
 Go
 ==
 
 | Version: ``go1.21.4``
 | Repository: https://github.com/golang/go
-| Docs: 
+| Docs:
 
 Primitives
 ----------
@@ -914,7 +1178,7 @@ ECDH
 
 KeyGen:
  - `Fixed 4-bit window with precomputation <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L412>`__ with precomputation (link points to P-224, but others are the same) via ``privateKeyToPublicKey -> ScalarBaseMult``
- - Projective `add-2015-rcb <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L215>`__ 
+ - Projective `add-2015-rcb <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L215>`__
 
 Derive:
  - `Fixed 4-bit window <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L342>`__ via ``ecdh -> ScalarMult``.
@@ -927,7 +1191,7 @@ ECDSA
 
 KeyGen:
  - Same as ECDH KeyGen via ``ecdsa.go:GenerateKey -> generateNISTEC -> randomPoint -> ScalarBaseMult``.
-  
+
 Sign:
  - Same as KeyGen via ``ecdsa.go:SignASN1 -> signNISTEC -> randomPoint -> ScalarBaseMult``.
 
@@ -983,12 +1247,12 @@ KeyGen:
       v.Y.Add(&PP, &MM)
       v.Z.Add(&Z2, &TT2d)
       v.T.Subtract(&Z2, &TT2d)
-    
+
 Sign:
  - Same as Keygen via ``ed25519.go: Sign -> sign ->  ScalarBaseMult``.
 
 Verify:
- - Bos-Coster method via ``ed25519.go: Verify -> verify -> VarTimeDoubleScalarBaseMult``. 
+ - Bos-Coster method via ``ed25519.go: Verify -> verify -> VarTimeDoubleScalarBaseMult``.
  - Same coordinates and formulas as in Keygen.
 
 libgcrypt

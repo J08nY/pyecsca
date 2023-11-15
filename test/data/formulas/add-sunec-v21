@@ -1,0 +1,3 @@
+source Java JDK 21 https://github.com/openjdk/jdk/blob/jdk-21-ga/src/jdk.crypto.ec/share/classes/sun/security/ec/ECOperations.java#L287
+coords projective-3
+assume Z2 = 1

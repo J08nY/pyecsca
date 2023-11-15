@@ -1,0 +1,2 @@
+source Java JDK 21 https://github.com/openjdk/jdk/blob/jdk-21-ga/src/jdk.crypto.ec/share/classes/sun/security/ec/ed/Ed25519Operations.java#L147
+coords extended

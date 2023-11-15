@@ -1,0 +1,4 @@
+source RFC 7748
+parameter am24
+assume am24 = (a-2)/4
+coords xz

@@ -1,0 +1,4 @@
+source HACL* https://github.com/hacl-star/hacl-star/blob/v0.3.0/specs/Spec.Curve25519.fst#L80C9-L80C9
+parameter am24
+assume am24 = (a-2)/4
+coords xz

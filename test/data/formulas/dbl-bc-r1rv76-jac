@@ -1,0 +1,2 @@
+source BouncyCastle r1rv76 https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECPoint.java#L877
+coords jacobian

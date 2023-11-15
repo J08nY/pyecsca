@@ -1,0 +1,9 @@
+pa = X1 + Z1
+pb = X1 - Z1
+pa = pa^2
+pb = pb^2
+X3 = pa * pb
+pa = pa - pb
+Z3 = pa * a24
+Z3 = Z3 + pb
+Z3 = Z3 * pa
