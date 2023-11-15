@@ -1,0 +1,9 @@
+a = X1 + Z1
+b = X1 - Z1
+aa = a^2
+bb = b^2
+e = aa - bb
+e121665 = e * am24
+aa_e121665 = e121665 + aa
+X3 = aa * bb
+Z3 = e * aa_e121665

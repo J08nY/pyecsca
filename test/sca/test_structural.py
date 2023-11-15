@@ -9,7 +9,7 @@ from pyecsca.ec.formula import (
     DoublingFormula,
     LadderFormula,
 )
-from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
+from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
 from pyecsca.ec.params import get_params
 from pyecsca.sca.re.structural import formula_similarity, formula_similarity_fuzz
 import itertools
@@ -187,6 +187,48 @@ def test_efd_formula_match():
         ],
         [
             "ladd-hacl-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            LadderEFDFormula,
+        ],
+        [
+            "dbl-hacl-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            DoublingEFDFormula,
+        ],
+        [
+            "dbl-sunec-v21",
+            ShortWeierstrassModel,
+            "projective-3",
+            ("secg", "secp256r1"),
+            DoublingEFDFormula,
+        ],
+        [
+            "add-sunec-v21",
+            ShortWeierstrassModel,
+            "projective-3",
+            ("secg", "secp256r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "add-sunec-v21-ed25519",
+            TwistedEdwardsModel,
+            "extended",
+            ("other", "Ed25519"),
+            AdditionEFDFormula,
+        ],
+        [
+            "dbl-sunec-v21-ed25519",
+            TwistedEdwardsModel,
+            "extended",
+            ("other", "Ed25519"),
+            DoublingEFDFormula,
+        ],
+        [
+            "ladd-rfc7748",
             MontgomeryModel,
             "xz",
             ("other", "Curve25519"),

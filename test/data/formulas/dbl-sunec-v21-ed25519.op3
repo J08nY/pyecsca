@@ -1,0 +1,14 @@
+t1 = X1 + Y1
+t1 = t1^2
+X = X1^2
+Y = Y1^2
+t2 = X + Y
+Z = Z1^2
+Z = Z * 2
+T = t2 - t1
+t1 = X - Y
+Z = Z + t1
+X3 = T * Z
+Y3 = t1 * t2
+T3 = T * t2
+Z3 = Z * t1
