@@ -1,0 +1,4 @@
+source go crypto/ecdh/x25519 https://github.com/golang/go/blob/go1.21.4/src/crypto/ecdh/x25519.go#L86
+parameter a24
+assume a24 = (a+2)/4
+coords xz

@@ -175,6 +175,41 @@ def test_formula_similarity(secp128r1):
             ("other", "Curve25519"),
             LadderEFDFormula,
         ],
+        [
+            "add-bearssl-v06",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp256r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "dbl-bearssl-v06",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp256r1"),
+            DoublingEFDFormula,
+        ],
+        [
+            "add-libgcrypt-v1102",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp256r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "dbl-libgcrypt-v1102",
+            ShortWeierstrassModel,
+            "jacobian",
+            ("secg", "secp256r1"),
+            DoublingEFDFormula,
+        ],
+        [
+            "ladd-go-1214",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            LadderEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):

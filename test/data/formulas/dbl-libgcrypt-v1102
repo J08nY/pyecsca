@@ -1,0 +1,2 @@
+source libgcrypt v1.10.2 https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1219
+coords jacobian

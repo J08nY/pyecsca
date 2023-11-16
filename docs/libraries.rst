@@ -53,9 +53,9 @@ KeyGen:
  - `Jacobian-Modified <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L676>`__ via ``ECCurve.FP_DEFAULT_COORDS``.
    SECP curves use Jacobian, SECT curves use Lambda-Projective.
  - Formulas unknown: `add-bc-r1rv76-jac <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-bc-r1rv76-jac.op3>`__,
-`dbl-bc-r1rv76-jac <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-jac.op3>`__,
-`add-bc-r1rv76-mod <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-bc-r1rv76-mod.op3>`__,
-`dbl-bc-r1rv76-mod <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-mod.op3>`__
+   `dbl-bc-r1rv76-jac <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-jac.op3>`__,
+   `add-bc-r1rv76-mod <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-bc-r1rv76-mod.op3>`__,
+   `dbl-bc-r1rv76-mod <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-mod.op3>`__
 
 Derive:
  - Short-Weierstrass
@@ -105,8 +105,8 @@ Derive:
    ``X25519.calculateAgreement -> X25519.scalarMult``.
  - `xz <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L68>`__.
  - Unknown formulas: `ladd-bc-r1rv76-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-bc-r1rv76-x25519.op3>`__,
-`dbl-bc-r1rv76-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-x25519.op3>`__.
-Code: `dbl <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L73>`__ and `ladd <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L111>`__
+   `dbl-bc-r1rv76-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-x25519.op3>`__.
+   Code: `dbl <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L73>`__ and `ladd <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L111>`__
 
 Ed25519
 ^^^^^^^
@@ -154,7 +154,7 @@ P-224
    `Fixed Window <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L947C13-L947C38>`__ via ``mul -> ec_GFp_nistp224_point_mul``.
  - `Jacobian <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L580>`__,
  - Formulas unknown: `add-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-boringssl-p224.op3>`__,
-`dbl-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-boringssl-p224.op3>`__.
+   `dbl-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-boringssl-p224.op3>`__.
 
 P-256
 ^^^^^
@@ -738,7 +738,7 @@ KeyGen:
     - EC_GFp_nist_method -> LibreSSL add and LibreSSL dbl
     - EC_GFp_nistp224_method -> BoringSSL P-224 add and dbl
     - EC_GFp_nistp256_method -> `add-2007-bl <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp256.c#L1235>`__, `dbl-2001-b <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp256.c#L1104>`__
-    - EC_GFp_nistz256_method -> unknown
+    - EC_GFp_nistz256_method -> Unknown: `add-openssl-z256 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-openssl-z256.op3>`__, `add-openssl-z256a <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-openssl-z256a.op3>`__
     - EC_GFp_nistp521_method -> `add-2007-bl <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp521.c#L1205>`__, `dbl-2001-b <https://github.com/openssl/openssl/blob/openssl-3.1.4/crypto/ec/ecp_nistp521.c#L1087>`__
 
 Derive:
@@ -915,23 +915,7 @@ KeyGen:
 Derive:
  - Uses GLV decomposition and `interleaving with width-5 NAFs <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/ecmult_const_impl.h#L133>`__ via ``secp256k1_ecdh -> secp256k1_ecmult_const``.
  - Addition same as in Keygen.
- - `DBL <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/group_impl.h#L406>`__ (via ``secp256k1_gej_double``)::
-
-    Z3 = Y1*Z1
-    S = Y1^2
-    L = X1^2
-    L = 3*L
-    L = L/2
-    T = -S
-    T = T*X1
-    X3 = L^2
-    X3 = X3+T
-    X3 = X3+T
-    S = S^2
-    T = T+X3
-    Y3 = T*L
-    Y3 = Y3+S
-    Y3 = -Y3
+ - Unknown doubling: `dbl-secp256k1-v040 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-secp256k1-v040>`__ (via ```secp256k1_gej_double`` <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/group_impl.h#L406>`__)
 
 ECDSA
 ^^^^^
@@ -1128,7 +1112,9 @@ KeyGen:
  - Short-Weierstrass
  - Fixed Window (width = 4) via ``ECKeyPairGenerator.generateKeyPair -> ECKeyPairGenerator.generateKeyPairImpl -> ECPrivateKeyImpl.calculatePublicKey -> ECOperations.multiply -> Default(PointMultiplier).pointMultiply``
  - projective-3 coords
- - RCB-based formulas: ``add-sunec-v21``, ``dbl-sunec-v21``
+ - RCB-based formulas: `add-sunec-v21 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-sunec-v21.op3>`__,
+   `dbl-sunec-v21 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-sunec-v21.op3>`__,
+
 
 Derive:
  - Same as KeyGen.
@@ -1207,26 +1193,10 @@ X25519
 ^^^^^^
 
 KeyGen:
+ - Montgomery
  - `Ladder <https://github.com/golang/go/blob/go1.21.4/src/crypto/ecdh/x25519.go#L54>`__ via ``privateKeyToPublicKey -> x25519ScalarMult``.
- - xz with the following formula::
-
-     t0 = X3-Z3
-     t1 = X2-Z2
-     X2 = X2+Z2
-     Z2 = X3+Z3
-     Z3 = t0*X2
-     Z2 = Z2*t1
-     t0 = t1^2
-     t1 = X2^2
-     X3 = Z3+Z2
-     Z2 = Z3-Z2
-     X2 = t1*t0
-     t1 = t1-t0
-     Z2 = Z2^2
-     X3 = X3^2
-     t0 = t0+Z3
-     Z3 = X1*Z2
-     Z2 = t1*t0
+ - xz
+ - Unknown formula: `ladd-go-1214 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-go-1214.op3>`__
 
 Derive:
  - Same as KeyGen via ``x25519.go:ecdh -> x25519ScalarMult``.
@@ -1235,6 +1205,7 @@ Ed25519
 ^^^^^^^
 
 KeyGen:
+ - Twisted-Edwards
  - Pippenger's signed 4-bit method with precomputation via ``ed25519.go:GenerateKey -> NewKeyFromSeed -> newKeyFromSeed -> ScalarBaseMult``.
  - `Extended coordinates <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/edwards25519/edwards25519.go#L28>`__ mixed with `y-x,y+x,2dxy <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/edwards25519/edwards25519.go#L52>`__ coordinates
  - `AddAffine <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/edwards25519/edwards25519.go#L312>`__ (and similar SubAffine)::
@@ -1279,30 +1250,9 @@ ECDH
 KeyGen:
  - Short-Weierstrass
  - `Left to right double-and-add-always <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1824>`__ via ``gcry_pk_genkey -> _gcry_pk_genkey -> generate -> ecc_generate -> nist_generate_key -> _gcry_mpi_ec_mul_point``.
- - `ADD <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1406>`__  (via ``_gcry_mpi_ec_add_points``)::
-
-     l1 = x1 z2^2
-     l2 = x2 z1^2
-     l3 = l1 - l2
-     l4 = y1 z2^3
-     l5 = y2 z1^3
-     l6 = l4 - l5
-     l7 = l1 + l2
-     l8 = l4 + l5
-     z3 = z1 z2 l3
-     x3 = l6^2 - l7 l3^2
-     l9 = l7 l3^2 - 2 x3
-     y3 = (l9 l6 - l8 l3^3)/2
-
- - `DBL <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1219>`__ (via ``_gcry_mpi_ec_dup_point``)::
-
-     L1 = 3X^2 + aZ^4
-     Z3 = 2YZ
-     L2 = 4XY^2
-     X3 = L1^2 - 2L2
-     L3 = 8Y^4
-     Y3 = L1(L2 - X3) - L3
-
+ - Jacobian coords
+ - Unknown formulas: `add-libgcrypt-v1102 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-libgcrypt-v1102.op3>`__,
+   `dbl-libgcrypt-v1102 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-libgcrypt-v1102.op3>`__,
 
 Derive:
  - Same as Keygen via ``gcry_pk_encrypt -> _gcry_pk_encrypt -> generate -> ecc_encrypt_raw -> _gcry_mpi_ec_mul_point``.
@@ -1324,7 +1274,7 @@ EdDSA
 ^^^^^
 
 Keygen:
- - Twisted Edwards
+ - Twisted-Edwards
  - `Left to right double-and-add-always <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1824>`__ via ``gcry_pk_genkey -> _gcry_pk_genkey -> generate -> ecc_generate -> _gcry_ecc_eddsa_genkey -> _gcry_mpi_ec_mul_point``.
  - Projective, `dbl-2008-bbjlp <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1314>`__ and `add-2008-bbjlp <https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=blob;f=mpi/ec.c;h=c24921eea8bea8363a503d6d6071b116c176d8e5;hb=1c5cbacf3d88dded5063e959ee68678ff7d0fa56#l1563>`__
 
@@ -1368,26 +1318,8 @@ KeyGen:
  - Short-Weierstrass
  - (width=2) Fixed Window via ``br_ec_compute_pub -> impl.mulgen -> impl.mul``, but (width=4) Fixed Window via ``br_ec_compute_pub -> impl.mulgen`` for special (P-256) curves.
  - Jacobian coordinates
-
-Add::
-
-   u1 = x1 * z2^2
-   u2 = x2 * z1^2
-   s1 = y1 * z2^3
-   s2 = y2 * z1^3
-   h = u2 - u1
-   r = s2 - s1
-   x3 = r^2 - h^3 - 2 * u1 * h^2
-   y3 = r * (u1 * h^2 - x3) - s1 * h^3
-   z3 = h * z1 * z2
-
-Dbl::
-
-   s = 4*x*y^2
-   m = 3*(x + z^2)*(x - z^2)
-   x' = m^2 - 2*s
-   y' = m*(s - x') - 8*y^4
-   z' = 2*y*z
+ - Unknown formulas: `add-bearssl-v06 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-bearssl-v06.op3>`__,
+   `dbl-bearssl-v06 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bearssl-v06.op3>`__,
 
 Derive:
  - Short-Weierstrass
@@ -1417,29 +1349,7 @@ KeyGen:
  - Montgomery
  - Montgomery ladder via ``br_ec_compute_pub -> impl.mulgen -> impl.mul``.
  - xz coordinates
- - mladd-1987-m
-
-Ladder::
-
- 269                 c255_add(a, x2, z2); // a = x2 + z2
- 270                 c255_mul(aa, a, a);  // aa = a^2
- 271                 c255_sub(b, x2, z2); // b = x2 - z2
- 272                 c255_mul(bb, b, b);  // bb = b^2
- 273                 c255_sub(e, aa, bb); // e = aa * bb
- 274                 c255_add(c, x3, z3); // c = x3 + z3
- 275                 c255_sub(d, x3, z3); // d = x3 - z3
- 276                 c255_mul(da, d, a);  // da = d * a
- 277                 c255_mul(cb, c, b);  // cb = c * b
-
- 291                 c255_add(x3, da, cb);// x3 = da + cb
- 292                 c255_mul(x3, x3, x3);// x3 = x3^2
- 293                 c255_sub(z3, da, cb);// z3 = da - cb
- 294                 c255_mul(z3, z3, z3);// z3 = z3^2
- 295                 c255_mul(z3, z3, x1);// z3 = z3 * x1
- 296                 c255_mul(x2, aa, bb);// x2 = aa * bb
- 297                 c255_mul(z2, C255_A24, e);// z2 = e * A24
- 298                 c255_add(z2, z2, aa);// z2 = z2 + aa
- 299                 c255_mul(z2, e, z2); // z2 = z2 * e
+ - ladd-rfc7748
 
 Derive:
  - Same as KeyGen.
