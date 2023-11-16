@@ -61,9 +61,9 @@ def do_basic_test(
 
 @pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", None),
-                             ("add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", None),
                          ])
 def test_rtl(secp128r1, add, dbl, scale):
     do_basic_test(RTLMultiplier, secp128r1, secp128r1.generator, add, dbl, scale)
@@ -71,9 +71,9 @@ def test_rtl(secp128r1, add, dbl, scale):
 
 @pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", None),
-                             ("add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", None),
                          ])
 def test_ltr(secp128r1, add, dbl, scale):
     a = do_basic_test(
@@ -102,9 +102,9 @@ def test_ltr(secp128r1, add, dbl, scale):
 
 @pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", None),
-                             ("add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", None),
                          ])
 def test_doubleandadd(secp128r1, add, dbl, scale):
     a = do_basic_test(
@@ -134,9 +134,9 @@ def test_doubleandadd(secp128r1, add, dbl, scale):
 
 @pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", None),
-                             ("add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", None),
                          ]
                          )
 def test_coron(secp128r1, add, dbl, scale):
@@ -166,9 +166,9 @@ def test_ladder(curve25519):
 
 @pytest.mark.parametrize("add,dbl,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", None),
-                             ("add-1998-cmo", "dbl-1998-cmo", None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", None),
                          ])
 def test_simple_ladder(secp128r1, add, dbl, scale):
     do_basic_test(
@@ -208,9 +208,9 @@ def test_ladder_differential(curve25519, num, complete):
 
 @pytest.mark.parametrize("add,dbl,neg,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "neg", "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "neg", "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", "neg", None),
-                             ("add-1998-cmo", "dbl-1998-cmo", "neg", None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "neg", None),
                          ])
 def test_binary_naf(secp128r1, add, dbl, neg, scale):
     do_basic_test(
@@ -220,11 +220,11 @@ def test_binary_naf(secp128r1, add, dbl, neg, scale):
 
 @pytest.mark.parametrize("add,dbl,neg,width,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 3, "z"),
-                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 3, None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "neg", 3, "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "neg", 3, None),
                              ("add-2015-rcb", "dbl-2015-rcb", "neg", 3, None),
-                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 5, "z"),
-                             ("add-1998-cmo", "dbl-1998-cmo", "neg", 5, None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "neg", 5, "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", "neg", 5, None),
                              ("add-2015-rcb", "dbl-2015-rcb", "neg", 5, None),
                          ])
 def test_window_naf(secp128r1, add, dbl, neg, width, scale):
@@ -249,9 +249,9 @@ def test_window_naf(secp128r1, add, dbl, neg, width, scale):
 
 @pytest.mark.parametrize("add,dbl,width,scale",
                          [
-                             ("add-1998-cmo", "dbl-1998-cmo", 5, "z"),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", 5, "z"),
                              ("add-2015-rcb", "dbl-2015-rcb", 5, None),
-                             ("add-1998-cmo", "dbl-1998-cmo", 5, None),
+                             ("add-1998-cmo-2", "dbl-1998-cmo-2", 5, None),
                          ])
 def test_fixed_window(secp128r1, add, dbl, width, scale):
     formulas = get_formulas(secp128r1.curve.coordinate_model, add, dbl, scale)
@@ -266,12 +266,12 @@ def test_fixed_window(secp128r1, add, dbl, width, scale):
     assert InfinityPoint(secp128r1.curve.coordinate_model) == mult.multiply(0)
 
 
-@pytest.fixture(params=["add-1998-cmo", "add-2015-rcb"])
+@pytest.fixture(params=["add-1998-cmo-2", "add-2015-rcb"])
 def add(secp128r1, request):
     return secp128r1.curve.coordinate_model.formulas[request.param]
 
 
-@pytest.fixture(params=["dbl-1998-cmo", "dbl-2015-rcb"])
+@pytest.fixture(params=["dbl-1998-cmo-2", "dbl-2015-rcb"])
 def dbl(secp128r1, request):
     return secp128r1.curve.coordinate_model.formulas[request.param]
 
