@@ -591,16 +591,8 @@ KeyGen:
  - Ladder via ``kmethod.keygen -> ec_key_gen -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
    Also does coordinate blinding and fixes scalar bit-length.
  - Jacobian coordinates.
- - `add-1998-hnm <https://github.com/libressl/openbsd/blob/libressl-v3.8.2/src/lib/libcrypto/ec/ecp_smpl.c#L472>`__ likely, due to the division by 2.
-
-Dbl::
-
-    n1 = 3 * X_a^2 + a_curve * Z_a^4
-    Z_r = 2 * Y_a * Z_a
-    n2 = 4 * X_a * Y_a^2
-    X_r = n1^2 - 2 * n2
-    n3 = 8 * Y_a^4
-    Y_r = n1 * (n2 - X_r) - n3
+ - Unknown formulas: `add-libressl-v382 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-libressl-v382.op3>`__,
+   `dbl-libressl-v382 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-libressl-v382.op3>`__
 
 Derive:
  - Short-Weierstrass
@@ -884,7 +876,8 @@ KeyGen:
  - Montgomery
  - Montgomery ladder via ``-> ec_Curve25519_pt_mul -> ec_Curve25519_mul``.
  - xz coords
- - Unknown ladder and double formula.
+ - Unknown formulas: `ladd-hacl-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-hacl-x25519.op3>`__,
+   `dbl-hacl-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-hacl-x25519.op3>`__
 
 Derive:
  - Same as KeyGen.
@@ -1047,7 +1040,7 @@ KeyGen:
  - `Comb <https://github.com/Mbed-TLS/mbedtls/blob/v3.5.1/library/ecp.c#L2299>`__ via ``mbedtls_ecdh_gen_public -> ecdh_gen_public_restartable -> mbedtls_ecp_mul_restartable -> ecp_mul_restartable_internal -> ecp_mul_comb``.
    w = 5 for curves < 384 bits, then w = 6.
  - `Jacobian <https://github.com/Mbed-TLS/mbedtls/blob/v3.5.1/library/ecp.c#L1313>`__ coords with coordinate randomization.
- - `[GECC]_ algorithm 3.22 <https://github.com/Mbed-TLS/mbedtls/blob/v3.5.1/library/ecp.c#L1593>`__ `dbl-1998-cmo-2 <https://github.com/Mbed-TLS/mbedtls/blob/v3.5.1/library/ecp.c#L1496>`__. Also has alternative impl (``_ALT``).
+ - `add-gecc-322 [GECC]_ algorithm 3.22 <https://github.com/Mbed-TLS/mbedtls/blob/v3.5.1/library/ecp.c#L1593>`__, `dbl-1998-cmo-2 <https://github.com/Mbed-TLS/mbedtls/blob/v3.5.1/library/ecp.c#L1496>`__. Also has alternative impl (``_ALT``).
 
 Derive:
  - Short-Weierstrass

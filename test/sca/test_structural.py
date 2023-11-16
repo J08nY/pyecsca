@@ -210,6 +210,20 @@ def test_formula_similarity(secp128r1):
             ("other", "Curve25519"),
             LadderEFDFormula,
         ],
+        [
+            "add-gecc-322",
+            ShortWeierstrassModel,
+            "jacobian-3",
+            ("secg", "secp256r1"),
+            AdditionEFDFormula,
+        ],
+        [
+            "dbl-gecc-321",
+            ShortWeierstrassModel,
+            "jacobian-3",
+            ("secg", "secp256r1"),
+            DoublingEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):

@@ -1,0 +1,4 @@
+source GECC Algorithm 3.21
+parameter half
+assume half = 1/2
+coords jacobian-3
