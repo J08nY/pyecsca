@@ -1,4 +1,5 @@
 """"""
+import warnings
 from typing import Dict
 from public import public
 
@@ -12,7 +13,7 @@ from operator import itemgetter, attrgetter
 @public
 def formula_similarity(one: Formula, other: Formula) -> Dict[str, float]:
     if one.coordinate_model != other.coordinate_model:
-        raise ValueError("Mismatched coordinate model.")
+        warnings.warn("Mismatched coordinate model.")
 
     one_unroll = unroll_formula(one)
     other_unroll = unroll_formula(other)
@@ -41,7 +42,7 @@ def formula_similarity_fuzz(
     one: Formula, other: Formula, curve: EllipticCurve, samples: int = 1000
 ) -> Dict[str, float]:
     if one.coordinate_model != other.coordinate_model:
-        raise ValueError("Mismatched coordinate model.")
+        warnings.warn("Mismatched coordinate model.")
 
     output_matches = 0.0
     iv_matches = 0.0

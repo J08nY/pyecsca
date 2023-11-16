@@ -11,8 +11,18 @@ from pyecsca.ec.formula import (
 )
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
 from pyecsca.ec.params import get_params
-from pyecsca.sca.re.structural import formula_similarity, formula_similarity_fuzz
-import itertools
+from pyecsca.sca.re.structural import formula_similarity
+
+
+def test_formula_similarity(secp128r1):
+    add_bl = secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
+    add_rcb = secp128r1.curve.coordinate_model.formulas["add-2015-rcb"]
+    out = formula_similarity(add_bl, add_rcb)
+    assert out["output"] == 0
+    assert out["ivs"] < 0.5
+    out_same = formula_similarity(add_bl, add_bl)
+    assert out_same["output"] == 1
+    assert out_same["ivs"] == 1
 
 
 @pytest.mark.parametrize(

@@ -3,7 +3,7 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Union
 from public import public
 from astunparse import unparse
 
@@ -17,7 +17,7 @@ from ...ec.point import Point
 
 
 @public
-def unroll_formula(formula: Formula) -> List[Tuple[str, Poly]]:
+def unroll_formula_expr(formula: Formula) -> List[Tuple[str, Expr]]:
     """
     Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
 
@@ -33,6 +33,12 @@ def unroll_formula(formula: Formula) -> List[Tuple[str, Poly]]:
         for var in formula.coordinate_model.variables
         for i in range(1, formula.num_inputs + 1)
     }
+    for coord_assumption in formula.coordinate_model.assumptions:
+        assumption_string = unparse(coord_assumption).strip()
+        lhs, rhs = assumption_string.split(" = ")
+        if lhs in params:
+            expr = sympify(rhs, evaluate=False)
+            params[lhs] = expr
     for assumption_string in formula.assumptions_str:
         lhs, rhs = assumption_string.split(" == ")
         if lhs in formula.parameters:
@@ -43,24 +49,40 @@ def unroll_formula(formula: Formula) -> List[Tuple[str, Poly]]:
             params[lhs] = expr
 
     locls = {**params, **inputs}
-    values: List[Tuple[str, Poly]] = []
+    values: List[Tuple[str, Expr]] = []
     for op in formula.code:
         result: Expr = op(**locls)  # type: ignore
         locls[op.result] = result
-        if result.free_symbols:
-            gens = list(result.free_symbols)
-            gens.sort(key=str)
-            poly = Poly(result, *gens)
-            values.append((op.result, poly))
-        else:
-            # TODO: We cannot create a Poly here, because the result does not have free symbols (i.e. it is a constant)
-            pass
-
+        values.append((op.result, result))
     return values
 
 
 @public
-def map_to_affine(formula: Formula, polys: List[Tuple[str, Poly]]) -> List[Tuple[str, Poly]]:
+def unroll_formula(formula: Formula) -> List[Tuple[str, Poly]]:
+    """
+    Unroll a given formula symbolically to obtain symbolic expressions (as Polynomials) for its intermediate values.
+
+    :param formula: Formula to unroll.
+    :return: List of symbolic intermediate values, with associated variable names.
+    """
+    values = unroll_formula_expr(formula)
+    polys = []
+    for name, result in values:
+        if result.free_symbols:
+            gens = list(result.free_symbols)
+            gens.sort(key=str)
+            poly = Poly(result, *gens)
+            polys.append((name, poly))
+        else:
+            # TODO: We cannot create a Poly here, because the result does not have free symbols (i.e. it is a constant)
+            pass
+    return polys
+
+
+@public
+def map_to_affine(
+    formula: Formula, polys: List[Tuple[str, Poly]]
+) -> List[Tuple[str, Poly]]:
     """
     Map unrolled polynomials of a formula to affine form, using some assumptions along the way (e.g. `Z = 1`).
 

@@ -52,14 +52,17 @@ KeyGen:
  - `Comb <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/crypto/generators/ECKeyPairGenerator.java#L94>`__ via ``ECKeyPairGenerator.generateKeyPair -> ECKeyPairGenerator.createBasePointMultiplier``.
  - `Jacobian-Modified <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L676>`__ via ``ECCurve.FP_DEFAULT_COORDS``.
    SECP curves use Jacobian, SECT curves use Lambda-Projective.
- - Formulas unknown.
+ - Formulas unknown: `add-bc-r1rv76-jac <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-bc-r1rv76-jac.op3>`__,
+`dbl-bc-r1rv76-jac <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-jac.op3>`__,
+`add-bc-r1rv76-mod <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-bc-r1rv76-mod.op3>`__,
+`dbl-bc-r1rv76-mod <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-mod.op3>`__
 
 Derive:
  - Short-Weierstrass
  - `GLV if possible, else Window NAF <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L154>`__ via ``ECDHBasicAgreement.calculateAgreement -> ECPoint.multiply -> ECCurve.getMultiplier -> ECCurve.createDefaultMultiplier``.
  - `Jacobian-Modified <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L676>`__ via ``ECCurve.FP_DEFAULT_COORDS``.
    SECP curves use Jacobian, SECT curves use Lambda-Projective.
- - Formulas unknown.
+ - Formulas same as KeyGen.
 
 ECDSA
 ^^^^^
@@ -69,7 +72,7 @@ KeyGen:
  - `Comb <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/crypto/generators/ECKeyPairGenerator.java#L94>`__ via ``ECKeyPairGenerator.generateKeyPair -> ECKeyPairGenerator.createBasePointMultiplier``.
  - `Jacobian-Modified <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L676>`__ via ``ECCurve.FP_DEFAULT_COORDS``.
    SECP curves use Jacobian, SECT curves use Lambda-Projective.
- - Formulas unknown.
+ - Formulas same as KeyGen.
 
 Sign:
  - Short-Weierstrass
@@ -77,14 +80,14 @@ Sign:
    ``ECDSASigner.generateSignature -> ECDSASigner.createBasePointMultiplier``.
  - `Jacobian-Modified <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L676>`__ via ``ECCurve.FP_DEFAULT_COORDS``.
    SECP curves use Jacobian, SECT curves use Lambda-Projective.
- - Formulas unknown.
+ - Formulas same as KeyGen.
 
 Verify:
  - Short-Weierstrass
  - `Multi-scalar GLV if possible, else multi-scalar Window NAF with Shamir's trick <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECAlgorithms.java#L72>`__ via ``ECDSASigner.verifySignature -> ECAlgorithms.sumOfTwoMultiples``.
  - `Jacobian-Modified <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/ECCurve.java#L676>`__ via ``ECCurve.FP_DEFAULT_COORDS``.
    SECP curves use Jacobian, SECT curves use Lambda-Projective.
- - Formulas unknown.
+ - Formulas same as KeyGen.
 
 X25519
 ^^^^^^
@@ -101,8 +104,9 @@ Derive:
  - `Ladder <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L93>`__ via
    ``X25519.calculateAgreement -> X25519.scalarMult``.
  - `xz <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L68>`__.
- - `dbl-1987-m-3 <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L73>`__ and
-   some `ladd-1987 <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L111>`__ formula.
+ - Unknown formulas: `ladd-bc-r1rv76-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-bc-r1rv76-x25519.op3>`__,
+`dbl-bc-r1rv76-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-bc-r1rv76-x25519.op3>`__.
+Code: `dbl <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L73>`__ and `ladd <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/rfc7748/X25519.java#L111>`__
 
 Ed25519
 ^^^^^^^
@@ -149,7 +153,8 @@ P-224
  - `Comb <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L995>`__ via ``mul_base -> ec_GFp_nistp224_point_mul_base``.
    `Fixed Window <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L947C13-L947C38>`__ via ``mul -> ec_GFp_nistp224_point_mul``.
  - `Jacobian <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L580>`__,
- - Formulas unknown.
+ - Formulas unknown: `add-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-boringssl-p224.op3>`__,
+`dbl-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-boringssl-p224.op3>`__.
 
 P-256
 ^^^^^
@@ -1406,7 +1411,7 @@ Verify:
  - Coordinates and formulas same as in KeyGen.
 
 x25519
-------
+^^^^^^
 
 KeyGen:
  - Montgomery

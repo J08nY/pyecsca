@@ -5,7 +5,7 @@ from typing import Mapping, TYPE_CHECKING
 from public import public
 
 from .context import ResultAction
-from .coordinates import AffineCoordinateModel, CoordinateModel, EFDCoordinateModel
+from .coordinates import AffineCoordinateModel, CoordinateModel
 from .mod import Mod, Undefined
 from .op import CodeOp
 
@@ -44,7 +44,9 @@ class Point:
 
     def __init__(self, model: CoordinateModel, **coords: Mod):
         if not set(model.variables) == set(coords.keys()):
-            raise ValueError(f"Wrong coordinate values for coordinate model, expected {model.variables} got {coords.keys()}.")
+            raise ValueError(
+                f"Wrong coordinate values for coordinate model, expected {model.variables} got {coords.keys()}."
+            )
         self.coordinate_model = model
         self.coords = coords
         field = None
@@ -82,7 +84,9 @@ class Point:
                     pass
             result_variables = set(map(lambda x: x.result, ops))
             if not result_variables.issuperset(affine_model.variables):
-                raise NotImplementedError(f"Coordinate model does have affine mapping function ({result_variables})")
+                raise NotImplementedError(
+                    f"Coordinate model does have affine mapping function ({result_variables})"
+                )
             result = {}
             locls = {**self.coords}
             for op in ops:
@@ -98,7 +102,10 @@ class Point:
             return action.exit(Point(affine_model, **result))
 
     def to_model(
-        self, coordinate_model: CoordinateModel, curve: "EllipticCurve"
+        self,
+        coordinate_model: CoordinateModel,
+        curve: "EllipticCurve",
+        randomized: bool = False,
     ) -> "Point":
         """Convert an affine point into a given coordinate model, if possible."""
         if not isinstance(self.coordinate_model, AffineCoordinateModel):
@@ -122,10 +129,18 @@ class Point:
                     continue
             result = {}
             for var in coordinate_model.variables:
-                if var in locls:  # Try this first.
-                    result[var] = Mod(locls[var], curve.prime) if not isinstance(locls[var], Mod) else locls[var]
+                if var in locls:
+                    result[var] = (
+                        Mod(locls[var], curve.prime)
+                        if not isinstance(locls[var], Mod)
+                        else locls[var]
+                    )
                 else:
                     raise NotImplementedError
+            if randomized:
+                lmbd = Mod.random(curve.prime)
+                for var, value in result.items():
+                    result[var] = value * lmbd**coordinate_model.homogweights[var]
             return action.exit(Point(coordinate_model, **result))
 
     def equals_affine(self, other: "Point") -> bool:
@@ -183,7 +198,13 @@ class Point:
         return self.coords == other.coords
 
     def __hash__(self):
-        return hash((self.coordinate_model, tuple(self.coords.keys()), tuple(self.coords.values())))
+        return hash(
+            (
+                self.coordinate_model,
+                tuple(self.coords.keys()),
+                tuple(self.coords.values()),
+            )
+        )
 
     def __str__(self):
         args = ", ".join([f"{key}={val}" for key, val in self.coords.items()])
@@ -205,7 +226,8 @@ class InfinityPoint(Point):
         return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
 
     def to_model(
-        self, coordinate_model: CoordinateModel, curve: "EllipticCurve"
+        self, coordinate_model: CoordinateModel, curve: "EllipticCurve",
+            randomized: bool = False
     ) -> "InfinityPoint":
         return InfinityPoint(coordinate_model)
 
