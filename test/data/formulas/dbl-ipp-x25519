@@ -1,0 +1,4 @@
+source Intel IPP crypto https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/crypto_mb/src/x25519/ifma_x25519.c#L1689
+parameter a24
+assume a24 = (a+2)/4
+coords xz

@@ -224,6 +224,20 @@ def test_formula_similarity(secp128r1):
             ("secg", "secp256r1"),
             DoublingEFDFormula,
         ],
+        [
+            "ladd-boringssl-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            LadderEFDFormula,
+        ],
+        [
+            "dbl-ipp-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            DoublingEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):

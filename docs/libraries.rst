@@ -154,7 +154,7 @@ Primitives
 
 Supports P-224, P-256, P-384 and P-521.
 Also Curve25519.
-Uses fiat-crypto for the SECP curve field arithmetic.
+Uses fiat-crypto for the SECP curve field arithmetic and x25519.
 
 P-224
 ^^^^^
@@ -235,8 +235,8 @@ KeyGen:
 Derive:
  - Montgomery
  - Ladder via ``X25519 -> x25519_scalar_mult -> x25519_NEON/x25519_scalar_mult_adx/x25519_scalar_mult_generic``
- - Actually seems to use xz.
- - Unknown formula (ladder).
+ - xz.
+ - Unknown formula: `ladd-boringssl-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-boringssl-x25519.op3>`__ from fiat-crypto.
 
 Ed25519
 ^^^^^^^
@@ -521,7 +521,7 @@ KeyGen:
  - Montgomery
  - `Some Full precomputation <https://github.com/intel/ipp-crypto/blob/ippcp_2021.9.0/sources/ippcp/crypto_mb/src/x25519/ifma_x25519.c#L1596>`__ via ``mbx_x25519_public_key``
  - xz
- - Unknown formulas.
+ - Unknown formulas: `add-ipp-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-ipp-x25519.op3>`__, `dbl-ipp-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-ipp-x25519.op3>`__
 
 Derive:
  - Montgomery

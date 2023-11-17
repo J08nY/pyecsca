@@ -1,0 +1,9 @@
+A = X1 + Z1
+B = X1 - Z1
+A = A^2
+B = B^2
+C = A - B
+D = a24 * C
+D = D + B
+X3 = A * B
+Z3 = C * D
