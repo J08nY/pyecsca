@@ -1,4 +1,5 @@
 source BoringSSL bfa8369 https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/curve25519/curve25519.c#L624
 parameter a24
 assume a24 = (a+2)/4
+assume Z1 = 1
 coords xz
