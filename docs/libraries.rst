@@ -306,7 +306,7 @@ Sign:
 
 Verify:
  - Short-Weierstrass
- - Multi-scalar (interleaved) (signed) fixed-window? via ``ECDSA::verify -> EC_Point_Multi_Point_Precompute::multi_exp``.
+ - Multi-scalar (interleaved) fixed-window via ``ECDSA::verify -> EC_Point_Multi_Point_Precompute::multi_exp``.
  - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
  - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__,
    `dbl-1986-cc <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L278>`__
@@ -332,6 +332,7 @@ Primitives
 ----------
 
 Supports ECDH and ECDSA with `NIST <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_internal_curves.c#L16C19-L16C25>`__ curves (192, 224, 256, 384, 521) and Twisted Edwards `NUMS <https://github.com/microsoft/SymCrypt/blob/v103.1.0/lib/ec_internal_curves.c#L303>`__ curves (NumsP256t1, NumsP384t1, NumsP512t1).
+Also custom curves.
 Supports X25519.
 
 
@@ -656,7 +657,7 @@ ECDH
 
 KeyGen:
  - Short-Weierstrass
- - `Sliding window <https://github.com/libtom/libtomcrypt/blob/v1.18.2/src/pk/ecc/ltc_ecc_mulmod_timing.c#L35>`__ via ``ecc_make_key -> ecc_make_key_ex -> ecc_ptmul -> ltc_ecc_mulmod_timing``.
+ - `Simple ladder <https://github.com/libtom/libtomcrypt/blob/v1.18.2/src/pk/ecc/ltc_ecc_mulmod_timing.c#L35>`__ via ``ecc_make_key -> ecc_make_key_ex -> ecc_ptmul -> ltc_ecc_mulmod_timing``.
  - jacobian, `dbl-1998-hnm <https://github.com/libtom/libtomcrypt/blob/v1.18.2/src/pk/ecc/ltc_ecc_projective_dbl_point.c#L32>`__ via ltc_ecc_projective_dbl_point
  - jacobian, `add-1998-hnm <https://github.com/libtom/libtomcrypt/blob/v1.18.2/src/pk/ecc/ltc_ecc_projective_add_point.c#L33>`__ via ltc_ecc_projective_add_point
 
@@ -691,6 +692,9 @@ Primitives
 
 ECDH, ECDSA on standard and custom curves.
 x25519, x448 and Ed25519, Ed448.
+Also SM2 specific methods.
+
+The ladder methods have coordinate randomization and fix scalar bit-length.
 
 Has several EC_METHODs.
  - EC_GFp_simple_method
@@ -807,7 +811,7 @@ NSS
 Primitives
 ----------
 
-ECDH, ECDSA, also x25519.
+ECDH, ECDSA (only standard curves P-256, P-384, P-521), also x25519.
 
 Two ECMethods:
  - Curve25519
