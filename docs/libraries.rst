@@ -32,7 +32,7 @@ Also more exotic stuff like ECMQV, GOST key exchange and signatures
 and lots of others.
 
 Lots of `scalarmults <https://github.com/bcgit/bc-java/tree/r1rv76/core/src/main/java/org/bouncycastle/math/ec>`__ available:
- - `Comb <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/FixedPointCombMultiplier.java>`__
+ - `Comb (w=6 for > 250 bits else w=5) <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/FixedPointCombMultiplier.java>`__
  - `GLV <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/GLVMultiplier.java>`__
  - `Window NAF L2R <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/WNafL2RMultiplier.java>`__
  - `Window "tau" NAF <https://github.com/bcgit/bc-java/blob/r1rv76/core/src/main/java/org/bouncycastle/math/ec/WTauNafMultiplier.java>`__
@@ -160,7 +160,7 @@ P-224
 ^^^^^
  - Short-Weierstrass
  - `Comb <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L995>`__ via ``mul_base -> ec_GFp_nistp224_point_mul_base``.
-   `Fixed Window <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L947C13-L947C38>`__ via ``mul -> ec_GFp_nistp224_point_mul``.
+   `Fixed Window (signed, Booth) (width=5) <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L947C13-L947C38>`__ via ``mul -> ec_GFp_nistp224_point_mul``.
  - `Jacobian <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p224-64.c#L580>`__,
  - Formulas unknown: `add-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-boringssl-p224.op3>`__,
    `dbl-boringssl-p224 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-boringssl-p224.op3>`__.
@@ -169,7 +169,7 @@ P-256
 ^^^^^
  - Short-Weierstrass
  - `Comb <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p256.c#L543>`__ via ``mul_base -> ec_GFp_nistp256_point_mul_base``.
-   `Fixed Window <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p256.c#L476>`__ via ``mul -> ec_GFp_nistp256_point_mul``.
+   `Fixed Window (signed, Booth) (width=5) <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p256.c#L476>`__ via ``mul -> ec_GFp_nistp256_point_mul``.
  - `Jacobian-3 <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p256.c#L238>`__,
  - `add-2007-bl <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p256.c#L238>`__,
    `dbl-2001-b <https://github.com/google/boringssl/blob/bfa8369795b7533a222a72b7a1bc928941cd66bf/crypto/fipsmodule/ec/p256.c#L184>`__
@@ -278,7 +278,7 @@ ECDH
 
 KeyGen:
  - Short-Weierstrass
- - Something like FullPrecomputation and Comb (no doublings), via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
+ - `Fixed Window with FullPrecomputation (no doublings) (w=3) <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/point_mul.cpp#L78>`__, via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
  - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
  - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
 
@@ -294,13 +294,13 @@ ECDSA
 
 KeyGen:
  - Short-Weierstrass
- - Something like FullPrecomputation and Comb (no doublings), via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
+ - `Fixed Window with FullPrecomputation (no doublings) (w=3) <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/point_mul.cpp#L78>`__, via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
  - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
  - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
 
 Sign:
  - Short-Weierstrass
- - Something like FullPrecomputation and Comb (no doublings), via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
+ - `Fixed Window with FullPrecomputation (no doublings) (w=3) <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/point_mul.cpp#L78>`__, via ``blinded_base_point_multiply -> EC_Point_Base_Point_Precompute::mul``.
  - `Jacobian <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
  - `add-1998-cmo-2 <https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/ec_group/ec_point.cpp#L181>`__
 
@@ -313,11 +313,11 @@ Verify:
 
 X25519
 ^^^^^^
-Based on curve2551_donna.
+Based on curve25519_donna.
 
 Ed25519
 ^^^^^^^
-Based on ref10 of Ed255119.
+Based on ref10 of Ed25519.
 See `BoringSSL`_.
 
 
@@ -440,13 +440,13 @@ ECDH
 
 KeyGen:
  - Short-Weierstrass
- - `Montgomery ladder <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_make_key -> EccPoint_compute_public_key -> EccPoint_mult`` (also has coordinate randomization).
+ - `Ladder (coZ, with subtraction) <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_make_key -> EccPoint_compute_public_key -> EccPoint_mult`` (also has coordinate randomization).
  - `Jacobian coZ coordinates (Z1 == Z2) <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L748>`__ from https://eprint.iacr.org/2011/338.pdf.
  - `coZ formulas <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L793>`__ from https://eprint.iacr.org/2011/338.pdf.
 
 Derive:
  - Short-Weierstrass
- - `Montgomery ladder <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_shared_secret -> EccPoint_compute_public_key -> EccPoint_mult`` (also has coordinate randomization).
+ - `Ladder (coZ, with subtraction) <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_shared_secret -> EccPoint_compute_public_key -> EccPoint_mult`` (also has coordinate randomization).
  - Same coords and formulas as KeyGen.
 
 ECDSA
@@ -457,7 +457,7 @@ Keygen:
 
 Sign:
  - Short-Weierstrass
- - `Montgomery ladder <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_sign -> uECC_sign_with_k_internal -> EccPoint_mult`` (also has coordinate randomization).
+ - `Ladder (coZ, with subtraction) <https://github.com/kmackay/micro-ecc/blob/v1.1/uECC.c#L862>`__ via ``uECC_sign -> uECC_sign_with_k_internal -> EccPoint_mult`` (also has coordinate randomization).
  - Same coords and formulas as KeyGen.
 
 Verify:
@@ -598,7 +598,7 @@ ECDH
 
 KeyGen:
  - Short-Weierstrass
- - Ladder via ``kmethod.keygen -> ec_key_gen -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
+ - `Simple Ladder <https://github.com/libressl/openbsd/blob/libressl-v3.8.2/src/lib/libcrypto/ec/ecp_smpl.c#L1305>`__ via ``kmethod.keygen -> ec_key_gen -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
    Also does coordinate blinding and fixes scalar bit-length.
  - Jacobian coordinates.
  - Unknown formulas: `add-libressl-v382 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-libressl-v382.op3>`__,
@@ -606,7 +606,7 @@ KeyGen:
 
 Derive:
  - Short-Weierstrass
- - Ladder via ``kmethod.compute_key -> ecdh_compute_key -> EC_POINT_mul -> method.mul_single_ct -> ec_GFp_simple_mul_single_ct -> ec_GFp_simple_mul_ct``.
+ - `Simple Ladder <https://github.com/libressl/openbsd/blob/libressl-v3.8.2/src/lib/libcrypto/ec/ecp_smpl.c#L1305>`__ via ``kmethod.compute_key -> ecdh_compute_key -> EC_POINT_mul -> method.mul_single_ct -> ec_GFp_simple_mul_single_ct -> ec_GFp_simple_mul_ct``.
    Also does coordinate blinding and fixes scalar bit-length.
  - Same as KeyGen.
 
@@ -619,24 +619,24 @@ KeyGen:
 
 Sign:
  - Short-Weierstrass
- - Ladder via ``ECDSA_sign -> kmethod.sign -> ecdsa_sign -> ECDSA_do_sign -> kmethod.sign_sig -> ecdsa_sign_sig -> ECDSA_sign_setup -> kmethod.sign_setup -> ecdsa_sign_setup -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
+ - `Simple Ladder <https://github.com/libressl/openbsd/blob/libressl-v3.8.2/src/lib/libcrypto/ec/ecp_smpl.c#L1305>`__ via ``ECDSA_sign -> kmethod.sign -> ecdsa_sign -> ECDSA_do_sign -> kmethod.sign_sig -> ecdsa_sign_sig -> ECDSA_sign_setup -> kmethod.sign_setup -> ecdsa_sign_setup -> EC_POINT_mul -> method.mul_generator_ct -> ec_GFp_simple_mul_generator_ct -> ec_GFp_simple_mul_ct``.
  - Same as ECDH.
 
 Verify:
  - Short-Weierstrass
- - Window NAF interleaving multi-exponentation method ``ECDSA_verify -> kmethod.verify -> ecdsa_verify -> ECDSA_do_verify -> kmethod.verify_sig -> ecdsa_verify_sig -> EC_POINT_mul -> method.mul_double_nonct -> ec_GFp_simple_mul_double_nonct -> ec_wNAF_mul``.
+ - Window NAF interleaving multi-exponentiation method ``ECDSA_verify -> kmethod.verify -> ecdsa_verify -> ECDSA_do_verify -> kmethod.verify_sig -> ecdsa_verify_sig -> EC_POINT_mul -> method.mul_double_nonct -> ec_GFp_simple_mul_double_nonct -> ec_wNAF_mul``.
    Refers to http://www.informatik.tu-darmstadt.de/TI/Mitarbeiter/moeller.html#multiexp and https://www.informatik.tu-darmstadt.de/TI/Mitarbeiter/moeller.html#fastexp
  - Same coordinates and formulas as ECDH.
 
 
 X25519
 ^^^^^^
-Based on ref10 of Ed255119.
+Based on ref10 of Ed25519.
 See `BoringSSL`_. Not exactly the same.
 
 Ed25519
 ^^^^^^^
-Based on ref10 of Ed255119.
+Based on ref10 of Ed25519.
 See `BoringSSL`_. Not exactly the same.
 
 
@@ -1174,11 +1174,11 @@ ECDH
 ^^^^
 
 KeyGen:
- - `Fixed 4-bit window with precomputation <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L412>`__ with precomputation (link points to P-224, but others are the same) via ``privateKeyToPublicKey -> ScalarBaseMult``
+ - `Fixed window (w=4) <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L412>`__ (link points to P-224, but others are the same) via ``privateKeyToPublicKey -> ScalarBaseMult``
  - Projective `add-2015-rcb <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L215>`__
 
 Derive:
- - `Fixed 4-bit window <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L342>`__ via ``ecdh -> ScalarMult``.
+ - `Fixed window (w=4) <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L342>`__ via ``ecdh -> ScalarMult``.
  - Same formulas as in Keygen.
 
 Also supports constant-time, 64-bit assembly implementation of P256 described in https://eprint.iacr.org/2013/816.pdf
