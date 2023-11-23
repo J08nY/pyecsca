@@ -27,12 +27,12 @@ def main():
 
 
 def test_switch_sign(formula, library=False):
-    for switch_formula in generate_switched_formulas(formula):
+    for _, switch_formula in generate_switched_formulas(formula):
         test_formula(switch_formula, library)
 
 
 def test_fliparood_formula(formula, library=False):
-    for fliparood in generate_fliparood_formulas(formula):
+    for _,fliparood in generate_fliparood_formulas(formula):
         test_formula(fliparood, library)
 
 
@@ -110,9 +110,11 @@ def load_efd_formulas(coordinate_name, model):
 from pathlib import Path
 
 
-def load_library_formulas():
+def load_library_formulas(coordinates=None):
     libs_dict = {}
     for name, model, coords, _, formula_type in LIBRARY_FORMULAS:
+        if coordinates is not None and coordinates!=coords:
+            continue
         model = model()
         coordinate_model = model.coordinates[coords]
         lib_path = Path("../../../test/data/formulas")
