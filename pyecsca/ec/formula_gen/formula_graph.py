@@ -156,7 +156,7 @@ class EFDFormulaGraph:
         self.output_names: Set = None
         self.roots: List = None
 
-    def construct_graph(self, formula: EFDFormula):
+    def construct_graph(self, formula: EFDFormula, rename = True):
         self._formula = formula  # TODO remove, its here only for to_EFDFormula
         self.output_names = formula.outputs
         self.input_nodes = {v: InputNode(v) for v in formula_input_variables(formula)}
@@ -186,7 +186,8 @@ class EFDFormulaGraph:
         for node in self.nodes:
             if not node.incoming_nodes and not node in self.roots:
                 self.roots.append(node)
-        self.reindex()
+        if rename:
+            self.reindex()
 
     def node_index(self, node: CodeOpNode) -> int:
         return self.nodes.index(node)
@@ -308,3 +309,9 @@ class EFDFormulaGraph:
     def print(self):
         for node in self.nodes:
             print(node)
+
+
+def rename_ivs(formula: EFDFormula):
+    graph = EFDFormulaGraph()
+    graph.construct_graph(formula)
+    return graph.to_EFDFormula()
