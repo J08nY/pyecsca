@@ -9,7 +9,7 @@ from itertools import chain, combinations
 def best_switch(formula, metric):
     best_formula = formula
     best_measure = metric(formula)
-    for switched_formula in generate_switched_formulas(formula):
+    for _,switched_formula in generate_switched_formulas(formula):
         new_measure = metric(switched_formula)
         if new_measure > best_measure:
             best_formula = switched_formula
@@ -17,15 +17,15 @@ def best_switch(formula, metric):
     return best_formula
 
 
-def generate_switched_formulas(formula):
+def generate_switched_formulas(formula, rename = True):
     Gr = EFDFormulaGraph()
-    Gr.construct_graph(formula)
-    subs = filter(lambda x: not x in Gr.roots and x.is_sub, Gr.nodes)
+    Gr.construct_graph(formula, rename)
+    subs = filter(lambda x: x not in Gr.roots and x.is_sub, Gr.nodes)
     for node_combination in list(powerset(subs)):
         try:
             new_f = switch_sign(Gr, node_combination).to_EFDFormula()
             # print("node_comb:",node_combination)
-            yield new_f
+            yield node_combination,new_f
         except BadSignSwitch:
             continue
 
@@ -59,6 +59,11 @@ def switch_sign(Gr, node_combination):
         output_signs = {out[0]: sign for out, sign in output_signs.items()}
         X, Y, Z = (output_signs[var] for var in ["X", "Y", "Z"])
         correct_output = X / (Z**2) == 1 and Y / (Z**3) == 1
+    elif Gr._formula.coordinate_model.name.startswith("modified"):
+        output_signs = {out[0]: sign for out, sign in output_signs.items()}
+        X, Y, Z, T = (output_signs[var] for var in ["X", "Y", "Z", "T"])
+        correct_output = X / (Z**2) == 1 and Y / (Z**3) == 1
+        correct_output&= (T==1)
     else:
         correct_output = len(set(output_signs.values())) == 1
     if not correct_output:
