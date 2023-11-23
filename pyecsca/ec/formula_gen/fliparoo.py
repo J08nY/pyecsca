@@ -13,7 +13,7 @@ def greedy_fliparoo(formula, metric):
         before_fliparoo_state = metric(before_fliparoo)
         max_fliparood = before_fliparoo
         max_fliparood_state = before_fliparoo_state
-        for fliparood in generate_fliparood_formulas(before_fliparoo):
+        for _,fliparood in generate_fliparood_formulas(before_fliparoo):
             after_fliparoo_state = metric(fliparood)
             if after_fliparoo_state > max_fliparood_state:
                 max_fliparood = fliparood
@@ -36,33 +36,34 @@ def brute_force_fliparoo(formula, metric, depth):
 
 
 def recursive_fliparoo(formula, depth=3):
-    all_fliparoos = [(0, formula)]
+    all_fliparoos = [([], formula)]
     counter = 0
     while depth > counter:
         counter += 1
         flips = []
-        for _, fliped_formula in all_fliparoos:
-            for fliparood in generate_fliparood_formulas(fliped_formula):
-                flips.append((counter, fliparood))
+        for chains, fliped_formula in all_fliparoos:
+            rename = counter==1 # rename ivs before first fliparoo
+            for chain,fliparood in generate_fliparood_formulas(fliped_formula, rename):
+                flips.append((chains+[chain], fliparood))
         all_fliparoos.extend(flips)
     return all_fliparoos
 
 
-def generate_fliparood_formulas(formula):
+def generate_fliparood_formulas(formula, rename = True):
     Gr = EFDFormulaGraph()
-    Gr.construct_graph(formula)
+    Gr.construct_graph(formula, rename)
     chains = find_fliparoo_chains(Gr)
     for chain in generate_subchains(chains):
         if chain[0].is_mul:
-            yield make_fliparoo(Gr, chain, 0).to_EFDFormula()
-            yield make_fliparoo(Gr, chain, 1).to_EFDFormula()
+            yield chain, make_fliparoo(Gr, chain, 0).to_EFDFormula()
+            yield tuple(reversed(chain)), make_fliparoo(Gr, chain, 1).to_EFDFormula()
         if chain[0].is_add or chain[0].is_sub:
             try:
-                yield make_fliparoo_sub(Gr, chain, 0).to_EFDFormula()
+                yield chain, make_fliparoo_sub(Gr, chain, 0).to_EFDFormula()
             except BadFliparoo:
                 pass
             try:
-                yield make_fliparoo_sub(Gr, chain, 1).to_EFDFormula()
+                yield tuple(reversed(chain)), make_fliparoo_sub(Gr, chain, 1).to_EFDFormula()
             except BadFliparoo:
                 pass
 
