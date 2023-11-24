@@ -103,7 +103,7 @@ def test_formula(formula, library=False):
 
 
 def load_efd_formulas(coordinate_name, model):
-    formulas = model().coordinates[coordinate_name].formulas
+    formulas = model.coordinates[coordinate_name].formulas
     return {name: f for name, f in formulas.items() if "add" in name or "dbl" in name}
 
 
@@ -115,8 +115,7 @@ def load_library_formulas(coordinates=None):
     for name, model, coords, _, formula_type in LIBRARY_FORMULAS:
         if coordinates is not None and coordinates!=coords:
             continue
-        model = model()
-        coordinate_model = model.coordinates[coords]
+        coordinate_model = model().coordinates[coords]
         lib_path = Path("../../../test/data/formulas")
         with as_file(lib_path.joinpath(name)) as meta_path, as_file(
             lib_path.joinpath(name + ".op3")
