@@ -315,6 +315,11 @@ X25519
 ^^^^^^
 Based on curve25519_donna.
 
+ - Montgomery
+ - Montgomery ladder (unrolled several iterations)
+ - xz
+ - Unknown formula: `ladd-botan-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-botan-x25519.op3>`__
+
 Ed25519
 ^^^^^^^
 Based on ref10 of Ed25519.
@@ -784,7 +789,7 @@ Derive:
  - Montgomery
  - Montgomery ladder via ``ossl_x25519 -> x25519_scalar_mult``
  - xz coords
- - Unknown ladder formula.
+ - Unknown ladder formula: `ladd-openssl-x25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/ladd-openssl-x25519.op3>`__
 
 Ed25519
 ^^^^^^^
@@ -921,7 +926,7 @@ KeyGen:
 Derive:
  - Uses GLV decomposition and `interleaving with width-5 NAFs <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/ecmult_const_impl.h#L133>`__ via ``secp256k1_ecdh -> secp256k1_ecmult_const``.
  - Addition same as in Keygen.
- - Unknown doubling: `dbl-secp256k1-v040 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-secp256k1-v040>`__ (via ```secp256k1_gej_double`` <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/group_impl.h#L406>`__)
+ - Unknown doubling: `dbl-secp256k1-v040 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-secp256k1-v040>`__ (via `secp256k1_gej_double <https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/group_impl.h#L406>`__)
 
 ECDSA
 ^^^^^
@@ -1149,7 +1154,7 @@ KeyGen:
  - Twisted-Edwards
  - Double and add always
  - Extended coords
- - Some HWCD formulas.
+ - Unknown formulas: `add-sunec-v21-ed25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/add-sunec-v21-ed25519.op3>`__,  `dbl-sunec-v21-ed25519 <https://github.com/J08nY/pyecsca/blob/master/test/data/formulas/dbl-sunec-v21-ed25519.op3>`__
 
 Sign:
  - Same as KeyGen.
@@ -1174,10 +1179,13 @@ ECDH
 ^^^^
 
 KeyGen:
+ - Short-Weierstrass
  - `Fixed window (w=4) <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L412>`__ (link points to P-224, but others are the same) via ``privateKeyToPublicKey -> ScalarBaseMult``
- - Projective `add-2015-rcb <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L215>`__
+ - Projective
+ - `add-2015-rcb <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L215>`__, `dbl-2015-rcb <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L270>`__
 
 Derive:
+ - Short-Weierstrass
  - `Fixed window (w=4) <https://github.com/golang/go/blob/go1.21.4/src/crypto/internal/nistec/p224.go#L342>`__ via ``ecdh -> ScalarMult``.
  - Same formulas as in Keygen.
 

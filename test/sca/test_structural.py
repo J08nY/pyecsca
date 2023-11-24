@@ -238,6 +238,13 @@ def test_formula_similarity(secp128r1):
             ("other", "Curve25519"),
             DoublingEFDFormula,
         ],
+        [
+            "ladd-botan-x25519",
+            MontgomeryModel,
+            "xz",
+            ("other", "Curve25519"),
+            LadderEFDFormula,
+        ],
     ],
 )
 def test_formula_correctness(name, model, coords, param_spec, formula_type):

@@ -1,0 +1,4 @@
+source Botan 3.2.0 https://github.com/randombit/botan/blob/3.2.0/src/lib/pubkey/curve25519/donna.cpp#L299
+coords xz
+parameter am24
+assume am24 = (a-2)/4
