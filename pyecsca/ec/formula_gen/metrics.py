@@ -39,6 +39,16 @@ def formula_similarity(one: Formula, other: Formula) -> Dict[str, float]:
     }
 
 
+def ivs_norm(one: Formula):
+    one_unroll = unroll_formula(one)
+    one_results = {}
+    for name, value in one_unroll:
+        if name in one.outputs:
+            one_results[name] = value
+    one_polys = set(map(itemgetter(1), one_unroll))
+    return one_polys
+
+
 def formula_similarity_abs(one: Formula, other: Formula) -> Dict[str, float]:
     if one.coordinate_model != other.coordinate_model:
         warnings.warn("Mismatched coordinate model.")
