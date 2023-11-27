@@ -219,7 +219,7 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
 
         tree = build_distinguishing_tree(mults_to_multiples)
         log("Built distinguishing tree.")
-        log(RenderTree(tree).by_attr("name"))
+        log(RenderTree(tree).by_attr(lambda n: n.name if n.name else [mult.__class__.__name__ for mult in n.mults]))
         if tree is None or not tree.children:
             tries += 1
             continue
