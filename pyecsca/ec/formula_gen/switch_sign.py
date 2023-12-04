@@ -1,81 +1,67 @@
 from pyecsca.ec.op import CodeOp
-from typing import Dict, Set
+from typing import Dict, Set, Iterator, List, Tuple, Type
 from ast import parse
 from pyecsca.ec.op import OpType
-from pyecsca.ec.formula_gen.formula_graph import *
+from pyecsca.ec.formula_gen.formula_graph import EFDFormulaGraph, ConstantNode, Node
 from itertools import chain, combinations
+from pyecsca.ec.formula import EFDFormula
 
 
-def best_switch(formula, metric):
-    best_formula = formula
-    best_measure = metric(formula)
-    for _,switched_formula in generate_switched_formulas(formula):
-        new_measure = metric(switched_formula)
-        if new_measure > best_measure:
-            best_formula = switched_formula
-            best_measure = new_measure
-    return best_formula
-
-
-def generate_switched_formulas(formula, rename = True):
-    Gr = EFDFormulaGraph()
-    Gr.construct_graph(formula, rename)
-    subs = filter(lambda x: x not in Gr.roots and x.is_sub, Gr.nodes)
-    for node_combination in list(powerset(subs)):
+def generate_switched_formulas(
+    formula: EFDFormula, rename=True
+) -> Iterator[EFDFormula]:
+    graph = EFDFormulaGraph()
+    graph.construct_graph(formula, rename)
+    for node_combination in subnode_lists(graph):
         try:
-            new_f = switch_sign(Gr, node_combination).to_EFDFormula()
-            # print("node_comb:",node_combination)
-            yield node_combination,new_f
+            yield switch_sign(graph, node_combination).to_EFDFormula()
         except BadSignSwitch:
             continue
 
 
-def switch_sign(Gr, node_combination):
-    nodes_i = [Gr.node_index(node) for node in node_combination]
-    Gr = deepcopy(Gr)
-    node_combination = set(Gr.nodes[node_i] for node_i in nodes_i)
-    output_signs = {out: 1 for out in Gr.output_names}
+def subnode_lists(graph: EFDFormulaGraph):
+    return powerlist(filter(lambda x: x not in graph.roots and x.is_sub, graph.nodes))
+
+
+def switch_sign(graph: EFDFormulaGraph, node_combination) -> EFDFormulaGraph:
+    nodes_i = [graph.node_index(node) for node in node_combination]
+    graph = graph.deepcopy()
+    node_combination = set(graph.nodes[node_i] for node_i in nodes_i)
+    output_signs = {out: 1 for out in graph.output_names}
+
+    queue = []
     for node in node_combination:
         change_sides(node)
         if node.output_node:
             output_signs[node.result] = -1
+        queue.extend([(out, node.result) for out in node.outgoing_nodes])
 
-    queue = sum(
-        [
-            [(out, node.result) for out in node.outgoing_nodes]
-            for node in node_combination
-        ],
-        [],
-    )
-    switched_subs = set()
     while queue:
         node, variable = queue.pop()
-        queue = (
-            switch_sign_propagate(node, variable, output_signs, switched_subs) + queue
-        )
+        queue = switch_sign_propagate(node, variable, output_signs) + queue
 
     # TODO rewrite this hacky solution:
-    if Gr._formula.coordinate_model.name.startswith("jacobian"):
+    if graph._formula.coordinate_model.name.startswith("jacobian"):
         output_signs = {out[0]: sign for out, sign in output_signs.items()}
         X, Y, Z = (output_signs[var] for var in ["X", "Y", "Z"])
         correct_output = X / (Z**2) == 1 and Y / (Z**3) == 1
-    elif Gr._formula.coordinate_model.name.startswith("modified"):
+    elif graph._formula.coordinate_model.name.startswith("modified"):
         output_signs = {out[0]: sign for out, sign in output_signs.items()}
         X, Y, Z, T = (output_signs[var] for var in ["X", "Y", "Z", "T"])
         correct_output = X / (Z**2) == 1 and Y / (Z**3) == 1
-        correct_output&= (T==1)
+        correct_output &= T == 1
     else:
         correct_output = len(set(output_signs.values())) == 1
     if not correct_output:
         raise BadSignSwitch
-    return Gr
+    return graph
 
 
 class BadSignSwitch(Exception):
     pass
 
 
-def switch_sign_propagate(node, variable, output_signs, switched_subs):
+def switch_sign_propagate(node: Node, variable: str, output_signs: Dict[Node, str]):
     if node.is_add:
         if variable == node.incoming_nodes[1].result:
             node.op = change_operator(node.op, OpType.Sub)
@@ -90,7 +76,6 @@ def switch_sign_propagate(node, variable, output_signs, switched_subs):
     if node.is_sqr:
         return []
     if node.is_sub:
-        switched_subs.add(node.result)
         if node.incoming_nodes[0].result == variable:
             node.op = change_operator(node.op, OpType.Add)
             if node.output_node:
@@ -128,6 +113,6 @@ def change_sides(node):
     )
 
 
-def powerset(iterable):
+def powerlist(iterable: Iterator) -> List:
     s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+    return list(chain.from_iterable(combinations(s, r) for r in range(len(s) + 1)))

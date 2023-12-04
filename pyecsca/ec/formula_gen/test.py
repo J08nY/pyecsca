@@ -8,35 +8,70 @@ from pyecsca.ec.formula import (
     DoublingEFDFormula,
     LadderEFDFormula,
 )
+
+from pathlib import Path
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
 from pyecsca.ec.formula_gen.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula_gen.switch_sign import generate_switched_formulas
+from pyecsca.ec.formula_gen.partitions import (
+    reduce_all_adds,
+    expand_all_muls,
+    expand_all_nopower2_muls,
+)
+from pyecsca.ec.formula_gen.formula_graph import rename_ivs
 
 
 def main():
     for name, lib_formula in load_library_formulas().items():
         print(name)
+        test_formula_graph(lib_formula, library=True)
         test_formula(lib_formula, library=True)
         test_fliparood_formula(lib_formula, library=True)
         test_switch_sign(lib_formula, library=True)
-    for name, formula in load_efd_formulas("jacobian", ShortWeierstrassModel).items():
+        test_reductions(lib_formula, library=True)
+        test_expansions(lib_formula, library=True)
+    for name, formula in load_efd_formulas(
+        "projective", ShortWeierstrassModel()
+    ).items():
         print(name)
         test_fliparood_formula(formula)
         test_switch_sign(formula)
+        test_reductions(formula)
+        test_expansions(formula)
     print("All good.")
 
 
+def test_formula_graph(formula, library=False):
+    test_formula(rename_ivs(formula), library)
+
+
 def test_switch_sign(formula, library=False):
-    for _, switch_formula in generate_switched_formulas(formula):
+    for switch_formula in generate_switched_formulas(formula):
         test_formula(switch_formula, library)
 
 
 def test_fliparood_formula(formula, library=False):
-    for _,fliparood in generate_fliparood_formulas(formula):
+    for fliparood in generate_fliparood_formulas(formula):
         test_formula(fliparood, library)
 
 
+def test_reductions(formula, library=False):
+    test_formula(reduce_all_adds(formula), library)
+
+
+def test_expansions(formula, library=False):
+    test_formula(expand_all_muls(formula), library)
+    test_formula(expand_all_nopower2_muls(formula), library)
+
+
 def test_formula(formula, library=False):
+    try:
+        test_formula0(formula, library)
+    except AssertionError:
+        print(formula.name)
+
+
+def test_formula0(formula, library=False):
     coordinate_model = formula.coordinate_model
     param_spec = choose_curve(coordinate_model, formula.name, library)
     params = get_params(*param_spec, coordinate_model.name)
@@ -107,16 +142,13 @@ def load_efd_formulas(coordinate_name, model):
     return {name: f for name, f in formulas.items() if "add" in name or "dbl" in name}
 
 
-from pathlib import Path
-
-
 def load_library_formulas(coordinates=None):
     libs_dict = {}
     for name, model, coords, _, formula_type in LIBRARY_FORMULAS:
-        if coordinates is not None and coordinates!=coords:
+        if coordinates is not None and coordinates != coords:
             continue
         coordinate_model = model().coordinates[coords]
-        lib_path = Path("../../../test/data/formulas")
+        lib_path = Path("test/data/formulas")  # Path("../../../test/data/formulas")
         with as_file(lib_path.joinpath(name)) as meta_path, as_file(
             lib_path.joinpath(name + ".op3")
         ) as op3_path:

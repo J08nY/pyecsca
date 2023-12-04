@@ -1,8 +1,13 @@
-from pyecsca.ec.formula import EFDFormula
+from pyecsca.ec.formula import (
+    EFDFormula,
+    DoublingEFDFormula,
+    AdditionEFDFormula,
+    LadderEFDFormula,
+    DifferentialAdditionEFDFormula,
+)
 from pyecsca.ec.op import CodeOp, OpType
 import matplotlib.pyplot as plt
 import networkx as nx
-import functools
 from ast import parse
 from typing import Dict, List, Tuple, Set
 from copy import deepcopy
@@ -28,6 +33,14 @@ class Node(ABC):
     def __repr__(self) -> str:
         pass
 
+    def reconnect_outgoing_nodes(self, destination):
+        destination.output_node = self.output_node
+        for out in self.outgoing_nodes:
+            out.incoming_nodes = [
+                n if n != self else destination for n in out.incoming_nodes
+            ]
+            destination.outgoing_nodes.append(out)
+
 
 class ConstantNode(Node):
 
@@ -46,7 +59,7 @@ class ConstantNode(Node):
         return self.value
 
     def __repr__(self) -> str:
-        return f"Node({self.name})"
+        return f"Node({self.value})"
 
 
 class CodeOpNode(Node):
@@ -67,6 +80,11 @@ class CodeOpNode(Node):
             OpType.Inv,
             OpType.Neg,
         ], self.op.operator
+
+    @classmethod
+    def from_str(cls, result: str, left, operator, right):
+        opstr = f"{result} = {left if left is not None else ''}{operator.op_str}{right if right is not None else ''}"
+        return cls(CodeOp(parse(opstr.replace("^", "**"))))
 
     @property
     def label(self) -> str:
@@ -149,6 +167,29 @@ def formula_input_variables(formula: EFDFormula) -> List[str]:
     )
 
 
+# temporary solution
+class ModifiedEFDFormula(EFDFormula):
+    pass
+
+
+class ModifiedDoublingEFDFormula(DoublingEFDFormula, ModifiedEFDFormula):
+    pass
+
+
+class ModifiedAdditionEFDFormula(AdditionEFDFormula, ModifiedEFDFormula):
+    pass
+
+
+class ModifiedDifferentialAdditionEFDFormula(
+    DifferentialAdditionEFDFormula, ModifiedEFDFormula
+):
+    pass
+
+
+class ModifiedLadderEFDFormula(LadderEFDFormula, ModifiedEFDFormula):
+    pass
+
+
 class EFDFormulaGraph:
     def __init__(self):
         self.nodes: List = None
@@ -156,7 +197,7 @@ class EFDFormulaGraph:
         self.output_names: Set = None
         self.roots: List = None
 
-    def construct_graph(self, formula: EFDFormula, rename = True):
+    def construct_graph(self, formula: EFDFormula, rename=True):
         self._formula = formula  # TODO remove, its here only for to_EFDFormula
         self.output_names = formula.outputs
         self.input_nodes = {v: InputNode(v) for v in formula_input_variables(formula)}
@@ -192,7 +233,10 @@ class EFDFormulaGraph:
     def node_index(self, node: CodeOpNode) -> int:
         return self.nodes.index(node)
 
-    def to_EFDFormula(self) -> EFDFormula:
+    def deepcopy(self):
+        return deepcopy(self)
+
+    def to_EFDFormula(self) -> ModifiedEFDFormula:
         # TODO rewrite
         new_graph = deepcopy(self)
         new_formula = new_graph._formula
@@ -202,9 +246,16 @@ class EFDFormulaGraph:
                 filter(lambda n: n not in new_graph.roots, new_graph.nodes),
             )
         )
+        casting = {
+            AdditionEFDFormula: ModifiedAdditionEFDFormula,
+            DoublingEFDFormula: ModifiedDoublingEFDFormula,
+            DifferentialAdditionEFDFormula: ModifiedDifferentialAdditionEFDFormula,
+            LadderEFDFormula: ModifiedEFDFormula,
+        }
+        if not new_formula.__class__ in set(casting.values()):
+            new_formula.__class__ = casting[new_formula.__class__]
         return new_formula
 
-    @functools.cache
     def networkx_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
         vertices = list(range(len(self.nodes)))
@@ -219,13 +270,13 @@ class EFDFormulaGraph:
 
     def levels(self) -> List[List[Node]]:
         stack = self.roots.copy()
-        levels = {n: 0 for n in stack}
+        levels = [(n, 0) for n in stack]
         level_counter = 1
         while stack:
             tmp_stack = []
             while stack:
                 node = stack.pop()
-                levels[node] = level_counter
+                levels.append((node, level_counter))
                 for out in node.outgoing_nodes:
                     tmp_stack.append(out)
             stack = tmp_stack
@@ -233,13 +284,15 @@ class EFDFormulaGraph:
         # separate into lists
 
         level_lists = [[] for _ in range(level_counter)]
-        for node, l in levels.items():
-            level_lists[l].append(node)
+        discovered = []
+        for node, l in reversed(levels):
+            if not node in discovered:
+                level_lists[l].append(node)
+                discovered.append(node)
         return level_lists
 
-    @functools.cache
-    def ending_nodes(self) -> List[Node]:
-        return list(filter(lambda x: not x.outgoing_nodes, self.nodes))
+    def output_nodes(self) -> List[Node]:
+        return list(filter(lambda x: x.output_node, self.nodes))
 
     def planar_positions(self) -> Dict[int, Tuple[float, float]]:
         positions = {}
@@ -269,7 +322,7 @@ class EFDFormulaGraph:
         index_paths = []
         for u in self.roots:
             iu = self.node_index(u)
-            for v in self.ending_nodes():
+            for v in self.output_nodes():
                 iv = self.node_index(v)
                 index_paths.extend(nx.all_simple_paths(gnx, iu, iv))
         paths = []
@@ -279,6 +332,24 @@ class EFDFormulaGraph:
 
     def reorder(self):
         self.nodes = sum(self.levels(), [])
+
+    def remove_node(self, node):
+        self.nodes.remove(node)
+        if node in self.roots:
+            self.roots.remove(node)
+        for in_node in node.incoming_nodes:
+            in_node.outgoing_nodes = list(
+                filter(lambda x: x != node, in_node.outgoing_nodes)
+            )
+        for out_node in node.outgoing_nodes:
+            out_node.incoming_nodes = list(
+                filter(lambda x: x != node, out_node.incoming_nodes)
+            )
+
+    def add_node(self, node):
+        if isinstance(node, ConstantNode):
+            self.roots.append(node)
+        self.nodes.append(node)
 
     def reindex(self):
         results = {}
@@ -305,6 +376,10 @@ class EFDFormulaGraph:
             opstr = f"{new_result} = {left if left is not None else ''}{operator}{right if right is not None else ''}"
             results[result] = new_result
             node.op = CodeOp(parse(opstr.replace("^", "**")))
+
+    def update(self):
+        self.reorder()
+        self.reindex()
 
     def print(self):
         for node in self.nodes:
