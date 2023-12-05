@@ -9,7 +9,11 @@ import test.data.formulas
 from pyecsca.ec.formula.expand import expand_formula_list
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
-from pyecsca.ec.formula.metrics import formula_similarity
+from pyecsca.ec.formula.metrics import (
+    formula_similarity,
+    formula_similarity_abs,
+    formula_similarity_fuzz,
+)
 from pyecsca.ec.formula.partitions import (
     reduce_all_adds,
     expand_all_muls,
@@ -142,6 +146,12 @@ def test_formula_similarity(secp128r1):
     out = formula_similarity(add_bl, add_rcb)
     assert out["output"] == 0
     assert out["ivs"] < 0.5
+    out_abs = formula_similarity_abs(add_bl, add_rcb)
+    assert out_abs["output"] == 0
+    assert out_abs["ivs"] < 0.5
+    out_fuzz = formula_similarity_fuzz(add_bl, add_rcb, secp128r1.curve, samples=100)
+    assert out_fuzz["output"] == 0
+    assert out_fuzz["ivs"] < 0.5
     out_same = formula_similarity(add_bl, add_bl)
     assert out_same["output"] == 1
     assert out_same["ivs"] == 1
@@ -381,19 +391,6 @@ def library_formula_params(request) -> Tuple[EFDFormula, DomainParameters]:
     return formula, params
 
 
-def choose_curve(coordinate_model, name, library):
-    if library:
-        return next(filter(lambda x: x[0] == name, LIBRARY_FORMULAS))[3]
-    model = coordinate_model.curve_model
-    if model.__class__ == ShortWeierstrassModel:
-        return "secg", "secp128r1"
-    if model.__class__ == MontgomeryModel:
-        return "other", "Curve25519"
-    if model.__class__ == TwistedEdwardsModel:
-        return "other", "Ed25519"
-    raise NotImplementedError(model)
-
-
 def test_formula_graph(library_formula_params):
     formula, params = library_formula_params
     do_test_formula(rename_ivs(formula), params)
@@ -417,6 +414,7 @@ def test_partition_formula_single(library_formula_params):
         next(iter(generate_partitioned_formulas(formula)))
     except StopIteration:
         pass
+
 
 @pytest.mark.slow
 def test_partition_formula(library_formula_params):
