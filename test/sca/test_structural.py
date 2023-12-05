@@ -11,7 +11,7 @@ from pyecsca.ec.formula import (
 )
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
 from pyecsca.ec.params import get_params
-from pyecsca.sca.re.structural import formula_similarity
+from pyecsca.ec.formula.metrics import formula_similarity
 
 
 def test_formula_similarity(secp128r1):

@@ -1,34 +1,31 @@
-from pyecsca.ec.op import CodeOp
-from typing import Dict, Set, List
+from typing import List, Any, Generator
 from ast import parse
-from pyecsca.ec.op import OpType
-from pyecsca.ec.formula_gen.formula_graph import (
+from ..op import OpType, CodeOp
+from .graph import (
     EFDFormulaGraph,
     CodeOpNode,
     ConstantNode,
     Node,
 )
-from pyecsca.ec.formula_gen.fliparoo import find_fliparoos, AddFliparoo, MulFliparoo
+from .fliparoo import find_fliparoos, AddFliparoo, MulFliparoo
 from copy import deepcopy
-from pyecsca.ec.formula import EFDFormula
+from .efd import EFDFormula
 
 
 def reduce_all_adds(formula: EFDFormula, rename=True) -> EFDFormula:
-    graph = EFDFormulaGraph()
-    graph.construct_graph(formula, rename=rename)
-    fliparoos = find_single_input_add_fliparoos(graph)
-    for fliparoo in fliparoos:
-        reduce_add_fliparoo(fliparoo, copy=False)
+    graph = EFDFormulaGraph(formula, rename=rename)
+    add_fliparoos = find_single_input_add_fliparoos(graph)
+    for add_fliparoo in add_fliparoos:
+        reduce_add_fliparoo(add_fliparoo, copy=False)
     reduce_all_XplusX(graph)
-    fliparoos = find_constant_mul_fliparoos(graph)
-    for fliparoo in fliparoos:
-        reduce_mul_fliparoo(fliparoo, copy=False)
+    mul_fliparoos = find_constant_mul_fliparoos(graph)
+    for mul_fliparoo in mul_fliparoos:
+        reduce_mul_fliparoo(mul_fliparoo, copy=False)
     return graph.to_EFDFormula()
 
 
 def expand_all_muls(formula: EFDFormula, rename=True) -> EFDFormula:
-    graph = EFDFormulaGraph()
-    graph.construct_graph(formula, rename)
+    graph = EFDFormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)
     for enode in enodes:
         expand_mul(graph, enode, copy=False)
@@ -36,8 +33,7 @@ def expand_all_muls(formula: EFDFormula, rename=True) -> EFDFormula:
 
 
 def expand_all_nopower2_muls(formula: EFDFormula, rename=True) -> EFDFormula:
-    graph = EFDFormulaGraph()
-    graph.construct_graph(formula, rename)
+    graph = EFDFormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph, nopower2=True)
     for enode in enodes:
         expand_mul(graph, enode, copy=False)
@@ -75,7 +71,7 @@ def find_constant_mul_fliparoos(graph: EFDFormulaGraph) -> List[MulFliparoo]:
             if len(nonconstant_inputs) != 1:
                 continue
             inode = nonconstant_inputs[0]
-            if not inode in fliparoo.first.incoming_nodes:
+            if inode not in fliparoo.first.incoming_nodes:
                 continue
             if not sum(
                 1
@@ -92,7 +88,7 @@ def find_constant_mul_fliparoos(graph: EFDFormulaGraph) -> List[MulFliparoo]:
 
 
 def find_expansion_nodes(graph: EFDFormulaGraph, nopower2=False) -> List[Node]:
-    expansion_nodes = []
+    expansion_nodes: List[Node] = []
     for node in graph.nodes:
         if not isinstance(node, CodeOpNode) or not node.is_mul:
             continue
@@ -120,7 +116,7 @@ def reduce_all_XplusX(graph: EFDFormulaGraph):
     graph.update()
 
 
-def find_all_XplusX(graph) -> List[Node]:
+def find_all_XplusX(graph) -> List[CodeOpNode]:
     adds = []
     for node in graph.nodes:
         if not isinstance(node, CodeOpNode) or not node.is_add:
@@ -256,8 +252,8 @@ class Partition:
     def __eq__(self, other):
         if self.value != other.value:
             return False
-        if self.final or other.final:
-            return self.final == other.final
+        if self.is_final or other.is_final:
+            return self.is_final == other.is_final
         l, r = self.parts
         lo, ro = other.parts
         return (l == lo and r == ro) or (l == ro and r == lo)
@@ -272,13 +268,14 @@ def compute_partitions(n: int) -> List[Partition]:
                 partitions.append(partition_dp + partition_n_dp)
     # remove duplicates
     result = []
-    [result.append(p) for p in partitions if p not in result]
+    for p in partitions:
+        if p not in result:
+            result.append(p)
     return result
 
 
 def generate_partitioned_formulas(formula: EFDFormula, rename=True):
-    graph = EFDFormulaGraph()
-    graph.construct_graph(formula, rename)
+    graph = EFDFormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)
     for enode in enodes:
         for part_graph in generate_all_node_partitions(graph, enode):
@@ -287,8 +284,7 @@ def generate_partitioned_formulas(formula: EFDFormula, rename=True):
 
 def generate_all_node_partitions(
     original_graph: EFDFormulaGraph, node: Node
-) -> EFDFormulaGraph:
-
+) -> Generator[EFDFormulaGraph, Any, None]:
     const_par = next(filter(lambda x: isinstance(x, ConstantNode), node.incoming_nodes))
     const_par_value = const_par.value
 

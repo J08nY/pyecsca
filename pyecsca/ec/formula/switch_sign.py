@@ -1,17 +1,15 @@
-from pyecsca.ec.op import CodeOp
-from typing import Dict, Set, Iterator, List, Tuple, Type
+from typing import Dict, Iterator, List
 from ast import parse
-from pyecsca.ec.op import OpType
-from pyecsca.ec.formula_gen.formula_graph import EFDFormulaGraph, ConstantNode, Node
+from ..op import OpType, CodeOp
+from .graph import EFDFormulaGraph, ConstantNode, Node, CodeOpNode
 from itertools import chain, combinations
-from pyecsca.ec.formula import EFDFormula
+from .efd import EFDFormula
 
 
 def generate_switched_formulas(
     formula: EFDFormula, rename=True
 ) -> Iterator[EFDFormula]:
-    graph = EFDFormulaGraph()
-    graph.construct_graph(formula, rename)
+    graph = EFDFormulaGraph(formula, rename)
     for node_combination in subnode_lists(graph):
         try:
             yield switch_sign(graph, node_combination).to_EFDFormula()
@@ -61,7 +59,9 @@ class BadSignSwitch(Exception):
     pass
 
 
-def switch_sign_propagate(node: Node, variable: str, output_signs: Dict[Node, str]):
+def switch_sign_propagate(
+    node: CodeOpNode, variable: str, output_signs: Dict[Node, str]
+):
     if node.is_add:
         if variable == node.incoming_nodes[1].result:
             node.op = change_operator(node.op, OpType.Sub)

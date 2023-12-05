@@ -1,15 +1,15 @@
-from pyecsca.ec.formula import (
+from .efd import (
     EFDFormula,
     DoublingEFDFormula,
     AdditionEFDFormula,
     LadderEFDFormula,
     DifferentialAdditionEFDFormula,
 )
-from pyecsca.ec.op import CodeOp, OpType
+from ..op import CodeOp, OpType
 import matplotlib.pyplot as plt
 import networkx as nx
 from ast import parse
-from typing import Dict, List, Tuple, Set
+from typing import Dict, List, Tuple, Set, Optional, MutableMapping
 from copy import deepcopy
 from abc import ABC, abstractmethod
 
@@ -21,13 +21,51 @@ class Node(ABC):
         self.output_node = False
         self.input_node = False
 
+    @property
     @abstractmethod
     def label(self) -> str:
         pass
 
+    @property
     @abstractmethod
     def result(self) -> str:
         pass
+
+    @property
+    def is_sub(self) -> bool:
+        return False
+
+    @property
+    def is_mul(self) -> bool:
+        return False
+
+    @property
+    def is_add(self) -> bool:
+        return False
+
+    @property
+    def is_id(self) -> bool:
+        return False
+
+    @property
+    def is_sqr(self) -> bool:
+        return False
+
+    @property
+    def is_pow(self) -> bool:
+        return False
+
+    @property
+    def is_inv(self) -> bool:
+        return False
+
+    @property
+    def is_div(self) -> bool:
+        return False
+
+    @property
+    def is_neg(self) -> bool:
+        return False
 
     @abstractmethod
     def __repr__(self) -> str:
@@ -43,7 +81,6 @@ class Node(ABC):
 
 
 class ConstantNode(Node):
-
     color = "#b41f44"
 
     def __init__(self, i: int):
@@ -56,14 +93,13 @@ class ConstantNode(Node):
 
     @property
     def result(self) -> str:
-        return self.value
+        return str(self.value)
 
     def __repr__(self) -> str:
         return f"Node({self.value})"
 
 
 class CodeOpNode(Node):
-
     color = "#1f78b4"
 
     def __init__(self, op: CodeOp):
@@ -139,7 +175,6 @@ class CodeOpNode(Node):
 
 
 class InputNode(Node):
-
     color = "#b41f44"
 
     def __init__(self, input: str):
@@ -191,46 +226,45 @@ class ModifiedLadderEFDFormula(LadderEFDFormula, ModifiedEFDFormula):
 
 
 class EFDFormulaGraph:
-    def __init__(self):
-        self.nodes: List = None
-        self.input_nodes: Dict = None
-        self.output_names: Set = None
-        self.roots: List = None
+    nodes: List[Node]
+    input_nodes: MutableMapping[str, InputNode]
+    output_names: Set[str]
+    roots: List[Node]
 
-    def construct_graph(self, formula: EFDFormula, rename=True):
+    def __init__(self, formula: EFDFormula, rename=True):
         self._formula = formula  # TODO remove, its here only for to_EFDFormula
         self.output_names = formula.outputs
         self.input_nodes = {v: InputNode(v) for v in formula_input_variables(formula)}
         self.roots = list(self.input_nodes.values())
         self.nodes = self.roots.copy()
-        discovered_nodes = self.input_nodes.copy()
+        discovered_nodes: Dict[str, Node] = self.input_nodes.copy()
         for op in formula.code:
-            node = CodeOpNode(op)
+            code_node = CodeOpNode(op)
             for side in (op.left, op.right):
                 if side is None:
                     continue
                 if isinstance(side, int):
-                    parent_node = ConstantNode(side)
+                    parent_node: Node = ConstantNode(side)
                     self.nodes.append(parent_node)
                     self.roots.append(parent_node)
                 else:
                     parent_node = discovered_nodes[side]
-                parent_node.outgoing_nodes.append(node)
-                node.incoming_nodes.append(parent_node)
-            self.nodes.append(node)
-            discovered_nodes[op.result] = node
+                parent_node.outgoing_nodes.append(code_node)
+                code_node.incoming_nodes.append(parent_node)
+            self.nodes.append(code_node)
+            discovered_nodes[op.result] = code_node
         # flag output nodes
         for output_name in self.output_names:
             discovered_nodes[output_name].output_node = True
 
         # go through the nodes and make sure that every node is root or has parents
         for node in self.nodes:
-            if not node.incoming_nodes and not node in self.roots:
+            if not node.incoming_nodes and node not in self.roots:
                 self.roots.append(node)
         if rename:
             self.reindex()
 
-    def node_index(self, node: CodeOpNode) -> int:
+    def node_index(self, node: Node) -> int:
         return self.nodes.index(node)
 
     def deepcopy(self):
@@ -250,11 +284,11 @@ class EFDFormulaGraph:
             AdditionEFDFormula: ModifiedAdditionEFDFormula,
             DoublingEFDFormula: ModifiedDoublingEFDFormula,
             DifferentialAdditionEFDFormula: ModifiedDifferentialAdditionEFDFormula,
-            LadderEFDFormula: ModifiedEFDFormula,
+            LadderEFDFormula: ModifiedLadderEFDFormula,
         }
-        if not new_formula.__class__ in set(casting.values()):
+        if new_formula.__class__ not in set(casting.values()):
             new_formula.__class__ = casting[new_formula.__class__]
-        return new_formula
+        return new_formula  # type: ignore
 
     def networkx_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
@@ -283,10 +317,10 @@ class EFDFormulaGraph:
             level_counter += 1
         # separate into lists
 
-        level_lists = [[] for _ in range(level_counter)]
+        level_lists: List[List[Node]] = [[] for _ in range(level_counter)]
         discovered = []
         for node, l in reversed(levels):
-            if not node in discovered:
+            if node not in discovered:
                 level_lists[l].append(node)
                 discovered.append(node)
         return level_lists
@@ -304,7 +338,7 @@ class EFDFormulaGraph:
                 )
         return positions
 
-    def draw(self, filename: str = None, figsize: Tuple[int, int] = (12, 12)):
+    def draw(self, filename: Optional[str] = None, figsize: Tuple[int, int] = (12, 12)):
         gnx = self.networkx_graph()
         pos = nx.rescale_layout_dict(self.planar_positions())
         plt.figure(figsize=figsize)
@@ -352,10 +386,10 @@ class EFDFormulaGraph:
         self.nodes.append(node)
 
     def reindex(self):
-        results = {}
+        results: Dict[str, str] = {}
         counter = 0
         for node in self.nodes:
-            if node.input_node or isinstance(node, ConstantNode):
+            if not isinstance(node, CodeOpNode):
                 continue
             op = node.op
             result, left, operator, right = (
@@ -387,6 +421,5 @@ class EFDFormulaGraph:
 
 
 def rename_ivs(formula: EFDFormula):
-    graph = EFDFormulaGraph()
-    graph.construct_graph(formula)
+    graph = EFDFormulaGraph(formula)
     return graph.to_EFDFormula()
