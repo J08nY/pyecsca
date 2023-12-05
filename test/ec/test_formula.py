@@ -411,6 +411,13 @@ def test_fliparood_formula(library_formula_params):
         do_test_formula(fliparood, params)
 
 
+def test_partition_formula_single(library_formula_params):
+    formula, params = library_formula_params
+    try:
+        next(iter(generate_partitioned_formulas(formula)))
+    except StopIteration:
+        pass
+
 @pytest.mark.slow
 def test_partition_formula(library_formula_params):
     formula, params = library_formula_params
