@@ -38,7 +38,7 @@ perf-plots:
 	python test/plots/plot_perf.py -d .perf
 
 doc-coverage:
-	interrogate -vv -nmps -e pyecsca/ec/std/.github/ -f 55 pyecsca
+	interrogate -c pyproject.toml -vv -nmps -f 55 pyecsca
 
 docs:
 	$(MAKE) -C docs apidoc
