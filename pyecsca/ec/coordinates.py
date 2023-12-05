@@ -7,8 +7,8 @@ from typing import List, Any, MutableMapping
 
 from public import public
 
-from .formula import (
-    Formula,
+from .formula import Formula
+from .formula.efd import (
     EFDFormula,
     AdditionEFDFormula,
     DoublingEFDFormula,
@@ -55,7 +55,9 @@ class CoordinateModel:
         return f"{self.curve_model.shortname}/{self.name}"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(\"{self.name}\", curve_model={self.curve_model})"
+        return (
+            f'{self.__class__.__name__}("{self.name}", curve_model={self.curve_model})'
+        )
 
     def __getstate__(self):
         state = self.__dict__.copy()
