@@ -146,9 +146,7 @@ def reduce_mul_fliparoo(fliparoo: MulFliparoo, copy=True):
     inode = next(
         filter(lambda x: not isinstance(x, ConstantNode), first.incoming_nodes)
     )
-    const_nodes = list(
-        filter(lambda x: isinstance(x, ConstantNode), fliparoo.input_nodes())
-    )
+    const_nodes: List[ConstantNode] = [node for node in fliparoo.input_nodes() if isinstance(node, ConstantNode)]
     sum_const_node = ConstantNode(sum(v.value for v in const_nodes))
     fliparoo.graph.add_node(sum_const_node)
 
@@ -230,6 +228,9 @@ def expand_mul(graph: EFDFormulaGraph, node: Node, copy=True) -> EFDFormulaGraph
 
 
 class Partition:
+    value: int
+    parts: List["Partition"]
+
     def __init__(self, n: int):
         self.value = n
         self.parts = []
@@ -326,7 +327,7 @@ def generate_all_node_partitions(
 
 
 def partition_node(
-    graph: EFDFormulaGraph, node: Node, partition: Partition, source_node: Node
+    graph: EFDFormulaGraph, node: CodeOpNode, partition: Partition, source_node: Node
 ):
     if partition.is_final and partition.value == 1:
         # source node will take the role of node

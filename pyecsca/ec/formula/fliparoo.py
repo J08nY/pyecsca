@@ -13,6 +13,10 @@ class Fliparoo:
         - Neither of N1,...,Nk-1 is an output node
     """
 
+    nodes: List[CodeOpNode]
+    graph: EFDFormulaGraph
+    operator: Optional[OpType]
+
     def __init__(self, chain: List[CodeOpNode], graph: EFDFormulaGraph):
         self.verify_chain(chain)
         self.nodes = chain
@@ -40,7 +44,7 @@ class Fliparoo:
     def __repr__(self):
         return "->".join(map(lambda x: x.__repr__(), self.nodes))
 
-    def previous(self, node: Node):
+    def previous(self, node: CodeOpNode) -> Optional[CodeOpNode]:
         i = self.nodes.index(node)
         if i == 0:
             return None
@@ -60,8 +64,8 @@ class Fliparoo:
         nchain = [mirror_node(node, self.graph, ngraph) for node in self.nodes]
         return self.__class__(nchain, ngraph)
 
-    def input_nodes(self):
-        input_nodes = []
+    def input_nodes(self) -> List[Node]:
+        input_nodes: List[Node] = []
         for node in self:
             input_nodes.extend(
                 filter(lambda x: x not in self.nodes, node.incoming_nodes)
@@ -106,23 +110,23 @@ def find_fliparoos(
     graph: EFDFormulaGraph, fliparoo_type: Optional[Type[Fliparoo]] = None
 ) -> List[Fliparoo]:
     """Finds a list of Fliparoos in a graph"""
-    fliparoos = []
+    fliparoos: List[Fliparoo] = []
     for ilong_path in graph.find_all_paths():
         long_path = ilong_path[1:]  # get rid of the input variables
-        fliparoo = largest_fliparoo(long_path, graph, fliparoo_type)
+        fliparoo = largest_fliparoo(long_path, graph, fliparoo_type)  # type: ignore
         if fliparoo and fliparoo not in fliparoos:
             fliparoos.append(fliparoo)
 
     # remove duplicities and fliparoos in inclusion
     fliparoos = sorted(fliparoos, key=len, reverse=True)
-    longest_fliparoos = []
+    longest_fliparoos: List[Fliparoo] = []
     for fliparoo in fliparoos:
         if not is_subfliparoo(fliparoo, longest_fliparoos):
             longest_fliparoos.append(fliparoo)
     return longest_fliparoos
 
 
-def is_subfliparoo(fliparoo: Tuple[Node], longest_fliparoos: List[Fliparoo]) -> bool:
+def is_subfliparoo(fliparoo: Fliparoo, longest_fliparoos: List[Fliparoo]) -> bool:
     """Returns true if fliparoo is a part of any fliparoo in longest_fliparoos"""
     for other_fliparoo in longest_fliparoos:
         l1, l2 = len(fliparoo), len(other_fliparoo)
@@ -133,7 +137,9 @@ def is_subfliparoo(fliparoo: Tuple[Node], longest_fliparoos: List[Fliparoo]) -> 
 
 
 def largest_fliparoo(
-    chain: List[Node], graph: EFDFormulaGraph, fliparoo_type: Optional[Type[Fliparoo]] = None
+    chain: List[CodeOpNode],
+    graph: EFDFormulaGraph,
+    fliparoo_type: Optional[Type[Fliparoo]] = None,
 ) -> Optional[Fliparoo]:
     """Finds the largest fliparoo in a list of Nodes"""
     for i in range(len(chain) - 1):
@@ -162,7 +168,10 @@ class SignedNode:
     Used for creating +/- Fliparoos
     """
 
-    def __init__(self, node: Node):
+    node: CodeOpNode
+    sign: int
+
+    def __init__(self, node: CodeOpNode):
         self.node = node
         self.sign = 1
 

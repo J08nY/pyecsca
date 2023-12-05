@@ -237,14 +237,18 @@ class EFDFormulaGraph:
         self.input_nodes = {v: InputNode(v) for v in formula_input_variables(formula)}
         self.roots = list(self.input_nodes.values())
         self.nodes = self.roots.copy()
-        discovered_nodes: Dict[str, Node] = self.input_nodes.copy()
+        discovered_nodes: Dict[str, Node] = self.input_nodes.copy()  # type: ignore
+        constants: Dict[int, Node] = {}
         for op in formula.code:
             code_node = CodeOpNode(op)
             for side in (op.left, op.right):
                 if side is None:
                     continue
                 if isinstance(side, int):
-                    parent_node: Node = ConstantNode(side)
+                    if side in constants:
+                        parent_node = constants[side]
+                    else:
+                        parent_node = ConstantNode(side)
                     self.nodes.append(parent_node)
                     self.roots.append(parent_node)
                 else:
@@ -276,7 +280,7 @@ class EFDFormulaGraph:
         new_formula = new_graph._formula
         new_formula.code = list(
             map(
-                lambda x: x.op,
+                lambda x: x.op,  # type: ignore
                 filter(lambda n: n not in new_graph.roots, new_graph.nodes),
             )
         )

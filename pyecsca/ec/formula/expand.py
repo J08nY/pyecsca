@@ -25,14 +25,14 @@ def expand_formula_list(formulas: List[EFDFormula]):
     extended_efd = reduce_with_similarity(formulas, ivs_norm)
     print(f"Reduced to {len(extended_efd)} formulas")
 
-    fliparood = sum(list(map(recursive_fliparoo, extended_efd)), [])
+    fliparood: List[EFDFormula] = sum(list(map(recursive_fliparoo, extended_efd)), [])
     extended_efd.extend(fliparood)
     print(f"Fliparoo: {len(extended_efd)} formulas")
     extended_efd = reduce_with_similarity(extended_efd, ivs_norm)
     print(f"Reduced to {len(extended_efd)} formulas")
     # list(map(test_formula, extended_efd))
 
-    switch_signs = sum([list(generate_switched_formulas(f)) for f in extended_efd], [])
+    switch_signs: List[EFDFormula] = sum([list(generate_switched_formulas(f)) for f in extended_efd], [])
     extended_efd.extend(switch_signs)
     print(f"Switch signs: {len(extended_efd)} formulas")
     extended_efd = reduce_with_similarity(extended_efd, ivs_norm)

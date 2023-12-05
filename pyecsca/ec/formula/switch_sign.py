@@ -60,7 +60,7 @@ class BadSignSwitch(Exception):
 
 
 def switch_sign_propagate(
-    node: CodeOpNode, variable: str, output_signs: Dict[Node, str]
+    node: CodeOpNode, variable: str, output_signs: Dict[str, int]
 ):
     if node.is_add:
         if variable == node.incoming_nodes[1].result:

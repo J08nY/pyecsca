@@ -421,10 +421,6 @@ def test_expansions(library_formula_params):
 
 
 def do_test_formula(formula, params):
-    do_test_formula0(formula, params)
-
-
-def do_test_formula0(formula, params):
     coordinate_model = formula.coordinate_model
     scale = coordinate_model.formulas.get("z", None)
     if scale is None:
@@ -490,4 +486,4 @@ def do_test_formula0(formula, params):
 
 def test_formula_correctness(library_formula_params):
     formula, params = library_formula_params
-    do_test_formula0(formula, params)
+    do_test_formula(formula, params)
