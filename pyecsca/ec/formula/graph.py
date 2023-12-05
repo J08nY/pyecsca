@@ -204,7 +204,12 @@ def formula_input_variables(formula: EFDFormula) -> List[str]:
 
 # temporary solution
 class ModifiedEFDFormula(EFDFormula):
-    pass
+    def __eq__(self, other):
+        if not isinstance(other, ModifiedEFDFormula):
+            return False
+        return (
+            self.name == other.name and self.coordinate_model == other.coordinate_model and self.code == other.code
+        )
 
 
 class ModifiedDoublingEFDFormula(DoublingEFDFormula, ModifiedEFDFormula):

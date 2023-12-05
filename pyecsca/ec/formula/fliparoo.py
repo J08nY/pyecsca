@@ -347,8 +347,8 @@ def combine_signed_nodes(
             sign = -1
 
     new_node = CodeOpNode.from_str(
-        f"Fliparoo{randint(1,100000)}", left_node.result, operator, right_node.result
-    )  # TODO the randint is not ideal
+        f"Fliparoo{id(left_node)}_{id(operator)}_{id(sign)}_{id(right_node)}", left_node.result, operator, right_node.result
+    )
     new_node.incoming_nodes = [left_node, right_node]
     left_node.outgoing_nodes.append(new_node)
     right_node.outgoing_nodes.append(new_node)
