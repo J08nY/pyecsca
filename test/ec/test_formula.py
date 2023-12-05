@@ -6,6 +6,7 @@ import pytest
 from sympy import FF, symbols
 from importlib_resources import files, as_file
 import test.data.formulas
+from pyecsca.ec.formula.expand import expand_formula_list
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
 from pyecsca.ec.formula.metrics import formula_similarity
@@ -13,6 +14,7 @@ from pyecsca.ec.formula.partitions import (
     reduce_all_adds,
     expand_all_muls,
     expand_all_nopower2_muls,
+    generate_partitioned_formulas,
 )
 from pyecsca.ec.formula.switch_sign import generate_switched_formulas
 from pyecsca.ec.mod import SymbolicMod, Mod
@@ -409,6 +411,13 @@ def test_fliparood_formula(library_formula_params):
         do_test_formula(fliparood, params)
 
 
+@pytest.mark.slow
+def test_partition_formula(library_formula_params):
+    formula, params = library_formula_params
+    for partitioned in generate_partitioned_formulas(formula):
+        do_test_formula(partitioned, params)
+
+
 def test_reductions(library_formula_params):
     formula, params = library_formula_params
     do_test_formula(reduce_all_adds(formula), params)
@@ -487,3 +496,8 @@ def do_test_formula(formula, params):
 def test_formula_correctness(library_formula_params):
     formula, params = library_formula_params
     do_test_formula(formula, params)
+
+
+def test_formula_expand(add):
+    res = expand_formula_list([add])
+    assert len(res) > 1
