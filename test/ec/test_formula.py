@@ -1,4 +1,5 @@
 import pickle
+from operator import itemgetter
 from typing import Tuple
 
 import pytest
@@ -7,6 +8,7 @@ from importlib_resources import files, as_file
 import test.data.formulas
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
+from pyecsca.ec.formula.metrics import formula_similarity
 from pyecsca.ec.formula.partitions import (
     reduce_all_adds,
     expand_all_muls,
@@ -19,15 +21,13 @@ from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params, DomainParameters
 from pyecsca.ec.point import Point
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
-from pyecsca.ec.formula import (
+from pyecsca.ec.formula.efd import (
     AdditionEFDFormula,
     DoublingEFDFormula,
     LadderEFDFormula,
-    Formula,
-    AdditionFormula,
-    DoublingFormula,
-    LadderFormula,
+    EFDFormula,
 )
+from pyecsca.ec.formula import AdditionFormula, DoublingFormula, LadderFormula
 
 
 @pytest.fixture()
@@ -132,6 +132,17 @@ def test_symbolic(secp128r1, dbl):
 
 def test_pickle(add, dbl):
     assert add == pickle.loads(pickle.dumps(add))
+
+
+def test_formula_similarity(secp128r1):
+    add_bl = secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
+    add_rcb = secp128r1.curve.coordinate_model.formulas["add-2015-rcb"]
+    out = formula_similarity(add_bl, add_rcb)
+    assert out["output"] == 0
+    assert out["ivs"] < 0.5
+    out_same = formula_similarity(add_bl, add_bl)
+    assert out_same["output"] == 1
+    assert out_same["ivs"] == 1
 
 
 LIBRARY_FORMULAS = [
@@ -282,11 +293,81 @@ LIBRARY_FORMULAS = [
         ("other", "Curve25519"),
         LadderEFDFormula,
     ],
+    [
+        "add-bearssl-v06",
+        ShortWeierstrassModel,
+        "jacobian",
+        ("secg", "secp256r1"),
+        AdditionEFDFormula,
+    ],
+    [
+        "dbl-bearssl-v06",
+        ShortWeierstrassModel,
+        "jacobian",
+        ("secg", "secp256r1"),
+        DoublingEFDFormula,
+    ],
+    [
+        "add-libgcrypt-v1102",
+        ShortWeierstrassModel,
+        "jacobian",
+        ("secg", "secp256r1"),
+        AdditionEFDFormula,
+    ],
+    [
+        "dbl-libgcrypt-v1102",
+        ShortWeierstrassModel,
+        "jacobian",
+        ("secg", "secp256r1"),
+        DoublingEFDFormula,
+    ],
+    [
+        "ladd-go-1214",
+        MontgomeryModel,
+        "xz",
+        ("other", "Curve25519"),
+        LadderEFDFormula,
+    ],
+    [
+        "add-gecc-322",
+        ShortWeierstrassModel,
+        "jacobian-3",
+        ("secg", "secp256r1"),
+        AdditionEFDFormula,
+    ],
+    [
+        "dbl-gecc-321",
+        ShortWeierstrassModel,
+        "jacobian-3",
+        ("secg", "secp256r1"),
+        DoublingEFDFormula,
+    ],
+    [
+        "ladd-boringssl-x25519",
+        MontgomeryModel,
+        "xz",
+        ("other", "Curve25519"),
+        LadderEFDFormula,
+    ],
+    [
+        "dbl-ipp-x25519",
+        MontgomeryModel,
+        "xz",
+        ("other", "Curve25519"),
+        DoublingEFDFormula,
+    ],
+    [
+        "ladd-botan-x25519",
+        MontgomeryModel,
+        "xz",
+        ("other", "Curve25519"),
+        LadderEFDFormula,
+    ],
 ]
 
 
-@pytest.fixture(params=LIBRARY_FORMULAS)
-def library_formula_params(request) -> Tuple[Formula, DomainParameters]:
+@pytest.fixture(params=LIBRARY_FORMULAS, ids=list(map(itemgetter(0), LIBRARY_FORMULAS)))
+def library_formula_params(request) -> Tuple[EFDFormula, DomainParameters]:
     name, model, coords_name, param_spec, formula_type = request.param
     model = model()
     coordinate_model = model.coordinates[coords_name]
@@ -340,10 +421,7 @@ def test_expansions(library_formula_params):
 
 
 def do_test_formula(formula, params):
-    try:
-        do_test_formula0(formula, params)
-    except AssertionError:
-        print(formula.name)
+    do_test_formula0(formula, params)
 
 
 def do_test_formula0(formula, params):
@@ -408,3 +486,8 @@ def do_test_formula0(formula, params):
                     scale(params.curve.prime, res[0], **params.curve.parameters)[0]
                     == Q2
                 )
+
+
+def test_formula_correctness(library_formula_params):
+    formula, params = library_formula_params
+    do_test_formula0(formula, params)
