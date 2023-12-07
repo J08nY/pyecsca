@@ -140,7 +140,7 @@ class Point:
             if randomized:
                 lmbd = Mod.random(curve.prime)
                 for var, value in result.items():
-                    result[var] = value * lmbd**coordinate_model.homogweights[var]
+                    result[var] = value * (lmbd**coordinate_model.homogweights[var])
             return action.exit(Point(coordinate_model, **result))
 
     def equals_affine(self, other: "Point") -> bool:

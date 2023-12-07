@@ -85,3 +85,6 @@ filterwarnings = [
 
 [tool.mypy]
 plugins = "numpy.typing.mypy_plugin"
+
+[tool.interrogate]
+exclude = ["pyecsca/ec/formula/fliparoo.py", "pyecsca/ec/formula/graph.py", "pyecsca/ec/formula/partitions.py", "pyecsca/ec/formula/switch_sign.py", "pyecsca/ec/std/.github/"]

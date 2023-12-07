@@ -1,5 +1,5 @@
 """Provides functions for computing various scalar representations (like NAF, or different bases)."""
-from typing import List
+from typing import List, Tuple, Literal
 from itertools import dropwhile
 from public import public
 
@@ -11,7 +11,7 @@ def convert_base(i: int, base: int) -> List[int]:
 
     :param i: The scalar.
     :param base: The base.
-    :return: The resulting digit list.
+    :return: The resulting digit list (little-endian).
     """
     if i == 0:
         return [0]
@@ -131,3 +131,62 @@ def naf(k: int) -> List[int]:
     :return: The NAF.
     """
     return wnaf(k, 2)
+
+
+@public
+def booth(k: int) -> List[int]:
+    """
+    Original Booth binary recoding, from [B51]_.
+
+    :param k: The scalar to recode.
+    :return: The recoded list of digits (0, 1, -1), little-endian.
+    """
+    res = []
+    for i in range(k.bit_length()):
+        a_i = (k >> i) & 1
+        b_i = (k >> (i + 1)) & 1
+        res.append(a_i - b_i)
+    res.insert(0, -(k & 1))
+    return res
+
+
+@public
+def booth_word(digit: int, w: int) -> int:
+    """
+    Modified Booth recoding, from [M61]_ and BoringSSL NIST impl.
+
+    Needs `w+1` bits of scalar in digit, but the one bit is overlapping (window size is `w`).
+
+    :param digit:
+    :param w:
+    :return:
+    """
+    if digit.bit_length() > (w + 1):
+        raise ValueError("Invalid digit, cannot be larger than w + 1 bits.")
+    s = ~((digit >> w) - 1)
+    d = (1 << (w + 1)) - digit - 1
+    d = (d & s) | (digit & ~s)
+    d = (d >> 1) + (d & 1)
+
+    return -d if s else d
+
+
+@public
+def booth_window(k: int, w: int, blen: int) -> List[int]:
+    """
+    Recode a whole scalar using Booth recoding as in BoringSSL.
+
+    :param k: The scalar.
+    :param w: The window size.
+    :param blen: The bit-length of the group.
+    :return: The big-endian recoding
+    """
+    mask = (1 << (w + 1)) - 1
+    res = []
+    for i in range(blen + (w - (blen % w) - 1), -1, -w):
+        if i >= w:
+            d = (k >> (i - w)) & mask
+        else:
+            d = (k << (w - i)) & mask
+        res.append(booth_word(d, w))
+    return res

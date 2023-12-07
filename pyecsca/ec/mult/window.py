@@ -4,15 +4,22 @@ from typing import Optional, MutableMapping
 from public import public
 
 from ..params import DomainParameters
-from .base import ScalarMultiplier, AccumulationOrder, ScalarMultiplicationAction, PrecomputationAction, \
-    ProcessingDirection, AccumulatorMultiplier
+from .base import (
+    ScalarMultiplier,
+    AccumulationOrder,
+    ScalarMultiplicationAction,
+    PrecomputationAction,
+    ProcessingDirection,
+    AccumulatorMultiplier,
+)
 from ..formula import (
     AdditionFormula,
     DoublingFormula,
     ScalingFormula,
+    NegationFormula,
 )
 from ..point import Point
-from ..scalar import convert_base, sliding_window_rtl, sliding_window_ltr
+from ..scalar import convert_base, sliding_window_rtl, sliding_window_ltr, booth_window
 
 
 @public
@@ -34,17 +41,21 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     _points: MutableMapping[int, Point]
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            width: int,
-            scl: Optional[ScalingFormula] = None,
-            recoding_direction: ProcessingDirection = ProcessingDirection.LTR,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        width: int,
+        scl: Optional[ScalingFormula] = None,
+        recoding_direction: ProcessingDirection = ProcessingDirection.LTR,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            scl=scl,
         )
         self.width = width
         self.recoding_direction = recoding_direction
@@ -55,7 +66,13 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, SlidingWindowMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.recoding_direction == other.recoding_direction and self.accumulation_order == other.accumulation_order
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.width == other.width
+            and self.recoding_direction == other.recoding_direction
+            and self.accumulation_order == other.accumulation_order
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, recoding_direction={self.recoding_direction.name}, accumulation_order={self.accumulation_order.name})"
@@ -112,16 +129,20 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     _points: MutableMapping[int, Point]
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            m: int,
-            scl: Optional[ScalingFormula] = None,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        m: int,
+        scl: Optional[ScalingFormula] = None,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            scl=scl,
         )
         if m < 2:
             raise ValueError("Invalid base.")
@@ -134,7 +155,12 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, FixedWindowLTRMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.m == other.m and self.accumulation_order == other.accumulation_order
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.m == other.m
+            and self.accumulation_order == other.accumulation_order
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, m={self.m}, accumulation_order={self.accumulation_order.name})"
@@ -177,6 +203,106 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
                 q = self._mult_m(q)
                 if digit != 0:
                     q = self._accumulate(q, self._points[digit])
+            if "scl" in self.formulas:
+                q = self._scl(q)
+            return action.exit(q)
+
+
+@public
+class WindowBoothMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+    """
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param width: The width of the window.
+    :param accumulation_order: The order of accumulation of points.
+    :param precompute_negation: Whether to precompute the negation of the precomputed points as well.
+                                It is computed on the fly otherwise.
+    """
+
+    requires = {AdditionFormula, DoublingFormula, NegationFormula}
+    optionals = {ScalingFormula}
+    _points: MutableMapping[int, Point]
+    _points_neg: MutableMapping[int, Point]
+    precompute_negation: bool = False
+    """Whether to precompute the negation of the precomputed points as well."""
+    width: int
+    """The width of the window."""
+
+    def __init__(
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        neg: NegationFormula,
+        width: int,
+        scl: Optional[ScalingFormula] = None,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        precompute_negation: bool = False,
+        short_circuit: bool = True,
+    ):
+        super().__init__(
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            neg=neg,
+            scl=scl,
+        )
+        self.width = width
+        self.precompute_negation = precompute_negation
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, WindowBoothMultiplier):
+            return False
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.width == other.width
+            and self.precompute_negation == other.precompute_negation
+            and self.accumulation_order == other.accumulation_order
+        )
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
+
+    def init(self, params: DomainParameters, point: Point):
+        with PrecomputationAction(params, point):
+            super().init(params, point)
+            double_point = self._dbl(point)
+            self._points = {1: point, 2: double_point}
+            if self.precompute_negation:
+                self._points_neg = {1: self._neg(point), 2: self._neg(double_point)}
+            current_point = double_point
+            for i in range(3, 2 ** (self.width - 1) + 1):
+                current_point = self._add(current_point, point)
+                self._points[i] = current_point
+                if self.precompute_negation:
+                    self._points_neg[i] = self._neg(current_point)
+
+    def multiply(self, scalar: int) -> Point:
+        if not self._initialized:
+            raise ValueError("ScalarMultiplier not initialized.")
+        with ScalarMultiplicationAction(self._point, scalar) as action:
+            if scalar == 0:
+                return action.exit(copy(self._params.curve.neutral))
+            scalar_booth = booth_window(
+                scalar, self.width, self._params.order.bit_length()
+            )
+            q = copy(self._params.curve.neutral)
+            for val in scalar_booth:
+                for _ in range(self.width):
+                    q = self._dbl(q)
+                if val > 0:
+                    q = self._accumulate(q, self._points[val])
+                elif val < 0:
+                    if self.precompute_negation:
+                        neg = self._points_neg[-val]
+                    else:
+                        neg = self._neg(self._points[-val])
+                    q = self._accumulate(q, neg)
             if "scl" in self.formulas:
                 q = self._scl(q)
             return action.exit(q)
