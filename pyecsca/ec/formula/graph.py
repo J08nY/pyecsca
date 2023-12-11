@@ -9,7 +9,7 @@ from ..op import CodeOp, OpType
 import matplotlib.pyplot as plt
 import networkx as nx
 from ast import parse
-from typing import Dict, List, Tuple, Set, Optional, MutableMapping
+from typing import Dict, List, Tuple, Set, Optional, MutableMapping, Any
 from copy import deepcopy
 from abc import ABC, abstractmethod
 
@@ -235,9 +235,11 @@ class EFDFormulaGraph:
     input_nodes: MutableMapping[str, InputNode]
     output_names: Set[str]
     roots: List[Node]
+    coordinate_model: Any
 
     def __init__(self, formula: EFDFormula, rename=True):
         self._formula = formula  # TODO remove, its here only for to_EFDFormula
+        self.coordinate_model = formula.coordinate_model
         self.output_names = formula.outputs
         self.input_nodes = {v: InputNode(v) for v in formula_input_variables(formula)}
         self.roots = list(self.input_nodes.values())

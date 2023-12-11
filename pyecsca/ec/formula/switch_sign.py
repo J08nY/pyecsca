@@ -4,6 +4,8 @@ from ..op import OpType, CodeOp
 from .graph import EFDFormulaGraph, ConstantNode, Node, CodeOpNode
 from itertools import chain, combinations
 from .efd import EFDFormula
+from ..point import Point
+from ..mod import Mod
 
 
 def generate_switched_formulas(
@@ -38,21 +40,31 @@ def switch_sign(graph: EFDFormulaGraph, node_combination) -> EFDFormulaGraph:
         node, variable = queue.pop()
         queue = switch_sign_propagate(node, variable, output_signs) + queue
 
-    # TODO rewrite this hacky solution:
-    if graph._formula.coordinate_model.name.startswith("jacobian"):
-        output_signs = {out[0]: sign for out, sign in output_signs.items()}
-        X, Y, Z = (output_signs[var] for var in ["X", "Y", "Z"])
-        correct_output = X / (Z**2) == 1 and Y / (Z**3) == 1
-    elif graph._formula.coordinate_model.name.startswith("modified"):
-        output_signs = {out[0]: sign for out, sign in output_signs.items()}
-        X, Y, Z, T = (output_signs[var] for var in ["X", "Y", "Z", "T"])
-        correct_output = X / (Z**2) == 1 and Y / (Z**3) == 1
-        correct_output &= T == 1
-    else:
-        correct_output = len(set(output_signs.values())) == 1
-    if not correct_output:
-        raise BadSignSwitch
+    sign_test(output_signs, graph.coordinate_model)
     return graph
+
+
+def sign_test(output_signs, coordinate_model):
+    scale = coordinate_model.formulas.get("z", None)
+    if scale is None:
+        scale = coordinate_model.formulas.get("scale", None)
+    result_signs = {}
+    p = 7
+    out_inds = set(map(lambda x: "".join([o for o in x if o.isdigit()]), output_signs))
+    for ind in out_inds:
+        point = {}
+        for out, sign in output_signs.items():
+            out_var = out.removesuffix(ind)
+            if not out_var.isalpha():
+                continue
+            point[out_var] = Mod(sign, p)
+        point = Point(coordinate_model, **point)
+        try:
+            apoint = point.to_affine()
+        except NotImplementedError:
+            apoint = scale(p, point)[0]
+        if set(apoint.coords.values()) != set([Mod(1, p)]):
+            raise BadSignSwitch
 
 
 class BadSignSwitch(Exception):
