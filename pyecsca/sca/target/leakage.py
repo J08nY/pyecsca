@@ -18,7 +18,7 @@ import numpy as np
 
 
 @public
-class EmulatorTarget(Target):
+class LeakageTarget(Target):
 
     model: CurveModel
     coords: CoordinateModel
@@ -48,7 +48,7 @@ class EmulatorTarget(Target):
         context.actions.walk(callback)
         return Trace(np.array(temp_trace))
 
-    def emulate_scalar_mult_traces(self, num_of_traces: int, scalar: int) -> Tuple[list[Point], list[Trace]]:
+    def simulate_scalar_mult_traces(self, num_of_traces: int, scalar: int) -> Tuple[list[Point], list[Trace]]:
         if self.params is None:
             raise ValueError("Missing DomainParameters")
         points = [self.params.curve.affine_random().to_model(self.coords, self.params.curve) for _ in range(num_of_traces)]
@@ -58,7 +58,7 @@ class EmulatorTarget(Target):
             traces.append(trace)
         return points, traces
 
-    def emulate_ecdh_traces(self, num_of_traces: int) -> Tuple[list[Point], list[Trace]]:
+    def simulate_ecdh_traces(self, num_of_traces: int) -> Tuple[list[Point], list[Trace]]:
         if self.params is None:
             raise ValueError("Missing DomainParameters")
         other_pubs = [self.params.curve.affine_random().to_model(self.coords, self.params.curve) for _ in range(num_of_traces)]
