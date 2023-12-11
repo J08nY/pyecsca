@@ -1,4 +1,4 @@
-from typing import Dict, Iterator, List
+from typing import Dict, Iterator, List, Any
 from ast import parse
 from ..op import OpType, CodeOp
 from .graph import EFDFormulaGraph, ConstantNode, Node, CodeOpNode
@@ -44,11 +44,10 @@ def switch_sign(graph: EFDFormulaGraph, node_combination) -> EFDFormulaGraph:
     return graph
 
 
-def sign_test(output_signs, coordinate_model):
+def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
     scale = coordinate_model.formulas.get("z", None)
     if scale is None:
         scale = coordinate_model.formulas.get("scale", None)
-    result_signs = {}
     p = 7
     out_inds = set(map(lambda x: "".join([o for o in x if o.isdigit()]), output_signs))
     for ind in out_inds:
