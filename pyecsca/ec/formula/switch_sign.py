@@ -51,13 +51,15 @@ def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
     p = 7
     out_inds = set(map(lambda x: "".join([o for o in x if o.isdigit()]), output_signs))
     for ind in out_inds:
-        point = {}
+        point_dict = {}
         for out, sign in output_signs.items():
-            out_var = out.removesuffix(ind)
+            if not out.endswith(ind):
+                continue
+            out_var = out[:out.index(ind)]
             if not out_var.isalpha():
                 continue
-            point[out_var] = Mod(sign, p)
-        point = Point(coordinate_model, **point)
+            point_dict[out_var] = Mod(sign, p)
+        point = Point(coordinate_model, **point_dict)
         try:
             apoint = point.to_affine()
         except NotImplementedError:
