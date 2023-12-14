@@ -1,14 +1,3 @@
-EC_TESTS = test.ec.test_context test.ec.test_configuration test.ec.test_curve test.ec.test_formula \
-test.ec.test_params test.ec.test_key_agreement test.ec.test_key_generation test.ec.test_mod test.ec.test_model \
-test.ec.test_mult test.ec.test_naf test.ec.test_op test.ec.test_point test.ec.test_signature test.ec.test_transformations test.ec.test_regress \
-test.ec.test_divpoly
-
-SCA_TESTS = test.sca.test_align test.sca.test_combine test.sca.test_edit test.sca.test_filter test.sca.test_match test.sca.test_process \
-test.sca.test_sampling test.sca.test_target test.sca.test_test test.sca.test_trace test.sca.test_traceset test.sca.test_plot test.sca.test_rpa \
-test.sca.test_zvp test.sca.test_stacked_combine test.sca.test_leakage_models
-
-TESTS = ${EC_TESTS} ${SCA_TESTS}
-
 PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine test.sca.perf_zvp
 
 test:
@@ -49,7 +38,7 @@ perf-plots:
 	python test/plots/plot_perf.py -d .perf
 
 doc-coverage:
-	interrogate -vv -nmps -e pyecsca/ec/std/.github/ -f 55 pyecsca
+	interrogate -c pyproject.toml -vv -nmps -f 55 pyecsca
 
 docs:
 	$(MAKE) -C docs apidoc

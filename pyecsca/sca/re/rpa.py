@@ -34,8 +34,11 @@ class MultipleContext(Context):
     """Context that traces the multiples of points computed."""
 
     base: Optional[Point]
+    """The base point that all the multiples are counted from."""
     points: MutableMapping[Point, int]
+    """The mapping of points to the multiples they represent (e.g., base -> 1)."""
     parents: MutableMapping[Point, List[Point]]
+    """The mapping of points to their parent they were computed from."""
     inside: bool
 
     def __init__(self):

@@ -12,12 +12,24 @@ from pyecsca.ec.mult import (
     RTLMultiplier,
     BinaryNAFMultiplier,
     WindowNAFMultiplier,
-    SimpleLadderMultiplier, AccumulationOrder, ProcessingDirection, SlidingWindowMultiplier, FixedWindowLTRMultiplier,
-    FullPrecompMultiplier, BGMWMultiplier, CombMultiplier,
+    SimpleLadderMultiplier,
+    AccumulationOrder,
+    ProcessingDirection,
+    SlidingWindowMultiplier,
+    FixedWindowLTRMultiplier,
+    FullPrecompMultiplier,
+    BGMWMultiplier,
+    CombMultiplier,
+    WindowBoothMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
-from pyecsca.sca.re.rpa import MultipleContext, rpa_point_0y, rpa_point_x0, rpa_distinguish
+from pyecsca.sca.re.rpa import (
+    MultipleContext,
+    rpa_point_0y,
+    rpa_point_x0,
+    rpa_distinguish,
+)
 
 
 @pytest.fixture()
@@ -47,18 +59,18 @@ def neg(coords):
 
 @pytest.fixture()
 def rpa_params(model, coords):
-    p = 0x85d265945a4f5681
-    a = Mod(0x7fc57b4110698bc0, p)
-    b = Mod(0x37113ea591b04527, p)
-    gx = Mod(0x80d2d78fddb97597, p)
-    gy = Mod(0x5586d818b7910930, p)
+    p = 0x85D265945A4F5681
+    a = Mod(0x7FC57B4110698BC0, p)
+    b = Mod(0x37113EA591B04527, p)
+    gx = Mod(0x80D2D78FDDB97597, p)
+    gy = Mod(0x5586D818B7910930, p)
     # (0x4880bcf620852a54, 0) RPA point
     # (0, 0x6bed3155c9ada064) RPA point
 
     infty = Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p))
     g = Point(coords, X=gx, Y=gy, Z=Mod(1, p))
     curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
-    return DomainParameters(curve, g, 0x85d265932d90785c, 1)
+    return DomainParameters(curve, g, 0x85D265932D90785C, 1)
 
 
 def test_x0_point(rpa_params):
@@ -80,25 +92,63 @@ def test_distinguish(secp128r1, add, dbl, neg):
         RTLMultiplier(add, dbl, None, False, AccumulationOrder.PeqPR, True),
         RTLMultiplier(add, dbl, None, True, AccumulationOrder.PeqPR, False),
         SimpleLadderMultiplier(add, dbl, None, True, True),
-        BinaryNAFMultiplier(add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
-        WindowNAFMultiplier(add, dbl, neg, 3, None, AccumulationOrder.PeqPR, True, True),
-        WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True),
+        BinaryNAFMultiplier(
+            add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
+        WindowNAFMultiplier(
+            add, dbl, neg, 3, None, AccumulationOrder.PeqPR, True, True
+        ),
+        WindowNAFMultiplier(
+            add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True
+        ),
+        WindowBoothMultiplier(
+            add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True
+        ),
         # WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqPR, False, True),
-        SlidingWindowMultiplier(add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
-        SlidingWindowMultiplier(add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        SlidingWindowMultiplier(
+            add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
+        SlidingWindowMultiplier(
+            add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
         FixedWindowLTRMultiplier(add, dbl, 4, None, AccumulationOrder.PeqPR, True),
         FixedWindowLTRMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True),
-        FullPrecompMultiplier(add, dbl, None, True, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True, True),
-        FullPrecompMultiplier(add, dbl, None, False, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True, True),
+        FullPrecompMultiplier(
+            add,
+            dbl,
+            None,
+            True,
+            ProcessingDirection.LTR,
+            AccumulationOrder.PeqPR,
+            True,
+            True,
+        ),
+        FullPrecompMultiplier(
+            add,
+            dbl,
+            None,
+            False,
+            ProcessingDirection.LTR,
+            AccumulationOrder.PeqPR,
+            True,
+            True,
+        ),
         # FullPrecompMultiplier(add, dbl, None, False, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True, True),
-        BGMWMultiplier(add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
-        BGMWMultiplier(add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True),
+        BGMWMultiplier(
+            add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
+        BGMWMultiplier(
+            add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
         CombMultiplier(add, dbl, 3, None, AccumulationOrder.PeqPR, True),
-        CombMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True)
+        CombMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True),
     ]
     for real_mult in multipliers:
+
         def simulated_oracle(scalar, affine_point):
-            point = affine_point.to_model(secp128r1.curve.coordinate_model, secp128r1.curve)
+            point = affine_point.to_model(
+                secp128r1.curve.coordinate_model, secp128r1.curve
+            )
             with local(MultipleContext()) as ctx:
                 real_mult.init(secp128r1, point)
                 real_mult.multiply(scalar)

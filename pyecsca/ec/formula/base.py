@@ -1,24 +1,22 @@
-"""Provides an abstract base class of a formula along with concrete instantiations."""
+"""Provides an abstract base class of a formula."""
 from abc import ABC, abstractmethod
-from ast import parse, Expression
+from ast import Expression
 from functools import cached_property
 
 from astunparse import unparse
-from itertools import product
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
-from importlib_resources.abc import Traversable
 from public import public
 from sympy import FF, symbols, Poly, Rational, simplify
-from ..misc.cache import sympify
 
-from .context import ResultAction
-from . import context
-from .error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
-from .mod import Mod, SymbolicMod
-from .op import CodeOp, OpType
-from ..misc.cfg import getconfig
-from ..misc.utils import peval
+from ..context import ResultAction
+from .. import context
+from ..error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
+from ..mod import Mod, SymbolicMod
+from ..op import CodeOp, OpType
+from ...misc.cfg import getconfig
+from ...misc.utils import peval
+from ...misc.cache import sympify
 
 
 @public
@@ -235,7 +233,7 @@ class Formula(ABC):
         :param params: Parameters of the curve.
         :return: The resulting point(s).
         """
-        from .point import Point
+        from ..point import Point
 
         self.__validate_params(field, params)
         self.__validate_points(field, points, params)
@@ -351,93 +349,6 @@ class Formula(ABC):
         )
 
 
-class EFDFormula(Formula):
-    """Formula from the [EFD]_."""
-
-    def __init__(
-        self,
-        meta_path: Traversable,
-        op3_path: Traversable,
-        name: str,
-        coordinate_model: Any,
-    ):
-        self.name = name
-        self.coordinate_model = coordinate_model
-        self.meta = {}
-        self.parameters = []
-        self.assumptions = []
-        self.code = []
-        self.unified = False
-        self.__read_meta_file(meta_path)
-        self.__read_op3_file(op3_path)
-
-    def __read_meta_file(self, path: Traversable):
-        with path.open("rb") as f:
-            line = f.readline().decode("ascii").rstrip()
-            while line:
-                if line.startswith("source"):
-                    self.meta["source"] = line[7:]
-                elif line.startswith("parameter"):
-                    self.parameters.append(line[10:])
-                elif line.startswith("assume"):
-                    self.assumptions.append(
-                        parse(
-                            line[7:].replace("=", "==").replace("^", "**"), mode="eval"
-                        )
-                    )
-                elif line.startswith("unified"):
-                    self.unified = True
-                line = f.readline().decode("ascii").rstrip()
-
-    def __read_op3_file(self, path: Traversable):
-        with path.open("rb") as f:
-            for line in f.readlines():
-                code_module = parse(
-                    line.decode("ascii").replace("^", "**"), str(path), mode="exec"
-                )
-                self.code.append(CodeOp(code_module))
-
-    def __str__(self):
-        return f"{self.coordinate_model!s}/{self.name}"
-
-    @cached_property
-    def input_index(self):
-        return 1
-
-    @cached_property
-    def output_index(self):
-        return max(self.num_inputs + 1, 3)
-
-    @cached_property
-    def inputs(self):
-        return {
-            var + str(i)
-            for var, i in product(
-                self.coordinate_model.variables, range(1, 1 + self.num_inputs)
-            )
-        }
-
-    @cached_property
-    def outputs(self):
-        return {
-            var + str(i)
-            for var, i in product(
-                self.coordinate_model.variables,
-                range(self.output_index, self.output_index + self.num_outputs),
-            )
-        }
-
-    def __eq__(self, other):
-        if not isinstance(other, EFDFormula):
-            return False
-        return (
-            self.name == other.name and self.coordinate_model == other.coordinate_model
-        )
-
-    def __hash__(self):
-        return hash((self.coordinate_model, self.name))
-
-
 @public
 class AdditionFormula(Formula, ABC):
     """Formula that adds two points."""
@@ -445,11 +356,6 @@ class AdditionFormula(Formula, ABC):
     shortname = "add"
     num_inputs = 2
     num_outputs = 1
-
-
-@public
-class AdditionEFDFormula(AdditionFormula, EFDFormula):
-    pass
 
 
 @public
@@ -462,22 +368,12 @@ class DoublingFormula(Formula, ABC):
 
 
 @public
-class DoublingEFDFormula(DoublingFormula, EFDFormula):
-    pass
-
-
-@public
 class TriplingFormula(Formula, ABC):
     """Formula that triples a point."""
 
     shortname = "tpl"
     num_inputs = 1
     num_outputs = 1
-
-
-@public
-class TriplingEFDFormula(TriplingFormula, EFDFormula):
-    pass
 
 
 @public
@@ -490,22 +386,12 @@ class NegationFormula(Formula, ABC):
 
 
 @public
-class NegationEFDFormula(NegationFormula, EFDFormula):
-    pass
-
-
-@public
 class ScalingFormula(Formula, ABC):
     """Formula that somehow scales the point (to a given representative of a projective class)."""
 
     shortname = "scl"
     num_inputs = 1
     num_outputs = 1
-
-
-@public
-class ScalingEFDFormula(ScalingFormula, EFDFormula):
-    pass
 
 
 @public
@@ -522,11 +408,6 @@ class DifferentialAdditionFormula(Formula, ABC):
 
 
 @public
-class DifferentialAdditionEFDFormula(DifferentialAdditionFormula, EFDFormula):
-    pass
-
-
-@public
 class LadderFormula(Formula, ABC):
     """
     Ladder formula for simultaneous addition of two points and doubling of the one of them, with a known difference.
@@ -539,8 +420,3 @@ class LadderFormula(Formula, ABC):
     shortname = "ladd"
     num_inputs = 3
     num_outputs = 2
-
-
-@public
-class LadderEFDFormula(LadderFormula, EFDFormula):
-    pass
