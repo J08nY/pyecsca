@@ -6,6 +6,7 @@ from pyecsca.ec.mod import Mod
 from pyecsca.sca.trace import Trace
 from public import public
 from scipy.stats import pearsonr
+from pyecsca.sca.trace.plot import plot_trace
 from pyecsca.sca.attack.leakage_model import LeakageModel
 import numpy as np
 from numpy.typing import NDArray
@@ -32,6 +33,7 @@ class CPA():
         self.mult = mult
         self.params = params
         self.leakage_model = leakage_model
+        self.correlations = {'guess_one' : [], 'guess_zero' : []}
 
     def compute_intermediate_value(self, guessed_scalar: int, target_bit: int, point: Point) -> Mod:
         with (local(DefaultContext())) as ctx:
@@ -55,6 +57,9 @@ class CPA():
         for trace in self.traces:
             correlation_trace.append(pearsonr(intermediate_values, trace)[0])
         return correlation_trace
+    
+    def plot_correlations(self, ct):
+        return plot_trace(Trace(np.array(ct))).opts(width=950, height=600)
 
     def recover_bit(self, recovered_scalar: int, target_bit: int, scalar_bit_length: int, real_pub_key: Point) -> int:
         if target_bit == scalar_bit_length - 1:
@@ -67,6 +72,8 @@ class CPA():
         guessed_scalar_1 = recovered_scalar | mask
         correlation_trace_0 = self.compute_correlation_trace(guessed_scalar_0, target_bit)
         correlation_trace_1 = self.compute_correlation_trace(guessed_scalar_1, target_bit)
+        self.correlations['guess_zero'].append(correlation_trace_0)
+        self.correlations['guess_one'].append(correlation_trace_1)
         if np.nanmax(np.abs(correlation_trace_0)) > np.nanmax(np.abs(correlation_trace_1)):
             return guessed_scalar_0
         return guessed_scalar_1
