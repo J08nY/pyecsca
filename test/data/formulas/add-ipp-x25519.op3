@@ -1,9 +1,0 @@
-B = X1 - Z1
-A = X1 + Z1
-C = mu * B //???
-B = A - C
-A = A + C
-A = A^2
-B = B^2
-X1 = Z2 * A
-Z1 = X2 * B
