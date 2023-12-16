@@ -20,6 +20,7 @@ class CPA():
     mult: ScalarMultiplier
     params: DomainParameters
     leakage_model: LeakageModel
+    correlations: dict[str, list[list[float]]]
 
     def __init__(self, points: list[Point], traces: list[Trace], leakage_model: LeakageModel, mult: ScalarMultiplier, params: DomainParameters):
         '''
@@ -57,7 +58,7 @@ class CPA():
         for trace in self.traces:
             correlation_trace.append(pearsonr(intermediate_values, trace)[0])
         return correlation_trace
-    
+
     def plot_correlations(self, ct):
         return plot_trace(Trace(np.array(ct))).opts(width=950, height=600)
 
