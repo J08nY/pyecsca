@@ -229,6 +229,13 @@ LIBRARY_FORMULAS = [
         DoublingEFDFormula,
     ],
     [
+        "madd-secp256k1-v040",
+        ShortWeierstrassModel,
+        "jacobian",
+        ("secg", "secp256k1"),
+        AdditionEFDFormula,
+    ],
+    [
         "dbl-secp256k1-v040",
         ShortWeierstrassModel,
         "jacobian",

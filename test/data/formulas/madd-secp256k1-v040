@@ -1,0 +1,2 @@
+source libsecp256k1 v0.4.0 https://github.com/bitcoin-core/secp256k1/blob/v0.4.0/src/group_impl.h#L670
+coords Jacobian
