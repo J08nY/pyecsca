@@ -202,7 +202,7 @@ def all_configurations(**kwargs) -> Generator[Configuration, None, None]:
                 ):
                     options = [True, False]
                 elif get_origin(required_type) is None and issubclass(
-                        required_type, Enum
+                    required_type, Enum
                 ):
                     options = list(required_type)
                 elif (
@@ -210,17 +210,19 @@ def all_configurations(**kwargs) -> Generator[Configuration, None, None]:
                     and issubclass(required_type, int)
                     and name == "width"
                 ):
-                    # TODO: More options possible!
-                    options = [3, 5]
+                    # Magic numbers from library analysis, comb/window width
+                    options = [4, 5, 6, 7]
                 elif (
                     get_origin(required_type) is None
                     and issubclass(required_type, int)
                     and name == "m"
                 ):
-                    # TODO: More options possible!
-                    options = [5, 8]
+                    # Magic numbers from library analysis, comb/window width
+                    options = [2**4, 2**5, 2**6, 2**7]
                 else:
-                    warnings.warn(RuntimeWarning(f"Unknown scalarmult option range = {name}"))
+                    warnings.warn(
+                        RuntimeWarning(f"Unknown scalarmult option range = {name}")
+                    )
                     options = []
                 arg_options[name] = options
             keys = arg_options.keys()
