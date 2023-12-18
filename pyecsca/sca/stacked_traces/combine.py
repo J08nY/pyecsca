@@ -315,7 +315,7 @@ class GPUTraceManager(BaseTraceManager):
         ]
 
         device_inputs = [
-            cuda.const.array_like(inp)  # type: ignore
+            cuda.to_device(inp)  # type: ignore
             for inp in inputs
         ]
 
