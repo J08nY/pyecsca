@@ -25,9 +25,7 @@ def samples():
 
 class Base:
     @pytest.fixture()
-    def gpu_manager(self, samples):
-        if not cuda.is_available():
-            pytest.skip("CUDA not available")
+    def gpu_manager(self):
         raise NotImplementedError("Subclasses should implement this")
 
     def test_average(self, samples, gpu_manager):
@@ -89,12 +87,16 @@ class Base:
 class TestNonChunked(Base):
     @pytest.fixture()
     def gpu_manager(self, samples):
+        if not cuda.is_available():
+            pytest.skip("CUDA not available")
         return GPUTraceManager(StackedTraces(samples), TPB)
 
 
 class TestChunked(Base):
     @pytest.fixture()
     def gpu_manager(self, samples):
+        if not cuda.is_available():
+            pytest.skip("CUDA not available")
         return GPUTraceManager(StackedTraces(samples),
                                TPB,
                                chunk_size=CHUNK_SIZE,
