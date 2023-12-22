@@ -3,7 +3,7 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
-from typing import List, Set, Tuple, Dict, Union
+from typing import List, Set, Tuple, Dict
 from public import public
 from astunparse import unparse
 

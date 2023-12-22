@@ -69,33 +69,6 @@ class EFDFormula(Formula):
     def __str__(self):
         return f"{self.coordinate_model!s}/{self.name}"
 
-    @cached_property
-    def input_index(self):
-        return 1
-
-    @cached_property
-    def output_index(self):
-        return max(self.num_inputs + 1, 3)
-
-    @cached_property
-    def inputs(self):
-        return {
-            var + str(i)
-            for var, i in product(
-                self.coordinate_model.variables, range(1, 1 + self.num_inputs)
-            )
-        }
-
-    @cached_property
-    def outputs(self):
-        return {
-            var + str(i)
-            for var, i in product(
-                self.coordinate_model.variables,
-                range(self.output_index, self.output_index + self.num_outputs),
-            )
-        }
-
     def __eq__(self, other):
         if not isinstance(other, EFDFormula):
             return False

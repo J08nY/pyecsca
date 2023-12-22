@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from ast import Expression
 from functools import cached_property
+from itertools import product
 
 from astunparse import unparse
 from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
@@ -287,29 +288,36 @@ class Formula(ABC):
         state["assumptions"] = list(map(peval, state["assumptions"]))
         self.__dict__.update(state)
 
-    @property
-    @abstractmethod
+    @cached_property
     def input_index(self):
         """Return the starting index where this formula reads its inputs."""
-        raise NotImplementedError
+        return 1
 
-    @property
-    @abstractmethod
-    def output_index(self) -> int:
+    @cached_property
+    def output_index(self):
         """Return the starting index where this formula stores its outputs."""
-        raise NotImplementedError
+        return max(self.num_inputs + 1, 3)
 
-    @property
-    @abstractmethod
-    def inputs(self) -> Set[str]:
+    @cached_property
+    def inputs(self):
         """Return the input variables of the formula."""
-        raise NotImplementedError
+        return {
+            var + str(i)
+            for var, i in product(
+                self.coordinate_model.variables, range(1, 1 + self.num_inputs)
+            )
+        }
 
-    @property
-    @abstractmethod
-    def outputs(self) -> Set[str]:
+    @cached_property
+    def outputs(self):
         """Return the output variables of the formula."""
-        raise NotImplementedError
+        return {
+            var + str(i)
+            for var, i in product(
+                self.coordinate_model.variables,
+                range(self.output_index, self.output_index + self.num_outputs),
+            )
+        }
 
     @property
     def num_operations(self) -> int:
