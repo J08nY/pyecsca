@@ -1,7 +1,4 @@
 """"""
-from functools import cached_property
-from itertools import product
-
 from public import public
 
 from importlib_resources.abc import Traversable

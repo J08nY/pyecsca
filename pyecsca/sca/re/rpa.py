@@ -3,13 +3,13 @@ Provides functionality inspired by the Refined-Power Analysis attack by Goubin [
 """
 from copy import copy, deepcopy
 
-from anytree import Node, RenderTree
+from anytree import RenderTree
 from public import public
-from typing import MutableMapping, Optional, Callable, List, Set
-from collections import Counter
+from typing import MutableMapping, Optional, Callable, List
 
 from sympy import FF, sympify, Poly, symbols
 
+from .tree import build_distinguishing_tree
 from ...ec.coordinates import AffineCoordinateModel
 from ...ec.formula import (
     FormulaAction,
@@ -149,51 +149,6 @@ def rpa_input_point(k: Mod, rpa_point: Point, params: DomainParameters) -> Point
     return params.curve.affine_multiply(rpa_point, int(kinv))
 
 
-def build_distinguishing_tree(mults_to_multiples: MutableMapping[ScalarMultiplier, Set[Mod]],
-                              **kwargs) -> Optional[Node]:
-    """
-    Build an RPA distinguishing tree for a given mults-to-multiples mapping (induced by some fixed scalar).
-
-    :param mults_to_multiples:
-    :param kwargs:
-    :return:
-    """
-    n_mults = len(mults_to_multiples)
-    # If there is only one remaining multiple, put a single
-    if n_mults == 1:
-        return Node(None, mults=list(mults_to_multiples.keys()), **kwargs)
-
-    counts: Counter = Counter()
-    for multiples in mults_to_multiples.values():
-        counts.update(multiples)
-
-    nhalf = n_mults / 2
-    best_distinguishing_multiple = None
-    best_count = None
-    best_nhalf_distance = None
-    for multiple, count in counts.items():
-        if best_distinguishing_multiple is None or abs(count - nhalf) < best_nhalf_distance:
-            best_distinguishing_multiple = multiple
-            best_count = count
-            best_nhalf_distance = abs(count - nhalf)
-
-    if best_count in (0, n_mults, None):
-        return Node(None, mults=list(mults_to_multiples.keys()), **kwargs)
-
-    result = Node(best_distinguishing_multiple, mults=list(mults_to_multiples.keys()), **kwargs)
-    true_mults = {mult: multiples for mult, multiples in mults_to_multiples.items() if
-                  best_distinguishing_multiple in multiples}
-    true_child = build_distinguishing_tree(true_mults, oracle_response=True)
-    if true_child:
-        true_child.parent = result
-    false_mults = {mult: multiples for mult, multiples in mults_to_multiples.items() if
-                   best_distinguishing_multiple not in multiples}
-    false_child = build_distinguishing_tree(false_mults, oracle_response=False)
-    if false_child:
-        false_child.parent = result
-    return result
-
-
 @public
 def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool],
                     bound: Optional[int] = None, majority: int = 1, use_init: bool = True, use_multiply: bool = True) -> List[ScalarMultiplier]:
@@ -263,7 +218,7 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
 
         tree = build_distinguishing_tree(mults_to_multiples)
         log("Built distinguishing tree.")
-        log(RenderTree(tree).by_attr(lambda n: n.name if n.name else [mult.__class__.__name__ for mult in n.mults]))
+        log(RenderTree(tree).by_attr(lambda n: n.name if n.name else [mult.__class__.__name__ for mult in n.cfgs]))
         if tree is None or not tree.children:
             tries += 1
             continue
@@ -285,7 +240,7 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
                 log(mult.__class__.__name__, best_distinguishing_multiple in mults_to_multiples[mult])
             response_map = {child.oracle_response: child for child in current_node.children}
             current_node = response_map[response]
-            mults = current_node.mults
+            mults = current_node.cfgs
             log([mult.__class__.__name__ for mult in mults])
             log()
 
