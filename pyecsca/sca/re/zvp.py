@@ -431,7 +431,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
     :param curve: The curve to compute over.
     :param k: The discrete-log relationship between the two points, i.e. (x2, x2) = [k](x1, x1)
     :param n: The curve order.
-    :return: The set of points (x1, x1).
+    :return: The set of points (x1, y1).
     """
     # If input poly is trivial (only in params), abort early
     if not set(symbols("x1,x2,y1,y2")).intersection(poly.gens):  # type: ignore[attr-defined]

@@ -37,7 +37,7 @@ It is currently in an alpha stage of development and thus only provides:
 .. card:: Code generation
 
     Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see :doc:`notebook/codegen`),
-    CPU-level simulation of implementations (see :doc:`notebook/simulator`)
+    CPU-level emulation of implementations (see :doc:`notebook/emulator`)
 
 .. card:: Trace acquisition
 
