@@ -61,6 +61,7 @@
 "smartcard" = ["pyscard"]
 "leia" = ["smartleia"]
 "gmp" = ["gmpy2"]
+"pari" = ["cysignals", "cypari2"]
 "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"]
 "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar"]
 "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]

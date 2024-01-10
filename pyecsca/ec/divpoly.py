@@ -11,6 +11,14 @@ from .curve import EllipticCurve
 from .mod import Mod
 from .model import ShortWeierstrassModel
 
+has_pari = False
+try:
+    import cypari2
+
+    has_pari = True
+except ImportError:
+    cypari2 = None
+
 
 def values(*ns: int) -> Mapping[int, Tuple[int, ...]]:
     done: Set[int] = set()
@@ -102,10 +110,12 @@ def b_invariants(curve: EllipticCurve) -> Tuple[Mod, ...]:
     """
     if isinstance(curve.model, ShortWeierstrassModel):
         a1, a2, a3, a4, a6 = a_invariants(curve)
-        return (a1 * a1 + 4 * a2,
-                a1 * a3 + 2 * a4,
-                a3 ** 2 + 4 * a6,
-                a1 ** 2 * a6 + 4 * a2 * a6 - a1 * a3 * a4 + a2 * a3 ** 2 - a4 ** 2)
+        return (
+            a1 * a1 + 4 * a2,
+            a1 * a3 + 2 * a4,
+            a3**2 + 4 * a6,
+            a1**2 * a6 + 4 * a2 * a6 - a1 * a3 * a4 + a2 * a3**2 - a4**2,
+        )
     else:
         raise NotImplementedError
 
@@ -142,7 +152,7 @@ def divpoly0(curve: EllipticCurve, *ns: int) -> Mapping[int, Poly]:
         if i == -2:
             val = mem[-1] ** 2
         elif i == -1:
-            val = Kx(4) * x ** 3 + b2 * x ** 2 + Kx(2) * b4 * x + b6
+            val = Kx(4) * x**3 + b2 * x**2 + Kx(2) * b4 * x + b6
         elif i == 0:
             val = Kx(0)
         elif i < 0:
@@ -150,9 +160,11 @@ def divpoly0(curve: EllipticCurve, *ns: int) -> Mapping[int, Poly]:
         elif i in (1, 2):
             val = Kx(1)
         elif i == 3:
-            val = Kx(3) * x ** 4 + b2 * x ** 3 + Kx(3) * b4 * x ** 2 + Kx(3) * b6 * x + b8
+            val = (
+                Kx(3) * x**4 + b2 * x**3 + Kx(3) * b4 * x**2 + Kx(3) * b6 * x + b8
+            )
         elif i == 4:
-            val = -mem[-2] + (Kx(6) * x ** 2 + b2 * x + b4) * mem[3]
+            val = -mem[-2] + (Kx(6) * x**2 + b2 * x + b4) * mem[3]
         elif i % 2 == 0:
             m = (i - 2) // 2
             val = mem[m + 1] * (mem[m + 3] * mem[m] ** 2 - mem[m - 1] * mem[m + 2] ** 2)
@@ -203,7 +215,9 @@ def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> 
 
 
 @public
-def mult_by_n(curve: EllipticCurve, n: int, x_only: bool = False) -> Tuple[Tuple[Poly, Poly], Optional[Tuple[Poly, Poly]]]:
+def mult_by_n(
+    curve: EllipticCurve, n: int, x_only: bool = False
+) -> Tuple[Tuple[Poly, Poly], Optional[Tuple[Poly, Poly]]]:
     """
     Compute the multiplication-by-n map on an elliptic curve.
 
@@ -263,18 +277,43 @@ def mult_by_n(curve: EllipticCurve, n: int, x_only: bool = False) -> Tuple[Tuple
     mxd_full_denom = mxd_dn_denom
 
     # > a1*mx
-    a1mx_num = (Kxy(a1) * mx[0])
+    a1mx_num = Kxy(a1) * mx[0]
     a1mx_denom = mx[1]  # noqa
 
     # > a3
-    a3_num = (Kxy(a3) * mx[1])
+    a3_num = Kxy(a3) * mx[1]
     a3_denom = mx[1]  # noqa
 
     # The mx.derivative part has a different denominator, basically mx[1]^2 * m
-    # so the rest needs to be multiplied by this factor when subtracitng.
+    # so the rest needs to be multiplied by this factor when subtracting.
     mxd_fact = mx[1] * n
 
-    my_num = (mxd_full_num - a1mx_num * mxd_fact - a3_num * mxd_fact)
+    my_num = mxd_full_num - a1mx_num * mxd_fact - a3_num * mxd_fact
     my_denom = mxd_full_denom * Kxy(2)
     my = (my_num, my_denom)
     return mx, my
+
+
+if has_pari:
+
+    def mult_by_n_pari(curve: EllipticCurve, order: int, n: int):
+        pari = cypari2.Pari()
+        p = pari(curve.prime)
+        a = pari.Mod(curve.parameters["a"], p)
+        b = pari.Mod(curve.parameters["b"], p)
+        E = pari.ellinit([a, b])
+        E[15][0] = pari(order)
+        while True:
+            try:
+                mx = pari.ellxn(E, n)
+                break
+            except cypari2.PariError as e:
+                if e.errnum() == 17:  # out of stack memory
+                    pari.allocatemem(0)
+                else:
+                    raise e
+        x = symbols("x")
+        K = FF(curve.prime)
+        mx_num = Poly([int(coeff) for coeff in reversed(mx[0])], x, domain=K)
+        mx_denom = Poly([int(coeff) for coeff in reversed(mx[1])], x, domain=K)
+        return mx_num, mx_denom
