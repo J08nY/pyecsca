@@ -343,7 +343,7 @@ class EllipticCurve:
         )
 
     def __hash__(self):
-        return hash((self.model, self.coordinate_model, self.prime, self.parameters))
+        return hash((self.model, self.coordinate_model, self.prime, tuple(self.parameters.keys()), tuple(self.parameters.values())))
 
     def __str__(self):
         return "EllipticCurve"
