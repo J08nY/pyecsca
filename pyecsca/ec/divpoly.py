@@ -214,28 +214,14 @@ def divpoly(curve: EllipticCurve, n: int, two_torsion_multiplicity: int = 2) -> 
         raise ValueError
 
 
-@public
-def mult_by_n(
-    curve: EllipticCurve, n: int, x_only: bool = False
-) -> Tuple[Tuple[Poly, Poly], Optional[Tuple[Poly, Poly]]]:
-    """
-    Compute the multiplication-by-n map on an elliptic curve.
-
-    :param curve: Curve to compute on.
-    :param n: Scalar.
-    :param x_only: Whether to skip the my computation.
-    :return: A tuple (mx, my) where each is a tuple (numerator, denominator).
-    """
+def mult_by_n_own(curve: EllipticCurve, n: int) -> Tuple[Poly, Poly]:
     xs, ys = symbols("x y")
     K = FF(curve.prime)
     x = Poly(xs, xs, domain=K)
-    y = Poly(ys, ys, domain=K)
     Kxy = lambda r: Poly(r, xs, ys, domain=K)  # noqa
 
     if n == 1:
-        return (x, Kxy(1)), (y, Kxy(1))
-
-    a1, a2, a3, a4, a6 = a_invariants(curve)
+        return x, Kxy(1)
 
     polys = divpoly0(curve, -2, -1, n - 1, n, n + 1, n + 2)
     # TODO: All of these fractions may benefit from using
@@ -256,8 +242,61 @@ def mult_by_n(
     # > lc = K(mx_denom.LC())
     # > mx = (mx_num.quo(lc), mx_denom.monic())
     mx = (mx_num, mx_denom)
+    return mx
+
+
+if has_pari:
+
+    def mult_by_n_pari(curve: EllipticCurve, n: int):
+        pari = cypari2.Pari()
+        p = pari(curve.prime)
+        a = pari.Mod(curve.parameters["a"], p)
+        b = pari.Mod(curve.parameters["b"], p)
+        E = pari.ellinit([a, b])
+        while True:
+            try:
+                mx = pari.ellxn(E, n)
+                break
+            except cypari2.PariError as e:
+                if e.errnum() == 17:  # out of stack memory
+                    pari.allocatemem(0)
+                else:
+                    raise e
+        x = symbols("x")
+        K = FF(curve.prime)
+        mx_num = Poly([int(coeff) for coeff in reversed(mx[0])], x, domain=K)
+        mx_denom = Poly([int(coeff) for coeff in reversed(mx[1])], x, domain=K)
+        return mx_num, mx_denom
+
+
+@public
+def mult_by_n(
+    curve: EllipticCurve, n: int, x_only: bool = False, use_pari: bool = True
+) -> Tuple[Tuple[Poly, Poly], Optional[Tuple[Poly, Poly]]]:
+    """
+    Compute the multiplication-by-n map on an elliptic curve.
+
+    :param curve: Curve to compute on.
+    :param n: Scalar.
+    :param x_only: Whether to skip the my computation.
+    :param use_pari: Whether to use the Pari version.
+    :return: A tuple (mx, my) where each is a tuple (numerator, denominator).
+    """
+    if use_pari and has_pari:
+        mx = mult_by_n_pari(curve, n)
+    else:
+        mx = mult_by_n_own(curve, n)
+
     if x_only:
         return mx, None
+
+    xs, ys = symbols("x y")
+    K = FF(curve.prime)
+    x = Poly(xs, xs, domain=K)
+    y = Poly(ys, ys, domain=K)
+    Kxy = lambda r: Poly(r, xs, ys, domain=K)  # noqa
+
+    a1, a2, a3, a4, a6 = a_invariants(curve)
 
     # The following lines compute
     # my = ((2*y+a1*x+a3)*mx.derivative(x)/m - a1*mx-a3)/2
@@ -292,28 +331,3 @@ def mult_by_n(
     my_denom = mxd_full_denom * Kxy(2)
     my = (my_num, my_denom)
     return mx, my
-
-
-if has_pari:
-
-    def mult_by_n_pari(curve: EllipticCurve, order: int, n: int):
-        pari = cypari2.Pari()
-        p = pari(curve.prime)
-        a = pari.Mod(curve.parameters["a"], p)
-        b = pari.Mod(curve.parameters["b"], p)
-        E = pari.ellinit([a, b])
-        E[15][0] = pari(order)
-        while True:
-            try:
-                mx = pari.ellxn(E, n)
-                break
-            except cypari2.PariError as e:
-                if e.errnum() == 17:  # out of stack memory
-                    pari.allocatemem(0)
-                else:
-                    raise e
-        x = symbols("x")
-        K = FF(curve.prime)
-        mx_num = Poly([int(coeff) for coeff in reversed(mx[0])], x, domain=K)
-        mx_denom = Poly([int(coeff) for coeff in reversed(mx[1])], x, domain=K)
-        return mx_num, mx_denom

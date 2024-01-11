@@ -171,7 +171,7 @@ def test_mult_by_n(secp128r1):
 
 def test_mult_by_n_large(secp128r1):
     K = FF(secp128r1.curve.prime)
-    mx, my = mult_by_n(secp128r1.curve, 21)
+    mx, my = mult_by_n(secp128r1.curve, 21, use_pari=False)
     with files(test.data.divpoly).joinpath("mult_21.json").open("r") as f:
         sage_data = json.load(f)
         sage_data["mx"][0] = {
@@ -195,8 +195,7 @@ def test_mult_by_n_large(secp128r1):
 
 def test_mult_by_n_pari(secp128r1):
     _ = pytest.importorskip("cypari2")
-    from pyecsca.ec.divpoly import mult_by_n_pari
 
-    mx_pari = mult_by_n_pari(secp128r1.curve, secp128r1.order, 10)
-    mx_our, _ = mult_by_n(secp128r1.curve, 10, x_only=True)
+    mx_pari, _ = mult_by_n(secp128r1.curve, 10, x_only=True)
+    mx_our, _ = mult_by_n(secp128r1.curve, 10, x_only=True, use_pari=False)
     assert mx_pari == mx_our
