@@ -1,7 +1,11 @@
 import pytest
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import ShortWeierstrassModel
+from pyecsca.ec.mult import LTRMultiplier, AccumulationOrder
+from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 from pyecsca.sca.re.zvp import (
     unroll_formula,
@@ -13,6 +17,8 @@ from pyecsca.sca.re.zvp import (
     subs_curve_params,
     zvp_points,
     compute_factor_set,
+    addition_chain,
+    precomp_zvp_points,
 )
 from pyecsca.ec.context import local, DefaultContext
 from sympy import symbols, Poly, sympify, FF
@@ -233,3 +239,56 @@ def test_points(secp128r1, poly_str, point, k):
     poly = Poly(poly_expr, domain=FF(secp128r1.curve.prime))
     res = zvp_points(poly, secp128r1.curve, k, secp128r1.order)
     assert pt in res
+
+
+def test_addition_chain(secp128r1):
+    res = addition_chain(
+        78699,
+        secp128r1,
+        LTRMultiplier,
+        lambda add, dbl: LTRMultiplier(
+            add, dbl, None, False, AccumulationOrder.PeqPR, True, True
+        ),
+    )
+    assert res is not None
+    assert len(res) == 25
+
+
+@pytest.fixture()
+def small_params():
+    model = ShortWeierstrassModel()
+    coords = model.coordinates["projective"]
+    p = 0xC50DE883F0E7B167
+    a = Mod(0x4833D7AA73FA6694, p)
+    b = Mod(0xA6C44A61C5323F6A, p)
+    gx = Mod(0x5FD1F7D38D4F2333, p)
+    gy = Mod(0x21F43957D7E20CEB, p)
+    n = 0xC50DE885003B80EB
+    h = 1
+    infty = Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p))
+    g = Point(coords, X=gx, Y=gy, Z=Mod(1, p))
+
+    curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
+    params = DomainParameters(curve, g, n, h)
+    return params
+
+
+def test_precomp(small_params):
+    chain = addition_chain(
+        123456789,
+        small_params,
+        LTRMultiplier,
+        lambda add, dbl: LTRMultiplier(
+            add, dbl, None, False, AccumulationOrder.PeqRP, True, True
+        ),
+    )
+    res = precomp_zvp_points(
+        chain,
+        {
+            "add": small_params.curve.coordinate_model.formulas["add-2007-bl"],
+            "dbl": small_params.curve.coordinate_model.formulas["dbl-2007-bl"],
+        },
+        small_params,
+    )
+    assert res is not None
+    assert len(res) == len(chain)

@@ -154,6 +154,7 @@ Requirements
        - **Faster arithmetic:**
 
          - gmpy2_ (and also GMP library)
+         - cypari2_ (and also PARI library)
 
     *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
     The data was partially changed, to make working with it easier. It is available on Github at `crocs-muni/efd`_.
@@ -235,6 +236,7 @@ Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <htt
 .. _pyscard: https://pyscard.sourceforge.io/
 .. _leia: https://pypi.org/project/smartleia/
 .. _gmpy2: https://gmpy2.readthedocs.io/
+.. _cypari2: https://cypari2.readthedocs.io/
 .. _pytest: https://pytest.org
 .. _mypy: http://mypy-lang.org/
 .. _flake8: https://flake8.pycqa.org/

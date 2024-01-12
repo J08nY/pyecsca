@@ -21,7 +21,11 @@ from ...ec.formula import (
     LadderFormula,
 )
 from ...ec.mod import Mod
-from ...ec.mult import ScalarMultiplicationAction, PrecomputationAction, ScalarMultiplier
+from ...ec.mult import (
+    ScalarMultiplicationAction,
+    PrecomputationAction,
+    ScalarMultiplier,
+)
 from ...ec.params import DomainParameters
 from ...ec.model import ShortWeierstrassModel, MontgomeryModel
 from ...ec.point import Point
@@ -38,6 +42,8 @@ class MultipleContext(Context):
     points: MutableMapping[Point, int]
     """The mapping of points to the multiples they represent (e.g., base -> 1)."""
     parents: MutableMapping[Point, List[Point]]
+    """The mapping of points to the formula types they are a result of."""
+    formulas: MutableMapping[Point, str]
     """The mapping of points to their parent they were computed from."""
     inside: bool
 
@@ -45,6 +51,7 @@ class MultipleContext(Context):
         self.base = None
         self.points = {}
         self.parents = {}
+        self.formulas = {}
         self.inside = False
 
     def enter_action(self, action: Action) -> None:
@@ -56,10 +63,12 @@ class MultipleContext(Context):
                     self.base = action.point
                     self.points = {self.base: 1}
                     self.parents = {self.base: []}
+                    self.formulas = {self.base: ""}
             else:
                 self.base = action.point
                 self.points = {self.base: 1}
                 self.parents = {self.base: []}
+                self.formulas = {self.base: ""}
             self.inside = True
 
     def exit_action(self, action: Action) -> None:
@@ -71,33 +80,40 @@ class MultipleContext(Context):
                 out = action.output_points[0]
                 self.points[out] = 2 * self.points[inp]
                 self.parents[out] = [inp]
+                self.formulas[out] = action.formula.shortname
             elif isinstance(action.formula, TriplingFormula):
                 inp = action.input_points[0]
                 out = action.output_points[0]
                 self.points[out] = 3 * self.points[inp]
                 self.parents[out] = [inp]
+                self.formulas[out] = action.formula.shortname
             elif isinstance(action.formula, AdditionFormula):
                 one, other = action.input_points
                 out = action.output_points[0]
                 self.points[out] = self.points[one] + self.points[other]
                 self.parents[out] = [one, other]
+                self.formulas[out] = action.formula.shortname
             elif isinstance(action.formula, NegationFormula):
                 inp = action.input_points[0]
                 out = action.output_points[0]
                 self.points[out] = -self.points[inp]
                 self.parents[out] = [inp]
+                self.formulas[out] = action.formula.shortname
             elif isinstance(action.formula, DifferentialAdditionFormula):
                 _, one, other = action.input_points
                 out = action.output_points[0]
                 self.points[out] = self.points[one] + self.points[other]
                 self.parents[out] = [one, other]
+                self.formulas[out] = action.formula.shortname
             elif isinstance(action.formula, LadderFormula):
                 _, one, other = action.input_points
                 dbl, add = action.output_points
                 self.points[add] = self.points[one] + self.points[other]
                 self.parents[add] = [one, other]
+                self.formulas[add] = action.formula.shortname
                 self.points[dbl] = 2 * self.points[one]
                 self.parents[dbl] = [one]
+                self.formulas[dbl] = action.formula.shortname
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.base!r}, multiples={self.points.values()!r})"
@@ -111,10 +127,15 @@ def rpa_point_0y(params: DomainParameters) -> Optional[Point]:
             return None
         y = params.curve.parameters["b"].sqrt()
         # TODO: We can take the negative as well.
-        return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime), y=y)
+        return Point(
+            AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime), y=y
+        )
     elif isinstance(params.curve.model, MontgomeryModel):
-        return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime),
-                     y=Mod(0, params.curve.prime))
+        return Point(
+            AffineCoordinateModel(params.curve.model),
+            x=Mod(0, params.curve.prime),
+            y=Mod(0, params.curve.prime),
+        )
     else:
         raise NotImplementedError
 
@@ -134,10 +155,15 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
         if not roots:
             return None
         x = Mod(int(next(iter(roots.keys()))), params.curve.prime)
-        return Point(AffineCoordinateModel(params.curve.model), x=x, y=Mod(0, params.curve.prime))
+        return Point(
+            AffineCoordinateModel(params.curve.model), x=x, y=Mod(0, params.curve.prime)
+        )
     elif isinstance(params.curve.model, MontgomeryModel):
-        return Point(AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime),
-                     y=Mod(0, params.curve.prime))
+        return Point(
+            AffineCoordinateModel(params.curve.model),
+            x=Mod(0, params.curve.prime),
+            y=Mod(0, params.curve.prime),
+        )
     else:
         raise NotImplementedError
 
@@ -150,8 +176,15 @@ def rpa_input_point(k: Mod, rpa_point: Point, params: DomainParameters) -> Point
 
 
 @public
-def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], oracle: Callable[[int, Point], bool],
-                    bound: Optional[int] = None, majority: int = 1, use_init: bool = True, use_multiply: bool = True) -> List[ScalarMultiplier]:
+def rpa_distinguish(
+    params: DomainParameters,
+    mults: List[ScalarMultiplier],
+    oracle: Callable[[int, Point], bool],
+    bound: Optional[int] = None,
+    majority: int = 1,
+    use_init: bool = True,
+    use_multiply: bool = True,
+) -> List[ScalarMultiplier]:
     """
     Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.mults`) using
     an [RPA]_ :paramref:`~.rpa_distinguish.oracle`.
@@ -198,16 +231,30 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
             # Take the computed points during init
             init_points = set(init_context.parents.keys())
             # And get their parents (inputs to formulas)
-            init_parents = set(sum((init_context.parents[point] for point in init_points), []))
+            init_parents = set(
+                sum((init_context.parents[point] for point in init_points), [])
+            )
             # Go over the parents and map them to multiples of the base (plus-minus sign)
-            init_multiples = set(map(lambda v: Mod(v, params.order), (init_context.points[parent] for parent in init_parents)))
+            init_multiples = set(
+                map(
+                    lambda v: Mod(v, params.order),
+                    (init_context.points[parent] for parent in init_parents),
+                )
+            )
             init_multiples |= set(map(lambda v: -v, init_multiples))
             # Now do the multiply and repeat the above, but only consider new computed points
             with local(init_context) as ctx:
                 mult.multiply(scalar)
             all_points = set(ctx.parents.keys())
-            multiply_parents = set(sum((ctx.parents[point] for point in all_points - init_points), []))
-            multiply_multiples = set(map(lambda v: Mod(v, params.order), (ctx.points[parent] for parent in multiply_parents)))
+            multiply_parents = set(
+                sum((ctx.parents[point] for point in all_points - init_points), [])
+            )
+            multiply_multiples = set(
+                map(
+                    lambda v: Mod(v, params.order),
+                    (ctx.points[parent] for parent in multiply_parents),
+                )
+            )
             multiply_multiples |= set(map(lambda v: -v, multiply_multiples))
             used = set()
             if use_init:
@@ -218,7 +265,13 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
 
         tree = build_distinguishing_tree(mults_to_multiples)
         log("Built distinguishing tree.")
-        log(RenderTree(tree).by_attr(lambda n: n.name if n.name else [mult.__class__.__name__ for mult in n.cfgs]))
+        log(
+            RenderTree(tree).by_attr(
+                lambda n: n.name
+                if n.name
+                else [mult.__class__.__name__ for mult in n.cfgs]
+            )
+        )
         if tree is None or not tree.children:
             tries += 1
             continue
@@ -237,8 +290,13 @@ def rpa_distinguish(params: DomainParameters, mults: List[ScalarMultiplier], ora
                     break
             log(f"Oracle response -> {response}")
             for mult in mults:
-                log(mult.__class__.__name__, best_distinguishing_multiple in mults_to_multiples[mult])
-            response_map = {child.oracle_response: child for child in current_node.children}
+                log(
+                    mult.__class__.__name__,
+                    best_distinguishing_multiple in mults_to_multiples[mult],
+                )
+            response_map = {
+                child.oracle_response: child for child in current_node.children
+            }
             current_node = response_map[response]
             mults = current_node.cfgs
             log([mult.__class__.__name__ for mult in mults])

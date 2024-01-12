@@ -3,16 +3,29 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Type, Mapping
 from public import public
 from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
+from tqdm.auto import tqdm
 
+from .rpa import MultipleContext
+from ...ec.context import local
 from ...ec.curve import EllipticCurve
 from ...ec.divpoly import mult_by_n
-from ...ec.formula import Formula
+from ...ec.formula import (
+    Formula,
+    AdditionFormula,
+    DoublingFormula,
+    DifferentialAdditionFormula,
+    LadderFormula,
+    NegationFormula,
+)
+from ...ec.formula.fake import FakePoint, FakeFormula
 from ...ec.mod import Mod
+from ...ec.mult import ScalarMultiplier
+from ...ec.params import DomainParameters
 from ...ec.point import Point
 
 
@@ -183,7 +196,7 @@ def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) 
 
 
 @public
-def compute_factor_set(formula: Formula, affine: bool = True) -> Set[Poly]:
+def compute_factor_set(formula: Formula, affine: bool = True, filter_nonhomo: bool = True) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
 
@@ -192,7 +205,8 @@ def compute_factor_set(formula: Formula, affine: bool = True) -> Set[Poly]:
     :return: The set of factors present in the formula.
     """
     unrolled = unroll_formula(formula)
-    unrolled = filter_out_nonhomogenous_polynomials(formula, unrolled)
+    if filter_nonhomo:
+        unrolled = filter_out_nonhomogenous_polynomials(formula, unrolled)
     if affine:
         unrolled = map_to_affine(formula, unrolled)
 
@@ -496,3 +510,109 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
                 if res == 0:
                     points.add(point)
     return points
+
+
+def addition_chain(
+    scalar: int,
+    params: DomainParameters,
+    mult_class: Type[ScalarMultiplier],
+    mult_factory,
+) -> List[Tuple[str, Tuple[int, ...]]]:
+    """
+    Compute the addition chain for a given scalar and multiplier.
+
+    :param scalar: The scalar to compute for.
+    :param params: The domain parameters to use.
+    :param mult_class: The class of the scalar multiplier to use.
+    :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
+    :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
+    relationships to the input of the input points to the formula.
+    """
+    formula_classes: List[Type[Formula]] = list(
+        filter(
+            lambda klass: klass in mult_class.requires,
+            [
+                AdditionFormula,
+                DifferentialAdditionFormula,
+                DoublingFormula,
+                LadderFormula,
+                NegationFormula,
+            ],
+        )
+    )
+    formulas = []
+    for formula in formula_classes:
+        for subclass in formula.__subclasses__():
+            if issubclass(subclass, FakeFormula):
+                formulas.append(subclass(params.curve.coordinate_model))
+    mult = mult_factory(*formulas)
+    mult.init(params, FakePoint(params.curve.coordinate_model))
+
+    with local(MultipleContext()) as mctx:
+        mult.multiply(scalar)
+
+    chain = []
+    for point, parents in mctx.parents.items():
+        if not parents:
+            continue
+        formula_type = mctx.formulas[point]
+        ks = tuple(mctx.points[parent] for parent in parents)
+        chain.append((formula_type, ks))
+    return chain
+
+
+def precomp_zvp_points(
+    chain: List[Tuple[str, Tuple[int, ...]]],
+    formulas: Mapping[str, Formula],
+    params: DomainParameters,
+    bound: int = 25,
+) -> List[Mapping[Poly, Set[Point]]]:
+    """
+
+    :param chain:
+    :param formulas:
+    :param params:
+    :param bound:
+    :return:
+    """
+    factor_sets = {
+        formula: compute_factor_set(formula) for formula in formulas.values()
+    }
+    # A bit of a hack to rename the poly variables for double as zvp_points expects that.
+    for formula in formulas.values():
+        if isinstance(formula, DoublingFormula):
+            fset = factor_sets[formula]
+            new_fset = set()
+            for poly in fset:
+                pl = poly.copy()
+                for symbol in poly.free_symbols:
+                    original = str(symbol)
+                    if original.endswith("1"):
+                        new = original.replace("1", "2")
+                        pl = pl.subs(original, new)
+                new_fset.add(pl)
+            factor_sets[formula] = new_fset
+    result: List[Mapping[Poly, Set[Point]]] = []
+    for op, ks in chain:
+        if op not in formulas:
+            continue
+        formula = formulas[op]
+        factor_set = factor_sets[formula]
+        if len(ks) == 1:
+            k = ks[0]
+        else:
+            # zvp_points assumes (P, [k]P)
+            ks_mod = list(map(lambda v: Mod(v, params.order), ks))
+            k = int(ks_mod[1] / ks_mod[0])
+        points = {}
+
+        for poly in factor_set:
+            only_1 = all((not str(gen).endswith("2")) for gen in poly.gens)  # type: ignore[attr-defined]
+            only_2 = all((not str(gen).endswith("1")) for gen in poly.gens)  # type: ignore[attr-defined]
+            # This is the hard case where a dlog needs to be substituted, so bound it.
+            if not (only_1 or only_2) and k > bound:
+                continue
+
+            points[poly] = zvp_points(poly, params.curve, k, params.order)
+        result.append(points)
+    return result

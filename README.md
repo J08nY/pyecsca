@@ -56,7 +56,7 @@ It is currently in an alpha stage of development and thus only provides:
      - [smartleia](https://pypi.org/project/smartleia/)
    - **Faster arithmetic:**
      - [gmpy2](https://gmpy2.readthedocs.io/) (and also GMP library)
-
+     - [cypari2](https://cypari2.readthedocs.io/) (and also PARI library)
 
 *pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
 The data was partially changed, to make working with it easier. It is available on Github at [crocs-muni/efd](https://github.com/crocs-muni/efd).
