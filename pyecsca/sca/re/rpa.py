@@ -263,7 +263,7 @@ def rpa_distinguish(
                 used |= multiply_multiples
             mults_to_multiples[mult] = used
 
-        tree = build_distinguishing_tree(mults_to_multiples)
+        tree = build_distinguishing_tree(set(mults), mults_to_multiples)
         log("Built distinguishing tree.")
         log(
             RenderTree(tree).by_attr(
@@ -277,7 +277,7 @@ def rpa_distinguish(
             continue
         current_node = tree
         while current_node.children:
-            best_distinguishing_multiple = current_node.name
+            _, best_distinguishing_multiple = current_node.name
             P0_inverse = rpa_input_point(best_distinguishing_multiple, P0, params)
             responses = []
             for _ in range(majority):

@@ -157,4 +157,4 @@ def test_distinguish(secp128r1, add, dbl, neg):
         with redirect_stdout(io.StringIO()):
             result = rpa_distinguish(secp128r1, multipliers, simulated_oracle)
         assert 1 == len(result)
-        assert real_mult == result[0]
+        assert real_mult == result.pop()
