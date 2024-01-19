@@ -109,7 +109,7 @@ class DomainParameters:
         return f"{self.__class__.__name__}({name})"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.curve!r}, {self.generator!r}, {self.order}, {self.cofactor})"
+        return f"{self.__class__.__name__}({self.curve!r}, gen={self.generator!r}, ord={self.order}, cof={self.cofactor})"
 
 
 @public

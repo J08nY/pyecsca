@@ -9,7 +9,7 @@ from typing import MutableMapping, Optional, Callable, List
 
 from sympy import FF, sympify, Poly, symbols
 
-from .tree import build_distinguishing_tree
+from .tree import Tree, Map
 from ...ec.coordinates import AffineCoordinateModel
 from ...ec.formula import (
     FormulaAction,
@@ -263,21 +263,18 @@ def rpa_distinguish(
                 used |= multiply_multiples
             mults_to_multiples[mult] = used
 
-        tree = build_distinguishing_tree(set(mults), mults_to_multiples)
+        dmap = Map.from_binary_sets(set(mults), mults_to_multiples)
+
+        tree = Tree.build(set(mults), dmap)
         log("Built distinguishing tree.")
-        log(
-            RenderTree(tree).by_attr(
-                lambda n: n.name
-                if n.name
-                else [mult.__class__.__name__ for mult in n.cfgs]
-            )
-        )
-        if tree is None or not tree.children:
+        log()
+        #tree.render()
+        if tree.size == 1:
             tries += 1
             continue
-        current_node = tree
+        current_node = tree.root
         while current_node.children:
-            _, best_distinguishing_multiple = current_node.name
+            best_distinguishing_multiple = current_node.dmap_input
             P0_inverse = rpa_input_point(best_distinguishing_multiple, P0, params)
             responses = []
             for _ in range(majority):
@@ -295,7 +292,7 @@ def rpa_distinguish(
                     best_distinguishing_multiple in mults_to_multiples[mult],
                 )
             response_map = {
-                child.oracle_response: child for child in current_node.children
+                child.response: child for child in current_node.children
             }
             current_node = response_map[response]
             mults = current_node.cfgs

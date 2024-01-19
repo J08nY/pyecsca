@@ -350,4 +350,4 @@ class EllipticCurve:
 
     def __repr__(self):
         params = ", ".join((f"{key}={val}" for key, val in self.parameters.items()))
-        return f"{self.__class__.__name__}([{params}] on {self.model} using {self.coordinate_model})"
+        return f"{self.__class__.__name__}([{params}] p={self.prime} on {self.coordinate_model})"

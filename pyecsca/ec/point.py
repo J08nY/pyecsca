@@ -211,7 +211,7 @@ class Point:
         return f"[{args}]"
 
     def __repr__(self):
-        return f"Point([{str(self)}] in {self.coordinate_model})"
+        return f"Point({str(self)} in {self.coordinate_model})"
 
 
 @public

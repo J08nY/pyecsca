@@ -60,6 +60,14 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.direction = direction
         self.width = width
 
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, BGMWMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.direction == other.direction and self.accumulation_order == other.accumulation_order
+
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
 
@@ -137,6 +145,14 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
             scl=scl,
         )
         self.width = width
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, CombMultiplier):
+            return False
+        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.accumulation_order == other.accumulation_order
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name})"

@@ -202,6 +202,7 @@ def compute_factor_set(formula: Formula, affine: bool = True, filter_nonhomo: bo
 
     :param formula: Formula to compute the factor set of.
     :param affine: Whether to transform the polynomials into affine form.
+    :param filter_nonhomo: Whether to filter out non-homogenous polynomials.
     :return: The set of factors present in the formula.
     """
     unrolled = unroll_formula(formula)
@@ -566,19 +567,23 @@ def precomp_zvp_points(
     formulas: Mapping[str, Formula],
     params: DomainParameters,
     bound: int = 25,
+    filter_nonhomo: bool = True
 ) -> List[Mapping[Poly, Set[Point]]]:
     """
+    Precompute ZVP points for a given addition chain using given formula mapping.
 
-    :param chain:
-    :param formulas:
-    :param params:
-    :param bound:
-    :return:
+    :param chain: The addition chain.
+    :param formulas: Mapping of formula shortnames (e.g. "add") to formulas
+    :param params: The domain parameters to compute on.
+    :param bound: The bound for hard DCP cases.
+    :param filter_nonhomo: Whether to filter non-homogenous intermediate polynomials (will lead to false positives if False).
+    :return: A list with an entry for each formula application in the chain. Each entry is a mapping of intermediate polynomial to set of points.
     """
     factor_sets = {
-        formula: compute_factor_set(formula) for formula in formulas.values()
+        formula: compute_factor_set(formula, filter_nonhomo=filter_nonhomo) for formula in formulas.values()
     }
     # A bit of a hack to rename the poly variables for double as zvp_points expects that.
+    # TODO: Handle this better in the zvp_points function (to also be able to handle ladders and other stuff).
     for formula in formulas.values():
         if isinstance(formula, DoublingFormula):
             fset = factor_sets[formula]
