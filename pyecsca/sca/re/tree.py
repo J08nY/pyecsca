@@ -36,9 +36,9 @@ Here we grow the trees.
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⠾⠛⣿⠙⠛⠶⢦⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀
 """
+from math import ceil
 from copy import deepcopy
 from typing import Mapping, Any, Set, List, Tuple, Optional
-from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -49,19 +49,31 @@ from anytree import RenderTree, NodeMixin, AbstractStyle
 @public
 class Map:
     """A distinguishing map."""
-    context: Any
     mapping: pd.DataFrame
+    codomain: Set[Any]
 
-    def __init__(self, context: Any, mapping: pd.DataFrame):
-        self.context = context
+    def __init__(self, mapping: pd.DataFrame, codomain: Set[Any]):
         self.mapping = mapping
+        self.codomain = codomain
 
     @classmethod
     def from_binary_sets(cls, cfgs: Set[Any], mapping: Mapping[Any, Set[Any]]):
         cfgs_l = list(cfgs)
         inputs_l = list(set().union(*mapping.values()))
         data = [[elem in mapping[cfg] for elem in inputs_l] for cfg in cfgs_l]
-        return Map(None, pd.DataFrame(data, index=cfgs_l, columns=inputs_l))
+        return Map(pd.DataFrame(data, index=cfgs_l, columns=inputs_l), {True, False})
+
+    @classmethod
+    def from_io_map(cls, cfgs: Set[Any], mapping: Mapping[Any, Mapping[Any, Any]]):
+        cfgs_l = list(cfgs)
+        inputs = set()
+        codomain = set()
+        for io_map in mapping.values():
+            inputs.update(io_map.keys())
+            codomain.update(io_map.values())
+        inputs_l = list(inputs)
+        data = [[mapping[cfg].get(elem, None) for elem in inputs_l] for cfg in cfgs_l]
+        return Map(pd.DataFrame(data, index=cfgs_l, columns=inputs_l), codomain)
 
 
 @public
@@ -172,7 +184,7 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
         # Note we should look at the restriction of the map to the current "cfgs" and split those
         restricted = dmap.mapping.filter(items=cfgs, axis=0)
         for elem in dmap.mapping:
-            split = restricted[elem].value_counts()
+            split = restricted[elem].value_counts(dropna=False)
             # XXX: Try the other scores.
             # TODO: Abort here when the total best score is already reached early.
             score = _size_of_largest(split)
@@ -181,20 +193,22 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
                 best_distinguishing_dmap = dmap
                 best_score = score
                 best_restricted = restricted
+            if score == ceil(n_cfgs / len(dmap.codomain)):
+                break
 
     # Now we have a dmap as well as an element in it that splits the best.
     # Go over the groups of configs that share the response
-    groups = best_restricted.groupby(best_distinguishing_element).groups
+    groups = best_restricted.groupby(best_distinguishing_element, dropna=False)
     # We found nothing distinguishing the configs, so return them all (base case 2).
-    if len(groups) == 1:
+    if groups.ngroups == 1:
         return Node(set(cfgs), response=response)
 
     # Create our node
     dmap_index = maps.index(best_distinguishing_dmap)
     result = Node(set(cfgs), dmap_index, best_distinguishing_element, response=response)
 
-    for output, group_cfgs in groups.items():
-        child = _build_tree(set(group_cfgs), *maps, response=output)
+    for output, group in groups:
+        child = _build_tree(set(group.index), *maps, response=output)
         child.parent = result
 
     return result
