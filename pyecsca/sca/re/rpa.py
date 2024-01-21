@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 
 from anytree import RenderTree
 from public import public
-from typing import MutableMapping, Optional, Callable, List
+from typing import MutableMapping, Optional, Callable, List, Set
 
 from sympy import FF, sympify, Poly, symbols
 
@@ -178,19 +178,19 @@ def rpa_input_point(k: Mod, rpa_point: Point, params: DomainParameters) -> Point
 @public
 def rpa_distinguish(
     params: DomainParameters,
-    mults: List[ScalarMultiplier],
+    multipliers: List[ScalarMultiplier],
     oracle: Callable[[int, Point], bool],
     bound: Optional[int] = None,
     majority: int = 1,
     use_init: bool = True,
     use_multiply: bool = True,
-) -> List[ScalarMultiplier]:
+) -> Set[ScalarMultiplier]:
     """
-    Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.mults`) using
+    Distinguish the scalar multiplier used (from the possible :paramref:`~.rpa_distinguish.multipliers`) using
     an [RPA]_ :paramref:`~.rpa_distinguish.oracle`.
 
     :param params: The domain parameters to use.
-    :param mults: The list of possible multipliers.
+    :param multipliers: The list of possible multipliers.
     :param oracle: An oracle that returns `True` when an RPA point is encountered during scalar multiplication of the input by the scalar.
     :param bound: A bound on the size of the scalar to consider.
     :param majority: Query the oracle up to `majority` times and take the majority vote of the results.
@@ -209,7 +209,7 @@ def rpa_distinguish(
     if not bound:
         bound = params.order
 
-    mults = [copy(mult) for mult in mults]
+    mults = set(copy(mult) for mult in multipliers)
     init_contexts = {}
     for mult in mults:
         with local(MultipleContext()) as ctx:
@@ -267,14 +267,13 @@ def rpa_distinguish(
 
         tree = Tree.build(set(mults), dmap)
         log("Built distinguishing tree.")
-        log()
-        #tree.render()
+        log(tree.render())
         if tree.size == 1:
             tries += 1
             continue
         current_node = tree.root
         while current_node.children:
-            best_distinguishing_multiple = current_node.dmap_input
+            best_distinguishing_multiple: Mod = current_node.dmap_input  # type: ignore
             P0_inverse = rpa_input_point(best_distinguishing_multiple, P0, params)
             responses = []
             for _ in range(majority):
@@ -291,9 +290,7 @@ def rpa_distinguish(
                     mult.__class__.__name__,
                     best_distinguishing_multiple in mults_to_multiples[mult],
                 )
-            response_map = {
-                child.response: child for child in current_node.children
-            }
+            response_map = {child.response: child for child in current_node.children}
             current_node = response_map[response]
             mults = current_node.cfgs
             log([mult.__class__.__name__ for mult in mults])

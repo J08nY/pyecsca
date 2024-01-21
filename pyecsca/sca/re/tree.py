@@ -49,6 +49,7 @@ from anytree import RenderTree, NodeMixin, AbstractStyle
 @public
 class Map:
     """A distinguishing map."""
+
     mapping: pd.DataFrame
     codomain: Set[Any]
 
@@ -66,8 +67,8 @@ class Map:
     @classmethod
     def from_io_map(cls, cfgs: Set[Any], mapping: Mapping[Any, Mapping[Any, Any]]):
         cfgs_l = list(cfgs)
-        inputs = set()
-        codomain = set()
+        inputs: Set[Any] = set()
+        codomain: Set[Any] = set()
         for io_map in mapping.values():
             inputs.update(io_map.keys())
             codomain.update(io_map.values())
@@ -79,12 +80,21 @@ class Map:
 @public
 class Node(NodeMixin):
     """A node in a distinguishing tree."""
+
     cfgs: Set[Any]
     dmap_index: Optional[int]
     dmap_input: Optional[Any]
     response: Optional[Any]
 
-    def __init__(self, cfgs: Set[Any], dmap_index: Optional[int] = None, dmap_input: Optional[Any] = None, response: Optional[Any] = None, parent=None, children=None):
+    def __init__(
+        self,
+        cfgs: Set[Any],
+        dmap_index: Optional[int] = None,
+        dmap_input: Optional[Any] = None,
+        response: Optional[Any] = None,
+        parent=None,
+        children=None,
+    ):
         self.cfgs = cfgs
         self.dmap_index = dmap_index
         self.dmap_input = dmap_input
@@ -98,6 +108,7 @@ class Node(NodeMixin):
 @public
 class Tree:
     """A distinguishing tree."""
+
     maps: List[Map]
     root: Node
 
@@ -117,7 +128,7 @@ class Tree:
     def size(self) -> int:
         return self.root.size
 
-    def render(self) -> None:
+    def render(self) -> str:
         style = AbstractStyle("\u2502  ", "\u251c\u2500\u2500", "\u2514\u2500\u2500")
 
         def _str(n: Node):
@@ -126,16 +137,21 @@ class Tree:
                 return pre + "\n".join(str(cfg) for cfg in n.cfgs)
             else:
                 return pre + f"{n.dmap_index}({n.dmap_input})"
-        print(RenderTree(self.root, style=style).by_attr(_str))
 
-    def describe(self) -> None:
+        return RenderTree(self.root, style=style).by_attr(_str)
+
+    def describe(self) -> str:
         leaf_sizes = [len(leaf.cfgs) for leaf in self.leaves]
-        print(f"Total cfgs: {len(self.root.cfgs)}")
-        print(f"Depth: {self.height}")
-        print(f"Leaf sizes: {sorted(leaf_sizes)}")
-        print(f"Average leaf size: {np.mean(leaf_sizes):.3}")
-        leafs = sum(([size] * size for size in leaf_sizes), [])
-        print(f"Mean result size: {np.mean(leafs):.3}")
+        leafs: List[int] = sum(([size] * size for size in leaf_sizes), [])
+        return "\n".join(
+            (
+                f"Total cfgs: {len(self.root.cfgs)}",
+                f"Depth: {self.height}",
+                f"Leaf sizes: {sorted(leaf_sizes)}",
+                f"Average leaf size: {np.mean(leaf_sizes):.3}",
+                f"Mean result size: {np.mean(leafs):.3}",
+            )
+        )
 
     def expand(self, dmap: Map) -> "Tree":
         tree = deepcopy(self)
@@ -163,7 +179,7 @@ def _size_of_largest(split: pd.Series) -> float:
 
 
 def _average_size(split: pd.Series) -> float:
-    return sum(split ** 2)/sum(split)
+    return sum(split**2) / sum(split)
 
 
 def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> Node:
@@ -171,8 +187,9 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
     # Note that n_cfgs will never be 0 here, as the base case 2 returns if the cfgs cannot
     # be split into two sets (one would be empty).
     n_cfgs = len(cfgs)
+    ncfgs = set(cfgs)
     if n_cfgs == 1:
-        return Node(set(cfgs), response=response)
+        return Node(ncfgs, response=response)
 
     # Go over the maps and figure out which one splits the best.
     best_distinguishing_element = None
@@ -182,30 +199,30 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
     for dmap in maps:
         # Now we have a map, it may be binary or have larger output domain
         # Note we should look at the restriction of the map to the current "cfgs" and split those
-        restricted = dmap.mapping.filter(items=cfgs, axis=0)
+        restricted = dmap.mapping.loc[list(cfgs), :]  # .filter(items=cfgs, axis=0)
         for elem in dmap.mapping:
-            split = restricted[elem].value_counts(dropna=False)
+            split = restricted.loc[:, elem].value_counts(dropna=False)
             # XXX: Try the other scores.
-            # TODO: Abort here when the total best score is already reached early.
             score = _size_of_largest(split)
             if best_score is None or score < best_score:
                 best_distinguishing_element = elem
                 best_distinguishing_dmap = dmap
                 best_score = score
                 best_restricted = restricted
-            if score == ceil(n_cfgs / len(dmap.codomain)):
+            # Early abort if optimal score is hit. The +1 is for "None" values which are not in the codomain.
+            if score == ceil(n_cfgs / (len(dmap.codomain) + 1)):
                 break
 
     # Now we have a dmap as well as an element in it that splits the best.
     # Go over the groups of configs that share the response
-    groups = best_restricted.groupby(best_distinguishing_element, dropna=False)
+    groups = best_restricted.groupby(best_distinguishing_element, dropna=False)  # type: ignore
     # We found nothing distinguishing the configs, so return them all (base case 2).
     if groups.ngroups == 1:
-        return Node(set(cfgs), response=response)
+        return Node(ncfgs, response=response)
 
     # Create our node
     dmap_index = maps.index(best_distinguishing_dmap)
-    result = Node(set(cfgs), dmap_index, best_distinguishing_element, response=response)
+    result = Node(ncfgs, dmap_index, best_distinguishing_element, response=response)
 
     for output, group in groups:
         child = _build_tree(set(group.index), *maps, response=output)
