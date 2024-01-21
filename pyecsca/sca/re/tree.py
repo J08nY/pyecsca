@@ -51,10 +51,12 @@ class Map:
     """A distinguishing map."""
 
     mapping: pd.DataFrame
+    doman: List[Any]
     codomain: Set[Any]
 
-    def __init__(self, mapping: pd.DataFrame, codomain: Set[Any]):
+    def __init__(self, mapping: pd.DataFrame, domain: List[Any], codomain: Set[Any]):
         self.mapping = mapping
+        self.domain = domain
         self.codomain = codomain
 
     @classmethod
@@ -62,7 +64,7 @@ class Map:
         cfgs_l = list(cfgs)
         inputs_l = list(set().union(*mapping.values()))
         data = [[elem in mapping[cfg] for elem in inputs_l] for cfg in cfgs_l]
-        return Map(pd.DataFrame(data, index=cfgs_l, columns=inputs_l), {True, False})
+        return Map(pd.DataFrame(data, index=cfgs_l), inputs_l, {True, False})
 
     @classmethod
     def from_io_map(cls, cfgs: Set[Any], mapping: Mapping[Any, Mapping[Any, Any]]):
@@ -74,7 +76,7 @@ class Map:
             codomain.update(io_map.values())
         inputs_l = list(inputs)
         data = [[mapping[cfg].get(elem, None) for elem in inputs_l] for cfg in cfgs_l]
-        return Map(pd.DataFrame(data, index=cfgs_l, columns=inputs_l), codomain)
+        return Map(pd.DataFrame(data, index=cfgs_l), inputs_l, codomain)
 
 
 @public
@@ -192,7 +194,7 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
         return Node(ncfgs, response=response)
 
     # Go over the maps and figure out which one splits the best.
-    best_distinguishing_element = None
+    best_distinguishing_column = None
     best_distinguishing_dmap = None
     best_restricted = None
     best_score = None
@@ -200,12 +202,12 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
         # Now we have a map, it may be binary or have larger output domain
         # Note we should look at the restriction of the map to the current "cfgs" and split those
         restricted = dmap.mapping.loc[list(cfgs), :]  # .filter(items=cfgs, axis=0)
-        for elem in dmap.mapping:
-            split = restricted.loc[:, elem].value_counts(dropna=False)
+        for i, column in restricted.items():
+            split = column.value_counts(dropna=False)
             # XXX: Try the other scores.
             score = _size_of_largest(split)
             if best_score is None or score < best_score:
-                best_distinguishing_element = elem
+                best_distinguishing_column = i
                 best_distinguishing_dmap = dmap
                 best_score = score
                 best_restricted = restricted
@@ -213,9 +215,10 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
             if score == ceil(n_cfgs / (len(dmap.codomain) + 1)):
                 break
 
+    best_distinguishing_element = best_distinguishing_dmap.domain[best_distinguishing_column]
     # Now we have a dmap as well as an element in it that splits the best.
     # Go over the groups of configs that share the response
-    groups = best_restricted.groupby(best_distinguishing_element, dropna=False)  # type: ignore
+    groups = best_restricted.groupby(best_distinguishing_column, dropna=False)  # type: ignore
     # We found nothing distinguishing the configs, so return them all (base case 2).
     if groups.ngroups == 1:
         return Node(ncfgs, response=response)
