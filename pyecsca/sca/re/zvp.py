@@ -10,6 +10,11 @@ from astunparse import unparse
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
 from tqdm.auto import tqdm
 
+try:
+    import cypari2
+except ModuleNotFoundError:
+    pass
+
 from .rpa import MultipleContext
 from ...ec.context import local
 from ...ec.curve import EllipticCurve
@@ -499,24 +504,68 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
 def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
     points = set()
     final = subs_curve_params(xonly_polynomial, curve)
-    roots = final.ground_roots()
-    for root, multiplicity in roots.items():
+    if "cypari2" in dir():
+        pari = cypari2.Pari()
+        polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
+        roots = list(map(int, pari.polrootsmod(polynomial, curve.prime)))
+    else:
+        roots = final.ground_roots().keys()
+    for root in roots:
         points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
     return points
 
 
 def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     points = set()
-    # Substitute in the mult-by-k map
-    dlog = subs_dlog(xonly_polynomial, k, curve)
-    # Put in concrete curve parameters
-    final = subs_curve_params(dlog, curve)
-    # Find the roots (X1)
-    roots = final.ground_roots()
-    # Finally lift the roots to find the points (if any)
-    for root, multiplicity in roots.items():
+    if "cypari2" in dir():
+        roots = solve_hard_dcp_cypari(xonly_polynomial, curve, k)
+    else:
+        # Substitute in the mult-by-k map
+        dlog = subs_dlog(xonly_polynomial, k, curve)
+        # Put in concrete curve parameters
+        final = subs_curve_params(dlog, curve)
+        # Find the roots (X1)
+        roots = final.ground_roots().keys()
+        # Finally lift the roots to find the points (if any)
+    for root in roots:
         points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
     return points
+
+
+def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[int]:
+    a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
+    xonly_polynomial = subs_curve_params(xonly_polynomial, curve)
+
+    pari = cypari2.Pari()
+    e = pari.ellinit([a, b], curve.prime)
+    while True:
+        try:
+            mul = pari.ellxn(e, k)
+            break
+        except cypari2.PariError as e:
+            if e.errnum() == 17:  # out of stack memory
+                pari.allocatemem(0)
+            else:
+                raise e
+    x1, x2 = pari("x1"), pari("x2")
+    polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
+
+    polydeg = pari.poldegree(polynomial, x2)
+    subspoly = 0
+    x = pari("x")
+    num, den = pari.subst(mul[0], x, x1), pari.subst(mul[1], x, x1)
+    for deg in range(polydeg+1):
+        monomial = pari.polcoef(polynomial, deg, x2)
+        monomial *= polypower(pari, num, deg)
+        monomial *= polypower(pari, den, polydeg-deg)
+        subspoly += monomial
+    return set(map(int, pari.polrootsmod(subspoly, curve.prime)))
+
+
+def polypower(pari, polynomial, power):
+    g = pari("g")
+    gpower = pari(f"g^{power}")
+    return pari.subst(gpower, g, polynomial)
 
 
 def addition_chain(
