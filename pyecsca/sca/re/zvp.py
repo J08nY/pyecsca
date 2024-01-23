@@ -3,9 +3,11 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
+from contextlib import redirect_stdout, redirect_stderr
 from typing import List, Set, Tuple, Dict, Type, Mapping
 from public import public
 from astunparse import unparse
+import io
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
 from .rpa import MultipleContext
@@ -538,17 +540,18 @@ def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) 
     a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
     xonly_polynomial = subs_curve_params(xonly_polynomial, curve)
 
+    # k^2 * degree
+    # k=25, deg=6, 128bit -> 3765, a 20MB
+    # k=32, deg=6, 128bit -> 6150, a 32MB
+    # k=10, deg=6, 128bit -> 606, a 4MB
+    outdegree = k**2 * xonly_polynomial.degree()
+    stacksize = 2 * (outdegree * (40 * curve.prime.bit_length()))
+    stacksizemax = 2 * stacksize
+
     pari = cypari2.Pari()
+    pari.allocatemem(stacksize, stacksizemax)
     e = pari.ellinit([a, b], curve.prime)
-    while True:
-        try:
-            mul = pari.ellxn(e, k)
-            break
-        except cypari2.PariError as e:
-            if e.errnum() == 17:  # out of stack memory
-                pari.allocatemem(0)
-            else:
-                raise e
+    mul = pari.ellxn(e, k)
     x1, x2 = pari("x1"), pari("x2")
     polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
 
@@ -561,7 +564,8 @@ def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) 
         monomial *= polypower(pari, num, deg)
         monomial *= polypower(pari, den, polydeg-deg)
         subspoly += monomial
-    return set(map(int, pari.polrootsmod(subspoly, curve.prime)))
+    res = set(map(int, pari.polrootsmod(subspoly, curve.prime)))
+    return res
 
 
 def polypower(pari, polynomial, power):

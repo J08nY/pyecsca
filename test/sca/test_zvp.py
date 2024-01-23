@@ -292,3 +292,11 @@ def test_precomp(small_params):
     )
     assert res is not None
     assert len(res) == len(chain)
+
+
+@pytest.mark.parametrize("k", [7, 25, 31])
+def test_big_boy(secp128r1, k):
+    poly_expr = sympify("x1*x2 + y1*y2")
+    poly = Poly(poly_expr, domain=FF(secp128r1.curve.prime))
+    res = zvp_points(poly, secp128r1.curve, k, secp128r1.order)
+    assert res is not None
