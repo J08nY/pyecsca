@@ -8,13 +8,6 @@ from public import public
 from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
-from tqdm.auto import tqdm
-
-try:
-    import cypari2
-except ModuleNotFoundError:
-    pass
-
 from .rpa import MultipleContext
 from ...ec.context import local
 from ...ec.curve import EllipticCurve
@@ -32,6 +25,15 @@ from ...ec.mod import Mod
 from ...ec.mult import ScalarMultiplier
 from ...ec.params import DomainParameters
 from ...ec.point import Point
+
+
+has_pari = False
+try:
+    import cypari2
+
+    has_pari = True
+except ImportError:
+    cypari2 = None
 
 
 @public
@@ -504,7 +506,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
 def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
     points = set()
     final = subs_curve_params(xonly_polynomial, curve)
-    if "cypari2" in dir():
+    if has_pari:
         pari = cypari2.Pari()
         polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
         roots = list(map(int, pari.polrootsmod(polynomial, curve.prime)))
@@ -517,7 +519,7 @@ def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
 
 def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     points = set()
-    if "cypari2" in dir():
+    if has_pari:
         roots = solve_hard_dcp_cypari(xonly_polynomial, curve, k)
     else:
         # Substitute in the mult-by-k map
