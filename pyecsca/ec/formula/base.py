@@ -1,14 +1,14 @@
 """Provides an abstract base class of a formula."""
-from abc import ABC, abstractmethod
+from abc import ABC
 from ast import Expression
 from functools import cached_property
 from itertools import product
 
 from astunparse import unparse
-from typing import List, Set, Any, ClassVar, MutableMapping, Tuple, Union, Dict
+from typing import List, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from public import public
-from sympy import FF, symbols, Poly, Rational, simplify
+from sympy import FF, symbols, Poly, Rational
 
 from ..context import ResultAction
 from .. import context
@@ -17,7 +17,7 @@ from ..mod import Mod, SymbolicMod
 from ..op import CodeOp, OpType
 from ...misc.cfg import getconfig
 from ...misc.utils import peval
-from ...misc.cache import sympify
+from ...misc.cache import sympify, simplify
 
 
 @public
