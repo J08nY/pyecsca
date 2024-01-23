@@ -508,7 +508,7 @@ def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
     final = subs_curve_params(xonly_polynomial, curve)
     if has_pari:
         pari = cypari2.Pari()
-        polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
+        polynomial = pari(str(final.expr).replace("**", "^"))
         roots = list(map(int, pari.polrootsmod(polynomial, curve.prime)))
     else:
         roots = final.ground_roots().keys()
