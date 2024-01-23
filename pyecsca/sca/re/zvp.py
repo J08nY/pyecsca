@@ -8,8 +8,6 @@ from public import public
 from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
-from tqdm.auto import tqdm
-
 from .rpa import MultipleContext
 from ...ec.context import local
 from ...ec.curve import EllipticCurve
@@ -27,6 +25,15 @@ from ...ec.mod import Mod
 from ...ec.mult import ScalarMultiplier
 from ...ec.params import DomainParameters
 from ...ec.point import Point
+
+
+has_pari = False
+try:
+    import cypari2
+
+    has_pari = True
+except ImportError:
+    cypari2 = None
 
 
 @public
@@ -464,53 +471,103 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
     # Now decide on the special case:
     if only_1:
         # if only_1, dlog sub is not necessary, also computing the other point is not necessary
-        final = subs_curve_params(eliminated, curve)
-        roots = final.ground_roots()
-        for root, multiplicity in roots.items():
-            pt = curve.affine_lift_x(Mod(int(root), curve.prime))
-            for point in pt:
-                inputs = {"x1": point.x, "y1": point.y, **curve.parameters}
-                res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
-                if res == 0:
-                    points.add(point)
+        for point in solve_easy_dcp(eliminated, curve):
+            inputs = {"x1": point.x, "y1": point.y, **curve.parameters}
+            res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
+            if res == 0:
+                points.add(point)
     elif only_2:
         # if only_2, dlog sub is not necessary, then multiply with k_inverse to obtain target point
-        final = subs_curve_params(eliminated, curve)
-        roots = final.ground_roots()
         k_inv = Mod(k, n).inverse()
-        for root, multiplicity in roots.items():
-            pt = curve.affine_lift_x(Mod(int(root), curve.prime))
-            for point in pt:
-                inputs = {"x2": point.x, "y2": point.y, **curve.parameters}
-                res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
-                if res == 0:
-                    one = curve.affine_multiply(point, int(k_inv))
-                    points.add(one)
+        for point in solve_easy_dcp(eliminated, curve):
+            inputs = {"x2": point.x, "y2": point.y, **curve.parameters}
+            res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
+            if res == 0:
+                one = curve.affine_multiply(point, int(k_inv))
+                points.add(one)
     else:
         # otherwise we need to sub in the dlog and solve the general case
+        for point in solve_hard_dcp(eliminated, curve, k):
+            # Check that the points zero out the original polynomial to filter out erroneous candidates
+            other = curve.affine_multiply(point, k)
+            inputs = {
+                "x1": point.x,
+                "y1": point.y,
+                "x2": other.x,
+                "y2": other.y,
+                **curve.parameters,
+            }
+            res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
+            if res == 0:
+                points.add(point)
+    return points
+
+
+def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
+    points = set()
+    final = subs_curve_params(xonly_polynomial, curve)
+    if has_pari:
+        pari = cypari2.Pari()
+        polynomial = pari(str(final.expr).replace("**", "^"))
+        roots = list(map(int, pari.polrootsmod(polynomial, curve.prime)))
+    else:
+        roots = final.ground_roots().keys()
+    for root in roots:
+        points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
+    return points
+
+
+def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
+    points = set()
+    if has_pari:
+        roots = solve_hard_dcp_cypari(xonly_polynomial, curve, k)
+    else:
         # Substitute in the mult-by-k map
-        dlog = subs_dlog(eliminated, k, curve)
+        dlog = subs_dlog(xonly_polynomial, k, curve)
         # Put in concrete curve parameters
         final = subs_curve_params(dlog, curve)
         # Find the roots (X1)
-        roots = final.ground_roots()
+        roots = final.ground_roots().keys()
         # Finally lift the roots to find the points (if any)
-        for root, multiplicity in roots.items():
-            pt = curve.affine_lift_x(Mod(int(root), curve.prime))
-            # Check that the points zero out the original polynomial to filter out erroneous candidates
-            for point in pt:
-                other = curve.affine_multiply(point, k)
-                inputs = {
-                    "x1": point.x,
-                    "y1": point.y,
-                    "x2": other.x,
-                    "y2": other.y,
-                    **curve.parameters,
-                }
-                res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
-                if res == 0:
-                    points.add(point)
+    for root in roots:
+        points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
     return points
+
+
+def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[int]:
+    a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
+    xonly_polynomial = subs_curve_params(xonly_polynomial, curve)
+
+    pari = cypari2.Pari()
+    e = pari.ellinit([a, b], curve.prime)
+    while True:
+        try:
+            mul = pari.ellxn(e, k)
+            break
+        except cypari2.PariError as e:
+            if e.errnum() == 17:  # out of stack memory
+                pari.allocatemem(0)
+            else:
+                raise e
+    x1, x2 = pari("x1"), pari("x2")
+    polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
+
+    polydeg = pari.poldegree(polynomial, x2)
+    subspoly = 0
+    x = pari("x")
+    num, den = pari.subst(mul[0], x, x1), pari.subst(mul[1], x, x1)
+    for deg in range(polydeg+1):
+        monomial = pari.polcoef(polynomial, deg, x2)
+        monomial *= polypower(pari, num, deg)
+        monomial *= polypower(pari, den, polydeg-deg)
+        subspoly += monomial
+    return set(map(int, pari.polrootsmod(subspoly, curve.prime)))
+
+
+def polypower(pari, polynomial, power):
+    g = pari("g")
+    gpower = pari(f"g^{power}")
+    return pari.subst(gpower, g, polynomial)
 
 
 def addition_chain(

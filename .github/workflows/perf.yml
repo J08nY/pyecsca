@@ -6,23 +6,23 @@ env:
   LLVM_CONFIG: /usr/bin/llvm-config-10
   PS_PACKAGES: libps4000 libps5000 libps6000
   GMP_PACKAGES: libgmp-dev libmpfr-dev libmpc-dev
-  OTHER_PACKAGES: swig gcc libpcsclite-dev llvm-10 libllvm10 llvm-10-dev
+  OTHER_PACKAGES: swig gcc libpcsclite-dev llvm-10 libllvm10 llvm-10-dev libpari-dev pari-gp pari-seadata
 
 jobs:
   perf:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ["3.8", "3.9"]
+        python-version: ["3.9", "3.10"]
         gmp: [0, 1]
     env:
       PYTHON: ${{ matrix.python-version }}
       USE_GMP: ${{ matrix.gmp }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: pip-${{ runner.os }}-${{ matrix.gmp }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
@@ -31,7 +31,7 @@ jobs:
             pip-${{ runner.os }}-${{ matrix.gmp }}-
             pip-${{ runner.os }}-
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Add picoscope repository
@@ -53,8 +53,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip setuptools wheel
-          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, test, dev]"; fi
-          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, test, dev]"; fi
+          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, gmp, test, dev]"; fi
+          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, test, dev]"; fi
       - name: Perf
         run: |
           make perf

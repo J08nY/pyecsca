@@ -19,18 +19,19 @@
     "License :: OSI Approved :: MIT License",
     "Topic :: Security",
     "Topic :: Security :: Cryptography",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research"
   ]
-  requires-python = ">=3.8"
+  requires-python = ">=3.9"
   dependencies = [
     "numpy==1.24.4",
     "scipy",
     "sympy>=1.7.1",
+    "pandas",
     "atpublic",
     "cython",
     "fastdtw",
@@ -81,7 +82,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 filterwarnings = [
-    "ignore:Deprecated call to `pkg_resources.declare_namespace"
+    "ignore:Deprecated call to `pkg_resources.declare_namespace",
+    "ignore:(?s).*Pyarrow will become a required dependency of pandas:DeprecationWarning", # pandas pyarrow (pandas<3.0),
 ]
 
 [tool.mypy]

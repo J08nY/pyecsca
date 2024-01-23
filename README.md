@@ -34,6 +34,7 @@ It is currently in an alpha stage of development and thus only provides:
  - [Numpy](https://www.numpy.org/)
  - [Scipy](https://www.scipy.org/)
  - [sympy](https://sympy.org/)
+ - [pandas](https://pandas.pydata.org/)
  - [atpublic](https://public.readthedocs.io/)
  - [fastdtw](https://github.com/slaypni/fastdtw)
  - [asn1crypto](https://github.com/wbond/asn1crypto)
