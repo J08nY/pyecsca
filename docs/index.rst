@@ -126,6 +126,7 @@ Requirements
      - Numpy_
      - Scipy_
      - sympy_
+     - pandas_
      - atpublic_
      - fastdtw_
      - asn1crypto_
@@ -220,6 +221,7 @@ Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <htt
 .. _Numpy: https://www.numpy.org
 .. _Scipy: https://www.scipy.org
 .. _sympy: https://sympy.org/
+.. _pandas: https://pandas.pydata.org/
 .. _matplotlib: https://matplotlib.org/
 .. _atpublic: https://public.readthedocs.io/
 .. _fastdtw: https://github.com/slaypni/fastdtw
