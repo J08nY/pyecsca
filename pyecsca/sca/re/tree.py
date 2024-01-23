@@ -189,9 +189,9 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
     # Note that n_cfgs will never be 0 here, as the base case 2 returns if the cfgs cannot
     # be split into two sets (one would be empty).
     n_cfgs = len(cfgs)
-    ncfgs = set(cfgs)
+    cfgset = set(cfgs)
     if n_cfgs == 1:
-        return Node(ncfgs, response=response)
+        return Node(cfgset, response=response)
 
     # Go over the maps and figure out which one splits the best.
     best_distinguishing_column = None
@@ -214,18 +214,23 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
             # Early abort if optimal score is hit. The +1 is for "None" values which are not in the codomain.
             if score == ceil(n_cfgs / (len(dmap.codomain) + 1)):
                 break
+    # We found nothing distinguishing the configs, so return them all (base case 2).
+    if best_distinguishing_column is None or best_distinguishing_dmap is None:
+        return Node(cfgset, response=response)
 
-    best_distinguishing_element = best_distinguishing_dmap.domain[best_distinguishing_column]
+    best_distinguishing_element = best_distinguishing_dmap.domain[
+        best_distinguishing_column
+    ]
     # Now we have a dmap as well as an element in it that splits the best.
     # Go over the groups of configs that share the response
     groups = best_restricted.groupby(best_distinguishing_column, dropna=False)  # type: ignore
     # We found nothing distinguishing the configs, so return them all (base case 2).
     if groups.ngroups == 1:
-        return Node(ncfgs, response=response)
+        return Node(cfgset, response=response)
 
     # Create our node
     dmap_index = maps.index(best_distinguishing_dmap)
-    result = Node(ncfgs, dmap_index, best_distinguishing_element, response=response)
+    result = Node(cfgset, dmap_index, best_distinguishing_element, response=response)
 
     for output, group in groups:
         child = _build_tree(set(group.index), *maps, response=output)
