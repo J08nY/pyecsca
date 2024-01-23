@@ -19,14 +19,13 @@
     "License :: OSI Approved :: MIT License",
     "Topic :: Security",
     "Topic :: Security :: Cryptography",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research"
   ]
-  requires-python = ">=3.8"
+  requires-python = ">=3.9"
   dependencies = [
     "numpy==1.24.4",
     "scipy",
