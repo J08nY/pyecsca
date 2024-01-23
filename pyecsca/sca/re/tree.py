@@ -212,6 +212,7 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
                 best_score = score
                 best_restricted = restricted
             # Early abort if optimal score is hit. The +1 is for "None" values which are not in the codomain.
+            # TODO: Move the None to the codomain and ditch the +1 as some codomains may not have it (complete).
             if score == ceil(n_cfgs / (len(dmap.codomain) + 1)):
                 break
     # We found nothing distinguishing the configs, so return them all (base case 2).

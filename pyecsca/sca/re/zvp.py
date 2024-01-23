@@ -511,6 +511,11 @@ def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
     if has_pari:
         pari = cypari2.Pari()
         polynomial = pari(str(final.expr).replace("**", "^"))
+        if final.degree() == 0:
+            if final.is_zero:
+                # TODO: When the polynomial is zero, sympy does not give any roots, we want to return the generator.
+                pass
+            return set()
         roots = list(map(int, pari.polrootsmod(polynomial, curve.prime)))
     else:
         roots = final.ground_roots().keys()
@@ -531,40 +536,51 @@ def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[
         # Find the roots (X1)
         roots = final.ground_roots().keys()
         # Finally lift the roots to find the points (if any)
+        # TODO: When the polynomial is zero, sympy does not give any roots, we want to return the generator.
     for root in roots:
         points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
     return points
 
 
 def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[int]:
-    a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
-    xonly_polynomial = subs_curve_params(xonly_polynomial, curve)
+    try:
+        a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
+        xonly_polynomial = subs_curve_params(xonly_polynomial, curve)
 
-    # k^2 * degree
-    # k=25, deg=6, 128bit -> 3765, a 20MB
-    # k=32, deg=6, 128bit -> 6150, a 32MB
-    # k=10, deg=6, 128bit -> 606, a 4MB
-    outdegree = k**2 * xonly_polynomial.degree()
-    stacksize = 2 * (outdegree * (40 * curve.prime.bit_length()))
-    stacksizemax = 2 * stacksize
+        # k^2 * degree
+        # k=25, deg=6, 128bit -> 3765, a 20MB
+        # k=32, deg=6, 128bit -> 6150, a 32MB
+        # k=10, deg=6, 128bit -> 606, a 4MB
+        outdegree = k**2 * xonly_polynomial.degree()
+        # TODO: When can outdegree be 0?
+        # Magic heuristic, plus some constant term for very small polys
+        stacksize = 2 * (outdegree * (40 * curve.prime.bit_length())) + 1000000
+        stacksizemax = 15 * stacksize
 
-    pari = cypari2.Pari()
-    pari.allocatemem(stacksize, stacksizemax)
-    e = pari.ellinit([a, b], curve.prime)
-    mul = pari.ellxn(e, k)
-    x1, x2 = pari("x1"), pari("x2")
-    polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
+        pari = cypari2.Pari()
+        pari.allocatemem(stacksize, stacksizemax, silent=True)
+        e = pari.ellinit([a, b], curve.prime)
+        mul = pari.ellxn(e, k)
+        x1, x2 = pari("x1"), pari("x2")
+        polynomial = pari(str(xonly_polynomial.expr).replace("**", "^"))
 
-    polydeg = pari.poldegree(polynomial, x2)
-    subspoly = 0
-    x = pari("x")
-    num, den = pari.subst(mul[0], x, x1), pari.subst(mul[1], x, x1)
-    for deg in range(polydeg+1):
-        monomial = pari.polcoef(polynomial, deg, x2)
-        monomial *= polypower(pari, num, deg)
-        monomial *= polypower(pari, den, polydeg-deg)
-        subspoly += monomial
-    res = set(map(int, pari.polrootsmod(subspoly, curve.prime)))
+        polydeg = pari.poldegree(polynomial, x2)
+        subspoly = 0
+        x = pari("x")
+        num, den = pari.subst(mul[0], x, x1), pari.subst(mul[1], x, x1)
+        for deg in range(polydeg+1):
+            monomial = pari.polcoef(polynomial, deg, x2)
+            monomial *= polypower(pari, num, deg)
+            monomial *= polypower(pari, den, polydeg-deg)
+            subspoly += monomial
+        if subspoly == pari.zero():
+            # TODO: Return the generator here when the API changes.
+            return set()
+        res = set(map(int, pari.polrootsmod(subspoly, curve.prime)))
+    except cypari2.PariError as err:
+        raise ValueError("PariError " + err.errtext())
+    except Exception as err:
+        raise ValueError(str(err))
     return res
 
 

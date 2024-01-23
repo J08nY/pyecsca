@@ -18,7 +18,7 @@ from pyecsca.sca.re.zvp import (
     zvp_points,
     compute_factor_set,
     addition_chain,
-    precomp_zvp_points,
+    precomp_zvp_points, solve_easy_dcp,
 )
 from pyecsca.ec.context import local, DefaultContext
 from sympy import symbols, Poly, sympify, FF
@@ -299,4 +299,12 @@ def test_big_boy(secp128r1, k):
     poly_expr = sympify("x1*x2 + y1*y2")
     poly = Poly(poly_expr, domain=FF(secp128r1.curve.prime))
     res = zvp_points(poly, secp128r1.curve, k, secp128r1.order)
+    assert res is not None
+
+
+@pytest.mark.parametrize("numero", [1, 0])
+def test_small_boy(secp128r1, numero):
+    x = symbols("x1")
+    poly = Poly(numero, x, domain=FF(secp128r1.curve.prime))
+    res = solve_easy_dcp(poly, secp128r1.curve)
     assert res is not None
