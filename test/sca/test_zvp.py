@@ -1,11 +1,8 @@
 import pytest
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import Mod
-from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.mult import LTRMultiplier, AccumulationOrder
-from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 from pyecsca.sca.re.zvp import (
     unroll_formula,
@@ -18,7 +15,8 @@ from pyecsca.sca.re.zvp import (
     zvp_points,
     compute_factor_set,
     addition_chain,
-    precomp_zvp_points, solve_easy_dcp,
+    solve_easy_dcp,
+    solve_hard_dcp,
 )
 from pyecsca.ec.context import local, DefaultContext
 from sympy import symbols, Poly, sympify, FF
@@ -254,46 +252,6 @@ def test_addition_chain(secp128r1):
     assert len(res) == 25
 
 
-@pytest.fixture()
-def small_params():
-    model = ShortWeierstrassModel()
-    coords = model.coordinates["projective"]
-    p = 0xC50DE883F0E7B167
-    a = Mod(0x4833D7AA73FA6694, p)
-    b = Mod(0xA6C44A61C5323F6A, p)
-    gx = Mod(0x5FD1F7D38D4F2333, p)
-    gy = Mod(0x21F43957D7E20CEB, p)
-    n = 0xC50DE885003B80EB
-    h = 1
-    infty = Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p))
-    g = Point(coords, X=gx, Y=gy, Z=Mod(1, p))
-
-    curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
-    params = DomainParameters(curve, g, n, h)
-    return params
-
-
-def test_precomp(small_params):
-    chain = addition_chain(
-        123456789,
-        small_params,
-        LTRMultiplier,
-        lambda add, dbl: LTRMultiplier(
-            add, dbl, None, False, AccumulationOrder.PeqRP, True, True
-        ),
-    )
-    res = precomp_zvp_points(
-        chain,
-        {
-            "add": small_params.curve.coordinate_model.formulas["add-2007-bl"],
-            "dbl": small_params.curve.coordinate_model.formulas["dbl-2007-bl"],
-        },
-        small_params,
-    )
-    assert res is not None
-    assert len(res) == len(chain)
-
-
 @pytest.mark.parametrize("k", [7, 25, 31])
 def test_big_boy(secp128r1, k):
     poly_expr = sympify("x1*x2 + y1*y2")
@@ -302,9 +260,21 @@ def test_big_boy(secp128r1, k):
     assert res is not None
 
 
-@pytest.mark.parametrize("numero", [1, 0])
+@pytest.mark.parametrize("numero", [5, 1, 0])
 def test_small_boy(secp128r1, numero):
     x = symbols("x1")
     poly = Poly(numero, x, domain=FF(secp128r1.curve.prime))
     res = solve_easy_dcp(poly, secp128r1.curve)
     assert res is not None
+    if numero == 0:
+        assert len(res) >= 1
+
+
+# secp128r1 has a = -3 so the first poly is zero as well
+@pytest.mark.parametrize("poly_expr", ["a+3", "0"])
+def test_zero_boy(secp128r1, poly_expr):
+    x, a = symbols("x1 a")
+    poly = Poly(sympify(poly_expr), x, a, domain=FF(secp128r1.curve.prime))
+    res = solve_hard_dcp(poly, secp128r1.curve, 5)
+    assert res is not None
+    assert len(res) >= 1

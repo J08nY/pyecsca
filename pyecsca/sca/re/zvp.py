@@ -205,7 +205,9 @@ def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) 
 
 
 @public
-def compute_factor_set(formula: Formula, affine: bool = True, filter_nonhomo: bool = True) -> Set[Poly]:
+def compute_factor_set(
+    formula: Formula, affine: bool = True, filter_nonhomo: bool = True
+) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
 
@@ -505,20 +507,30 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
     return points
 
 
+def _deterministic_point_x(curve: EllipticCurve) -> int:
+    x = Mod(1, curve.prime)
+    while True:
+        points = curve.affine_lift_x(x)
+        if points:
+            return int(x)
+        x += 1
+
+
 def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
     points = set()
     final = subs_curve_params(xonly_polynomial, curve)
-    if has_pari:
+    # Solve either via pari or if not available sympy.
+    if final.is_zero:
+        roots = {_deterministic_point_x(curve)}
+    elif final.total_degree() == 0:
+        roots = set()
+    elif has_pari:
         pari = cypari2.Pari()
         polynomial = pari(str(final.expr).replace("**", "^"))
-        if final.degree() == 0:
-            if final.is_zero:
-                # TODO: When the polynomial is zero, sympy does not give any roots, we want to return the generator.
-                pass
-            return set()
-        roots = list(map(int, pari.polrootsmod(polynomial, curve.prime)))
+        roots = set(map(int, pari.polrootsmod(polynomial, curve.prime)))
     else:
         roots = final.ground_roots().keys()
+
     for root in roots:
         points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
     return points
@@ -526,6 +538,7 @@ def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
 
 def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
     points = set()
+    # Solve either via pari or if not available sympy.
     if has_pari:
         roots = solve_hard_dcp_cypari(xonly_polynomial, curve, k)
     else:
@@ -533,26 +546,32 @@ def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[
         dlog = subs_dlog(xonly_polynomial, k, curve)
         # Put in concrete curve parameters
         final = subs_curve_params(dlog, curve)
-        # Find the roots (X1)
-        roots = final.ground_roots().keys()
-        # Finally lift the roots to find the points (if any)
-        # TODO: When the polynomial is zero, sympy does not give any roots, we want to return the generator.
+        if final.is_zero:
+            roots = {_deterministic_point_x(curve)}
+        else:
+            # Find the roots (X1)
+            roots = final.ground_roots().keys()
+
+    # Finally lift the roots to find the points (if any)
     for root in roots:
         points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
     return points
 
 
-def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[int]:
+def solve_hard_dcp_cypari(
+    xonly_polynomial: Poly, curve: EllipticCurve, k: int
+) -> Set[int]:
     try:
         a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
         xonly_polynomial = subs_curve_params(xonly_polynomial, curve)
+        if xonly_polynomial.is_zero:
+            return {_deterministic_point_x(curve)}
 
         # k^2 * degree
         # k=25, deg=6, 128bit -> 3765, a 20MB
         # k=32, deg=6, 128bit -> 6150, a 32MB
         # k=10, deg=6, 128bit -> 606, a 4MB
-        outdegree = k**2 * xonly_polynomial.degree()
-        # TODO: When can outdegree be 0?
+        outdegree = k**2 * xonly_polynomial.total_degree()
         # Magic heuristic, plus some constant term for very small polys
         stacksize = 2 * (outdegree * (40 * curve.prime.bit_length())) + 1000000
         stacksizemax = 15 * stacksize
@@ -568,14 +587,13 @@ def solve_hard_dcp_cypari(xonly_polynomial: Poly, curve: EllipticCurve, k: int) 
         subspoly = 0
         x = pari("x")
         num, den = pari.subst(mul[0], x, x1), pari.subst(mul[1], x, x1)
-        for deg in range(polydeg+1):
+        for deg in range(polydeg + 1):
             monomial = pari.polcoef(polynomial, deg, x2)
-            monomial *= polypower(pari, num, deg)
-            monomial *= polypower(pari, den, polydeg-deg)
+            monomial *= num**deg
+            monomial *= den**(polydeg - deg)
             subspoly += monomial
         if subspoly == pari.zero():
-            # TODO: Return the generator here when the API changes.
-            return set()
+            return {_deterministic_point_x(curve)}
         res = set(map(int, pari.polrootsmod(subspoly, curve.prime)))
     except cypari2.PariError as err:
         raise ValueError("PariError " + err.errtext())
