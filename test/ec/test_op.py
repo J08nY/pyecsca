@@ -1,6 +1,8 @@
 from ast import parse
 
 import pytest
+
+from pyecsca.ec.formula import OpResult
 from pyecsca.ec.mod import Mod
 from pyecsca.ec.op import CodeOp, OpType
 
@@ -27,4 +29,11 @@ def test_call(name, module, locals, result):
     res = op(**locals)
     assert res == result
 
-# TODO: Add op_type tests
+
+def test_opresult_repr():
+    res = OpResult("a", Mod(7, 11), OpType.Neg, "b")
+    assert repr(res) == "a = -b"
+    res = OpResult("a", Mod(5, 7), OpType.Add, "c", 3)
+    assert repr(res) == "a = c+3"
+    res = OpResult("a", Mod(3, 11), OpType.Inv, "d")
+    assert repr(res) == "a = 1/d"
