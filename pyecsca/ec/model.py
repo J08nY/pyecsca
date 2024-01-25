@@ -31,6 +31,7 @@ class CurveModel:
 
 class EFDCurveModel(CurveModel):
     """A curve model from [EFD]_ data."""
+
     _efd_name: str
     _loaded: bool = False
 
@@ -39,6 +40,9 @@ class EFDCurveModel(CurveModel):
         self.shortname = efd_name
         if self._loaded:
             return
+        self.__load(efd_name)
+
+    def __load(self, efd_name: str):
         self.__class__._loaded = True
         self.__class__.coordinates = {}
         self.__class__.parameter_names = []
@@ -54,7 +58,9 @@ class EFDCurveModel(CurveModel):
         for entry in files("pyecsca.ec").joinpath("efd", efd_name).iterdir():
             with as_file(entry) as file_path:
                 if entry.is_dir():
-                    self.__read_coordinate_dir(self.__class__, file_path, file_path.stem)
+                    self.__read_coordinate_dir(
+                        self.__class__, file_path, file_path.stem
+                    )
                 else:
                     self.__read_curve_file(self.__class__, file_path)
 
@@ -97,6 +103,14 @@ class EFDCurveModel(CurveModel):
         if not isinstance(other, EFDCurveModel):
             return False
         return self._efd_name == other._efd_name
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        if not self.__class__._loaded:
+            self.__load(state["_efd_name"])
+        self.__dict__.update(state)
 
     def __hash__(self):
         return hash(self._efd_name)

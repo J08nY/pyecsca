@@ -1,6 +1,5 @@
 """Provides a coordinate model class."""
 from ast import parse, Module
-from astunparse import unparse
 from importlib_resources.abc import Traversable
 from importlib_resources import as_file
 from typing import List, Any, MutableMapping
@@ -18,7 +17,6 @@ from .formula.efd import (
     ScalingEFDFormula,
     NegationEFDFormula,
 )
-from ..misc.utils import pexec
 
 
 @public
@@ -59,23 +57,6 @@ class CoordinateModel:
             f'{self.__class__.__name__}("{self.name}", curve_model={self.curve_model})'
         )
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state["satisfying"] = list(map(unparse, state["satisfying"]))
-        state["toaffine"] = list(map(unparse, state["toaffine"]))
-        state["tosystem"] = list(map(unparse, state["tosystem"]))
-        state["assumptions"] = list(map(unparse, state["assumptions"]))
-        state["neutral"] = list(map(unparse, state["neutral"]))
-        return state
-
-    def __setstate__(self, state):
-        state["satisfying"] = list(map(pexec, state["satisfying"]))
-        state["toaffine"] = list(map(pexec, state["toaffine"]))
-        state["tosystem"] = list(map(pexec, state["tosystem"]))
-        state["assumptions"] = list(map(pexec, state["assumptions"]))
-        state["neutral"] = list(map(pexec, state["neutral"]))
-        self.__dict__.update(state)
-
 
 @public
 class AffineCoordinateModel(CoordinateModel):
@@ -104,6 +85,12 @@ class AffineCoordinateModel(CoordinateModel):
 
 class EFDCoordinateModel(CoordinateModel):
     """A coordinate model from [EFD]_ data."""
+
+    def __new__(cls, *args, **kwargs):
+        _, name, curve_model = args
+        if name in curve_model.coordinates:
+            return curve_model.coordinates[name]
+        return object.__new__(cls)
 
     def __init__(self, dir_path: Traversable, name: str, curve_model: Any):
         self.name = name
@@ -188,6 +175,12 @@ class EFDCoordinateModel(CoordinateModel):
                         parse(line[7:].replace("^", "**"), mode="exec")
                     )
                 line = f.readline().decode("ascii").rstrip()
+
+    def __getnewargs__(self):
+        return None, self.name, self.curve_model
+
+    def __getstate__(self):
+        return {}
 
     def __eq__(self, other):
         if not isinstance(other, EFDCoordinateModel):

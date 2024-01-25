@@ -1,29 +1,29 @@
 from typing import Dict, Iterator, List, Any
 from ast import parse
 from ..op import OpType, CodeOp
-from .graph import EFDFormulaGraph, ConstantNode, Node, CodeOpNode
+from .base import Formula
+from .graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
 from itertools import chain, combinations
-from .efd import EFDFormula
 from ..point import Point
 from ..mod import Mod
 
 
 def generate_switched_formulas(
-    formula: EFDFormula, rename=True
-) -> Iterator[EFDFormula]:
-    graph = EFDFormulaGraph(formula, rename)
+    formula: Formula, rename=True
+) -> Iterator[CodeFormula]:
+    graph = FormulaGraph(formula, rename)
     for node_combination in subnode_lists(graph):
         try:
-            yield switch_sign(graph, node_combination).to_EFDFormula()
+            yield switch_sign(graph, node_combination).to_formula()
         except BadSignSwitch:
             continue
 
 
-def subnode_lists(graph: EFDFormulaGraph):
+def subnode_lists(graph: FormulaGraph):
     return powerlist(filter(lambda x: x not in graph.roots and x.is_sub, graph.nodes))
 
 
-def switch_sign(graph: EFDFormulaGraph, node_combination) -> EFDFormulaGraph:
+def switch_sign(graph: FormulaGraph, node_combination) -> FormulaGraph:
     nodes_i = [graph.node_index(node) for node in node_combination]
     graph = graph.deepcopy()
     node_combination = set(graph.nodes[node_i] for node_i in nodes_i)

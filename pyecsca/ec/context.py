@@ -244,6 +244,7 @@ current: Optional[Context] = None
 
 class _ContextManager:
     def __init__(self, new_context):
+        # TODO: Is this deepcopy a good idea?
         self.new_context = deepcopy(new_context)
 
     def __enter__(self) -> Optional[Context]:

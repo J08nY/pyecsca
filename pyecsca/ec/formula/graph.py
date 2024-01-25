@@ -1,14 +1,17 @@
-from .efd import (
-    EFDFormula,
-    DoublingEFDFormula,
-    AdditionEFDFormula,
-    LadderEFDFormula,
-    DifferentialAdditionEFDFormula,
+from . import (
+    Formula,
+    AdditionFormula,
+    DoublingFormula,
+    LadderFormula,
+    TriplingFormula,
+    NegationFormula,
+    ScalingFormula,
+    DifferentialAdditionFormula,
 )
 from ..op import CodeOp, OpType
 import matplotlib.pyplot as plt
 import networkx as nx
-from ast import parse
+from ast import parse, Expression
 from typing import Dict, List, Tuple, Set, Optional, MutableMapping, Any
 from copy import deepcopy
 from abc import ABC, abstractmethod
@@ -194,7 +197,7 @@ class InputNode(Node):
         return f"Node({self.input})"
 
 
-def formula_input_variables(formula: EFDFormula) -> List[str]:
+def formula_input_variables(formula: Formula) -> List[str]:
     return (
         list(formula.inputs)
         + formula.parameters
@@ -202,43 +205,71 @@ def formula_input_variables(formula: EFDFormula) -> List[str]:
     )
 
 
-# temporary solution
-class ModifiedEFDFormula(EFDFormula):
+class CodeFormula(Formula):
+    def __init__(self, name, code, coordinate_model, parameters, assumptions):
+        self.name = name
+        self.coordinate_model = coordinate_model
+        self.meta = {}
+        self.parameters = parameters
+        self.assumptions = assumptions
+        self.code = code
+        self.unified = False
+
+    def __hash__(self):
+        return hash((self.name, self.coordinate_model, tuple(self.code), tuple(self.parameters), tuple(self.assumptions)))
+
     def __eq__(self, other):
-        if not isinstance(other, ModifiedEFDFormula):
+        if not isinstance(other, CodeFormula):
             return False
         return (
-            self.name == other.name and self.coordinate_model == other.coordinate_model and self.code == other.code
+            self.name == other.name
+            and self.coordinate_model == other.coordinate_model
+            and self.code == other.code
         )
 
 
-class ModifiedDoublingEFDFormula(DoublingEFDFormula, ModifiedEFDFormula):
+class CodeAdditionFormula(AdditionFormula, CodeFormula):
     pass
 
 
-class ModifiedAdditionEFDFormula(AdditionEFDFormula, ModifiedEFDFormula):
+class CodeDoublingFormula(DoublingFormula, CodeFormula):
     pass
 
 
-class ModifiedDifferentialAdditionEFDFormula(
-    DifferentialAdditionEFDFormula, ModifiedEFDFormula
-):
+class CodeLadderFormula(LadderFormula, CodeFormula):
     pass
 
 
-class ModifiedLadderEFDFormula(LadderEFDFormula, ModifiedEFDFormula):
+class CodeTriplingFormula(TriplingFormula, CodeFormula):
     pass
 
 
-class EFDFormulaGraph:
+class CodeNegationFormula(NegationFormula, CodeFormula):
+    pass
+
+
+class CodeScalingFormula(ScalingFormula, CodeFormula):
+    pass
+
+
+class CodeDifferentialAdditionFormula(DifferentialAdditionFormula, CodeFormula):
+    pass
+
+
+class FormulaGraph:
+    coordinate_model: Any
+    shortname: str
+    parameters: List[str]
+    assumptions: List[Expression]
     nodes: List[Node]
     input_nodes: MutableMapping[str, InputNode]
     output_names: Set[str]
     roots: List[Node]
-    coordinate_model: Any
 
-    def __init__(self, formula: EFDFormula, rename=True):
-        self._formula = formula  # TODO remove, its here only for to_EFDFormula
+    def __init__(self, formula: Formula, rename=True):
+        self.shortname = formula.shortname
+        self.parameters = formula.parameters
+        self.assumptions = formula.assumptions
         self.coordinate_model = formula.coordinate_model
         self.output_names = formula.outputs
         self.input_nodes = {v: InputNode(v) for v in formula_input_variables(formula)}
@@ -281,25 +312,21 @@ class EFDFormulaGraph:
     def deepcopy(self):
         return deepcopy(self)
 
-    def to_EFDFormula(self) -> ModifiedEFDFormula:
-        # TODO rewrite
-        new_graph = deepcopy(self)
-        new_formula = new_graph._formula
-        new_formula.code = list(
+    def to_formula(self, name=None) -> CodeFormula:
+        code = list(
             map(
-                lambda x: x.op,  # type: ignore
-                filter(lambda n: n not in new_graph.roots, new_graph.nodes),
+                lambda x: deepcopy(x.op),  # type: ignore
+                filter(lambda n: n not in self.roots, self.nodes),
             )
         )
-        casting = {
-            AdditionEFDFormula: ModifiedAdditionEFDFormula,
-            DoublingEFDFormula: ModifiedDoublingEFDFormula,
-            DifferentialAdditionEFDFormula: ModifiedDifferentialAdditionEFDFormula,
-            LadderEFDFormula: ModifiedLadderEFDFormula,
-        }
-        if new_formula.__class__ not in set(casting.values()):
-            new_formula.__class__ = casting[new_formula.__class__]
-        return new_formula  # type: ignore
+        parameters = list(self.parameters)
+        assumptions = [deepcopy(assumption) for assumption in self.assumptions]
+        for klass in CodeFormula.__subclasses__():
+            if klass.shortname == self.shortname:
+                return klass(
+                    name, code, self.coordinate_model, parameters, assumptions
+                )
+        raise ValueError(f"Bad formula type: {self.shortname}")
 
     def networkx_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
@@ -431,6 +458,6 @@ class EFDFormulaGraph:
             print(node)
 
 
-def rename_ivs(formula: EFDFormula):
-    graph = EFDFormulaGraph(formula)
-    return graph.to_EFDFormula()
+def rename_ivs(formula: Formula) -> CodeFormula:
+    graph = FormulaGraph(formula)
+    return graph.to_formula()

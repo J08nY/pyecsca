@@ -128,7 +128,7 @@ class Formula(ABC):
     num_outputs: ClassVar[int]
     """Number of outputs (points) of the formula."""
     unified: bool
-    """Whether the formula is specifies that it is unified."""
+    """Whether the formula specifies that it is unified."""
 
     @cached_property
     def assumptions_str(self):

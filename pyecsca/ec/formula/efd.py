@@ -14,11 +14,18 @@ from .base import (
     DifferentialAdditionFormula,
     LadderFormula,
 )
-from ast import parse
+
+from ...misc.utils import pexec, peval
 
 
 class EFDFormula(Formula):
     """Formula from the [EFD]_."""
+
+    def __new__(cls, *args, **kwargs):
+        _, _, name, coordinate_model = args
+        if name in coordinate_model.formulas:
+            return coordinate_model.formulas[name]
+        return object.__new__(cls)
 
     def __init__(
         self,
@@ -47,9 +54,7 @@ class EFDFormula(Formula):
                     self.parameters.append(line[10:])
                 elif line.startswith("assume"):
                     self.assumptions.append(
-                        parse(
-                            line[7:].replace("=", "==").replace("^", "**"), mode="eval"
-                        )
+                        peval(line[7:].replace("=", "==").replace("^", "**"))
                     )
                 elif line.startswith("unified"):
                     self.unified = True
@@ -58,10 +63,17 @@ class EFDFormula(Formula):
     def __read_op3_file(self, path: Traversable):
         with path.open("rb") as f:
             for line in f.readlines():
-                code_module = parse(
-                    line.decode("ascii").replace("^", "**"), str(path), mode="exec"
-                )
+                code_module = pexec(line.decode("ascii").replace("^", "**"))
                 self.code.append(CodeOp(code_module))
+
+    def __getnewargs__(self):
+        return None, None, self.name, self.coordinate_model
+
+    def __getstate__(self):
+        return {}
+
+    def __setstate__(self, state):
+        pass
 
     def __str__(self):
         return f"{self.coordinate_model!s}/{self.name}"

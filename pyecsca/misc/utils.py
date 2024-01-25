@@ -2,7 +2,7 @@
 import sys
 from ast import parse
 
-from pyecsca.misc.cfg import getconfig
+from ..misc.cfg import getconfig
 
 
 def pexec(s):

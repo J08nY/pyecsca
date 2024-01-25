@@ -194,7 +194,7 @@ def _create_params(curve, coords, infty):
                         )
             except NameError:
                 k = FF(field)
-                assumption_string = unparse(assumption)
+                assumption_string = unparse(assumption).strip()
                 lhs, rhs = assumption_string.split(" = ")
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in params.items():

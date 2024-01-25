@@ -80,7 +80,7 @@ class EllipticCurve:
                         )
             except NameError:
                 k = FF(self.prime)
-                assumption_string = unparse(assumption)
+                assumption_string = unparse(assumption).strip()
                 lhs, rhs = assumption_string.split(" = ")
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in self.parameters.items():

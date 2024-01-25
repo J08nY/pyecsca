@@ -25,6 +25,7 @@ from astunparse import unparse
 from public import public
 
 from .mod import Mod
+from ..misc.utils import pexec
 
 
 @public
@@ -67,6 +68,9 @@ class CodeOp:
 
     def __init__(self, code: Module):
         self.code = code
+        self.__parse(code)
+
+    def __parse(self, code: Module):
         assign = cast(Assign, code.body[0])
         self.result = cast(Name, assign.targets[0]).id
         params = set()
@@ -139,16 +143,21 @@ class CodeOp:
         else:
             return self.left, self.right  # type: ignore
 
+    def __hash__(self):
+        return hash((self.left, self.right, self.operator, self.result))
+
+    def __eq__(self, other):
+        if not isinstance(other, CodeOp):
+            return False
+        return self.left == other.left and self.right == other.right and self.operator == other.operator and self.result == other.result
+
     def __getstate__(self):
-        state = self.__dict__.copy()
-        state["code"] = unparse(state["code"])
-        del state["compiled"]
+        state = {"code": unparse(self.code).strip()}
         return state
 
     def __setstate__(self, state):
-        state["code"] = parse(state["code"], mode="exec")
-        state["compiled"] = compile(state["code"], "", mode="exec")
-        self.__dict__.update(state)
+        self.code = pexec(state["code"])
+        self.__parse(self.code)
 
     def __str__(self):
         return f"{self.result} = {self.left if self.left is not None else ''}{self.operator.op_str}{self.right if self.right is not None else ''}"

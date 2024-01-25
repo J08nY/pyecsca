@@ -1,23 +1,23 @@
-from typing import Iterator, List, Tuple, Type, Optional
+from ast import parse
+from typing import Iterator, List, Type, Optional
 from ..op import OpType
-from .graph import EFDFormulaGraph, Node, CodeOpNode, CodeOp, parse
-from .efd import EFDFormula
-from random import randint
+from .base import Formula
+from .graph import FormulaGraph, Node, CodeOpNode, CodeOp, CodeFormula
 
 
 class Fliparoo:
     """
-    Fliparoo is a chain of nodes N1->N2->...->Nk in EFDFormulaGraph for k>=2 such that:
+    Fliparoo is a chain of nodes N1->N2->...->Nk in FormulaGraph for k>=2 such that:
         - All Ni are * or All Ni are +/-
         - For every Ni, except for Nk, the only outgoing node is Ni+1
         - Neither of N1,...,Nk-1 is an output node
     """
 
     nodes: List[CodeOpNode]
-    graph: EFDFormulaGraph
+    graph: FormulaGraph
     operator: Optional[OpType]
 
-    def __init__(self, chain: List[CodeOpNode], graph: EFDFormulaGraph):
+    def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         self.verify_chain(chain)
         self.nodes = chain
         self.graph = graph
@@ -77,7 +77,7 @@ class Fliparoo:
 
 
 class MulFliparoo(Fliparoo):
-    def __init__(self, chain: List[CodeOpNode], graph: EFDFormulaGraph):
+    def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
         operations = set(node.op.operator for node in self.nodes)
         if len(operations) != 1 or list(operations)[0] != OpType.Mult:
@@ -86,7 +86,7 @@ class MulFliparoo(Fliparoo):
 
 
 class AddSubFliparoo(Fliparoo):
-    def __init__(self, chain: List[CodeOpNode], graph: EFDFormulaGraph):
+    def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
         operations = set(node.op.operator for node in self.nodes)
         if not operations.issubset([OpType.Add, OpType.Sub]):
@@ -94,7 +94,7 @@ class AddSubFliparoo(Fliparoo):
 
 
 class AddFliparoo(Fliparoo):
-    def __init__(self, chain: List[CodeOpNode], graph: EFDFormulaGraph):
+    def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
         operations = set(node.op.operator for node in self.nodes)
         if len(operations) != 1 or list(operations)[0] != OpType.Add:
@@ -107,7 +107,7 @@ class BadFliparoo(Exception):
 
 
 def find_fliparoos(
-    graph: EFDFormulaGraph, fliparoo_type: Optional[Type[Fliparoo]] = None
+    graph: FormulaGraph, fliparoo_type: Optional[Type[Fliparoo]] = None
 ) -> List[Fliparoo]:
     """Finds a list of Fliparoos in a graph"""
     fliparoos: List[Fliparoo] = []
@@ -138,7 +138,7 @@ def is_subfliparoo(fliparoo: Fliparoo, longest_fliparoos: List[Fliparoo]) -> boo
 
 def largest_fliparoo(
     chain: List[CodeOpNode],
-    graph: EFDFormulaGraph,
+    graph: FormulaGraph,
     fliparoo_type: Optional[Type[Fliparoo]] = None,
 ) -> Optional[Fliparoo]:
     """Finds the largest fliparoo in a list of Nodes"""
@@ -183,7 +183,7 @@ class SignedNode:
 class SignedSubGraph:
     """Subgraph of an EFDFormula graph with signed nodes"""
 
-    def __init__(self, nodes: List[SignedNode], graph: EFDFormulaGraph):
+    def __init__(self, nodes: List[SignedNode], graph: FormulaGraph):
         self.nodes = nodes
         self.supergraph = graph
 
@@ -234,16 +234,16 @@ class DummyNode(Node):
 
 
 def generate_fliparood_formulas(
-    formula: EFDFormula, rename: bool = True
-) -> Iterator[EFDFormula]:
-    graph = EFDFormulaGraph(formula, rename)
+    formula: Formula, rename: bool = True
+) -> Iterator[CodeFormula]:
+    graph = FormulaGraph(formula, rename)
     fliparoos = find_fliparoos(graph)
     for fliparoo in fliparoos:
         for flip_graph in generate_fliparood_graphs(fliparoo):
-            yield flip_graph.to_EFDFormula()
+            yield flip_graph.to_formula()
 
 
-def generate_fliparood_graphs(fliparoo: Fliparoo) -> Iterator[EFDFormulaGraph]:
+def generate_fliparood_graphs(fliparoo: Fliparoo) -> Iterator[FormulaGraph]:
     fliparoo = fliparoo.deepcopy()
     last_str = fliparoo.last.result
     disconnect_fliparoo_outputs(fliparoo)
@@ -302,7 +302,7 @@ def disconnect_fliparoo_outputs(fliparoo: Fliparoo):
     fliparoo.last.reconnect_outgoing_nodes(dummy)
 
 
-def reconnect_fliparoo_outputs(graph: EFDFormulaGraph, last_node: Node):
+def reconnect_fliparoo_outputs(graph: FormulaGraph, last_node: Node):
     dummy = next(filter(lambda x: isinstance(x, DummyNode), graph.nodes))
     dummy.reconnect_outgoing_nodes(last_node)
     graph.remove_node(dummy)
@@ -347,7 +347,10 @@ def combine_signed_nodes(
             sign = -1
 
     new_node = CodeOpNode.from_str(
-        f"Fliparoo{id(left_node)}_{id(operator)}_{id(sign)}_{id(right_node)}", left_node.result, operator, right_node.result
+        f"Fliparoo{id(left_node)}_{id(operator)}_{id(sign)}_{id(right_node)}",
+        left_node.result,
+        operator,
+        right_node.result,
     )
     new_node.incoming_nodes = [left_node, right_node]
     left_node.outgoing_nodes.append(new_node)

@@ -77,6 +77,10 @@ def test_eq(add, dbl):
     assert add != dbl
 
 
+def test_hashable(add):
+    assert hash(add)
+
+
 def test_num_ops(add):
     assert add.num_operations == 33
     assert add.num_multiplications == 17
@@ -400,7 +404,9 @@ def library_formula_params(request) -> Tuple[EFDFormula, DomainParameters]:
 
 def test_formula_graph(library_formula_params):
     formula, params = library_formula_params
-    do_test_formula(rename_ivs(formula), params)
+    renamed = rename_ivs(formula)
+    do_test_formula(renamed, params)
+    assert hash(renamed)
 
 
 def test_switch_sign(library_formula_params):

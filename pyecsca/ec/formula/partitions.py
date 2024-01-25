@@ -1,19 +1,14 @@
 from typing import List, Any, Generator
 from ast import parse
+from .base import Formula
 from ..op import OpType, CodeOp
-from .graph import (
-    EFDFormulaGraph,
-    CodeOpNode,
-    ConstantNode,
-    Node,
-)
+from .graph import FormulaGraph, CodeOpNode, ConstantNode, Node, CodeFormula
 from .fliparoo import find_fliparoos, AddFliparoo, MulFliparoo
 from copy import deepcopy
-from .efd import EFDFormula
 
 
-def reduce_all_adds(formula: EFDFormula, rename=True) -> EFDFormula:
-    graph = EFDFormulaGraph(formula, rename=rename)
+def reduce_all_adds(formula: Formula, rename=True) -> CodeFormula:
+    graph = FormulaGraph(formula, rename=rename)
     add_fliparoos = find_single_input_add_fliparoos(graph)
     for add_fliparoo in add_fliparoos:
         reduce_add_fliparoo(add_fliparoo, copy=False)
@@ -21,26 +16,26 @@ def reduce_all_adds(formula: EFDFormula, rename=True) -> EFDFormula:
     mul_fliparoos = find_constant_mul_fliparoos(graph)
     for mul_fliparoo in mul_fliparoos:
         reduce_mul_fliparoo(mul_fliparoo, copy=False)
-    return graph.to_EFDFormula()
+    return graph.to_formula()
 
 
-def expand_all_muls(formula: EFDFormula, rename=True) -> EFDFormula:
-    graph = EFDFormulaGraph(formula, rename)
+def expand_all_muls(formula: Formula, rename=True) -> CodeFormula:
+    graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)
     for enode in enodes:
         expand_mul(graph, enode, copy=False)
-    return graph.to_EFDFormula()
+    return graph.to_formula()
 
 
-def expand_all_nopower2_muls(formula: EFDFormula, rename=True) -> EFDFormula:
-    graph = EFDFormulaGraph(formula, rename)
+def expand_all_nopower2_muls(formula: Formula, rename=True) -> CodeFormula:
+    graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph, nopower2=True)
     for enode in enodes:
         expand_mul(graph, enode, copy=False)
-    return graph.to_EFDFormula()
+    return graph.to_formula()
 
 
-def find_single_input_add_fliparoos(graph: EFDFormulaGraph) -> List[AddFliparoo]:
+def find_single_input_add_fliparoos(graph: FormulaGraph) -> List[AddFliparoo]:
     fliparoos = find_fliparoos(graph, AddFliparoo)
     single_input_fliparoos = []
     for fliparoo in fliparoos:
@@ -56,7 +51,7 @@ def find_single_input_add_fliparoos(graph: EFDFormulaGraph) -> List[AddFliparoo]
     return single_input_fliparoos
 
 
-def find_constant_mul_fliparoos(graph: EFDFormulaGraph) -> List[MulFliparoo]:
+def find_constant_mul_fliparoos(graph: FormulaGraph) -> List[MulFliparoo]:
     fliparoos = find_fliparoos(graph, MulFliparoo)
     constant_mul_fliparoo = []
     for fliparoo in fliparoos:
@@ -87,7 +82,7 @@ def find_constant_mul_fliparoos(graph: EFDFormulaGraph) -> List[MulFliparoo]:
     return constant_mul_fliparoo
 
 
-def find_expansion_nodes(graph: EFDFormulaGraph, nopower2=False) -> List[Node]:
+def find_expansion_nodes(graph: FormulaGraph, nopower2=False) -> List[Node]:
     expansion_nodes: List[Node] = []
     for node in graph.nodes:
         if not isinstance(node, CodeOpNode) or not node.is_mul:
@@ -109,7 +104,7 @@ def is_power_of_2(n: int) -> bool:
     return True
 
 
-def reduce_all_XplusX(graph: EFDFormulaGraph):
+def reduce_all_XplusX(graph: FormulaGraph):
     adds = find_all_XplusX(graph)
     for node in adds:
         reduce_XplusX(graph, node)
@@ -126,7 +121,7 @@ def find_all_XplusX(graph) -> List[CodeOpNode]:
     return adds
 
 
-def reduce_XplusX(graph: EFDFormulaGraph, node: CodeOpNode):
+def reduce_XplusX(graph: FormulaGraph, node: CodeOpNode):
     inode = node.incoming_nodes[0]
     const_node = ConstantNode(2)
     node.incoming_nodes[1] = const_node
@@ -146,7 +141,9 @@ def reduce_mul_fliparoo(fliparoo: MulFliparoo, copy=True):
     inode = next(
         filter(lambda x: not isinstance(x, ConstantNode), first.incoming_nodes)
     )
-    const_nodes: List[ConstantNode] = [node for node in fliparoo.input_nodes() if isinstance(node, ConstantNode)]
+    const_nodes: List[ConstantNode] = [
+        node for node in fliparoo.input_nodes() if isinstance(node, ConstantNode)
+    ]
     sum_const_node = ConstantNode(sum(v.value for v in const_nodes))
     fliparoo.graph.add_node(sum_const_node)
 
@@ -195,7 +192,7 @@ def reduce_add_fliparoo(fliparoo: AddFliparoo, copy=True):
     return fliparoo.graph
 
 
-def expand_mul(graph: EFDFormulaGraph, node: Node, copy=True) -> EFDFormulaGraph:
+def expand_mul(graph: FormulaGraph, node: Node, copy=True) -> FormulaGraph:
     if copy:
         i = graph.node_index(node)
         graph = deepcopy(graph)
@@ -275,17 +272,17 @@ def compute_partitions(n: int) -> List[Partition]:
     return result
 
 
-def generate_partitioned_formulas(formula: EFDFormula, rename=True):
-    graph = EFDFormulaGraph(formula, rename)
+def generate_partitioned_formulas(formula: Formula, rename=True):
+    graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)
     for enode in enodes:
         for part_graph in generate_all_node_partitions(graph, enode):
-            yield part_graph.to_EFDFormula()
+            yield part_graph.to_formula()
 
 
 def generate_all_node_partitions(
-    original_graph: EFDFormulaGraph, node: Node
-) -> Generator[EFDFormulaGraph, Any, None]:
+    original_graph: FormulaGraph, node: Node
+) -> Generator[FormulaGraph, Any, None]:
     const_par = next(filter(lambda x: isinstance(x, ConstantNode), node.incoming_nodes))
     const_par_value = const_par.value
 
@@ -327,7 +324,7 @@ def generate_all_node_partitions(
 
 
 def partition_node(
-    graph: EFDFormulaGraph, node: CodeOpNode, partition: Partition, source_node: Node
+    graph: FormulaGraph, node: CodeOpNode, partition: Partition, source_node: Node
 ):
     if partition.is_final and partition.value == 1:
         # source node will take the role of node
