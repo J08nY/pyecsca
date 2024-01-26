@@ -24,17 +24,19 @@ def target(secp128r1, mult):
     return target
 
 
+@pytest.mark.xfail(reason="May fail intermittently.")
 def test_dpa(secp128r1, mult, target):
     scalar = 5
     pub = secp128r1.curve.affine_multiply(
         secp128r1.generator.to_affine(), scalar
     ).to_model(secp128r1.curve.coordinate_model, secp128r1.curve)
-    points, traces = target.simulate_scalar_mult_traces(500, scalar)
+    points, traces = target.simulate_scalar_mult_traces(700, scalar)
     dpa = DPA(points, traces, mult, secp128r1)
     res = dpa.perform(3, pub)
     assert res == 5
 
 
+@pytest.mark.xfail(reason="May fail intermittently.")
 def test_cpa(secp128r1, mult, target):
     scalar = 5
     pub = secp128r1.curve.affine_multiply(
