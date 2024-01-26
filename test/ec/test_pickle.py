@@ -55,6 +55,19 @@ def test_formula():
     assert formulas == back
 
 
+def formula_target(formula):
+    return hasattr(formula, "coordinate_model")
+
+
+def test_formula_loads(ctx):
+    sw = ShortWeierstrassModel()
+    coords = sw.coordinates["projective"]
+    formula = coords.formulas["add-2007-bl"]
+    with ctx.Pool(processes=1) as pool:
+        res = pool.apply(formula_target, args=(formula,))
+        assert res
+
+
 def test_code_formula():
     sw = ShortWeierstrassModel()
     coords = sw.coordinates["projective"]
