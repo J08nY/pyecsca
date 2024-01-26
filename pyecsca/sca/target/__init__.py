@@ -6,6 +6,7 @@ from .serial import *
 from .simpleserial import *
 from .binary import *
 from .flash import *
+from .leakage import *
 
 has_chipwhisperer: bool = False
 has_pyscard: bool = False

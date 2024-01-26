@@ -1,25 +1,25 @@
-from pyecsca.ec.coordinates import CoordinateModel
-from pyecsca.ec.mod import Mod
-from pyecsca.ec.model import CurveModel
-from pyecsca.ec.params import DomainParameters
-from pyecsca.ec.point import Point
-from pyecsca.ec.mult import ScalarMultiplier
-from pyecsca.ec.key_generation import KeyGeneration
-from pyecsca.ec.key_agreement import KeyAgreement
-from pyecsca.ec.signature import Signature, SignatureResult
-from pyecsca.ec.formula import FormulaAction
-from pyecsca.ec.context import DefaultContext, local
-from pyecsca.sca.attack import LeakageModel
-from pyecsca.sca.trace import Trace
+import numpy as np
 from typing import Optional, Tuple
 from public import public
+
+from ...ec.coordinates import CoordinateModel
+from ...ec.mod import Mod
+from ...ec.model import CurveModel
+from ...ec.params import DomainParameters
+from ...ec.point import Point
+from ...ec.mult import ScalarMultiplier
+from ...ec.key_generation import KeyGeneration
+from ...ec.key_agreement import KeyAgreement
+from ...ec.signature import Signature, SignatureResult
+from ...ec.formula import FormulaAction
+from ...ec.context import DefaultContext, local
+from ..attack import LeakageModel
+from ..trace import Trace
 from .base import Target
-import numpy as np
 
 
 @public
 class LeakageTarget(Target):
-
     model: CurveModel
     coords: CoordinateModel
     mult: ScalarMultiplier
@@ -28,7 +28,13 @@ class LeakageTarget(Target):
     privkey: Optional[Mod]
     pubkey: Optional[Point]
 
-    def __init__(self, model: CurveModel, coords: CoordinateModel, mult: ScalarMultiplier, leakage_model: LeakageModel):
+    def __init__(
+        self,
+        model: CurveModel,
+        coords: CoordinateModel,
+        mult: ScalarMultiplier,
+        leakage_model: LeakageModel,
+    ):
         super().__init__()
         self.model = model
         self.coords = coords
@@ -44,24 +50,35 @@ class LeakageTarget(Target):
                 for intermediate in action.op_results:
                     leak = self.leakage_model(intermediate.value)
                     temp_trace.append(leak)
+
         temp_trace: list[int] = []
         context.actions.walk(callback)
         return Trace(np.array(temp_trace))
 
-    def simulate_scalar_mult_traces(self, num_of_traces: int, scalar: int) -> Tuple[list[Point], list[Trace]]:
+    def simulate_scalar_mult_traces(
+        self, num_of_traces: int, scalar: int
+    ) -> Tuple[list[Point], list[Trace]]:
         if self.params is None:
             raise ValueError("Missing DomainParameters")
-        points = [self.params.curve.affine_random().to_model(self.coords, self.params.curve) for _ in range(num_of_traces)]
+        points = [
+            self.params.curve.affine_random().to_model(self.coords, self.params.curve)
+            for _ in range(num_of_traces)
+        ]
         traces = []
         for point in points:
             _, trace = self.scalar_mult(scalar, point)
             traces.append(trace)
         return points, traces
 
-    def simulate_ecdh_traces(self, num_of_traces: int) -> Tuple[list[Point], list[Trace]]:
+    def simulate_ecdh_traces(
+        self, num_of_traces: int
+    ) -> Tuple[list[Point], list[Trace]]:
         if self.params is None:
             raise ValueError("Missing DomainParameters")
-        other_pubs = [self.params.curve.affine_random().to_model(self.coords, self.params.curve) for _ in range(num_of_traces)]
+        other_pubs = [
+            self.params.curve.affine_random().to_model(self.coords, self.params.curve)
+            for _ in range(num_of_traces)
+        ]
         traces = []
         for pub in other_pubs:
             _, trace = self.ecdh(pub, None)
@@ -102,7 +119,9 @@ class LeakageTarget(Target):
         if self.privkey is None:
             raise ValueError("Missing privkey")
         with local(DefaultContext()) as ctx:
-            ecdh = KeyAgreement(self.mult, self.params, other_pubkey, self.privkey, hash_algo)
+            ecdh = KeyAgreement(
+                self.mult, self.params, other_pubkey, self.privkey, hash_algo
+            )
             shared_secret = ecdh.perform()
         return shared_secret, self.get_trace(ctx)
 
@@ -116,7 +135,9 @@ class LeakageTarget(Target):
             signed_data = ecdsa.sign_data(data)
         return signed_data, self.get_trace(ctx)
 
-    def ecdsa_verify(self, data: bytes, signature: SignatureResult, hash_algo=None) -> Tuple[bool, Trace]:
+    def ecdsa_verify(
+        self, data: bytes, signature: SignatureResult, hash_algo=None
+    ) -> Tuple[bool, Trace]:
         if self.params is None:
             raise ValueError
         if self.pubkey is None:

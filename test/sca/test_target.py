@@ -1,3 +1,4 @@
+import hashlib
 import io
 from contextlib import redirect_stdout
 from copy import copy
@@ -17,7 +18,9 @@ from pyecsca.sca.target import (
     SimpleSerialTarget,
     SimpleSerialMessage,
     has_pyscard,
+    LeakageTarget,
 )
+from pyecsca.sca.attack import HammingWeight
 from pyecsca.sca.target.ectester import (
     KeyAgreementEnum,
     SignatureEnum,
@@ -505,3 +508,29 @@ def test_ecdsa_verify(target, secp256r1_projective):
         KeypairEnum.KEYPAIR_LOCAL, SignatureEnum.ALG_ECDSA_SHA, sig.to_DER(), data
     )
     assert ecdsa_resp.success
+
+
+def test_leakage_target(secp256r1_projective):
+    mult = LTRMultiplier(
+        secp256r1_projective.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp256r1_projective.curve.coordinate_model.formulas["dbl-2015-rcb"],
+    )
+    lm = HammingWeight()
+    target = LeakageTarget(secp256r1_projective.curve.model, secp256r1_projective.curve.coordinate_model, mult, lm)
+    target.set_params(secp256r1_projective)
+    (priv, pub), trace = target.generate()
+    assert trace is not None
+    (other_priv, other_pub), trace = target.generate()
+    target.set_privkey(priv)
+    target.set_pubkey(pub)
+    secret, trace = target.ecdh(other_pub)
+    target.set_privkey(other_priv)
+    target.set_pubkey(other_pub)
+    secret2, trace = target.ecdh(pub)
+    assert secret == secret2
+    res, trace = target.scalar_mult(7, secp256r1_projective.generator)
+    assert res is not None
+
+    msg = b"data"
+    signature, trace = target.ecdsa_sign(msg, hashlib.sha1)
+    assert target.ecdsa_verify(msg, signature, hashlib.sha1)
