@@ -44,7 +44,7 @@ class CodeFormula(Formula):
                 self.coordinate_model,
                 tuple(self.code),
                 tuple(self.parameters),
-                tuple(self.assumptions),
+                tuple(self.assumptions_str),
                 self.unified,
             )
         )

@@ -5,6 +5,7 @@ from multiprocessing.context import BaseContext
 
 import pytest
 
+from pyecsca.ec.formula import EFDFormula
 from pyecsca.ec.formula.graph import FormulaGraph
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.params import get_params
@@ -45,7 +46,7 @@ def test_coords():
 def test_formula():
     sw = ShortWeierstrassModel()
     coords = sw.coordinates["projective"]
-    formula = coords.formulas["add-2007-bl"]
+    formula: EFDFormula = coords.formulas["add-2007-bl"]
     data = pickle.dumps(formula)
     back = pickle.loads(data)
     assert formula == back
@@ -53,6 +54,10 @@ def test_formula():
     data = pickle.dumps(formulas)
     back = pickle.loads(data)
     assert formulas == back
+    code_formula = formula.to_code()
+    assert formula != code_formula
+    back_code = pickle.loads(pickle.dumps(code_formula))
+    assert code_formula == back_code
 
 
 def formula_target(formula):
@@ -62,7 +67,11 @@ def formula_target(formula):
 def test_formula_loads(ctx):
     sw = ShortWeierstrassModel()
     coords = sw.coordinates["projective"]
-    formula = coords.formulas["add-2007-bl"]
+    formula: EFDFormula = coords.formulas["add-2007-bl"]
+    with ctx.Pool(processes=1) as pool:
+        res = pool.apply(formula_target, args=(formula,))
+        assert res
+    formula = formula.to_code()
     with ctx.Pool(processes=1) as pool:
         res = pool.apply(formula_target, args=(formula,))
         assert res
