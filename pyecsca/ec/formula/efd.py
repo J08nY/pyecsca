@@ -1,8 +1,12 @@
 """"""
+from copy import copy
+
 from public import public
 
 from importlib_resources.abc import Traversable
 from typing import Any
+
+from . import CodeFormula
 from .base import (
     Formula,
     CodeOp,
@@ -65,6 +69,12 @@ class EFDFormula(Formula):
             for line in f.readlines():
                 code_module = pexec(line.decode("ascii").replace("^", "**"))
                 self.code.append(CodeOp(code_module))
+
+    def to_code(self) -> CodeFormula:
+        for klass in CodeFormula.__subclasses__():
+            if self.shortname == klass.shortname:
+                return klass(self.name, copy(self.code), self.coordinate_model, copy(self.parameters), copy(self.assumptions), self.unified)
+        raise TypeError(f"CodeFormula not found for {self.__class__}.")
 
     def __getnewargs__(self):
         return None, None, self.name, self.coordinate_model

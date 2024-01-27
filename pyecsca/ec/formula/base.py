@@ -16,7 +16,6 @@ from ..error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
 from ..mod import Mod, SymbolicMod
 from ..op import CodeOp, OpType
 from ...misc.cfg import getconfig
-from ...misc.utils import peval
 from ...misc.cache import sympify, simplify
 
 
@@ -282,15 +281,6 @@ class Formula(ABC):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
-
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state["assumptions"] = list(map(unparse, state["assumptions"]))
-        return state
-
-    def __setstate__(self, state):
-        state["assumptions"] = list(map(peval, state["assumptions"]))
-        self.__dict__.update(state)
 
     @cached_property
     def input_index(self):

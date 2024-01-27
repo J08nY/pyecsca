@@ -33,7 +33,12 @@ from pyecsca.ec.formula.efd import (
     LadderEFDFormula,
     EFDFormula,
 )
-from pyecsca.ec.formula import AdditionFormula, DoublingFormula, LadderFormula
+from pyecsca.ec.formula import (
+    AdditionFormula,
+    DoublingFormula,
+    LadderFormula,
+    CodeFormula,
+)
 
 
 @pytest.fixture()
@@ -390,14 +395,14 @@ LIBRARY_FORMULAS = [
 
 
 @pytest.fixture(params=LIBRARY_FORMULAS, ids=list(map(itemgetter(0), LIBRARY_FORMULAS)))
-def library_formula_params(request) -> Tuple[EFDFormula, DomainParameters]:
+def library_formula_params(request) -> Tuple[CodeFormula, DomainParameters]:
     name, model, coords_name, param_spec, formula_type = request.param
     model = model()
     coordinate_model = model.coordinates[coords_name]
     with as_file(files(test.data.formulas).joinpath(name)) as meta_path, as_file(
         files(test.data.formulas).joinpath(name + ".op3")
     ) as op3_path:
-        formula = formula_type(meta_path, op3_path, name, coordinate_model)
+        formula = formula_type(meta_path, op3_path, name, coordinate_model).to_code()
     params = get_params(*param_spec, coords_name)
     return formula, params
 

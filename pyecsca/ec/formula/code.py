@@ -1,4 +1,7 @@
 """Provides a concrete class of a formula that has a constructor."""
+from typing import List, Any
+from ast import Expression
+from astunparse import unparse
 
 from .base import (
     Formula,
@@ -10,17 +13,29 @@ from .base import (
     ScalingFormula,
     DifferentialAdditionFormula,
 )
+from ..op import CodeOp
+from ...misc.utils import peval
 
 
 class CodeFormula(Formula):
-    def __init__(self, name, code, coordinate_model, parameters, assumptions):
+    """A basic formula class that can be directly initialized with the code and other attributes."""
+
+    def __init__(
+        self,
+        name: str,
+        code: List[CodeOp],
+        coordinate_model: Any,
+        parameters: List[str],
+        assumptions: List[Expression],
+        unified: bool = False,
+    ):
         self.name = name
+        self.code = code
         self.coordinate_model = coordinate_model
         self.meta = {}
         self.parameters = parameters
         self.assumptions = assumptions
-        self.code = code
-        self.unified = False
+        self.unified = unified
 
     def __hash__(self):
         return hash(
@@ -30,6 +45,7 @@ class CodeFormula(Formula):
                 tuple(self.code),
                 tuple(self.parameters),
                 tuple(self.assumptions),
+                self.unified,
             )
         )
 
@@ -40,7 +56,19 @@ class CodeFormula(Formula):
             self.name == other.name
             and self.coordinate_model == other.coordinate_model
             and self.code == other.code
+            and self.parameters == other.parameters
+            and self.assumptions_str == other.assumptions_str
+            and self.unified == other.unified
         )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["assumptions"] = list(map(unparse, state["assumptions"]))
+        return state
+
+    def __setstate__(self, state):
+        state["assumptions"] = list(map(peval, state["assumptions"]))
+        self.__dict__.update(state)
 
 
 class CodeAdditionFormula(AdditionFormula, CodeFormula):

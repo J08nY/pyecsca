@@ -26,6 +26,7 @@ class FakeFormula(Formula, ABC):
     and points (for example to get the addition chain via the MultipleContext).
     """
     def __init__(self, coordinate_model):
+        # TODO: This is missing all of the other attributes
         self.coordinate_model = coordinate_model
         self.code = []
 
