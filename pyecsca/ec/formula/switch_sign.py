@@ -63,6 +63,9 @@ def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
         try:
             apoint = point.to_affine()
         except NotImplementedError:
+            # Ignore switch signs if we cannot test them.
+            if scale is None:
+                raise BadSignSwitch
             apoint = scale(p, point)[0]
         if set(apoint.coords.values()) != set([Mod(1, p)]):
             raise BadSignSwitch
