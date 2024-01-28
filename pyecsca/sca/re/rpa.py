@@ -263,7 +263,7 @@ def rpa_distinguish(
                 used |= multiply_multiples
             mults_to_multiples[mult] = used
 
-        dmap = Map.from_binary_sets(set(mults), mults_to_multiples)
+        dmap = Map.from_sets(set(mults), mults_to_multiples)
 
         tree = Tree.build(set(mults), dmap)
         log("Built distinguishing tree.")

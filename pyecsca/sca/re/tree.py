@@ -48,35 +48,107 @@ from anytree import RenderTree, NodeMixin, AbstractStyle
 
 @public
 class Map:
-    """A distinguishing map."""
+    """
+    A distinguishing map.
+
+    ::
+                              domain
+                              ======
+                             ┌───┬───┬───┬───┬───┬───┐
+                             │P1 │P2 │P3 │P4 │P5 │P5 │
+                             └───┴───┴───┴───┴───┴───┘
+                               :   :   :   :   :   :
+                               :   :   :   :   :   :
+                               :   :   :   :   :   :
+                               :   :   :   :   :   :
+         cfg_map     mapping ┌───┬───┬───┬───┬───┬───┐   codomain
+         =======     ======= │ 0 │ 1 │ 2 │ 3 │ 4 │ 5 │   ========
+        ┌────┬───┐       ┌───┼───┼───┼───┼───┼───┼───┤
+        │cfg1│  0│:::::::│  0│ T │ F │ T │ F │ T │ T │   {T, F}
+        ├────┼───┤       ├───┼───┼───┼───┼───┼───┼───┤
+        │cfg2│  1│:::::::│  1│ F │ F │ F │ F │ T │ T │
+        ├────┼───┤       ├───┼───┼───┼───┼───┼───┼───┤
+        │cfg3│  2│:::::::│  2│ T │ T │ F │ F │ T │ T │
+        └────┴───┘       └───┴───┴───┴───┴───┴───┴───┘
+
+    """
 
     mapping: pd.DataFrame
-    doman: List[Any]
-    codomain: Set[Any]
+    """
+    A dataframe containing the map outputs.
 
-    def __init__(self, mapping: pd.DataFrame, domain: List[Any], codomain: Set[Any]):
+    Both the columns and the index are simply numeric.
+    The columns are the domain. The items in the rows are from the codomain.
+    The index may have gaps. To map it back into the set of configs for each
+    unique row, see the cfg_map.
+    """
+    cfg_map: pd.DataFrame
+    """
+    A dataframe containing the map from the cfgs to the index (integers).
+    """
+    domain: List[Any]
+    """
+    The (ordered) domain of the mapping.
+    """
+    codomain: Set[Any]
+    """
+    The (unordered) codomain of the mapping.
+    """
+
+    def __init__(
+        self,
+        mapping: pd.DataFrame,
+        cfg_map: pd.DataFrame,
+        domain: List[Any],
+        codomain: Set[Any],
+    ):
         self.mapping = mapping
+        self.cfg_map = cfg_map
         self.domain = domain
         self.codomain = codomain
 
     @classmethod
-    def from_binary_sets(cls, cfgs: Set[Any], mapping: Mapping[Any, Set[Any]]):
+    def from_sets(cls, cfgs: Set[Any], mapping: Mapping[Any, Set[Any]]):
         cfgs_l = list(cfgs)
+        cfg_map = pd.DataFrame(list(range(len(cfgs_l))), index=cfgs_l, columns=["vals"])
         inputs_l = list(set().union(*mapping.values()))
         data = [[elem in mapping[cfg] for elem in inputs_l] for cfg in cfgs_l]
-        return Map(pd.DataFrame(data, index=cfgs_l), inputs_l, {True, False})
+        return Map(pd.DataFrame(data), cfg_map, inputs_l, {True, False})
 
     @classmethod
-    def from_io_map(cls, cfgs: Set[Any], mapping: Mapping[Any, Mapping[Any, Any]]):
+    def from_io_maps(cls, cfgs: Set[Any], mapping: Mapping[Any, Mapping[Any, Any]]):
         cfgs_l = list(cfgs)
+        cfg_map = pd.DataFrame(list(range(len(cfgs_l))), index=cfgs_l, columns=["vals"])
         inputs: Set[Any] = set()
         codomain: Set[Any] = set()
+        has_na = False
         for io_map in mapping.values():
-            inputs.update(io_map.keys())
+            new = set(io_map.keys())
+            if new != inputs:
+                # Map of some cfg doesn't have some inputs, we will fill in None.
+                has_na = True
+            inputs.update(new)
             codomain.update(io_map.values())
+        if has_na:
+            codomain.add(None)
         inputs_l = list(inputs)
         data = [[mapping[cfg].get(elem, None) for elem in inputs_l] for cfg in cfgs_l]
-        return Map(pd.DataFrame(data, index=cfgs_l), inputs_l, codomain)
+        return Map(pd.DataFrame(data), cfg_map, inputs_l, codomain)
+
+    @property
+    def cfgs(self) -> Set[Any]:
+        return set().union(*self.cfg_map.index)
+
+    def deduplicate(self):
+        """Deduplicate the configs of this distinguishing map based on the rows."""
+        for row, data in self.mapping.groupby(
+            self.mapping.columns.tolist(), as_index=False
+        ):
+            pass
+
+    def merge(self, other: "Map"):
+        """Merge in another distinguishing map operating on different configs."""
+        pass
 
 
 @public
@@ -156,9 +228,12 @@ class Tree:
         )
 
     def expand(self, dmap: Map) -> "Tree":
+        """Expand a tree with a new distinguishing map."""
         tree = deepcopy(self)
         tree.maps.append(dmap)
         for leaf in tree.leaves:
+            # TODO: Make _build_tree take the maps as a mapping of int -> map and only allow the new maps here
+            #       because this is inefficient.
             expanded = _build_tree(leaf.cfgs, *tree.maps, response=leaf.response)
             # If we were able to split the leaf further, then replace it with the found tree.
             if not expanded.is_leaf:
@@ -169,6 +244,7 @@ class Tree:
 
     @classmethod
     def build(cls, cfgs: Set[Any], *maps: Map) -> "Tree":
+        """Build a tree."""
         return cls(_build_tree(cfgs, *maps), *maps)
 
 
@@ -201,19 +277,18 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
     for dmap in maps:
         # Now we have a map, it may be binary or have larger output domain
         # Note we should look at the restriction of the map to the current "cfgs" and split those
-        restricted = dmap.mapping.loc[list(cfgs), :]  # .filter(items=cfgs, axis=0)
+        restricted = dmap.mapping.loc[dmap.cfg_map.loc[list(cfgs), "vals"].unique()]
         for i, column in restricted.items():
             split = column.value_counts(dropna=False)
-            # XXX: Try the other scores.
+            # TODO: Try the other scores.
             score = _size_of_largest(split)
             if best_score is None or score < best_score:
                 best_distinguishing_column = i
                 best_distinguishing_dmap = dmap
                 best_score = score
                 best_restricted = restricted
-            # Early abort if optimal score is hit. The +1 is for "None" values which are not in the codomain.
-            # TODO: Move the None to the codomain and ditch the +1 as some codomains may not have it (complete).
-            if score == ceil(n_cfgs / (len(dmap.codomain) + 1)):
+            # Early abort if optimal score is hit.
+            if score == ceil(n_cfgs / len(dmap.codomain)):
                 break
     # We found nothing distinguishing the configs, so return them all (base case 2).
     if best_distinguishing_column is None or best_distinguishing_dmap is None:
@@ -233,8 +308,12 @@ def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> N
     dmap_index = maps.index(best_distinguishing_dmap)
     result = Node(cfgset, dmap_index, best_distinguishing_element, response=response)
 
+    # Go over the distinct group
     for output, group in groups:
-        child = _build_tree(set(group.index), *maps, response=output)
+        # Lookup the cfgs in the group
+        group_cfgs = set(best_distinguishing_dmap.cfg_map.index[best_distinguishing_dmap.cfg_map["vals"].isin(group.index)])
+        # And build the tree recursively
+        child = _build_tree(group_cfgs, *maps, response=output)
         child.parent = result
 
     return result
