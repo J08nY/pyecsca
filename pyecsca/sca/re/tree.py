@@ -45,6 +45,8 @@ import pandas as pd
 from public import public
 from anytree import RenderTree, NodeMixin, AbstractStyle
 
+from ...misc.utils import log
+
 
 @public
 class Map:
@@ -219,6 +221,7 @@ class Tree:
         leafs: List[int] = sum(([size] * size for size in leaf_sizes), [])
         return "\n".join(
             (
+                f"Dmaps: {len(self.maps)}",
                 f"Total cfgs: {len(self.root.cfgs)}",
                 f"Depth: {self.height}",
                 f"Leaf sizes: {sorted(leaf_sizes)}",
@@ -229,12 +232,11 @@ class Tree:
 
     def expand(self, dmap: Map) -> "Tree":
         """Expand a tree with a new distinguishing map."""
-        tree = deepcopy(self)
-        tree.maps.append(dmap)
+        tree = Tree(deepcopy(self.root), *self.maps, dmap)
         for leaf in tree.leaves:
-            # TODO: Make _build_tree take the maps as a mapping of int -> map and only allow the new maps here
-            #       because this is inefficient.
-            expanded = _build_tree(leaf.cfgs, *tree.maps, response=leaf.response)
+            expanded = _build_tree(
+                leaf.cfgs, {len(self.maps): dmap}, response=leaf.response
+            )
             # If we were able to split the leaf further, then replace it with the found tree.
             if not expanded.is_leaf:
                 parent = leaf.parent
@@ -245,7 +247,7 @@ class Tree:
     @classmethod
     def build(cls, cfgs: Set[Any], *maps: Map) -> "Tree":
         """Build a tree."""
-        return cls(_build_tree(cfgs, *maps), *maps)
+        return cls(_build_tree(cfgs, {i: dmap for i, dmap in enumerate(maps)}), *maps)
 
 
 def _degree(split: pd.Series) -> float:
@@ -260,60 +262,73 @@ def _average_size(split: pd.Series) -> float:
     return sum(split**2) / sum(split)
 
 
-def _build_tree(cfgs: Set[Any], *maps: Map, response: Optional[Any] = None) -> Node:
+def _build_tree(
+    cfgs: Set[Any],
+    maps: Mapping[int, Map],
+    response: Optional[Any] = None,
+    depth: int = 0,
+) -> Node:
+    pad = " " * depth
     # If there is only one remaining cfg, we do not need to continue and just return (base case 1).
     # Note that n_cfgs will never be 0 here, as the base case 2 returns if the cfgs cannot
     # be split into two sets (one would be empty).
     n_cfgs = len(cfgs)
+    log(pad + f"Splitting {n_cfgs}.")
     cfgset = set(cfgs)
     if n_cfgs == 1:
+        log(pad + "Trivial.")
         return Node(cfgset, response=response)
 
     # Go over the maps and figure out which one splits the best.
-    best_distinguishing_column = None
-    best_distinguishing_dmap = None
+    best_i = None
+    best_dmap = None
     best_restricted = None
+    best_column = None
     best_score = None
-    for dmap in maps:
+    for i, dmap in maps.items():
         # Now we have a map, it may be binary or have larger output domain
         # Note we should look at the restriction of the map to the current "cfgs" and split those
         restricted = dmap.mapping.loc[dmap.cfg_map.loc[list(cfgs), "vals"].unique()]
-        for i, column in restricted.items():
+        for j, column in restricted.items():
             split = column.value_counts(dropna=False)
             # TODO: Try the other scores.
             score = _size_of_largest(split)
             if best_score is None or score < best_score:
-                best_distinguishing_column = i
-                best_distinguishing_dmap = dmap
+                best_i = i
+                best_column = j
+                best_dmap = dmap
                 best_score = score
                 best_restricted = restricted
             # Early abort if optimal score is hit.
             if score == ceil(n_cfgs / len(dmap.codomain)):
                 break
     # We found nothing distinguishing the configs, so return them all (base case 2).
-    if best_distinguishing_column is None or best_distinguishing_dmap is None:
+    if best_column is None or best_dmap is None:
+        log(pad + "Nothing could split.")
         return Node(cfgset, response=response)
 
-    best_distinguishing_element = best_distinguishing_dmap.domain[
-        best_distinguishing_column
-    ]
+    best_distinguishing_element = best_dmap.domain[best_column]
     # Now we have a dmap as well as an element in it that splits the best.
     # Go over the groups of configs that share the response
-    groups = best_restricted.groupby(best_distinguishing_column, dropna=False)  # type: ignore
+    groups = best_restricted.groupby(best_column, dropna=False)  # type: ignore
     # We found nothing distinguishing the configs, so return them all (base case 2).
     if groups.ngroups == 1:
+        log(pad + "Trivial split.")
         return Node(cfgset, response=response)
 
     # Create our node
-    dmap_index = maps.index(best_distinguishing_dmap)
+    dmap_index = best_i
     result = Node(cfgset, dmap_index, best_distinguishing_element, response=response)
 
     # Go over the distinct group
     for output, group in groups:
         # Lookup the cfgs in the group
-        group_cfgs = set(best_distinguishing_dmap.cfg_map.index[best_distinguishing_dmap.cfg_map["vals"].isin(group.index)])
+        group_cfgs = set(
+            best_dmap.cfg_map.index[best_dmap.cfg_map["vals"].isin(group.index)]
+        )
+        log(pad + f"Split {len(group_cfgs)} via dmap {best_i}.")
         # And build the tree recursively
-        child = _build_tree(group_cfgs, *maps, response=output)
+        child = _build_tree(group_cfgs, maps, response=output, depth=depth+1)
         child.parent = result
 
     return result
