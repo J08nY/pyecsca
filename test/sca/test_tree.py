@@ -20,6 +20,24 @@ def test_map():
     assert dmap.codomain == {5, 3, 7, None}
 
 
+def test_map_merge():
+    cfgs = {"a", "b"}
+    binary_sets = {"a": {1, 2, 3}, "b": {2, 4}}
+    dmap1 = Map.from_sets(cfgs, binary_sets)
+    assert len(dmap1.mapping) == 2
+
+    cfgs = {"c", "d"}
+    binary_sets = {"c": {1, 2}, "d": {2, 4, 3}}
+    dmap2 = Map.from_sets(cfgs, binary_sets)
+    assert len(dmap2.mapping) == 2
+    dmap1.merge(dmap2)
+    assert len(dmap1.mapping) == 4
+    assert len(dmap1.cfg_map) == 4
+    assert len(dmap1.codomain) == 2
+    assert not dmap1["c", 3]
+    assert dmap1["a", 0]
+
+
 def test_build_tree():
     cfgs = ["a", "b", "c"]
     cfg_map = pd.DataFrame([0, 1, 2], index=cfgs, columns=["vals"])

@@ -141,6 +141,15 @@ class Map:
     def cfgs(self) -> Set[Any]:
         return set().union(*self.cfg_map.index)
 
+    def __getitem__(self, item):
+        if isinstance(item, tuple):
+            cfg, inp = item
+            row = self.cfg_map.loc[cfg, "vals"]
+            col = self.domain.index(inp)
+            return self.mapping.loc[row, col]
+        else:
+            raise KeyError
+
     def deduplicate(self):
         """Deduplicate the configs of this distinguishing map based on the rows."""
         for row, data in self.mapping.groupby(
@@ -150,7 +159,20 @@ class Map:
 
     def merge(self, other: "Map"):
         """Merge in another distinguishing map operating on different configs."""
-        pass
+        # Domains should be equal (but only as sets, we can reorder)
+        if set(self.domain) != set(other.domain):
+            raise ValueError("Cannot merge dmaps with different domains.")
+        reordering = [other.domain.index(elem) for elem in self.domain]
+        # Get the last used index in cfg_map
+        last = max(self.cfg_map["vals"])
+        # Offset the other cfg_map and mapping index by last + 1
+        other_cfg_map = other.cfg_map + (last + 1)
+        other_mapping = other.mapping[reordering].set_index(other.mapping.index + (last + 1))
+        # Now concat the cfg_map and mapping
+        self.cfg_map = pd.concat([self.cfg_map, other_cfg_map], copy=False)
+        self.mapping = pd.concat([self.mapping, other_mapping], copy=False)
+        # Finally, adjust the codomain
+        self.codomain.update(other.codomain)
 
 
 @public
