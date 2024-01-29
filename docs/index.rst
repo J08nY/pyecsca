@@ -88,10 +88,15 @@ are the best source of documentation on how to use **pyecsca**.
    notebook/configuration_space
    notebook/simulation
    notebook/codegen
-   notebook/simulator
+   notebook/emulator
    notebook/measurement
    notebook/visualization
    notebook/smartcards
+   notebook/re/formulas
+   notebook/re/rpa
+   notebook/re/zvp
+   notebook/re/epa
+
 
 :fas:`code` API reference
 =========================
@@ -107,7 +112,7 @@ are the best source of documentation on how to use **pyecsca**.
    api/pyecsca.codegen
 
 :fas:`file` Miscellaneous
-======================
+=========================
 
 .. toctree::
    :caption: Miscellaneous
