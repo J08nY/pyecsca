@@ -1,5 +1,6 @@
 import random
 import time
+from copy import deepcopy
 
 from pyecsca.sca.re.tree import Tree, Map
 import pandas as pd
@@ -35,7 +36,19 @@ def test_map_merge():
     assert len(dmap1.cfg_map) == 4
     assert len(dmap1.codomain) == 2
     assert not dmap1["c", 3]
-    assert dmap1["a", 0]
+    assert dmap1["a", 1]
+
+
+def test_map_deduplicate():
+    cfgs = {"a", "b", "c", "d"}
+    binary_sets = {"a": {1, 2, 3}, "b": {2, 3, 4}, "c": {1, 2, 3}, "d": {4, 2}}
+    dmap = Map.from_sets(cfgs, binary_sets)
+    original = deepcopy(dmap)
+    dmap.deduplicate()
+    for cfg in cfgs:
+        for i in [1, 2, 3, 4]:
+            assert dmap[cfg, i] == original[cfg, i]
+    assert len(dmap.mapping) < len(original.mapping)
 
 
 def test_build_tree():
@@ -75,13 +88,13 @@ def test_expand_tree():
 def test_df():
     nrows = 12_000_000
     ncols = 5
-    index = list(range(nrows))
-    df = pd.DataFrame(
-        [random.choices((True, False), k=ncols) for _ in index], index=index
+    df = pd.DataFrame([random.choices((True, False), k=ncols) for _ in range(nrows)])
+    cfg_map = pd.DataFrame(
+        [(i,) for i in range(nrows)],
+        index=[str(i) for i in range(nrows)],
+        columns=["vals"],
     )
-    print(df.memory_usage().sum())
-    start = time.perf_counter()
-    for row, data in df.groupby(df.columns.tolist(), as_index=False):
-        pass
-    end = time.perf_counter()
-    print(end - start)
+    dmap = Map(df, cfg_map, list(range(ncols)), {True, False})
+    # start = time.perf_counter()
+    dmap.deduplicate()
+    # end = time.perf_counter()

@@ -152,10 +152,17 @@ class Map:
 
     def deduplicate(self):
         """Deduplicate the configs of this distinguishing map based on the rows."""
-        for row, data in self.mapping.groupby(
-            self.mapping.columns.tolist(), as_index=False
-        ):
-            pass
+        indices = []
+
+        def agg(thing):
+            indices.append(thing.index)
+            return thing.iloc[0]
+
+        self.mapping = self.mapping.groupby(self.mapping.columns.tolist(), as_index=False, dropna=False).agg(agg)
+        new_cfg_map = self.cfg_map.copy()
+        for i, index in enumerate(indices):
+            new_cfg_map.loc[self.cfg_map["vals"].isin(index), "vals"] = i
+        self.cfg_map = new_cfg_map
 
     def merge(self, other: "Map"):
         """Merge in another distinguishing map operating on different configs."""
@@ -167,7 +174,9 @@ class Map:
         last = max(self.cfg_map["vals"])
         # Offset the other cfg_map and mapping index by last + 1
         other_cfg_map = other.cfg_map + (last + 1)
-        other_mapping = other.mapping[reordering].set_index(other.mapping.index + (last + 1))
+        other_mapping = other.mapping[reordering].set_index(
+            other.mapping.index + (last + 1)
+        )
         # Now concat the cfg_map and mapping
         self.cfg_map = pd.concat([self.cfg_map, other_cfg_map], copy=False)
         self.mapping = pd.concat([self.mapping, other_mapping], copy=False)
@@ -350,7 +359,7 @@ def _build_tree(
         )
         log(pad + f"Split {len(group_cfgs)} via dmap {best_i}.")
         # And build the tree recursively
-        child = _build_tree(group_cfgs, maps, response=output, depth=depth+1)
+        child = _build_tree(group_cfgs, maps, response=output, depth=depth + 1)
         child.parent = result
 
     return result
