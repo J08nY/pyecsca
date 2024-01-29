@@ -158,7 +158,9 @@ class Map:
             indices.append(thing.index)
             return thing.iloc[0]
 
-        self.mapping = self.mapping.groupby(self.mapping.columns.tolist(), as_index=False, dropna=False).agg(agg)
+        self.mapping = self.mapping.groupby(
+            self.mapping.columns.tolist(), as_index=False, dropna=False
+        ).agg(agg)
         new_cfg_map = self.cfg_map.copy()
         for i, index in enumerate(indices):
             new_cfg_map.loc[self.cfg_map["vals"].isin(index), "vals"] = i
@@ -189,9 +191,13 @@ class Node(NodeMixin):
     """A node in a distinguishing tree."""
 
     cfgs: Set[Any]
-    dmap_index: Optional[int]
-    dmap_input: Optional[Any]
+    """Set of configs associated with this node."""
     response: Optional[Any]
+    """The response to the *previous* oracle call that resulted in this node."""
+    dmap_index: Optional[int]
+    """The dmap index to be used for the oracle call for this node."""
+    dmap_input: Optional[Any]
+    """The input for the oracle call for this node (is from dmap at dmap_index in the Tree)."""
 
     def __init__(
         self,
@@ -217,7 +223,9 @@ class Tree:
     """A distinguishing tree."""
 
     maps: List[Map]
+    """A list of dmaps. Nodes index into this when choosing which oracle to use."""
     root: Node
+    """A root of the tree."""
 
     def __init__(self, root: Node, *maps: Map):
         self.maps = list(maps)
@@ -225,17 +233,21 @@ class Tree:
 
     @property
     def leaves(self) -> Tuple[Node]:
+        """Get the leaves of the tree as a tuple."""
         return self.root.leaves
 
     @property
     def height(self) -> int:
+        """Get the height of the tree (distance from the root to the deepest leaf)."""
         return self.root.height
 
     @property
     def size(self) -> int:
+        """Get the size of the tree (number of nodes)."""
         return self.root.size
 
     def render(self) -> str:
+        """Render the tree."""
         style = AbstractStyle("\u2502  ", "\u251c\u2500\u2500", "\u2514\u2500\u2500")
 
         def _str(n: Node):
@@ -248,6 +260,7 @@ class Tree:
         return RenderTree(self.root, style=style).by_attr(_str)
 
     def describe(self) -> str:
+        """Describe some important properties of the tree."""
         leaf_sizes = [len(leaf.cfgs) for leaf in self.leaves]
         leafs: List[int] = sum(([size] * size for size in leaf_sizes), [])
         return "\n".join(

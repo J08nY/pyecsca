@@ -1,5 +1,4 @@
 import random
-import time
 from copy import deepcopy
 
 from pyecsca.sca.re.tree import Tree, Map
@@ -31,12 +30,16 @@ def test_map_merge():
     binary_sets = {"c": {1, 2}, "d": {2, 4, 3}}
     dmap2 = Map.from_sets(cfgs, binary_sets)
     assert len(dmap2.mapping) == 2
-    dmap1.merge(dmap2)
-    assert len(dmap1.mapping) == 4
-    assert len(dmap1.cfg_map) == 4
-    assert len(dmap1.codomain) == 2
-    assert not dmap1["c", 3]
-    assert dmap1["a", 1]
+    merged = deepcopy(dmap1)
+    merged.merge(dmap2)
+    assert len(merged.mapping) == 4
+    assert len(merged.cfg_map) == 4
+    assert len(merged.codomain) == 2
+    for i in [1, 2, 3, 4]:
+        for cfg in "ab":
+            assert merged[cfg, i] == dmap1[cfg, i]
+        for cfg in "cd":
+            assert merged[cfg, i] == dmap2[cfg, i]
 
 
 def test_map_deduplicate():
