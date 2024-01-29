@@ -146,7 +146,7 @@ class Map:
 
     @property
     def cfgs(self) -> Set[Any]:
-        return set().union(*self.cfg_map.index)
+        return set(self.cfg_map.index)
 
     def __getitem__(self, item):
         if isinstance(item, tuple):
@@ -275,6 +275,8 @@ class Tree:
                 f"Dmaps: {len(self.maps)}",
                 f"Total cfgs: {len(self.root.cfgs)}",
                 f"Depth: {self.height}",
+                f"Size: {self.size}",
+                f"Leaves: {len(leaf_sizes)}",
                 f"Leaf sizes: {sorted(leaf_sizes)}",
                 f"Average leaf size: {np.mean(leaf_sizes):.3}",
                 f"Mean result size: {np.mean(leafs):.3}",

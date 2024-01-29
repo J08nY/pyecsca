@@ -13,6 +13,7 @@ def test_map():
     assert dmap.codomain == {True, False}
     assert dmap.mapping.index.tolist() == [0, 1]
     assert set(dmap.cfg_map.index) == cfgs
+    assert dmap.cfgs == cfgs
 
     io_map = {"a": {1: 5, 2: 7}, "b": {1: 3}}
     dmap = Map.from_io_maps(cfgs, io_map)
