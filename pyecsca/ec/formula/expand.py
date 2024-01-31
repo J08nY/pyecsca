@@ -9,7 +9,7 @@ from .partitions import reduce_all_adds, expand_all_muls, expand_all_nopower2_mu
 from .switch_sign import generate_switched_formulas
 
 
-def reduce_with_similarity(formulas: List[Formula], norm):
+def reduce_with_similarity(formulas: List[Formula], norm: Callable[[Formula], Any]) -> List[Formula]:
     efd = list(filter(lambda x: isinstance(x, EFDFormula), formulas))
     reduced_efd = efd
     similarities = list(map(norm, efd))

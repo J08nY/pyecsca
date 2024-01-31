@@ -238,9 +238,9 @@ def generate_fliparood_formulas(
 ) -> Iterator[CodeFormula]:
     graph = FormulaGraph(formula, rename)
     fliparoos = find_fliparoos(graph)
-    for fliparoo in fliparoos:
-        for flip_graph in generate_fliparood_graphs(fliparoo):
-            yield flip_graph.to_formula()
+    for i, fliparoo in enumerate(fliparoos):
+        for j, flip_graph in enumerate(generate_fliparood_graphs(fliparoo)):
+            yield flip_graph.to_formula(f"fliparoo[{i},{j}]")
 
 
 def generate_fliparood_graphs(fliparoo: Fliparoo) -> Iterator[FormulaGraph]:

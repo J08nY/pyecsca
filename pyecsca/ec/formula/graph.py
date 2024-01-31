@@ -199,6 +199,7 @@ def formula_input_variables(formula: Formula) -> List[str]:
 
 class FormulaGraph:
     coordinate_model: Any
+    name: str
     shortname: str
     parameters: List[str]
     assumptions: List[Expression]
@@ -208,6 +209,7 @@ class FormulaGraph:
     roots: List[Node]
 
     def __init__(self, formula: Formula, rename=True):
+        self.name = formula.name
         self.shortname = formula.shortname
         self.parameters = formula.parameters
         self.assumptions = formula.assumptions
@@ -264,7 +266,7 @@ class FormulaGraph:
         assumptions = [deepcopy(assumption) for assumption in self.assumptions]
         for klass in CodeFormula.__subclasses__():
             if klass.shortname == self.shortname:
-                return klass(name, code, self.coordinate_model, parameters, assumptions)
+                return klass(self.name if name is None else self.name + "-" + name, code, self.coordinate_model, parameters, assumptions)
         raise ValueError(f"Bad formula type: {self.shortname}")
 
     def networkx_graph(self) -> nx.DiGraph:

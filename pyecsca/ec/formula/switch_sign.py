@@ -12,9 +12,9 @@ def generate_switched_formulas(
     formula: Formula, rename=True
 ) -> Iterator[CodeFormula]:
     graph = FormulaGraph(formula, rename)
-    for node_combination in subnode_lists(graph):
+    for i, node_combination in enumerate(subnode_lists(graph)):
         try:
-            yield switch_sign(graph, node_combination).to_formula()
+            yield switch_sign(graph, node_combination).to_formula(f"switch[{i}]")
         except BadSignSwitch:
             continue
 

@@ -16,7 +16,7 @@ def reduce_all_adds(formula: Formula, rename=True) -> CodeFormula:
     mul_fliparoos = find_constant_mul_fliparoos(graph)
     for mul_fliparoo in mul_fliparoos:
         reduce_mul_fliparoo(mul_fliparoo, copy=False)
-    return graph.to_formula()
+    return graph.to_formula("reduce_add")
 
 
 def expand_all_muls(formula: Formula, rename=True) -> CodeFormula:
@@ -24,7 +24,7 @@ def expand_all_muls(formula: Formula, rename=True) -> CodeFormula:
     enodes = find_expansion_nodes(graph)
     for enode in enodes:
         expand_mul(graph, enode, copy=False)
-    return graph.to_formula()
+    return graph.to_formula("expand_mul")
 
 
 def expand_all_nopower2_muls(formula: Formula, rename=True) -> CodeFormula:
@@ -32,7 +32,7 @@ def expand_all_nopower2_muls(formula: Formula, rename=True) -> CodeFormula:
     enodes = find_expansion_nodes(graph, nopower2=True)
     for enode in enodes:
         expand_mul(graph, enode, copy=False)
-    return graph.to_formula()
+    return graph.to_formula("expand_np2mul")
 
 
 def find_single_input_add_fliparoos(graph: FormulaGraph) -> List[AddFliparoo]:
@@ -275,9 +275,9 @@ def compute_partitions(n: int) -> List[Partition]:
 def generate_partitioned_formulas(formula: Formula, rename=True):
     graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)
-    for enode in enodes:
-        for part_graph in generate_all_node_partitions(graph, enode):
-            yield part_graph.to_formula()
+    for i, enode in enumerate(enodes):
+        for j, part_graph in enumerate(generate_all_node_partitions(graph, enode)):
+            yield part_graph.to_formula(f"partition[{i},{j}]")
 
 
 def generate_all_node_partitions(
