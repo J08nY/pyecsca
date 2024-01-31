@@ -85,9 +85,6 @@ class EFDFormula(Formula):
     def __setstate__(self, state):
         pass
 
-    def __str__(self):
-        return f"{self.coordinate_model!s}/{self.name}"
-
     def __eq__(self, other):
         if not isinstance(other, EFDFormula):
             return False

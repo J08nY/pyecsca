@@ -286,7 +286,7 @@ class Formula(ABC):
         return self.name < other.name
 
     def __str__(self):
-        return f"{self.shortname}[{self.name}]"
+        return f"{self.coordinate_model!s}/{self.name}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name} for {self.coordinate_model})"
