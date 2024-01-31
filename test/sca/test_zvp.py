@@ -5,7 +5,6 @@ from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier, AccumulationOrder
 from pyecsca.ec.point import Point
 from pyecsca.sca.re.zvp import (
-    unroll_formula,
     map_to_affine,
     subs_curve_equation,
     remove_z,
@@ -18,6 +17,7 @@ from pyecsca.sca.re.zvp import (
     solve_easy_dcp,
     solve_hard_dcp,
 )
+from pyecsca.ec.formula.unroll import unroll_formula
 from pyecsca.ec.context import local, DefaultContext
 from sympy import symbols, Poly, sympify, FF
 

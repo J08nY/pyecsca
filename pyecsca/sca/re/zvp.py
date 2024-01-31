@@ -3,11 +3,9 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
-from contextlib import redirect_stdout, redirect_stderr
-from typing import List, Set, Tuple, Dict, Type, Mapping
+from typing import List, Set, Tuple, Dict, Type
 from public import public
 from astunparse import unparse
-import io
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
 from .rpa import MultipleContext
@@ -23,6 +21,7 @@ from ...ec.formula import (
     NegationFormula,
 )
 from ...ec.formula.fake import FakePoint, FakeFormula
+from ...ec.formula.unroll import unroll_formula
 from ...ec.mod import Mod
 from ...ec.mult import ScalarMultiplier
 from ...ec.params import DomainParameters
@@ -36,69 +35,6 @@ try:
     has_pari = True
 except ImportError:
     cypari2 = None
-
-
-@public
-def unroll_formula_expr(formula: Formula) -> List[Tuple[str, Expr]]:
-    """
-    Unroll a given formula symbolically to obtain symbolic expressions for its intermediate values.
-
-    :param formula: Formula to unroll.
-    :return: List of symbolic intermediate values, with associated variable names.
-    """
-    params = {
-        var: symbols(var)
-        for var in formula.coordinate_model.curve_model.parameter_names
-    }
-    inputs = {
-        f"{var}{i}": symbols(f"{var}{i}")
-        for var in formula.coordinate_model.variables
-        for i in range(1, formula.num_inputs + 1)
-    }
-    for coord_assumption in formula.coordinate_model.assumptions:
-        assumption_string = unparse(coord_assumption).strip()
-        lhs, rhs = assumption_string.split(" = ")
-        if lhs in params:
-            expr = sympify(rhs, evaluate=False)
-            params[lhs] = expr
-    for assumption_string in formula.assumptions_str:
-        lhs, rhs = assumption_string.split(" == ")
-        if lhs in formula.parameters:
-            # Handle a symbolic assignment to a new parameter.
-            expr = sympify(rhs, evaluate=False)
-            for curve_param, value in params.items():
-                expr = expr.subs(curve_param, value)
-            params[lhs] = expr
-
-    locls = {**params, **inputs}
-    values: List[Tuple[str, Expr]] = []
-    for op in formula.code:
-        result: Expr = op(**locls)  # type: ignore
-        locls[op.result] = result
-        values.append((op.result, result))
-    return values
-
-
-@public
-def unroll_formula(formula: Formula) -> List[Tuple[str, Poly]]:
-    """
-    Unroll a given formula symbolically to obtain symbolic expressions (as Polynomials) for its intermediate values.
-
-    :param formula: Formula to unroll.
-    :return: List of symbolic intermediate values, with associated variable names.
-    """
-    values = unroll_formula_expr(formula)
-    polys = []
-    for name, result in values:
-        if result.free_symbols:
-            gens = list(result.free_symbols)
-            gens.sort(key=str)
-            poly = Poly(result, *gens)
-            polys.append((name, poly))
-        else:
-            # TODO: We cannot create a Poly here, because the result does not have free symbols (i.e. it is a constant)
-            pass
-    return polys
 
 
 @public
@@ -601,12 +537,6 @@ def solve_hard_dcp_cypari(
     except Exception as err:
         raise ValueError(str(err))
     return res
-
-
-def polypower(pari, polynomial, power):
-    g = pari("g")
-    gpower = pari(f"g^{power}")
-    return pari.subst(gpower, g, polynomial)
 
 
 def addition_chain(

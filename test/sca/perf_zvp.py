@@ -3,7 +3,8 @@ import click
 
 from pyecsca.ec.mod import has_gmp
 from pyecsca.misc.cfg import TemporaryConfig
-from pyecsca.sca.re.zvp import zvp_points, unroll_formula, map_to_affine
+from pyecsca.sca.re.zvp import zvp_points, map_to_affine
+from pyecsca.ec.formula.unroll import unroll_formula
 from pyecsca.ec.params import get_params
 from test.utils import Profiler
 

@@ -3,3 +3,5 @@
 from .base import *
 from .code import *
 from .efd import *
+from .expand import *
+from .unroll import *

@@ -1,5 +1,5 @@
 from ast import parse
-from typing import Iterator, List, Type, Optional
+from typing import Iterator, List, Type, Optional, Set
 from ..op import OpType
 from .base import Formula
 from .graph import FormulaGraph, Node, CodeOpNode, CodeOp, CodeFormula
@@ -363,19 +363,19 @@ def combine_signed_nodes(
     subgraph.add_node(new_node)
 
 
-def recursive_fliparoo(formula, depth=2):
-    all_fliparoos = {0: [formula]}
+def recursive_fliparoo(formula: Formula, depth: int = 2) -> Set[Formula]:
+    all_fliparoos = {0: {formula}}
     counter = 0
     while depth > counter:
         prev_level = all_fliparoos[counter]
-        fliparoo_level = []
+        fliparoo_level: Set[Formula] = set()
         for flipparood_formula in prev_level:
             rename = not counter  # rename ivs before the first fliparoo
             for newly_fliparood in generate_fliparood_formulas(
                 flipparood_formula, rename
             ):
-                fliparoo_level.append(newly_fliparood)
+                fliparoo_level.add(newly_fliparood)
         counter += 1
         all_fliparoos[counter] = fliparoo_level
 
-    return sum(all_fliparoos.values(), [])
+    return set().union(*all_fliparoos.values())
