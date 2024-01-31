@@ -192,6 +192,17 @@ class Map:
         # Finally, adjust the codomain
         self.codomain.update(other.codomain)
 
+    def describe(self) -> str:
+        return "\n".join(
+            (
+                "Total configs: {len(self.cfg_map)}, ({self.cfg_map.memory_usage(index=True).sum():_} bytes)",
+                "Rows: {len(self.mapping)}, ({self.mapping.memory_usage(index=True).sum():_} bytes)",
+                "Inputs: {len(self.domain)}",
+                "Codomain: {len(self.codomain)}",
+                "None in codomain: {None in self.codomain}"
+            )
+        )
+
 
 @public
 class Node(NodeMixin):
@@ -278,8 +289,8 @@ class Tree:
                 f"Size: {self.size}",
                 f"Leaves: {len(leaf_sizes)}",
                 f"Leaf sizes: {sorted(leaf_sizes)}",
-                f"Average leaf size: {np.mean(leaf_sizes):.3}",
-                f"Mean result size: {np.mean(leafs):.3}",
+                f"Average leaf size: {np.mean(leaf_sizes):.3f}",
+                f"Mean result size: {np.mean(leafs):.3f}",
             )
         )
 
