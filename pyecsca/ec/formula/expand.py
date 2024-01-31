@@ -1,7 +1,7 @@
 from typing import Set, Callable, Any
 from public import public
 
-from . import Formula
+from .base import Formula
 from .efd import EFDFormula
 from .fliparoo import recursive_fliparoo
 from .metrics import ivs_norm

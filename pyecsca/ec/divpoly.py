@@ -249,6 +249,12 @@ if has_pari:
 
     def mult_by_n_pari(curve: EllipticCurve, n: int):
         pari = cypari2.Pari()
+        # Magic heuristic, plus some constant term for very small polys
+        stacksize = 2 * (n**2 * (40 * curve.prime.bit_length())) + 1000000
+        stacksizemax = 15 * stacksize
+
+        pari.default("debugmem", 0)  # silence stack warnings
+        pari.allocatemem(stacksize, stacksizemax, silent=True)
         p = pari(curve.prime)
         a = pari.Mod(curve.parameters["a"], p)
         b = pari.Mod(curve.parameters["b"], p)

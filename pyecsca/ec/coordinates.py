@@ -6,7 +6,7 @@ from typing import List, Any, MutableMapping
 
 from public import public
 
-from .formula import Formula
+from .formula.base import Formula
 from .formula.efd import (
     EFDFormula,
     AdditionEFDFormula,

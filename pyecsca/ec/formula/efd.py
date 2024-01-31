@@ -6,7 +6,7 @@ from public import public
 from importlib_resources.abc import Traversable
 from typing import Any
 
-from . import CodeFormula
+from .code import CodeFormula
 from .base import (
     Formula,
     CodeOp,
