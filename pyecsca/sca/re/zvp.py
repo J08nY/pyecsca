@@ -577,6 +577,7 @@ def solve_hard_dcp_cypari(
         stacksizemax = 15 * stacksize
 
         pari = cypari2.Pari()
+        pari.default("debugmem", 0)  # silence stack warnings
         pari.allocatemem(stacksize, stacksizemax, silent=True)
         e = pari.ellinit([a, b], curve.prime)
         mul = pari.ellxn(e, k)
