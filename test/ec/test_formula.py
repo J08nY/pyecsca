@@ -6,7 +6,7 @@ import pytest
 from sympy import FF, symbols
 from importlib_resources import files, as_file
 import test.data.formulas
-from pyecsca.ec.formula.expand import expand_formula_list
+from pyecsca.ec.formula.expand import expand_formula_set
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
 from pyecsca.ec.formula.metrics import (
@@ -522,5 +522,5 @@ def test_formula_correctness(library_formula_params):
 
 
 def test_formula_expand(add):
-    res = expand_formula_list([add])
+    res = expand_formula_set([add])
     assert len(res) > 1

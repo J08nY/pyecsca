@@ -22,7 +22,7 @@ def reduce_with_similarity(formulas: Set[Formula], norm: Callable[[Formula], Any
 
 
 @public
-def expand_formula_list(
+def expand_formula_set(
     formulas: Set[Formula], norm: Callable[[Formula], Any] = ivs_norm
 ) -> Set[Formula]:
     extended = reduce_with_similarity(formulas, norm)
