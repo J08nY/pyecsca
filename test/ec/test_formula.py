@@ -31,7 +31,6 @@ from pyecsca.ec.formula.efd import (
     AdditionEFDFormula,
     DoublingEFDFormula,
     LadderEFDFormula,
-    EFDFormula,
 )
 from pyecsca.ec.formula import (
     AdditionFormula,
@@ -147,6 +146,10 @@ def test_symbolic(secp128r1, dbl):
 
 def test_pickle(add, dbl):
     assert add == pickle.loads(pickle.dumps(add))
+
+
+def test_compare(add, dbl):
+    assert add < dbl
 
 
 def test_formula_similarity(secp128r1):
@@ -522,5 +525,5 @@ def test_formula_correctness(library_formula_params):
 
 
 def test_formula_expand(add):
-    res = expand_formula_set([add])
+    res = expand_formula_set({add})
     assert len(res) > 1

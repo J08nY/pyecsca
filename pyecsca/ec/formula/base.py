@@ -276,6 +276,15 @@ class Formula(ABC):
                 result.append(point)
             return action.exit(tuple(result))
 
+    def __lt__(self, other):
+        if not isinstance(other, Formula):
+            raise TypeError("Cannot compare.")
+        if self.name is None:
+            return True
+        if other.name is None:
+            return False
+        return self.name < other.name
+
     def __str__(self):
         return f"{self.shortname}[{self.name}]"
 
