@@ -64,7 +64,7 @@
 "gmp" = ["gmpy2"]
 "pari" = ["cysignals", "cypari2"]
 "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"]
-"test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar"]
+"test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock"]
 "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
 
 [tool.setuptools.packages.find]
@@ -82,7 +82,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 filterwarnings = [
-    "ignore:Deprecated call to `pkg_resources.declare_namespace",
+	"ignore:(?s).*pkg_resources is deprecated as an API:DeprecationWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
+    #"ignore:Deprecated call to `pkg_resources.declare_namespace",
     "ignore:(?s).*Pyarrow will become a required dependency of pandas:DeprecationWarning", # pandas pyarrow (pandas<3.0),
 ]
 

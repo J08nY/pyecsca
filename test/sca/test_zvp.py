@@ -126,7 +126,7 @@ def test_eliminate_y(secp128r1, formula):
     unrolled = unroll_formula(formula)
     unrolled = map_to_affine(formula, unrolled)
     subbed = subs_curve_equation(unrolled[-1][1], secp128r1.curve)
-    eliminated = eliminate_y(subbed, secp128r1.curve)
+    eliminated = eliminate_y(subbed, secp128r1.curve.model)
     assert eliminated is not None
     assert isinstance(eliminated, Poly)
     y1, y2 = symbols("y1,y2")
@@ -140,7 +140,7 @@ def test_full(secp128r1, formula):
     unrolled = map_to_affine(formula, unrolled)
     subbed = subs_curve_equation(unrolled[-1][1], secp128r1.curve)
     removed = remove_z(subbed)
-    eliminated = eliminate_y(removed, secp128r1.curve)
+    eliminated = eliminate_y(removed, secp128r1.curve.model)
     dlog = subs_dlog(eliminated, 3, secp128r1.curve)
     assert dlog is not None
     assert isinstance(dlog, Poly)

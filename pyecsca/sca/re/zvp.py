@@ -11,6 +11,7 @@ from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
 from .rpa import MultipleContext
 from ...ec.context import local
 from ...ec.curve import EllipticCurve
+from ...ec.model import CurveModel
 from ...ec.divpoly import mult_by_n
 from ...ec.formula import (
     Formula,
@@ -142,7 +143,10 @@ def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) 
 
 @public
 def compute_factor_set(
-    formula: Formula, affine: bool = True, filter_nonhomo: bool = True
+    formula: Formula,
+    affine: bool = True,
+    filter_nonhomo: bool = True,
+    xonly: bool = False
 ) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
@@ -150,6 +154,7 @@ def compute_factor_set(
     :param formula: Formula to compute the factor set of.
     :param affine: Whether to transform the polynomials into affine form.
     :param filter_nonhomo: Whether to filter out non-homogenous polynomials.
+    :param xonly: Whether to make the factor set "x"-only by eliminating y-coords using the curve equation.
     :return: The set of factors present in the formula.
     """
     unrolled = unroll_formula(formula)
@@ -157,6 +162,8 @@ def compute_factor_set(
         unrolled = filter_out_nonhomogenous_polynomials(formula, unrolled)
     if affine:
         unrolled = map_to_affine(formula, unrolled)
+    if xonly:
+        unrolled = set((eliminate_y(poly, formula.coordinate_model.model) for poly in unrolled))
 
     curve_params = set(formula.coordinate_model.curve_model.parameter_names)
 
@@ -215,21 +222,32 @@ def filter_out_rpa_polynomials(
     return filtered_factorset
 
 
-def curve_equation(x: Symbol, curve: EllipticCurve, symbolic: bool = True) -> Expr:
+def symbolic_curve_equation(x: Symbol, model: CurveModel) -> Expr:
     """
     Get the "ysquared" curve polynomial in :paramref:`~.x` for the :paramref:`~.curve`,
-    either symbolically or with concrete parameter values.
+    symbolically.
 
     :param x: The sympy symbol to use in place of x.
-    :param curve: The elliptic curve to use.
-    :param symbolic: Whether to get the symbolic equation for the curve (with symbolic parameters) or actual curve parameter values.
+    :param model: The curve model to use.
     :return: The sympy expression of the "ysquared" curve polynomial.
     """
     parameters = {
-        name: symbols(name) if symbolic else curve.parameters[name]
-        for name in curve.model.parameter_names
+        name: symbols(name)
+        for name in model.parameter_names
     }
-    return eval(compile(curve.model.ysquared, "", mode="eval"), {"x": x, **parameters})
+    return eval(compile(model.ysquared, "", mode="eval"), {"x": x, **parameters})
+
+
+def curve_equation(x: Symbol, curve: EllipticCurve) -> Expr:
+    """
+    Get the "ysquared" curve polynomial in :paramref:`~.x` for the :paramref:`~.curve`,
+    with concrete parameter values.
+
+    :param x: The sympy symbol to use in place of x.
+    :param curve: The elliptic curve to use.
+    :return: The sympy expression of the "ysquared" curve polynomial.
+    """
+    return eval(compile(curve.model.ysquared, "", mode="eval"), {"x": x, **curve.parameters})
 
 
 def subs_curve_equation(poly: Poly, curve: EllipticCurve) -> Poly:
@@ -250,7 +268,7 @@ def subs_curve_equation(poly: Poly, curve: EllipticCurve) -> Poly:
         for power, gen in zip(term[0], gens):
             if str(gen).startswith("y"):
                 x = symbols("x" + str(gen)[1:])
-                ysquared = curve_equation(x, curve)
+                ysquared = symbolic_curve_equation(x, curve.model)
                 sub *= ysquared ** (power // 2)
                 power %= 2
             new_term.append(power)
@@ -341,17 +359,16 @@ def remove_z(poly: Poly) -> Poly:
     return poly
 
 
-def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
+def eliminate_y(poly: Poly, model: CurveModel) -> Poly:
     """
     Eliminate the remaining ys (only power 1).
 
     See [FFD]_ page 11.
 
     :param poly: The sympy polynomial to eliminate in.
-    :param curve: The elliptic curve to use.
+    :param model: The elliptic curve to use.
     :return:
     """
-    poly = Poly(poly, domain=FF(curve.prime))
     x1, x2, y1, y2 = symbols("x1,x2,y1,y2")
     gens = poly.gens  # type: ignore[attr-defined]
     y1i = gens.index(y1) if y1 in gens else None
@@ -373,8 +390,8 @@ def eliminate_y(poly: Poly, curve: EllipticCurve) -> Poly:
             f2 += monom_expr.subs(y2, 1)
         elif not y1_present and not y2_present:
             f0 += monom_expr
-    fe_x1 = curve_equation(x1, curve)
-    fe_x2 = curve_equation(x2, curve)
+    fe_x1 = symbolic_curve_equation(x1, model)
+    fe_x2 = symbolic_curve_equation(x2, model)
 
     # [FFD] page 11
     f_prime = (
@@ -406,7 +423,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
     # Remove the Zs by setting them to 1
     removed = remove_z(subbed)
     # Now remove the rest of the Ys by clever curve equation use, the poly is x-only now
-    eliminated = eliminate_y(removed, curve)
+    eliminated = eliminate_y(removed, curve.model)
     points = set()
     # Now decide on the special case:
     if only_1:
