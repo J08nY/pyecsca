@@ -42,6 +42,7 @@
     "bokeh",
     "matplotlib",
     "datashader",
+    "dask[dataframe]",
     "xarray",
     "astunparse",
     "numba==0.57.1",
