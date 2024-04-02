@@ -2,7 +2,8 @@ from typing import List, Tuple
 
 from astunparse import unparse
 from public import public
-from sympy import Expr, symbols, sympify, Poly
+from sympy import Expr, symbols, Poly
+from ...misc.cache import sympify
 
 from .base import Formula
 

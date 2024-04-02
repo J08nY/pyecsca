@@ -163,7 +163,7 @@ def compute_factor_set(
     if affine:
         unrolled = map_to_affine(formula, unrolled)
     if xonly:
-        unrolled = set(((name, eliminate_y(poly, formula.coordinate_model.curve_model)) for name, poly in unrolled))
+        unrolled = list(set(((name, eliminate_y(poly, formula.coordinate_model.curve_model)) for name, poly in unrolled)))
 
     curve_params = set(formula.coordinate_model.curve_model.parameter_names)
 
