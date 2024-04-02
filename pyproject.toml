@@ -1,3 +1,4 @@
+
 [build-system]
   requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
   build-backend = "setuptools.build_meta"
@@ -65,7 +66,7 @@
 "pari" = ["cysignals", "cypari2"]
 "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools"]
 "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock"]
-"doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design"]
+"doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design", "alabaster>=0.7.16"]
 
 [tool.setuptools.packages.find]
 include = ["pyecsca*"]
