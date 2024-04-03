@@ -47,9 +47,16 @@ class TaskExecutor(ProcessPoolExecutor):
     keys: List[Any]
     futures: List[Future]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.keys = []
+        self.futures = []
+
     def submit_task(self, key: Any, fn, /, *args, **kwargs):
-        self.futures.append(self.submit(fn, *args, **kwargs))
+        future = self.submit(fn, *args, **kwargs)
+        self.futures.append(future)
         self.keys.append(key)
+        return future
 
     @property
     def tasks(self):
