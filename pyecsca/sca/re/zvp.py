@@ -373,6 +373,9 @@ def eliminate_y(poly: Poly, model: CurveModel) -> Poly:
     gens = poly.gens  # type: ignore[attr-defined]
     y1i = gens.index(y1) if y1 in gens else None
     y2i = gens.index(y2) if y2 in gens else None
+    if y1i is None and y2i is None:
+        # Already y-only.
+        return poly
     f0 = 0
     f1 = 0
     f2 = 0

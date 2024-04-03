@@ -134,6 +134,9 @@ def test_eliminate_y(secp128r1, formula):
     assert y1 not in eliminated.gens
     assert y2 not in eliminated.gens
 
+    eliminated_second = eliminate_y(eliminated, secp128r1.curve.model)
+    assert eliminated_second == eliminated
+
 
 def test_full(secp128r1, formula):
     unrolled = unroll_formula(formula)
