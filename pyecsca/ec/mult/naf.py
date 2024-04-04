@@ -48,7 +48,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.direction = direction
 
     def __hash__(self):
-        return id(self)
+        return hash((BinaryNAFMultiplier, super().__hash__(), self.direction, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, BinaryNAFMultiplier):
@@ -142,7 +142,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.precompute_negation = precompute_negation
 
     def __hash__(self):
-        return id(self)
+        return hash((WindowNAFMultiplier, super().__hash__(), self.width, self.precompute_negation, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, WindowNAFMultiplier):

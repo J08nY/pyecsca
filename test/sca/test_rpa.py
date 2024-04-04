@@ -95,24 +95,41 @@ def test_distinguish(secp128r1, add, dbl, neg):
         BinaryNAFMultiplier(
             add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
+        BinaryNAFMultiplier(
+            add, dbl, neg, None, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True
+        ),
         WindowNAFMultiplier(
             add, dbl, neg, 3, None, AccumulationOrder.PeqPR, True, True
         ),
         WindowNAFMultiplier(
             add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True
         ),
-        WindowBoothMultiplier(
-            add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True
+        WindowNAFMultiplier(
+            add, dbl, neg, 5, None, AccumulationOrder.PeqPR, True, True
         ),
-        # WindowNAFMultiplier(add, dbl, neg, 4, None, AccumulationOrder.PeqPR, False, True),
         SlidingWindowMultiplier(
             add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
         SlidingWindowMultiplier(
+            add, dbl, 4, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
+        SlidingWindowMultiplier(
             add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
+        SlidingWindowMultiplier(
+            add, dbl, 3, None, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True
+        ),
+        SlidingWindowMultiplier(
+            add, dbl, 4, None, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True
+        ),
+        SlidingWindowMultiplier(
+            add, dbl, 5, None, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True
+        ),
+        FixedWindowLTRMultiplier(add, dbl, 3, None, AccumulationOrder.PeqPR, True),
         FixedWindowLTRMultiplier(add, dbl, 4, None, AccumulationOrder.PeqPR, True),
         FixedWindowLTRMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True),
+        FixedWindowLTRMultiplier(add, dbl, 8, None, AccumulationOrder.PeqPR, True),
+        FixedWindowLTRMultiplier(add, dbl, 16, None, AccumulationOrder.PeqPR, True),
         FullPrecompMultiplier(
             add,
             dbl,
@@ -133,14 +150,21 @@ def test_distinguish(secp128r1, add, dbl, neg):
             True,
             True,
         ),
-        # FullPrecompMultiplier(add, dbl, None, False, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True, True),
+        BGMWMultiplier(
+            add, dbl, 2, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
         BGMWMultiplier(
             add, dbl, 3, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
         BGMWMultiplier(
+            add, dbl, 4, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+        ),
+        BGMWMultiplier(
             add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
+        CombMultiplier(add, dbl, 2, None, AccumulationOrder.PeqPR, True),
         CombMultiplier(add, dbl, 3, None, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 4, None, AccumulationOrder.PeqPR, True),
         CombMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True),
     ]
     for real_mult in multipliers:
@@ -152,9 +176,12 @@ def test_distinguish(secp128r1, add, dbl, neg):
             with local(MultipleContext()) as ctx:
                 real_mult.init(secp128r1, point)
                 real_mult.multiply(scalar)
-            return any(map(lambda P: P.X == 0 or P.Y == 0, sum(ctx.parents.values(), [])))
+            return any(
+                map(lambda P: P.X == 0 or P.Y == 0, sum(ctx.parents.values(), []))
+            )
 
         with redirect_stdout(io.StringIO()):
             result = rpa_distinguish(secp128r1, multipliers, simulated_oracle)
+        assert real_mult in result
         assert 1 == len(result)
         assert real_mult == result.pop()

@@ -61,7 +61,7 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.width = width
 
     def __hash__(self):
-        return id(self)
+        return hash((BGMWMultiplier, super().__hash__(), self.width, self.direction, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, BGMWMultiplier):
@@ -147,7 +147,7 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.width = width
 
     def __hash__(self):
-        return id(self)
+        return hash((CombMultiplier, super().__hash__(), self.width, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, CombMultiplier):

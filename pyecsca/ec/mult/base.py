@@ -181,7 +181,7 @@ class ScalarMultiplier(ABC):
         )[0]
 
     def __hash__(self):
-        return id(self)
+        return hash((ScalarMultiplier, tuple(self.formulas.keys()), tuple(self.formulas.values()), self.short_circuit))
 
     def __eq__(self, other):
         if not isinstance(other, ScalarMultiplier):

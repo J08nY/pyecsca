@@ -61,7 +61,7 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.recoding_direction = recoding_direction
 
     def __hash__(self):
-        return id(self)
+        return hash((SlidingWindowMultiplier, super().__hash__(), self.width, self.recoding_direction, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, SlidingWindowMultiplier):
@@ -150,7 +150,7 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.m = m
 
     def __hash__(self):
-        return id(self)
+        return hash((FixedWindowLTRMultiplier, super().__hash__(), self.m, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, FixedWindowLTRMultiplier):
@@ -252,7 +252,7 @@ class WindowBoothMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.precompute_negation = precompute_negation
 
     def __hash__(self):
-        return id(self)
+        return hash((WindowBoothMultiplier, super().__hash__(), self.width, self.precompute_negation, self.accumulation_order))
 
     def __eq__(self, other):
         if not isinstance(other, WindowBoothMultiplier):

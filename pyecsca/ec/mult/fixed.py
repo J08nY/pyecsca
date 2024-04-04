@@ -55,7 +55,7 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.complete = complete
 
     def __hash__(self):
-        return id(self)
+        return hash((FullPrecompMultiplier, super().__hash__(), self.direction, self.accumulation_order, self.always))
 
     def __eq__(self, other):
         if not isinstance(other, FullPrecompMultiplier):

@@ -56,7 +56,7 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
         self.complete = complete
 
     def __hash__(self):
-        return id(self)
+        return hash((DoubleAndAddMultiplier, super().__hash__(), self.direction, self.accumulation_order, self.always, self.complete))
 
     def __eq__(self, other):
         if not isinstance(other, DoubleAndAddMultiplier):
@@ -195,7 +195,7 @@ class CoronMultiplier(ScalarMultiplier):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
 
     def __hash__(self):
-        return id(self)
+        return hash((CoronMultiplier, super().__hash__()))
 
     def __eq__(self, other):
         if not isinstance(other, CoronMultiplier):

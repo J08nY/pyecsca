@@ -45,7 +45,7 @@ class LadderMultiplier(ScalarMultiplier):
             raise ValueError
 
     def __hash__(self):
-        return id(self)
+        return hash((LadderMultiplier, super().__hash__(), self.complete))
 
     def __eq__(self, other):
         if not isinstance(other, LadderMultiplier):
@@ -107,7 +107,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
         self.complete = complete
 
     def __hash__(self):
-        return id(self)
+        return hash((SimpleLadderMultiplier, super().__hash__(), self.complete))
 
     def __eq__(self, other):
         if not isinstance(other, SimpleLadderMultiplier):
@@ -168,7 +168,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
         self.complete = complete
 
     def __hash__(self):
-        return id(self)
+        return hash((DifferentialLadderMultiplier, super().__hash__(), self.complete))
 
     def __eq__(self, other):
         if not isinstance(other, DifferentialLadderMultiplier):
