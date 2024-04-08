@@ -180,8 +180,6 @@ def test_distinguish(secp128r1, add, dbl, neg):
                 map(lambda P: P.X == 0 or P.Y == 0, sum(ctx.parents.values(), []))
             )
 
-        with redirect_stdout(io.StringIO()):
-            result = rpa_distinguish(secp128r1, multipliers, simulated_oracle)
+        result = rpa_distinguish(secp128r1, multipliers, simulated_oracle)
         assert real_mult in result
         assert 1 == len(result)
-        assert real_mult == result.pop()

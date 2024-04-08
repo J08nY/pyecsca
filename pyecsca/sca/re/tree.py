@@ -199,7 +199,7 @@ class Map:
                 "Rows: {len(self.mapping)}, ({self.mapping.memory_usage(index=True).sum():_} bytes)",
                 "Inputs: {len(self.domain)}",
                 "Codomain: {len(self.codomain)}",
-                "None in codomain: {None in self.codomain}"
+                "None in codomain: {None in self.codomain}",
             )
         )
 
@@ -263,6 +263,11 @@ class Tree:
     def size(self) -> int:
         """Get the size of the tree (number of nodes)."""
         return self.root.size
+
+    @property
+    def precise(self) -> bool:
+        """Whether the tree is precise (all leaves have only a single configuration)."""
+        return all(len(leaf.cfgs) == 1 for leaf in self.leaves)
 
     def render(self) -> str:
         """Render the tree."""
