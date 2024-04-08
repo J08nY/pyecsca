@@ -195,11 +195,11 @@ class Map:
     def describe(self) -> str:
         return "\n".join(
             (
-                "Total configs: {len(self.cfg_map)}, ({self.cfg_map.memory_usage(index=True).sum():_} bytes)",
-                "Rows: {len(self.mapping)}, ({self.mapping.memory_usage(index=True).sum():_} bytes)",
-                "Inputs: {len(self.domain)}",
-                "Codomain: {len(self.codomain)}",
-                "None in codomain: {None in self.codomain}",
+                f"Total configs: {len(self.cfg_map)}, ({self.cfg_map.memory_usage(index=True).sum():_} bytes)",
+                f"Rows: {len(self.mapping)}, ({self.mapping.memory_usage(index=True).sum():_} bytes)",
+                f"Inputs: {len(self.domain)}",
+                f"Codomain: {len(self.codomain)}",
+                f"None in codomain: {None in self.codomain}",
             )
         )
 
