@@ -282,19 +282,26 @@ class Tree:
 
         return RenderTree(self.root, style=style).by_attr(_str)
 
+    def render_basic(self) -> str:
+        """Render the tree in a basic form, with number of configs as nodes."""
+        return RenderTree(self.root).by_attr(lambda node: str(len(node.cfgs)))
+
     def describe(self) -> str:
         """Describe some important properties of the tree."""
         leaf_sizes = [len(leaf.cfgs) for leaf in self.leaves]
+        leaf_depths = [leaf.depth for leaf in self.leaves]
         leafs: List[int] = sum(([size] * size for size in leaf_sizes), [])
         return "\n".join(
             (
                 f"Dmaps: {len(self.maps)}",
                 f"Total cfgs: {len(self.root.cfgs)}",
-                f"Depth: {self.height}",
+                f"Height: {self.height}",
                 f"Size: {self.size}",
                 f"Leaves: {len(leaf_sizes)}",
+                f"Precise: {self.precise}",
                 f"Leaf sizes: {sorted(leaf_sizes)}",
                 f"Average leaf size: {np.mean(leaf_sizes):.3f}",
+                f"Mean result depth: {np.mean(leaf_depths):.3f}",
                 f"Mean result size: {np.mean(leafs):.3f}",
             )
         )

@@ -69,6 +69,7 @@ def test_build_tree():
     dmap2 = Map(mapping2, cfg_map, inputs2, codomain2)
     tree = Tree.build(set(cfgs), dmap1, dmap2)
     tree.render()
+    tree.render_basic()
     tree.describe()
 
 

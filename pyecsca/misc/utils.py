@@ -1,9 +1,10 @@
 """Just some utilities I promise."""
 import sys
 from ast import parse
+from contextlib import contextmanager
 from typing import List, Any, Generator
 
-from ..misc.cfg import getconfig
+from ..misc.cfg import getconfig, TemporaryConfig
 
 from concurrent.futures import ProcessPoolExecutor, as_completed, Future
 
@@ -42,8 +43,17 @@ def warn(*args, **kwargs):
         print(*args, **kwargs, file=sys.stderr)
 
 
+@contextmanager
+def silent():
+    """Temporarily disable output."""
+    with TemporaryConfig() as cfg:
+        cfg.log.enabled = False
+        yield
+
+
 class TaskExecutor(ProcessPoolExecutor):
     """A simple ProcessPoolExecutor that keeps tracks of tasks that were submitted to it."""
+
     keys: List[Any]
     futures: List[Future]
 
