@@ -151,7 +151,7 @@ class Map:
     def __getitem__(self, item):
         if isinstance(item, tuple):
             cfg, inp = item
-            row = self.cfg_map.loc[[cfg], "vals"][0]
+            row = self.cfg_map.loc[[cfg], "vals"].iloc[0]
             col = self.domain.index(inp)
             return self.mapping.loc[row, col]
         else:
