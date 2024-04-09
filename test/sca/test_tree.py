@@ -14,6 +14,8 @@ def test_map():
     assert dmap.mapping.index.tolist() == [0, 1]
     assert set(dmap.cfg_map.index) == cfgs
     assert dmap.cfgs == cfgs
+    assert dmap["a", 1]
+    assert not dmap["a", 4]
 
     io_map = {"a": {1: 5, 2: 7}, "b": {1: 3}}
     dmap = Map.from_io_maps(cfgs, io_map)
@@ -53,6 +55,16 @@ def test_map_deduplicate():
         for i in [1, 2, 3, 4]:
             assert dmap[cfg, i] == original[cfg, i]
     assert len(dmap.mapping) < len(original.mapping)
+
+
+def test_map_with_callable(secp128r1):
+    add = secp128r1.curve.coordinate_model.formulas["add-2007-bl"]
+    dbl = secp128r1.curve.coordinate_model.formulas["dbl-2007-bl"]
+    mdbl = secp128r1.curve.coordinate_model.formulas["mdbl-2007-bl"]
+    cfgs = [(add, dbl), (add, mdbl)]
+    binary_sets = {cfgs[0]: {1, 2, 3}, cfgs[1]: {2, 3}}
+    dmap = Map.from_sets(set(cfgs), binary_sets)
+    assert dmap[cfgs[0], 1]
 
 
 def test_build_tree():
