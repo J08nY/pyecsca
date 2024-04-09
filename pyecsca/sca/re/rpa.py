@@ -307,7 +307,7 @@ class RPA(RE):
     def run(
         self, oracle: Callable[[int, Point], bool], majority: int = 1
     ) -> Set[ScalarMultiplier]:
-        if self.tree is None or self.scalars is None:
+        if self.tree is None or self.scalars is None or self.P0 is None or self.params is None:
             raise ValueError("Need to build tree first.")
 
         if (majority % 2) == 0:
