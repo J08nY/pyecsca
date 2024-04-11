@@ -133,7 +133,7 @@ class Map:
         has_na = False
         for io_map in mapping.values():
             new = set(io_map.keys())
-            if new != inputs:
+            if inputs and new != inputs:
                 # Map of some cfg doesn't have some inputs, we will fill in None.
                 has_na = True
             inputs.update(new)

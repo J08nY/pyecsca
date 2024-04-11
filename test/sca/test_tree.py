@@ -22,6 +22,11 @@ def test_map():
     assert dmap.domain == [1, 2]
     assert dmap.codomain == {5, 3, 7, None}
 
+    io_map_full = {"a": {1: 5, 2: 7}, "b": {1: 3, 2: 11}}
+    dmap = Map.from_io_maps(cfgs, io_map_full)
+    assert dmap.domain == [1, 2]
+    assert dmap.codomain == {5, 3, 7, 11}
+
 
 def test_map_merge():
     cfgs = {"a", "b"}
