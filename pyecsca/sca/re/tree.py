@@ -364,7 +364,7 @@ def _build_tree(
     for i, dmap in maps.items():
         # Now we have a map, it may be binary or have larger output domain
         # Note we should look at the restriction of the map to the current "cfgs" and split those
-        restricted = dmap.mapping.loc[dmap.cfg_map.loc[list(cfgs), "vals"].unique()]
+        restricted = dmap.mapping.loc[dmap.cfg_map.loc[list(cfgs), "vals"]]
         for j, column in restricted.items():
             split = column.value_counts(dropna=False)
             # TODO: Try the other scores.

@@ -1,4 +1,5 @@
 import random
+from collections import OrderedDict
 from copy import deepcopy
 
 from pyecsca.sca.re.tree import Tree, Map
@@ -88,6 +89,51 @@ def test_build_tree():
     tree.render()
     tree.render_basic()
     tree.describe()
+
+
+def test_build_tree_dedup():
+    """Make sure that dmap deduplication does not affect the tree."""
+    cfgs = {"a", "b", "c", "d", "e", "f", "g"}
+    binary_sets = {
+        "a": {1, 2, 3},
+        "b": {2, 3, 4},
+        "c": {1, 2, 3},
+        "d": {4, 2},
+        "e": {4, 2},
+        "f": {4, 2},
+        "g": {4, 2},
+    }
+    dmap = Map.from_sets(cfgs, binary_sets)
+    original = deepcopy(dmap)
+    dmap.deduplicate()
+
+    tree = Tree.build(cfgs, original)
+    dedup = Tree.build(cfgs, dmap)
+    assert tree.describe() == dedup.describe()
+
+
+def test_build_tree_reorder():
+    """Make sure that dmap input order does not affect the tree."""
+    cfgs = {"a", "b", "c", "d", "e", "f", "g"}
+    binary_sets = {
+        "a": {1, 2, 3},
+        "b": {2, 3, 4},
+        "c": {1, 2, 3},
+        "d": {4, 2},
+        "e": {4, 2},
+        "f": {4, 2},
+        "g": {4, 2},
+    }
+    trees = set()
+    for i in range(10):
+        shuffled = list(binary_sets.items())
+        random.shuffle(shuffled)
+        bset = OrderedDict(shuffled)
+        dmap = Map.from_sets(cfgs, bset)
+        if i % 2 == 0:
+            dmap.deduplicate()
+        trees.add(Tree.build(cfgs, dmap).describe())
+    assert len(trees) == 1
 
 
 def test_expand_tree():
