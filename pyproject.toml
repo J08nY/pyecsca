@@ -16,7 +16,7 @@
   readme = "README.md"
   license = { "text" = "MIT" }
   classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
     "Topic :: Security",
     "Topic :: Security :: Cryptography",

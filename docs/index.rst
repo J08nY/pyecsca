@@ -24,7 +24,7 @@ about a black-box implementation of ECC through side-channels. The main goal of 
 is to be able to reverse engineer the curve model, coordinate system, addition formulas, scalar
 multiplier and even finite-field implementation details.
 
-It is currently in an alpha stage of development and thus only provides:
+It currently provides:
 
 .. card:: Enumeration
 

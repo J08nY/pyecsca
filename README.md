@@ -14,7 +14,7 @@ about a black-box implementation of ECC through side-channels. The main goal of 
 is to be able to reverse engineer the curve model, coordinate system, addition formulas, scalar
 multiplier and even finite-field implementation details.
 
-It is currently in an alpha stage of development and thus only provides:
+It currently provides:
  - Enumeration of millions of possible ECC implementation configurations (see [notebook/configuration_space](https://neuromancer.sk/pyecsca/notebook/configuration_space.html))
  - Simulation and execution tracing of key generation, ECDH and ECDSA (see [notebook/simulation](https://neuromancer.sk/pyecsca/notebook/simulation.html))
  - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see [notebook/codegen](https://neuromancer.sk/pyecsca/notebook/codegen.html)),
