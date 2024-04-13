@@ -61,6 +61,13 @@ def test_map_deduplicate():
         for i in [1, 2, 3, 4]:
             assert dmap[cfg, i] == original[cfg, i]
     assert len(dmap.mapping) < len(original.mapping)
+    assert dmap.cfgs == original.cfgs
+
+    dedupped = Map.from_sets(cfgs, binary_sets, deduplicate=True)
+    for cfg in cfgs:
+        for i in [1, 2, 3, 4]:
+            assert dedupped[cfg, i] == original[cfg, i]
+    assert dedupped.cfgs == original.cfgs
 
 
 def test_map_with_callable(secp128r1):
@@ -104,12 +111,15 @@ def test_build_tree_dedup():
         "g": {4, 2},
     }
     dmap = Map.from_sets(cfgs, binary_sets)
+    deduplicated = Map.from_sets(cfgs, binary_sets, deduplicate=True)
     original = deepcopy(dmap)
     dmap.deduplicate()
 
     tree = Tree.build(cfgs, original)
     dedup = Tree.build(cfgs, dmap)
+    dedup_other = Tree.build(cfgs, deduplicated)
     assert tree.describe() == dedup.describe()
+    assert tree.describe() == dedup_other.describe()
 
 
 def test_build_tree_reorder():

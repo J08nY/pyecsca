@@ -44,7 +44,7 @@ Here we grow the trees.
 """
 from math import ceil
 from copy import deepcopy
-from typing import Mapping, Any, Set, List, Tuple, Optional
+from typing import Mapping, Any, Set, List, Tuple, Optional, Dict
 
 import numpy as np
 import pandas as pd
@@ -117,11 +117,41 @@ class Map:
         self.codomain = codomain
 
     @classmethod
-    def from_sets(cls, cfgs: Set[Any], mapping: Mapping[Any, Set[Any]]):
-        cfgs_l = list(cfgs)
-        cfg_map = pd.DataFrame(list(range(len(cfgs_l))), index=cfgs_l, columns=["vals"])
-        inputs_l = list(set().union(*mapping.values()))
-        data = [[elem in mapping[cfg] for elem in inputs_l] for cfg in cfgs_l]
+    def from_sets(
+        cls, cfgs: Set[Any], mapping: Mapping[Any, Set[Any]], deduplicate: bool = False
+    ):
+        if deduplicate:
+            hash2cfg: Dict[int, Set[Any]] = {}
+            hash2val: Dict[int, Set[Any]] = {}
+            inputs = set()
+            for cfg, val in mapping.items():
+                inputs.update(val)
+                # TODO: Note this may cause collisions?
+                h = hash(tuple(sorted(map(hash, val))))
+                if hash2val.setdefault(h, val) != val:
+                    raise ValueError("Collision in dedup!")
+                hcfgs = hash2cfg.setdefault(h, set())
+                hcfgs.add(cfg)
+            cfgs_l: List[Any] = []
+            cfgs_i = []
+            cfgs_vals = []
+            for i, (h, hcfgs) in enumerate(hash2cfg.items()):
+                cfgs_l.extend(hcfgs)
+                cfgs_i.extend([i] * len(hcfgs))
+                cfgs_vals.append(hash2val[h])
+            cfg_map = pd.DataFrame(cfgs_i, index=cfgs_l, columns=["vals"])
+            inputs_l = list(inputs)
+            data = [[elem in val for elem in inputs_l] for val in cfgs_vals]
+        else:
+            cfgs_l = list(cfgs)
+            cfg_map = pd.DataFrame(
+                list(range(len(cfgs_l))), index=cfgs_l, columns=["vals"]
+            )
+            inputs = set()
+            for val in mapping.values():
+                inputs.update(val)
+            inputs_l = list(inputs)
+            data = [[elem in mapping[cfg] for elem in inputs_l] for cfg in cfgs_l]
         return Map(pd.DataFrame(data), cfg_map, inputs_l, {True, False})
 
     @classmethod
