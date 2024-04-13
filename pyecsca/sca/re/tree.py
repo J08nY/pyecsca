@@ -320,7 +320,8 @@ class Tree:
         """Describe some important properties of the tree."""
         leaf_sizes = [len(leaf.cfgs) for leaf in self.leaves]
         leaf_depths = [leaf.depth for leaf in self.leaves]
-        leafs: List[int] = sum(([size] * size for size in leaf_sizes), [])
+        leafs_wsize: List[int] = sum(([size] * size for size in leaf_sizes), [])
+        leafs_wdepth: List[int] = sum(([depth] * size for size, depth in zip(leaf_sizes, leaf_depths)), [])
         return "\n".join(
             (
                 f"Dmaps: {len(self.maps)}",
@@ -330,9 +331,11 @@ class Tree:
                 f"Leaves: {len(leaf_sizes)}",
                 f"Precise: {self.precise}",
                 f"Leaf sizes: {sorted(leaf_sizes)}",
+                f"Leaf depths: {sorted(leaf_depths)}",
+                f"Average leaf depth: {np.mean(leaf_depths):.3f}",
                 f"Average leaf size: {np.mean(leaf_sizes):.3f}",
-                f"Mean result depth: {np.mean(leaf_depths):.3f}",
-                f"Mean result size: {np.mean(leafs):.3f}",
+                f"Mean result depth: {np.mean(leafs_wdepth):.3f}",
+                f"Mean result size: {np.mean(leafs_wsize):.3f}",
             )
         )
 
