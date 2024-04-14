@@ -42,14 +42,14 @@ Here we grow the trees.
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⠾⠛⣿⠙⠛⠶⢦⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀
 
 """
-from math import ceil
+from math import ceil, log2
 from copy import deepcopy
 from typing import Mapping, Any, Set, List, Tuple, Optional, Dict
 
 import numpy as np
 import pandas as pd
 from public import public
-from anytree import RenderTree, NodeMixin, AbstractStyle
+from anytree import RenderTree, NodeMixin, AbstractStyle, PreOrderIter
 
 from ...misc.utils import log
 
@@ -265,6 +265,19 @@ class Node(NodeMixin):
         if children:
             self.children = children
 
+    def __hash__(self):
+        return hash((Node, tuple(sorted(map(hash, self.cfgs)))))
+
+    def __eq__(self, other):
+        if not isinstance(other, Node):
+            return False
+        return (
+            self.cfgs == other.cfgs
+            and self.dmap_index == other.dmap_index
+            and self.dmap_input == other.dmap_input
+            and self.response == other.response
+        )
+
 
 @public
 class Tree:
@@ -318,25 +331,60 @@ class Tree:
 
     def describe(self) -> str:
         """Describe some important properties of the tree."""
+        lsize = log2(self.size)
         leaf_sizes = [len(leaf.cfgs) for leaf in self.leaves]
         leaf_depths = [leaf.depth for leaf in self.leaves]
+        avg_leaf_depth = np.mean(leaf_depths)
+        avg_leaf_size = np.mean(leaf_sizes)
         leafs_wsize: List[int] = sum(([size] * size for size in leaf_sizes), [])
-        leafs_wdepth: List[int] = sum(([depth] * size for size, depth in zip(leaf_sizes, leaf_depths)), [])
-        return "\n".join(
-            (
-                f"Dmaps: {len(self.maps)}",
-                f"Total cfgs: {len(self.root.cfgs)}",
-                f"Height: {self.height}",
-                f"Size: {self.size}",
-                f"Leaves: {len(leaf_sizes)}",
-                f"Precise: {self.precise}",
-                f"Leaf sizes: {sorted(leaf_sizes)}",
-                f"Leaf depths: {sorted(leaf_depths)}",
-                f"Average leaf depth: {np.mean(leaf_depths):.3f}",
-                f"Average leaf size: {np.mean(leaf_sizes):.3f}",
-                f"Mean result depth: {np.mean(leafs_wdepth):.3f}",
-                f"Mean result size: {np.mean(leafs_wsize):.3f}",
+        leafs_wdepth: List[int] = sum(
+            ([depth] * size for size, depth in zip(leaf_sizes, leaf_depths)), []
+        )
+        mean_res_depth = np.mean(leafs_wdepth)
+        mean_res_size = np.mean(leafs_wsize)
+        balance = (
+            "\n".join(
+                (
+                    "\nBalancedness:",
+                    f"\theight/log2(size) = {self.height / lsize:.3f}",
+                    f"\tavg_leaf_depth/log2(size) = {avg_leaf_depth / lsize:.3f}",
+                    f"\tmean_res_depth/log2(size) = {mean_res_depth / lsize:.3f}",
+                )
             )
+            if all(len(dmap.codomain) == 2 for dmap in self.maps)
+            else ""
+        )
+        probs = {self.root: 1.0}
+        for node in PreOrderIter(self.root):
+            if node.is_leaf:
+                continue
+            proba = probs[node]
+            children = node.children
+            n = len(children)
+            for child in children:
+                probs[child] = proba / n
+        random_walk_depth = sum(probs[leaf] * leaf.depth for leaf in self.leaves)
+        random_walk_size = sum(probs[leaf] * len(leaf.cfgs) for leaf in self.leaves)
+        return (
+            "\n".join(
+                (
+                    f"Dmaps: {len(self.maps)}",
+                    f"Total cfgs: {len(self.root.cfgs)}",
+                    f"Height: {self.height}",
+                    f"Size: {self.size}",
+                    f"Leaves: {len(leaf_sizes)}",
+                    f"Precise: {self.precise}",
+                    f"Leaf sizes: {sorted(leaf_sizes)}",
+                    f"Leaf depths: {sorted(leaf_depths)}",
+                    f"Average leaf depth: {avg_leaf_depth:.3f}",
+                    f"Average leaf size: {avg_leaf_size:.3f}",
+                    f"Random walk leaf depth: {random_walk_depth:.3f}",
+                    f"Random walk leaf size: {random_walk_size:.3f}",
+                    f"Mean result depth: {mean_res_depth:.3f}",
+                    f"Mean result size: {mean_res_size:.3f}",
+                )
+            )
+            + balance
         )
 
     def expand(self, dmap: Map) -> "Tree":

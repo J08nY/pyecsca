@@ -118,6 +118,7 @@ def test_build_tree_dedup():
     tree = Tree.build(cfgs, original)
     dedup = Tree.build(cfgs, dmap)
     dedup_other = Tree.build(cfgs, deduplicated)
+    print(tree.describe())
     assert tree.describe() == dedup.describe()
     assert tree.describe() == dedup_other.describe()
 
