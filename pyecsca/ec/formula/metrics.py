@@ -47,11 +47,11 @@ def formula_similarity_abs(one: Formula, other: Formula) -> Dict[str, float]:
     one_polys, one_result_polys = formula_ivs(one)
     other_polys, other_result_polys = formula_ivs(other)
 
-    one_polys = set([f if f.LC() > 0 else -f for f in one_polys])
-    other_polys = set([f if f.LC() > 0 else -f for f in other_polys])
+    one_polys = {f if f.LC() > 0 else -f for f in one_polys}
+    other_polys = {f if f.LC() > 0 else -f for f in other_polys}
 
-    one_result_polys = set([f if f.LC() > 0 else -f for f in one_result_polys])
-    other_result_polys = set([f if f.LC() > 0 else -f for f in other_result_polys])
+    one_result_polys = {f if f.LC() > 0 else -f for f in one_result_polys}
+    other_result_polys = {f if f.LC() > 0 else -f for f in other_result_polys}
     return {
         "output": len(one_result_polys.intersection(other_result_polys))
         / max(len(one_result_polys), len(other_result_polys)),
