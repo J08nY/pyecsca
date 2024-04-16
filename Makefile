@@ -1,5 +1,7 @@
 PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine test.sca.perf_zvp
 
+all: help
+
 test:
 	pytest -m "not slow" --cov=pyecsca
 
@@ -64,4 +66,4 @@ help:
 	@echo " - docs: Build docs using sphinx."
 	@echo " - help: Show this help."
 
-.PHONY: test test-plots test-all typecheck typecheck-all codestyle codestyle-all docstyle black black-all perf doc-coverage docs
+.PHONY: all test test-plots test-all typecheck typecheck-all codestyle codestyle-all docstyle black black-all perf doc-coverage docs

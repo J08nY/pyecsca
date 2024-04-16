@@ -52,45 +52,45 @@
   ]
 
 [project.urls]
-"Homepage" = "https://https://neuromancer.sk/pyecsca/"
-"Documentation" = "https://https://neuromancer.sk/pyecsca/"
-"Bug Tracker" = "https://github.com/J08nY/pyecsca/issues"
-"Repository" = "https://github.com/J08nY/pyecsca"
+  "Homepage" = "https://https://neuromancer.sk/pyecsca/"
+  "Documentation" = "https://https://neuromancer.sk/pyecsca/"
+  "Bug Tracker" = "https://github.com/J08nY/pyecsca/issues"
+  "Repository" = "https://github.com/J08nY/pyecsca"
 
 [project.optional-dependencies]
-"picoscope_sdk" = ["picosdk"]
-"picoscope_alt" = ["picoscope"]
-"chipwhisperer" = ["chipwhisperer"]
-"smartcard" = ["pyscard"]
-"leia" = ["smartleia"]
-"gmp" = ["gmpy2"]
-"pari" = ["cysignals", "cypari2"]
-"dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools", "pydocstyle"]
-"test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock"]
-"doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design", "alabaster>=0.7.16"]
+  "picoscope_sdk" = ["picosdk"]
+  "picoscope_alt" = ["picoscope"]
+  "chipwhisperer" = ["chipwhisperer"]
+  "smartcard" = ["pyscard"]
+  "leia" = ["smartleia"]
+  "gmp" = ["gmpy2"]
+  "pari" = ["cysignals", "cypari2"]
+  "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools", "pydocstyle"]
+  "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock"]
+  "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design", "alabaster>=0.7.16"]
 
 [tool.setuptools.packages.find]
-include = ["pyecsca*"]
-namespaces = true
+  include = ["pyecsca*"]
+  namespaces = true
 
 [tool.setuptools.package-data]
-pyecsca = ["ec/efd/*/*", "ec/efd/*/*/*", "ec/efd/*/*/*/*", "ec/std/*", "ec/std/*/*"]
+  pyecsca = ["ec/efd/*/*", "ec/efd/*/*/*", "ec/efd/*/*/*/*", "ec/std/*", "ec/std/*/*"]
 
 [tool.setuptools_scm]
 
 [tool.pytest.ini_options]
-testpaths = ["test"]
-markers = [
+  testpaths = ["test"]
+  markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-]
-filterwarnings = [
-	"ignore:(?s).*pkg_resources is deprecated as an API:DeprecationWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
+  ]
+  filterwarnings = [
+    "ignore:(?s).*pkg_resources is deprecated as an API:DeprecationWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
     #"ignore:Deprecated call to `pkg_resources.declare_namespace",
     "ignore:(?s).*Pyarrow will become a required dependency of pandas:DeprecationWarning", # pandas pyarrow (pandas<3.0),
-]
+  ]
 
 [tool.mypy]
-plugins = "numpy.typing.mypy_plugin"
+  plugins = "numpy.typing.mypy_plugin"
 
 [tool.interrogate]
-exclude = ["pyecsca/ec/formula/fliparoo.py", "pyecsca/ec/formula/graph.py", "pyecsca/ec/formula/partitions.py", "pyecsca/ec/formula/switch_sign.py", "pyecsca/ec/std/.github/"]
+  exclude = ["pyecsca/ec/formula/fliparoo.py", "pyecsca/ec/formula/graph.py", "pyecsca/ec/formula/partitions.py", "pyecsca/ec/formula/switch_sign.py", "pyecsca/ec/std/.github/"]
