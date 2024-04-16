@@ -1,6 +1,3 @@
-import io
-from contextlib import redirect_stdout
-
 import pytest
 
 from pyecsca.ec.context import local
@@ -105,6 +102,15 @@ def test_distinguish(secp128r1, add, dbl, neg):
             add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True
         ),
         WindowNAFMultiplier(
+            add, dbl, neg, 5, None, AccumulationOrder.PeqPR, True, True
+        ),
+        WindowBoothMultiplier(
+            add, dbl, neg, 3, None, AccumulationOrder.PeqPR, True, True
+        ),
+        WindowBoothMultiplier(
+            add, dbl, neg, 4, None, AccumulationOrder.PeqPR, True, True
+        ),
+        WindowBoothMultiplier(
             add, dbl, neg, 5, None, AccumulationOrder.PeqPR, True, True
         ),
         SlidingWindowMultiplier(

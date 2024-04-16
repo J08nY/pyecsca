@@ -33,7 +33,7 @@ class HDF5Meta(MutableMapping):
     def __getitem__(self, item):
         if item not in self._attrs:
             raise KeyError
-        return pickle.loads(self._attrs[item])
+        return pickle.loads(self._attrs[item])  # pickle is OK here, skipcq: BAN-B301
 
     def __setitem__(self, key, value):
         self._attrs[key] = np.void(pickle.dumps(value))

@@ -14,8 +14,7 @@ from ast import (
     Assign,
     operator as ast_operator,
     unaryop as ast_unaryop,
-    USub,
-    parse,
+    USub
 )
 from enum import Enum
 from types import CodeType
@@ -167,5 +166,5 @@ class CodeOp:
 
     def __call__(self, *args, **kwargs: Mod) -> Mod:
         """Execute this operation with :paramref:`.__call__.kwargs`."""
-        exec(self.compiled, None, kwargs)
+        exec(self.compiled, None, kwargs)  # exec is OK here, skipcq: PYL-W0122
         return kwargs[self.result]

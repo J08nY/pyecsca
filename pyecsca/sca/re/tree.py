@@ -404,7 +404,7 @@ class Tree:
     @classmethod
     def build(cls, cfgs: Set[Any], *maps: Map) -> "Tree":
         """Build a tree."""
-        return cls(_build_tree(cfgs, {i: dmap for i, dmap in enumerate(maps)}), *maps)
+        return cls(_build_tree(cfgs, dict(enumerate(maps))), *maps)
 
 
 def _degree(split: pd.Series) -> float:

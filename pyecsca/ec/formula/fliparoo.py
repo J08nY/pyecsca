@@ -59,6 +59,9 @@ class Fliparoo:
     def __eq__(self, other):
         return self.graph == other.graph and self.nodes == other.nodes
 
+    # unhashable at the moment
+    __hash__ = None  # type: ignore
+
     def deepcopy(self):
         ngraph = self.graph.deepcopy()
         nchain = [mirror_node(node, self.graph, ngraph) for node in self.nodes]
@@ -79,7 +82,7 @@ class Fliparoo:
 class MulFliparoo(Fliparoo):
     def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
-        operations = set(node.op.operator for node in self.nodes)
+        operations = {node.op.operator for node in self.nodes}
         if len(operations) != 1 or list(operations)[0] != OpType.Mult:
             raise BadFliparoo
         self.operator = OpType.Mult
@@ -88,7 +91,7 @@ class MulFliparoo(Fliparoo):
 class AddSubFliparoo(Fliparoo):
     def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
-        operations = set(node.op.operator for node in self.nodes)
+        operations = {node.op.operator for node in self.nodes}
         if not operations.issubset([OpType.Add, OpType.Sub]):
             raise BadFliparoo
 
@@ -96,7 +99,7 @@ class AddSubFliparoo(Fliparoo):
 class AddFliparoo(Fliparoo):
     def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
-        operations = set(node.op.operator for node in self.nodes)
+        operations = {node.op.operator for node in self.nodes}
         if len(operations) != 1 or list(operations)[0] != OpType.Add:
             raise BadFliparoo
         self.operator = OpType.Add
@@ -226,11 +229,13 @@ class DummyNode(Node):
     def __repr__(self):
         return "Dummy node"
 
+    @property
     def label(self):
-        pass
+        return None
 
+    @property
     def result(self):
-        pass
+        return None
 
 
 def generate_fliparood_formulas(
@@ -263,7 +268,8 @@ def generate_fliparood_graphs(fliparoo: Fliparoo) -> Iterator[FormulaGraph]:
 
     for signed_subgraph in signed_subgraphs:
         graph = signed_subgraph.supergraph
-        assert signed_subgraph.components == 1
+        if signed_subgraph.components != 1:
+            raise ValueError
         final_signed_node = signed_subgraph.nodes[0]
         if final_signed_node.sign != 1:
             continue
@@ -306,7 +312,8 @@ def reconnect_fliparoo_outputs(graph: FormulaGraph, last_node: Node):
     dummy = next(filter(lambda x: isinstance(x, DummyNode), graph.nodes))
     dummy.reconnect_outgoing_nodes(last_node)
     graph.remove_node(dummy)
-    assert not list(filter(lambda x: isinstance(x, DummyNode), graph.nodes))
+    if any(map(lambda x: isinstance(x, DummyNode), graph.nodes)):
+        raise ValueError
 
 
 def combine_all_pairs_signed_nodes(

@@ -43,7 +43,7 @@ class EFDCurveModel(CurveModel):
         self.__load(efd_name)
 
     def __load(self, efd_name: str):
-        self.__class__._loaded = True
+        self.__class__._loaded = True  # skipcq: PYL-W0212
         self.__class__.coordinates = {}
         self.__class__.parameter_names = []
         self.__class__.coordinate_names = []

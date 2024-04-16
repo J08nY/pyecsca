@@ -241,7 +241,7 @@ class InfinityPoint(Point):
         return self == other
 
     def __iter__(self):
-        yield from tuple()
+        yield from ()
 
     def __len__(self):
         return 0

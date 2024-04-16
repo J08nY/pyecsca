@@ -169,7 +169,7 @@ class Formula(ABC):
                 # Handle an assumption check on value of input points.
                 alocals: Dict[str, Union[Mod, int]] = {**params}
                 compiled = compile(assumption, "", mode="eval")
-                holds = eval(compiled, None, alocals)
+                holds = eval(compiled, None, alocals)  # eval is OK here, skipcq: PYL-W0123
                 if not holds:
                     # The assumption doesn't hold, see what is the current configured action and do it.
                     raise_unsatisified_assumption(

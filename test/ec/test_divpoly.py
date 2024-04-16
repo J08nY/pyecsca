@@ -175,16 +175,16 @@ def test_mult_by_n_large(secp128r1):
     with files(test.data.divpoly).joinpath("mult_21.json").open("r") as f:
         sage_data = json.load(f)
         sage_data["mx"][0] = {
-            eval(key): K(val) for key, val in sage_data["mx"][0].items()
+            eval(key): K(val) for key, val in sage_data["mx"][0].items()  # eval is OK here, skipcq: PYL-W0123
         }
         sage_data["mx"][1] = {
-            eval(key): K(val) for key, val in sage_data["mx"][1].items()
+            eval(key): K(val) for key, val in sage_data["mx"][1].items()  # eval is OK here, skipcq: PYL-W0123
         }
         sage_data["my"][0] = {
-            eval(key): K(val) for key, val in sage_data["my"][0].items()
+            eval(key): K(val) for key, val in sage_data["my"][0].items()  # eval is OK here, skipcq: PYL-W0123
         }
         sage_data["my"][1] = {
-            eval(key): K(val) for key, val in sage_data["my"][1].items()
+            eval(key): K(val) for key, val in sage_data["my"][1].items()  # eval is OK here, skipcq: PYL-W0123
         }
 
         assert mx[0].as_dict() == sage_data["mx"][0]

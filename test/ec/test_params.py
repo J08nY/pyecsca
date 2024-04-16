@@ -17,7 +17,7 @@ from pyecsca.ec.curve import EllipticCurve
 
 
 def test_eq(secp128r1, curve25519):
-    assert secp128r1 == secp128r1
+    assert secp128r1.__eq__(secp128r1)
     assert secp128r1 != curve25519
     assert secp128r1 is not None
 

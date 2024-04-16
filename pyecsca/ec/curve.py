@@ -71,7 +71,7 @@ class EllipticCurve:
             try:
                 alocals: Dict[str, Union[Mod, int]] = {}
                 compiled = compile(assumption, "", mode="exec")
-                exec(compiled, None, alocals)
+                exec(compiled, None, alocals)  # exec is OK here, skipcq: PYL-W0122
                 for param, value in alocals.items():
                     if self.parameters[param] != value:
                         raise_unsatisified_assumption(
@@ -108,7 +108,7 @@ class EllipticCurve:
         }
         locls.update(self.parameters)
         for line in formulas:
-            exec(compile(line, "", mode="exec"), None, locls)
+            exec(compile(line, "", mode="exec"), None, locls)  # exec is OK here, skipcq: PYL-W0122
         if not isinstance(locls["x"], Mod):
             locls["x"] = Mod(locls["x"], self.prime)
         if not isinstance(locls["y"], Mod):
@@ -195,7 +195,7 @@ class EllipticCurve:
             return None
         locls = {**self.parameters}
         for line in self.model.base_neutral:
-            exec(compile(line, "", mode="exec"), None, locls)
+            exec(compile(line, "", mode="exec"), None, locls)  # exec is OK here, skipcq: PYL-W0122
         if not isinstance(locls["x"], Mod):
             locls["x"] = Mod(locls["x"], self.prime)
         if not isinstance(locls["y"], Mod):
@@ -231,7 +231,7 @@ class EllipticCurve:
             loc = {**self.parameters, **point.coords}
         else:
             loc = {**self.parameters, **point.to_affine().coords}
-        return eval(compile(self.model.equation, "", mode="eval"), loc)
+        return eval(compile(self.model.equation, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
 
     def to_coords(self, coordinate_model: CoordinateModel) -> "EllipticCurve":
         """
@@ -287,7 +287,7 @@ class EllipticCurve:
                     raise ValueError("Encoded point has bad length")
                 x = Mod(int.from_bytes(data, "big"), self.prime)
                 loc = {**self.parameters, "x": x}
-                rhs = eval(compile(self.model.ysquared, "", mode="eval"), loc)
+                rhs = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
                 if not rhs.is_residue():
                     raise ValueError("Point not on curve")
                 sqrt = rhs.sqrt()
@@ -312,7 +312,7 @@ class EllipticCurve:
         :return: Lifted (affine) points, if any.
         """
         loc = {**self.parameters, "x": x}
-        ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)
+        ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
         if not ysquared.is_residue():
             return set()
         y = ysquared.sqrt()
@@ -324,7 +324,7 @@ class EllipticCurve:
         while True:
             x = Mod.random(self.prime)
             loc = {**self.parameters, "x": x}
-            ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)
+            ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
             if ysquared.is_residue():
                 y = ysquared.sqrt()
                 b = Mod.random(2)

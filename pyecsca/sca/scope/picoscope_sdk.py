@@ -358,7 +358,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
 if isinstance(ps3000, CannotFindPicoSDKError):
 
     @public
-    class PS3000Scope(PicoScopeSdk):  # noqa, pragma: no cover
+    class PS3000Scope(PicoScopeSdk):  # noqa, pragma: no cover, skipcq
         """PicoScope 3000 series oscilloscope is not available (Install `libps3000`)."""
 
         def __init__(self, variant: Optional[str] = None):
@@ -434,7 +434,7 @@ else:  # pragma: no cover
 if isinstance(ps3000a, CannotFindPicoSDKError):
 
     @public
-    class PS3000aScope(PicoScopeSdk):  # noqa, pragma: no cover
+    class PS3000aScope(PicoScopeSdk):  # noqa, pragma: no cover, skipcq
         """PicoScope 3000 series (A API) oscilloscope is not available (Install `libps3000a`)."""
 
         def __init__(self, variant: Optional[str] = None):
@@ -548,7 +548,7 @@ else:  # pragma: no cover
 if isinstance(ps4000, CannotFindPicoSDKError):
 
     @public
-    class PS4000Scope(PicoScopeSdk):  # noqa, pragma: no cover
+    class PS4000Scope(PicoScopeSdk):  # noqa, pragma: no cover, skipcq
         """PicoScope 4000 series oscilloscope is not available (Install `libps4000`)."""
 
         def __init__(self, variant: Optional[str] = None):
@@ -612,7 +612,7 @@ else:  # pragma: no cover
 if isinstance(ps5000, CannotFindPicoSDKError):
 
     @public
-    class PS5000Scope(PicoScopeSdk):  # noqa, pragma: no cover
+    class PS5000Scope(PicoScopeSdk):  # noqa, pragma: no cover, skipcq
         """PicoScope 5000 series oscilloscope is not available (Install `libps5000`)."""
 
         def __init__(self, variant: Optional[str] = None):
@@ -663,7 +663,7 @@ else:  # pragma: no cover
 if isinstance(ps6000, CannotFindPicoSDKError):
 
     @public
-    class PS6000Scope(PicoScopeSdk):  # noqa, pragma: no cover
+    class PS6000Scope(PicoScopeSdk):  # noqa, pragma: no cover, skipcq
         """PicoScope 6000 series oscilloscope is not available (Install `libps6000`)."""
 
         def __init__(self, variant: Optional[str] = None):

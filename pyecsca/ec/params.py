@@ -185,7 +185,7 @@ def _create_params(curve, coords, infty):
             try:
                 alocals: Dict[str, Union[Mod, int]] = {}
                 compiled = compile(assumption, "", mode="exec")
-                exec(compiled, None, alocals)
+                exec(compiled, None, alocals)  # exec is OK here, skipcq: PYL-W0122
                 for param, value in alocals.items():
                     if params[param] != value:
                         raise_unsatisified_assumption(
@@ -226,7 +226,7 @@ def _create_params(curve, coords, infty):
         ilocals: Dict[str, Union[Mod, int]] = {**params}
         for line in coord_model.neutral:
             compiled = compile(line, "", mode="exec")
-            exec(compiled, None, ilocals)
+            exec(compiled, None, ilocals)  # exec is OK here, skipcq: PYL-W0122
         infinity_coords = {}
         for coordinate in coord_model.variables:
             if coordinate not in ilocals:

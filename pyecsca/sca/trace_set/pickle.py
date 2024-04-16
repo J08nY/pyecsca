@@ -20,12 +20,12 @@ class PickleTraceSet(TraceSet):
     @classmethod
     def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "PickleTraceSet":
         if isinstance(input, bytes):
-            return pickle.loads(input)
+            return pickle.loads(input)  # pickle is OK here, skipcq: BAN-B301
         elif isinstance(input, (str, Path)):
             with open(input, "rb") as f:
-                return pickle.load(f)
+                return pickle.load(f)  # pickle is OK here, skipcq: BAN-B301
         elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):
-            return pickle.load(input)
+            return pickle.load(input)  # pickle is OK here, skipcq: BAN-B301
         raise TypeError
 
     @classmethod

@@ -77,7 +77,7 @@ def test_inputs_outputs(add):
 
 
 def test_eq(add, dbl):
-    assert add == add
+    assert add.__eq__(add)
     assert add != dbl
 
 

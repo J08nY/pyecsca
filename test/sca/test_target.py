@@ -37,7 +37,7 @@ from pyecsca.sca.target.ectester import (
 if has_pyscard:
     from pyecsca.sca.target.ectester import ECTesterTargetPCSC as ECTesterTarget
 else:
-    from pyecsca.sca.target.ectester import ECTesterTarget
+    from pyecsca.sca.target.ectester import ECTesterTarget  # type: ignore
 
 
 class TestTarget(SimpleSerialTarget, BinaryTarget):
@@ -98,8 +98,8 @@ def target():
         pytest.skip(f"No reader found: {e}")
     if not rs:
         pytest.skip("No reader found")
-    reader = rs[0]
-    target: ECTesterTarget = ECTesterTarget(reader)
+    reader = rs[0]  # type: ignore
+    target: ECTesterTarget = ECTesterTarget(reader)  # This will not instantiate an abstract class, skipcq: PYL-E0110
     target.connect()
     if not target.select_applet():
         target.disconnect()

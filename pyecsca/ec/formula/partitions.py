@@ -256,6 +256,9 @@ class Partition:
         lo, ro = other.parts
         return (l == lo and r == ro) or (l == ro and r == lo)
 
+    # unhashable at the moment
+    __hash__ = None  # type: ignore
+
 
 def compute_partitions(n: int) -> List[Partition]:
     partitions = [Partition(n)]

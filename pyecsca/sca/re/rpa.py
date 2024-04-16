@@ -228,7 +228,7 @@ class RPA(RE):
         if not bound:
             bound = params.order
 
-        mults = set(copy(mult) for mult in self.configs)
+        mults = {copy(mult) for mult in self.configs}
         init_contexts = {}
         for mult in mults:
             with local(MultipleContext()) as ctx:

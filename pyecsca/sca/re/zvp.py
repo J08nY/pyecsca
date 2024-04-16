@@ -137,7 +137,7 @@ def is_homogeneous(polynomial: Poly, weighted_variables: List[Tuple[str, int]]) 
     )
     univariate_poly = Poly(univariate_poly, *new_gens, domain=polynomial.domain)
     hom_index = univariate_poly.gens.index(hom)
-    degrees = set(monom[hom_index] for monom in univariate_poly.monoms())
+    degrees = {monom[hom_index] for monom in univariate_poly.monoms()}
     return len(degrees) <= 1
 
 
@@ -163,7 +163,7 @@ def compute_factor_set(
     if affine:
         unrolled = map_to_affine(formula, unrolled)
     if xonly:
-        unrolled = list(set(((name, eliminate_y(poly, formula.coordinate_model.curve_model)) for name, poly in unrolled)))
+        unrolled = list({(name, eliminate_y(poly, formula.coordinate_model.curve_model)) for name, poly in unrolled})
 
     curve_params = set(formula.coordinate_model.curve_model.parameter_names)
 
@@ -235,7 +235,7 @@ def symbolic_curve_equation(x: Symbol, model: CurveModel) -> Expr:
         name: symbols(name)
         for name in model.parameter_names
     }
-    return eval(compile(model.ysquared, "", mode="eval"), {"x": x, **parameters})
+    return eval(compile(model.ysquared, "", mode="eval"), {"x": x, **parameters})  # eval is OK here, skipcq: PYL-W0123
 
 
 def curve_equation(x: Symbol, curve: EllipticCurve) -> Expr:
@@ -247,7 +247,7 @@ def curve_equation(x: Symbol, curve: EllipticCurve) -> Expr:
     :param curve: The elliptic curve to use.
     :return: The sympy expression of the "ysquared" curve polynomial.
     """
-    return eval(compile(curve.model.ysquared, "", mode="eval"), {"x": x, **curve.parameters})
+    return eval(compile(curve.model.ysquared, "", mode="eval"), {"x": x, **curve.parameters})  # eval is OK here, skipcq: PYL-W0123
 
 
 def subs_curve_equation(poly: Poly, curve: EllipticCurve) -> Poly:

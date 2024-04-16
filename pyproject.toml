@@ -85,7 +85,7 @@
   ]
   filterwarnings = [
     "ignore:(?s).*pkg_resources is deprecated as an API:DeprecationWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
-    #"ignore:Deprecated call to `pkg_resources.declare_namespace",
+    "ignore:Deprecated call to `pkg_resources.declare_namespace", # sphinxcontrib
     "ignore:(?s).*Pyarrow will become a required dependency of pandas:DeprecationWarning", # pandas pyarrow (pandas<3.0),
   ]
 

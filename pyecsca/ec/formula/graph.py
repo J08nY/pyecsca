@@ -100,7 +100,7 @@ class CodeOpNode(Node):
     def __init__(self, op: CodeOp):
         super().__init__()
         self.op = op
-        assert self.op.operator in [
+        if self.op.operator not in [
             OpType.Sub,
             OpType.Add,
             OpType.Id,
@@ -110,7 +110,8 @@ class CodeOpNode(Node):
             OpType.Pow,
             OpType.Inv,
             OpType.Neg,
-        ], self.op.operator
+        ]:
+            raise ValueError
 
     @classmethod
     def from_str(cls, result: str, left, operator, right):
@@ -226,10 +227,7 @@ class FormulaGraph:
                 if side is None:
                     continue
                 if isinstance(side, int):
-                    if side in constants:
-                        parent_node = constants[side]
-                    else:
-                        parent_node = ConstantNode(side)
+                    parent_node = constants.get(side, ConstantNode(side))
                     self.nodes.append(parent_node)
                     self.roots.append(parent_node)
                 else:
@@ -266,7 +264,13 @@ class FormulaGraph:
         assumptions = [deepcopy(assumption) for assumption in self.assumptions]
         for klass in CodeFormula.__subclasses__():
             if klass.shortname == self.shortname:
-                return klass(self.name if name is None else self.name + "-" + name, code, self.coordinate_model, parameters, assumptions)
+                return klass(
+                    self.name if name is None else self.name + "-" + name,
+                    code,
+                    self.coordinate_model,
+                    parameters,
+                    assumptions,
+                )
         raise ValueError(f"Bad formula type: {self.shortname}")
 
     def networkx_graph(self) -> nx.DiGraph:

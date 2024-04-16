@@ -248,13 +248,13 @@ class _ContextManager:
         self.new_context = deepcopy(new_context)
 
     def __enter__(self) -> Optional[Context]:
-        global current
+        global current  # This is OK, skipcq: PYL-W0603
         self.old_context = current
         current = self.new_context
         return current
 
     def __exit__(self, t, v, tb):
-        global current
+        global current  # This is OK, skipcq: PYL-W0603
         current = self.old_context
 
 

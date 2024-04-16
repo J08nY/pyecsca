@@ -26,7 +26,7 @@ def subnode_lists(graph: FormulaGraph):
 def switch_sign(graph: FormulaGraph, node_combination) -> FormulaGraph:
     nodes_i = [graph.node_index(node) for node in node_combination]
     graph = graph.deepcopy()
-    node_combination = set(graph.nodes[node_i] for node_i in nodes_i)
+    node_combination = {graph.nodes[node_i] for node_i in nodes_i}
     output_signs = {out: 1 for out in graph.output_names}
 
     queue = []
@@ -67,7 +67,7 @@ def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
             if scale is None:
                 raise BadSignSwitch
             apoint = scale(p, point)[0]
-        if set(apoint.coords.values()) != set([Mod(1, p)]):
+        if set(apoint.coords.values()) != {Mod(1, p)}:
             raise BadSignSwitch
 
 
@@ -107,7 +107,8 @@ def switch_sign_propagate(
             return []
     if node.output_node:
         output_signs[node.result] *= -1
-    assert node.is_mul or node.is_pow or node.is_inv or node.is_div
+    if not (node.is_mul or node.is_pow or node.is_inv or node.is_div):
+        raise ValueError
     return [(child, node.result) for child in node.outgoing_nodes]
 
 
