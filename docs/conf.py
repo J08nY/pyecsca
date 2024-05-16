@@ -20,15 +20,15 @@ sys.path.insert(0, os.path.abspath('../notebook/'))
 # -- Project information -----------------------------------------------------
 
 project = 'pyecsca'
-copyright = '2018-2023, Jan Jancar'
+copyright = '2018-2024, Jan Jancar'
 author = 'Jan Jancar'
 
 sys.path.append(os.path.abspath('..'))
 
 # The short X.Y version
-version = '0.2.0'
+version = '0.3.0'
 # The full version, including alpha/beta/rc tags
-release = '0.2.0'
+release = '0.3.0'
 
 
 # -- General configuration ---------------------------------------------------
