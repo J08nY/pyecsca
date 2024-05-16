@@ -176,3 +176,12 @@ class TwistedEdwardsModel(EFDCurveModel):
 
     def __init__(self):
         super().__init__("twisted")
+
+
+if not ShortWeierstrassModel.coordinates:
+    import warnings
+
+    warnings.warn(
+        "EFD not available, pyecsca is mis-installed. "
+        "Make sure that you check out the git submodules prior to install (when installing from git)."
+    )
