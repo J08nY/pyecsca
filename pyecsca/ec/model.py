@@ -178,7 +178,8 @@ class TwistedEdwardsModel(EFDCurveModel):
         super().__init__("twisted")
 
 
-if not ShortWeierstrassModel.coordinates:
+_dirs = list(files("pyecsca.ec").joinpath("efd").iterdir())
+if not _dirs:
     import warnings
 
     warnings.warn(
