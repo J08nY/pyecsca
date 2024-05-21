@@ -42,9 +42,9 @@ class MultipleContext(Context):
     points: MutableMapping[Point, int]
     """The mapping of points to the multiples they represent (e.g., base -> 1)."""
     parents: MutableMapping[Point, List[Point]]
-    """The mapping of points to the formula types they are a result of."""
-    formulas: MutableMapping[Point, str]
     """The mapping of points to their parent they were computed from."""
+    formulas: MutableMapping[Point, str]
+    """The mapping of points to the formula types they are a result of."""
     inside: bool
 
     def __init__(self):
