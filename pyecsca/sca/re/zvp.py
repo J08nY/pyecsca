@@ -464,6 +464,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
 
 
 def _deterministic_point_x(curve: EllipticCurve) -> int:
+    """Obtain a "random" coordinate `x` on  given curve."""
     x = Mod(1, curve.prime)
     while True:
         points = curve.affine_lift_x(x)
@@ -473,6 +474,13 @@ def _deterministic_point_x(curve: EllipticCurve) -> int:
 
 
 def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
+    """
+    Solve an easy case of the DCP (see [FFD]_) on the `curve` given the `xonly_polynomial`.
+
+    :param xonly_polynomial: The polynomial to zero out.
+    :param curve: The curve to work on.
+    :return: A set of points that zero out the polynomial.
+    """
     points = set()
     final = subs_curve_params(xonly_polynomial, curve)
     # Solve either via pari or if not available sympy.
@@ -493,6 +501,15 @@ def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
 
 
 def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[Point]:
+    """
+    Solve a hard case of DCP (see [FFD]_) on the `curve` given the `xonly_polynomial` and the
+    dlog relationship between the points `k`.
+
+    :param xonly_polynomial: The polynomial to zero out.
+    :param curve: The curve to work on.
+    :param k: The relationship between the two points.
+    :return: A set of points that zero out the polynomial.
+    """
     points = set()
     # Solve either via pari or if not available sympy.
     if has_pari:
@@ -517,6 +534,7 @@ def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[
 def solve_hard_dcp_cypari(
     xonly_polynomial: Poly, curve: EllipticCurve, k: int
 ) -> Set[int]:
+    """Solve hard DCP via pari."""
     try:
         a, b = int(curve.parameters["a"]), int(curve.parameters["b"])
         xonly_polynomial = subs_curve_params(xonly_polynomial, curve)

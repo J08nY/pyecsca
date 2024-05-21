@@ -208,9 +208,13 @@ def rpa_distinguish(
 
 @public
 class RPA(RE):
+    """RPA-based RE."""
     params: Optional[DomainParameters] = None
+    """The domain parameters to use."""
     P0: Optional[Point] = None
+    """The zero-coordinate point that will be used in the RE."""
     scalars: Optional[List[int]] = None
+    """A list of scalars that will be used in the RE."""
 
     def build_tree(
         self,
@@ -220,6 +224,15 @@ class RPA(RE):
         use_init: bool = True,
         use_multiply: bool = True,
     ):
+        """
+        Build an RPA distinguishing tree.
+
+        :param params: The domain parameters to use.
+        :param tries: Number of tries to get a non-trivial tree.
+        :param bound: A bound on the size of the scalar to consider.
+        :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
+        :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
+        """
         if not (use_init or use_multiply):
             raise ValueError("Has to use either init or multiply or both.")
         P0 = rpa_point_0y(params)
@@ -307,6 +320,13 @@ class RPA(RE):
     def run(
         self, oracle: Callable[[int, Point], bool], majority: int = 1
     ) -> Set[ScalarMultiplier]:
+        """
+        Run the RPA-RE with an `oracle`.
+
+        :param oracle: An oracle that returns `True` when an RPA point is encountered during scalar multiplication of the input by the scalar.
+        :param majority: Query the oracle up to `majority` times and take the majority vote of the results.
+        :return: The set of possible multipliers.
+        """
         if self.tree is None or self.scalars is None or self.P0 is None or self.params is None:
             raise ValueError("Need to build tree first.")
 
