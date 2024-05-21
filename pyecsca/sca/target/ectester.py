@@ -17,6 +17,8 @@ from ...ec.point import Point
 
 
 class ShiftableFlag(IntFlag):  # pragma: no cover
+    """An `IntFlag` that can be shifted."""
+
     def __lshift__(self, other):
         val = int(self) << other
         for e in self.__class__:
@@ -92,6 +94,7 @@ class ExportEnum(IntEnum):  # pragma: no cover
 
     @classmethod
     def from_bool(cls, val: bool):
+        """Construct an `ExportEnum` from a boolean."""
         return cls.EXPORT_TRUE if val else cls.EXPORT_FALSE
 
 

@@ -60,6 +60,7 @@ class CoordinateModel:
 
 @public
 class AffineCoordinateModel(CoordinateModel):
+    """An affine coordinate model (there is really only one per curve model)."""
     name = "affine"
     full_name = "Affine coordinates"
 
