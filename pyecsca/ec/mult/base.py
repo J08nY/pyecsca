@@ -206,7 +206,7 @@ class ScalarMultiplier(ABC):
                 params.curve.coordinate_model != coord_model
                 or point.coordinate_model != coord_model
         ):
-            raise ValueError
+            raise ValueError("Coordinate models of the parameters, formulas or point are not compatible.")
         self._params = params
         self._point = point
         self._initialized = True
