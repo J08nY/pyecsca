@@ -73,6 +73,11 @@ def test_is_residue():
     assert Mod(1, 2).is_residue()
 
 
+def test_bit_length():
+    x = Mod(3, 5)
+    assert x.bit_length() == 2
+
+
 def test_sqrt():
     p = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
     assert Mod(

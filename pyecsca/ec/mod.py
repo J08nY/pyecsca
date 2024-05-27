@@ -180,6 +180,9 @@ class Mod:
     def __neg__(self) -> "Mod":
         return self.__class__(self.n - self.x, self.n)
 
+    def bit_length(self):
+        raise NotImplementedError
+
     def inverse(self) -> "Mod":
         """
         Invert the element.
@@ -271,6 +274,9 @@ class RawMod(Mod):
     def __init__(self, x: int, n: int):
         self.x = x % n
         self.n = n
+
+    def bit_length(self):
+        return self.x.bit_length()
 
     def inverse(self) -> "RawMod":
         if self.x == 0:
@@ -392,6 +398,9 @@ class Undefined(Mod):
     def __neg__(self):
         raise NotImplementedError
 
+    def bit_length(self):
+        raise NotImplementedError
+
     def inverse(self):
         raise NotImplementedError
 
@@ -502,6 +511,9 @@ class SymbolicMod(Mod):
     def __neg__(self) -> "SymbolicMod":
         return self.__class__(-self.x, self.n)
 
+    def bit_length(self):
+        raise NotImplementedError
+
     def inverse(self) -> "SymbolicMod":
         return self.__class__(self.x ** (-1), self.n)
 
@@ -593,6 +605,9 @@ if has_gmp:
             else:
                 self.n = n
                 self.x = x
+
+        def bit_length(self):
+            return self.x.bit_length()
 
         def inverse(self) -> "GMPMod":
             if self.x == 0:
