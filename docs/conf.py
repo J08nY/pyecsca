@@ -78,6 +78,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "trac"
 
+add_module_names = False
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -210,6 +212,8 @@ autodoc_default_options = {
     "member-order": "bysource",
     # "special-members": "__init__"
 }
+autodoc_typehints = "signature"
+autodoc_typehints_format = "short"
 
 autoclass_content = "both"
 
