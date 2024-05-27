@@ -150,7 +150,8 @@ class Context(ABC):
     Context is an object that traces actions which happen.
 
     There is always one context active, see functions :py:func:`getcontext`,
-    :py:func:`setcontext` and :py:func:`resetcontext`.
+    :py:func:`setcontext` and :py:func:`resetcontext`. Also, the :py:func:`local`
+    contextmanager.
     """
 
     @abstractmethod
@@ -262,6 +263,13 @@ class _ContextManager:
 def local(ctx: Optional[Context] = None) -> ContextManager:
     """
     Use a local context.
+
+    Use it like a contextmanager, the context is active during its execution.
+    >>> with local(DefaultContext()) as ctx:
+    ...     with Action() as action:
+    ...         pass
+    >>> list(ctx.actions)[0] == action
+    True
 
     :param ctx: If none, current context is copied.
     :return: A context manager.
