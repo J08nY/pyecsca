@@ -265,6 +265,7 @@ def local(ctx: Optional[Context] = None) -> ContextManager:
     Use a local context.
 
     Use it like a contextmanager, the context is active during its execution.
+
     >>> with local(DefaultContext()) as ctx:
     ...     with Action() as action:
     ...         pass
