@@ -524,9 +524,9 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
     def connect(self, protocol: Optional[CardProtocol] = None):
         self.chunking = False
         try:
-            super().connect(CardProtocol.T1)
+            super().connect(CardProtocol.T1)  # type: ignore
         except CardConnectionException:
-            super().connect(CardProtocol.T0)
+            super().connect(CardProtocol.T0)  # type: ignore
             self.chunking = True
 
     def send(self, apdu: CommandAPDU) -> ResponseAPDU:
