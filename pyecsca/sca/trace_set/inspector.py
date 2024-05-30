@@ -145,8 +145,10 @@ class InspectorTraceSet(TraceSet):
         0x67: ("external_clock_time_base", 4, Parsers.read_int, Parsers.write_int),
     }
 
+    _scaled: bool
+
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "InspectorTraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "InspectorTraceSet":
         """
         Read Inspector trace set from file path, bytes or file-like object.
 
@@ -163,10 +165,14 @@ class InspectorTraceSet(TraceSet):
             traces, tags = InspectorTraceSet.__read(input)
         else:
             raise TypeError
-        for trace in traces:
-            new = InspectorTraceSet.__scale(trace.samples, tags["y_scale"])
-            del trace.samples
-            trace.samples = new
+        if kwargs.get("scale"):
+            tags["_scaled"] = True
+            for trace in traces:
+                new = InspectorTraceSet.__scale(trace.samples, tags["y_scale"])
+                del trace.samples
+                trace.samples = new
+        else:
+            tags["_scaled"] = False
         return InspectorTraceSet(*traces, **tags)
 
     @classmethod
@@ -207,7 +213,7 @@ class InspectorTraceSet(TraceSet):
         return result, tags
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "InspectorTraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "InspectorTraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):
@@ -249,9 +255,12 @@ class InspectorTraceSet(TraceSet):
                 file.write(Parsers.write_str(trace.meta["title"]))
             if self.data_space != 0 and trace.meta["data"] is not None:
                 file.write(trace.meta["data"])
-            unscaled = InspectorTraceSet.__unscale(
-                trace.samples, self.y_scale, self.sample_coding
-            )
+            if self._scaled:
+                unscaled = InspectorTraceSet.__unscale(
+                    trace.samples, self.y_scale, self.sample_coding
+                )
+            else:
+                unscaled = trace.samples
             try:
                 unscaled.tofile(file)
             except UnsupportedOperation:

@@ -18,7 +18,7 @@ class PickleTraceSet(TraceSet):
     """Pickle-based traceset format."""
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "PickleTraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "PickleTraceSet":
         if isinstance(input, bytes):
             return pickle.loads(input)  # pickle is OK here, skipcq: BAN-B301
         elif isinstance(input, (str, Path)):
@@ -29,7 +29,7 @@ class PickleTraceSet(TraceSet):
         raise TypeError
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "PickleTraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "PickleTraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):

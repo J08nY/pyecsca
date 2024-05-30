@@ -16,16 +16,16 @@ class ChipWhispererTraceSet(TraceSet):
     """ChipWhisperer trace set (native) format."""
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "ChipWhispererTraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "ChipWhispererTraceSet":
         if isinstance(input, (str, Path)):
-            traces, kwargs = ChipWhispererTraceSet.__read(input)
-            return ChipWhispererTraceSet(*traces, **kwargs)
+            traces, kws = ChipWhispererTraceSet.__read(input)
+            return ChipWhispererTraceSet(*traces, **kws)
         else:
             raise ValueError
 
     @classmethod
     def inplace(
-        cls, input: Union[str, Path, bytes, BinaryIO]
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
     ) -> "ChipWhispererTraceSet":
         raise NotImplementedError
 

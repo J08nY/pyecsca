@@ -34,11 +34,11 @@ class TraceSet:
         yield from self._traces
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "TraceSet":
         raise NotImplementedError
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "TraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "TraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):

@@ -77,7 +77,7 @@ class HDF5TraceSet(TraceSet):
         super().__init__(*traces, **kwargs)
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
+    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "HDF5TraceSet":
         if isinstance(input, (str, Path)):
             hdf5 = h5py.File(str(input), mode="r")
         elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):
@@ -87,7 +87,7 @@ class HDF5TraceSet(TraceSet):
         if "traces" not in hdf5:
             hdf5.create_group("traces", track_order=True)
         group = hdf5["traces"]
-        kwargs = dict(group.attrs)
+        kws = dict(group.attrs)
         ordering = []
         traces = []
         for k, samples in group.items():
@@ -95,10 +95,10 @@ class HDF5TraceSet(TraceSet):
             traces.append(Trace(np.array(samples, dtype=samples.dtype), meta))
             ordering.append(k)
         hdf5.close()
-        return HDF5TraceSet(*traces, **kwargs, _ordering=ordering)
+        return HDF5TraceSet(*traces, **kws, _ordering=ordering)
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO]) -> "HDF5TraceSet":
+    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "HDF5TraceSet":
         if isinstance(input, (str, Path)):
             hdf5 = h5py.File(str(input), mode="a")
         elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):
@@ -108,14 +108,14 @@ class HDF5TraceSet(TraceSet):
         if "traces" not in hdf5:
             hdf5.create_group("traces", track_order=True)
         group = hdf5["traces"]
-        kwargs = dict(group.attrs)
+        kws = dict(group.attrs)
         ordering = []
         traces = []
         for k, samples in group.items():
             meta = HDF5Meta(samples.attrs)
             traces.append(Trace(samples, meta))
             ordering.append(k)
-        return HDF5TraceSet(*traces, **kwargs, _file=hdf5, _ordering=ordering)  # type: ignore[misc]
+        return HDF5TraceSet(*traces, **kws, _file=hdf5, _ordering=ordering)  # type: ignore[misc]
 
     def append(self, value: Trace) -> Trace:
         key = str(uuid.uuid4())
