@@ -18,13 +18,13 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-3.9-${{ hashFiles('pyproject.toml') }}
+          key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             pip-${{ runner.os }}-
-      - name: Setup Python 3.9
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Add picoscope repository
         run: |
           curl "https://labs.picotech.com/debian/dists/picoscope/Release.gpg.key" | sudo apt-key add
@@ -33,9 +33,6 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get install -y $PS_PACKAGES $OTHER_PACKAGES $GMP_PACKAGES
-      - name: Install numpy
-        run: |
-          pip install "numpy<1.25"
       - name: Install picoscope bindings
         run: |
           git clone https://github.com/colinoflynn/pico-python && cd pico-python && python setup.py install && cd ..

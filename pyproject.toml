@@ -29,7 +29,7 @@
   ]
   requires-python = ">=3.9"
   dependencies = [
-    "numpy==1.24.4",
+    "numpy",
     "scipy",
     "sympy>=1.7.1",
     "pandas",
@@ -45,7 +45,7 @@
     "dask[dataframe]",
     "xarray",
     "astunparse",
-    "numba==0.57.1",
+    "numba",
     "networkx",
     "importlib-resources",
     "anytree"
