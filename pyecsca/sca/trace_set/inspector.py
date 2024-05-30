@@ -145,7 +145,7 @@ class InspectorTraceSet(TraceSet):
         0x67: ("external_clock_time_base", 4, Parsers.read_int, Parsers.write_int),
     }
 
-    _scaled: bool
+    _scaled: bool = False
 
     @classmethod
     def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "InspectorTraceSet":
