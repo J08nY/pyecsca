@@ -1,10 +1,13 @@
+"""Provides a way to Fliparoo formulas."""
 from ast import parse
 from typing import Iterator, List, Type, Optional, Set
+from public import public
 from ..op import OpType
 from .base import Formula
 from .graph import FormulaGraph, Node, CodeOpNode, CodeOp, CodeFormula
 
 
+@public
 class Fliparoo:
     """
     Fliparoo is a chain of nodes N1->N2->...->Nk in FormulaGraph for k>=2 such that:
@@ -79,6 +82,7 @@ class Fliparoo:
         return self.__class__(self.nodes[i:j], self.graph)
 
 
+@public
 class MulFliparoo(Fliparoo):
     def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
@@ -88,6 +92,7 @@ class MulFliparoo(Fliparoo):
         self.operator = OpType.Mult
 
 
+@public
 class AddSubFliparoo(Fliparoo):
     def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
@@ -96,6 +101,7 @@ class AddSubFliparoo(Fliparoo):
             raise BadFliparoo
 
 
+@public
 class AddFliparoo(Fliparoo):
     def __init__(self, chain: List[CodeOpNode], graph: FormulaGraph):
         super().__init__(chain, graph)
@@ -105,6 +111,7 @@ class AddFliparoo(Fliparoo):
         self.operator = OpType.Add
 
 
+@public
 class BadFliparoo(Exception):
     pass
 
@@ -238,6 +245,7 @@ class DummyNode(Node):
         return None
 
 
+@public
 def generate_fliparood_formulas(
     formula: Formula, rename: bool = True
 ) -> Iterator[CodeFormula]:
@@ -370,6 +378,7 @@ def combine_signed_nodes(
     subgraph.add_node(new_node)
 
 
+@public
 def recursive_fliparoo(formula: Formula, depth: int = 2) -> Set[Formula]:
     all_fliparoos = {0: {formula}}
     counter = 0

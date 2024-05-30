@@ -1,3 +1,5 @@
+"""Provides functions for unrolling formula intermediate values symvolically."""
+
 from typing import List, Tuple
 
 from astunparse import unparse

@@ -1,4 +1,4 @@
-""""""
+"""Provides formulas wrapping the [EFD]_."""
 from copy import copy
 
 from public import public
@@ -22,6 +22,7 @@ from .base import (
 from ...misc.utils import pexec, peval
 
 
+@public
 class EFDFormula(Formula):
     """Formula from the [EFD]_."""
 

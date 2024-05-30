@@ -1,3 +1,4 @@
+"""Provides a formula expansion function."""
 from typing import Set, Callable, Any
 from public import public
 
@@ -25,6 +26,16 @@ def reduce_with_similarity(formulas: Set[Formula], norm: Callable[[Formula], Any
 def expand_formula_set(
     formulas: Set[Formula], norm: Callable[[Formula], Any] = ivs_norm
 ) -> Set[Formula]:
+    """
+    Expand a set of formulas by using transformations:
+     - Fliparoos
+     - Sign switching
+     - Associativity and Commutativity
+
+    :param formulas:
+    :param norm:
+    :return:
+    """
     extended = reduce_with_similarity(formulas, norm)
 
     fliparood: Set[Formula] = set().union(*map(recursive_fliparoo, extended))

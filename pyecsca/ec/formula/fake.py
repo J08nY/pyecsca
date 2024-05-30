@@ -1,3 +1,4 @@
+"""Provides "fake" formulas."""
 from abc import ABC
 from typing import Any, Tuple
 
@@ -18,9 +19,10 @@ from ..mod import Mod, Undefined
 from ..point import Point
 
 
+@public
 class FakeFormula(Formula, ABC):
     """
-    No matter what the input point is it just returns the right amount of FakePoints.
+    No matter what the input point is, it just returns the right amount of FakePoints.
 
     Useful for computing with the scalar multipliers without having concrete formulas
     and points (for example to get the addition chain via the MultipleContext).
@@ -77,6 +79,8 @@ class FakeLadderFormula(FakeFormula, LadderFormula):
 
 @public
 class FakePoint(Point):
+    """Just a fake point."""
+
     def __init__(self, model):
         coords = {key: Undefined() for key in model.variables}
         super().__init__(model, **coords)

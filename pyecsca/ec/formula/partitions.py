@@ -1,5 +1,6 @@
 from typing import List, Any, Generator
 from ast import parse
+from public import public
 from .base import Formula
 from ..op import OpType, CodeOp
 from .graph import FormulaGraph, CodeOpNode, ConstantNode, Node, CodeFormula
@@ -7,6 +8,7 @@ from .fliparoo import find_fliparoos, AddFliparoo, MulFliparoo
 from copy import deepcopy
 
 
+@public
 def reduce_all_adds(formula: Formula, rename=True) -> CodeFormula:
     graph = FormulaGraph(formula, rename=rename)
     add_fliparoos = find_single_input_add_fliparoos(graph)
@@ -19,6 +21,7 @@ def reduce_all_adds(formula: Formula, rename=True) -> CodeFormula:
     return graph.to_formula("reduce_add")
 
 
+@public
 def expand_all_muls(formula: Formula, rename=True) -> CodeFormula:
     graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)
@@ -27,6 +30,7 @@ def expand_all_muls(formula: Formula, rename=True) -> CodeFormula:
     return graph.to_formula("expand_mul")
 
 
+@public
 def expand_all_nopower2_muls(formula: Formula, rename=True) -> CodeFormula:
     graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph, nopower2=True)
@@ -275,6 +279,7 @@ def compute_partitions(n: int) -> List[Partition]:
     return result
 
 
+@public
 def generate_partitioned_formulas(formula: Formula, rename=True):
     graph = FormulaGraph(formula, rename)
     enodes = find_expansion_nodes(graph)

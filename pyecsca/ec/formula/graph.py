@@ -1,3 +1,4 @@
+"""Provides tools for working with formulas as graphs."""
 from .base import Formula
 from .code import CodeFormula
 from ..op import CodeOp, OpType
@@ -6,9 +7,11 @@ import networkx as nx
 from ast import parse, Expression
 from typing import Dict, List, Tuple, Set, Optional, MutableMapping, Any
 from copy import deepcopy
+from public import public
 from abc import ABC, abstractmethod
 
 
+@public
 class Node(ABC):
     def __init__(self):
         self.incoming_nodes = []
@@ -75,6 +78,7 @@ class Node(ABC):
             destination.outgoing_nodes.append(out)
 
 
+@public
 class ConstantNode(Node):
     color = "#b41f44"
 
@@ -170,6 +174,7 @@ class CodeOpNode(Node):
         return f"Node({self.op})"
 
 
+@public
 class InputNode(Node):
     color = "#b41f44"
 
@@ -198,6 +203,7 @@ def formula_input_variables(formula: Formula) -> List[str]:
     )
 
 
+@public
 class FormulaGraph:
     coordinate_model: Any
     name: str

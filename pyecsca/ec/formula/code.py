@@ -1,7 +1,8 @@
-"""Provides a concrete class of a formula that has a constructor."""
+"""Provides a concrete class of a formula that has a constructor and some code."""
 from typing import List, Any
 from ast import Expression
 from astunparse import unparse
+from public import public
 
 from .base import (
     Formula,
@@ -17,6 +18,7 @@ from ..op import CodeOp
 from ...misc.utils import peval
 
 
+@public
 class CodeFormula(Formula):
     """A basic formula class that can be directly initialized with the code and other attributes."""
 
@@ -71,29 +73,36 @@ class CodeFormula(Formula):
         self.__dict__.update(state)
 
 
+@public
 class CodeAdditionFormula(AdditionFormula, CodeFormula):
     pass
 
 
+@public
 class CodeDoublingFormula(DoublingFormula, CodeFormula):
     pass
 
 
+@public
 class CodeLadderFormula(LadderFormula, CodeFormula):
     pass
 
 
+@public
 class CodeTriplingFormula(TriplingFormula, CodeFormula):
     pass
 
 
+@public
 class CodeNegationFormula(NegationFormula, CodeFormula):
     pass
 
 
+@public
 class CodeScalingFormula(ScalingFormula, CodeFormula):
     pass
 
 
+@public
 class CodeDifferentialAdditionFormula(DifferentialAdditionFormula, CodeFormula):
     pass

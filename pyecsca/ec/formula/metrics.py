@@ -1,3 +1,4 @@
+"""Provides metrics for comparing formulas."""
 from public import public
 from .unroll import unroll_formula
 from .base import Formula
@@ -26,6 +27,13 @@ def ivs_norm(one: Formula):
 
 @public
 def formula_similarity(one: Formula, other: Formula) -> Dict[str, float]:
+    """
+    Formula similarity based on symbolic intermediate value sets.
+
+    :param one:
+    :param other:
+    :return:
+    """
     if one.coordinate_model != other.coordinate_model:
         warnings.warn("Mismatched coordinate model.")
 
@@ -41,6 +49,13 @@ def formula_similarity(one: Formula, other: Formula) -> Dict[str, float]:
 
 @public
 def formula_similarity_abs(one: Formula, other: Formula) -> Dict[str, float]:
+    """
+    Formula similarity based on symbolic intermediate value sets (absolute value)
+
+    :param one:
+    :param other:
+    :return:
+    """
     if one.coordinate_model != other.coordinate_model:
         warnings.warn("Mismatched coordinate model.")
 
@@ -64,6 +79,13 @@ def formula_similarity_abs(one: Formula, other: Formula) -> Dict[str, float]:
 def formula_similarity_fuzz(
     one: Formula, other: Formula, curve: EllipticCurve, samples: int = 1000
 ) -> Dict[str, float]:
+    """
+    Formula similarity based on random computation.
+
+    :param one:
+    :param other:
+    :return:
+    """
     if one.coordinate_model != other.coordinate_model:
         raise ValueError("Mismatched coordinate model.")
 

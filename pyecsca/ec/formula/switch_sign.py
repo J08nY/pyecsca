@@ -1,5 +1,6 @@
 from typing import Dict, Iterator, List, Any
 from ast import parse
+from public import public
 from ..op import OpType, CodeOp
 from .base import Formula
 from .graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
@@ -8,6 +9,7 @@ from ..point import Point
 from ..mod import Mod
 
 
+@public
 def generate_switched_formulas(
     formula: Formula, rename=True
 ) -> Iterator[CodeFormula]:
