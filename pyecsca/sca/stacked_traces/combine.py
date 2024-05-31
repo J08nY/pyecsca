@@ -705,12 +705,13 @@ class CPUTraceManager:
             raise ValueError("Invalid shape of intermediate_values, "
                              f"expected ({n},), "
                              f"got {intermediate_values.shape}")
-
+        new_size = str(samples.dtype.itemsize * 2) if samples.dtype.itemsize != 8 else "8"
+        dtype = np.dtype(samples.dtype.kind + new_size)
         sam_sum = np.sum(samples, axis=0)
-        sam_sq_sum = np.sum(np.square(samples), axis=0)
+        sam_sq_sum = np.sum(np.square(samples, dtype=dtype), axis=0)
 
         iv_sum = np.sum(intermediate_values)
-        iv_sq_sum = np.sum(np.square(intermediate_values))
+        iv_sq_sum = np.sum(np.square(intermediate_values, dtype=dtype))
 
         prod_sum = intermediate_values @ samples
 
