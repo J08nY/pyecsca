@@ -40,3 +40,9 @@ class PickleTraceSet(TraceSet):
             pickle.dump(self, output)
         else:
             raise TypeError
+
+    def __repr__(self):
+        args = ", ".join(
+            [f"{key}={getattr(self, key)!r}" for key in self._keys]
+        )
+        return f"PickleTraceSet(num_traces={len(self)}, {args})"
