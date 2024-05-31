@@ -3,6 +3,7 @@ from typing import Sequence
 
 import pytest
 
+from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import (
     DoubleAndAddMultiplier,
     LTRMultiplier,
@@ -176,6 +177,41 @@ def test_ladder(curve25519):
         complete=False,
     )
     assert_pt_equality(a, b, True)
+
+
+@pytest.mark.parametrize(
+    "scalar,x,res",
+    [
+        (
+            29893438142586401087946310744922998080771935139441267052026283852717044358472,
+            48084050389777770101701157326923977117307187144965043058462938058489685090437,
+            40694087602335028385342029955981451169449898924211721351135404099078471497195,
+        )
+    ],
+)
+def test_ladder_full(curve25519, scalar, x, res):
+    p = curve25519.curve.prime
+    point = Point(curve25519.curve.coordinate_model, X=Mod(x, p), Z=Mod(1, p))
+    result = Point(curve25519.curve.coordinate_model, X=Mod(res, p), Z=Mod(1, p))
+
+    mult = LadderMultiplier(
+        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
+        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
+        # complete=False
+    )
+    fixed = int(Mod(scalar, curve25519.order))
+
+    mult.init(curve25519, point)
+    computed = mult.multiply(fixed)
+
+    point_aff = list(curve25519.curve.affine_lift_x(Mod(x, p)))[0]
+    result_aff = list(curve25519.curve.affine_lift_x(Mod(res, p)))[0]
+    computed_aff = curve25519.curve.affine_multiply(point_aff, scalar)
+
+    scale = curve25519.curve.coordinate_model.formulas["scale"]
+    converted = scale(p, computed, **curve25519.curve.parameters)[0]
+    assert computed_aff.x == result_aff.x
+    assert converted.X == result.X
 
 
 @pytest.mark.parametrize(
