@@ -46,7 +46,7 @@ jobs:
       - name: Install picoscope bindings
         run: |
           python -m pip install -U pip setuptools wheel
-          git clone https://github.com/J08nY/pico-python && cd pico-python && pip install . && cd ..
+          git clone https://github.com/colinoflynn/pico-python && cd pico-python && pip install . && cd ..
           git clone https://github.com/picotech/picosdk-python-wrappers && cd picosdk-python-wrappers && pip install . && cd ..
       - name: Install dependencies
         run: |
