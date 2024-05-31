@@ -20,7 +20,15 @@ from public import public
 
 @public
 class Action:
-    """An Action."""
+    """
+    An Action.
+
+    Can be entered:
+    >>> with Action() as action:
+    ...     print(action.inside)
+    True
+
+    """
 
     inside: bool
 
@@ -41,7 +49,14 @@ class Action:
 
 @public
 class ResultAction(Action):
-    """An action that has a result."""
+    """
+    An action that has a result.
+
+    >>> with ResultAction() as action:
+    ...     r = action.exit("result")
+    >>> action.result == r
+    True
+    """
 
     _result: Any = None
     _has_result: bool = False
@@ -74,11 +89,31 @@ class ResultAction(Action):
 
 @public
 class Tree(OrderedDict):
-    """A recursively-implemented tree."""
+    """
+    A recursively-implemented tree.
+
+    >>> tree = Tree()
+    >>> tree["a"] = Tree()
+    >>> tree["a"]["1"] = Tree()
+    >>> tree["a"]["2"] = Tree()
+    >>> tree # doctest: +NORMALIZE_WHITESPACE
+    a
+        1
+        2
+    <BLANKLINE>
+    """
 
     def get_by_key(self, path: List) -> Any:
         """
         Get the value in the tree at a position given by the path.
+
+        >>> one = Tree()
+        >>> tree = Tree()
+        >>> tree["a"] = Tree()
+        >>> tree["a"]["1"] = Tree()
+        >>> tree["a"]["2"] = one
+        >>> tree.get_by_key(["a", "2"]) == one
+        True
 
         :param path: The path to get.
         :return: The value in the tree.
@@ -98,6 +133,17 @@ class Tree(OrderedDict):
         Get the key and value in the tree at a position given by the path of indices.
 
         The nodes inside a level of a tree are ordered by insertion order.
+
+        >>> one = Tree()
+        >>> tree = Tree()
+        >>> tree["a"] = Tree()
+        >>> tree["a"]["1"] = Tree()
+        >>> tree["a"]["2"] = one
+        >>> key, value = tree.get_by_index([0, 1])
+        >>> key
+        '2'
+        >>> value == one
+        True
 
         :param path: The path to get.
         :return: The key and value.
@@ -132,6 +178,15 @@ class Tree(OrderedDict):
     def walk(self, callback: Callable[[Any], None]) -> None:
         """
         Walk the tree, depth-first, with the callback.
+
+        >>> tree = Tree()
+        >>> tree["a"] = Tree()
+        >>> tree["a"]["1"] = Tree()
+        >>> tree["a"]["2"] = Tree()
+        >>> tree.walk(lambda key: print(key))
+        a
+        1
+        2
 
         :param callback: The callback to call for all values in the tree.
         """
@@ -178,7 +233,26 @@ class Context(ABC):
 
 @public
 class DefaultContext(Context):
-    """Context that traces executions of actions in a tree."""
+    """
+    Context that traces executions of actions in a tree.
+
+    >>> with local(DefaultContext()) as ctx:
+    ...     with Action() as one_action:
+    ...         with ResultAction() as other_action:
+    ...             r = other_action.exit("some result")
+    ...         with Action() as yet_another:
+    ...             pass
+    >>> ctx.actions # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    <context.Action ...
+        <context.ResultAction ...
+        <context.Action ...
+    <BLANKLINE>
+    >>> root, subtree = ctx.actions.get_by_index([0])
+    >>> for action in subtree: # doctest: +ELLIPSIS
+    ...     print(action)
+    <context.ResultAction ...
+    <context.Action ...
+    """
 
     actions: Tree
     current: List[Action]
