@@ -19,7 +19,42 @@ from pyecsca.ec.point import Point, InfinityPoint
 
 @public
 class EllipticCurve:
-    """Elliptic curve."""
+    """
+    An elliptic curve.
+
+    >>> from pyecsca.ec.params import get_params
+    >>> params = get_params("secg", "secp256r1", "projective")
+    >>> curve = params.curve
+    >>> curve.prime
+    115792089210356248762697446949407573530086143415290314195533631308867097853951
+    >>> curve.parameters  # doctest: +NORMALIZE_WHITESPACE
+    {'a': 115792089210356248762697446949407573530086143415290314195533631308867097853948,
+     'b': 41058363725152142129326129780047268409114441015993725554835256314039467401291}
+    >>> curve.neutral
+    InfinityPoint(shortw/projective)
+
+    You can also use the curve object to operate on affine points.
+
+    >>> from pyecsca.ec.coordinates import AffineCoordinateModel
+    >>> affine = AffineCoordinateModel(curve.model)
+    >>> points_P = sorted(curve.affine_lift_x(Mod(5, curve.prime)), key=lambda p: int(p.x))
+    >>> points_P  # doctest: +NORMALIZE_WHITESPACE
+    [Point([x=5, y=84324075564118526167843364924090959423913731519542450286139900919689799730227] in shortw/affine),
+     Point([x=5, y=31468013646237722594854082025316614106172411895747863909393730389177298123724] in shortw/affine)]
+    >>> P = points_P[0]
+    >>> Q = Point(affine, x=Mod(106156966968002564385990772707119429362097710917623193504777452220576981858057, curve.prime), y=Mod(89283496902772247016522581906930535517715184283144143693965440110672128480043, curve.prime))
+    >>> curve.affine_add(P, Q)
+    Point([x=47810148756503743072934797587322364123448575767318638174816008618047855704885, y=13254714647685362616794785795476294517294947485316674051531702458991837320158] in shortw/affine)
+    >>> curve.affine_multiply(P, 10)
+    Point([x=102258728610797412855984739741975475478412665729440354248608608794190482472287, y=108928182525231985447294771990422379640574982656217795144410067267239526061757] in shortw/affine)
+    >>> curve.affine_random()  # doctest: +ELLIPSIS
+    Point([x=..., y=...] in shortw/affine)
+    >>> curve.is_on_curve(P)
+    True
+    >>> curve.is_neutral(P)
+    False
+
+    """
 
     model: CurveModel
     """The model of the curve."""

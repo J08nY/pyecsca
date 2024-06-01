@@ -79,10 +79,11 @@
 [tool.setuptools_scm]
 
 [tool.pytest.ini_options]
-  testpaths = ["test"]
+  testpaths = ["pyecsca", "test"]
   markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
   ]
+  addopts = ["--doctest-modules"]
   filterwarnings = [
     "ignore:(?s).*pkg_resources is deprecated as an API:DeprecationWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
     "ignore:Deprecated call to `pkg_resources.declare_namespace", # sphinxcontrib

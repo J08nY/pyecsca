@@ -32,7 +32,25 @@ from pyecsca.misc.cfg import getconfig
 
 @public
 class DomainParameters:
-    """Domain parameters which specify a subgroup on an elliptic curve."""
+    """
+    Domain parameters which specify a subgroup on an elliptic curve.
+
+    >>> secp256r1 = get_params("secg", "secp256r1", "projective")
+    >>> str(secp256r1)
+    'DomainParameters(secg/secp256r1)'
+    >>> secp256r1.order
+    115792089210356248762697446949407573529996955224135760342422259061068512044369
+    >>> secp256r1.cofactor
+    1
+    >>> secp256r1.generator
+    Point([X=48439561293906451759052585252797914202762949526041747995844080717082404635286, Y=36134250956749795798585127919587881956611106672985015071877198253568414405109, Z=1] in shortw/projective)
+    >>> secp256r1.curve.prime
+    115792089210356248762697446949407573530086143415290314195533631308867097853951
+    >>> secp256r1.curve.parameters  # doctest: +NORMALIZE_WHITESPACE
+    {'a': 115792089210356248762697446949407573530086143415290314195533631308867097853948,
+     'b': 41058363725152142129326129780047268409114441015993725554835256314039467401291}
+
+    """
 
     curve: EllipticCurve
     generator: Point

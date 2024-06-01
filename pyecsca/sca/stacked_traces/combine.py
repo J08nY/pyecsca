@@ -689,7 +689,7 @@ class CPUTraceManager:
 
         The result is equivalent to:
 
-        >>> np.corrcoef(self.traces.samples,
+            np.corrcoef(self.traces.samples,
                         intermediate_values,
                         rowvar=False)[-1, :-1]
 

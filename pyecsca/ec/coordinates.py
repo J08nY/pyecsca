@@ -21,7 +21,25 @@ from pyecsca.ec.formula.efd import (
 
 @public
 class CoordinateModel:
-    """A coordinate system for a particular model(form) of an elliptic curve."""
+    """
+    A coordinate system for a particular model(form) of an elliptic curve.
+
+    >>> from pyecsca.ec.params import get_params
+    >>> params = get_params("secg", "secp256r1", "projective")
+    >>> coordinate_model = params.curve.coordinate_model
+    >>> coordinate_model
+    EFDCoordinateModel("projective", curve_model=ShortWeierstrass)
+    >>> coordinate_model.variables
+    ['X', 'Y', 'Z']
+    >>> coordinate_model.curve_model
+    ShortWeierstrassModel()
+    >>> coordinate_model.formulas  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    {'mdbl-2007-bl': DoublingEFDFormula(mdbl-2007-bl for shortw/projective),
+     'dbl-2007-bl': DoublingEFDFormula(dbl-2007-bl for shortw/projective),
+      ...
+     'add-2007-bl': AdditionEFDFormula(add-2007-bl for shortw/projective),
+      ...
+    """
 
     name: str
     """Name of the coordinate model"""
