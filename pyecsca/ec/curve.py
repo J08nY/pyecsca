@@ -6,14 +6,15 @@ from typing import MutableMapping, Union, List, Optional, Dict, Set
 
 from public import public
 from sympy import FF
-from ..misc.cache import sympify
 
-from .coordinates import CoordinateModel, AffineCoordinateModel
-from .error import raise_unsatisified_assumption
-from .mod import Mod
-from .model import CurveModel
-from .point import Point, InfinityPoint
-from ..misc.cfg import getconfig
+from pyecsca.misc.cache import sympify
+from pyecsca.misc.cfg import getconfig
+
+from pyecsca.ec.coordinates import CoordinateModel, AffineCoordinateModel
+from pyecsca.ec.error import raise_unsatisified_assumption
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import CurveModel
+from pyecsca.ec.point import Point, InfinityPoint
 
 
 @public

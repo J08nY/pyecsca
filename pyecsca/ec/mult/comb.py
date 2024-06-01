@@ -5,8 +5,8 @@ from typing import MutableMapping, Optional
 
 from public import public
 
-from ..formula import AdditionFormula, DoublingFormula, ScalingFormula
-from ..mult import (
+from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
+from pyecsca.ec.mult import (
     AccumulatorMultiplier,
     ScalarMultiplier,
     ProcessingDirection,
@@ -14,9 +14,9 @@ from ..mult import (
     PrecomputationAction,
     ScalarMultiplicationAction,
 )
-from ..params import DomainParameters
-from ..point import Point
-from ..scalar import convert_base
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
+from pyecsca.ec.scalar import convert_base
 
 
 @public
@@ -61,12 +61,26 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.width = width
 
     def __hash__(self):
-        return hash((BGMWMultiplier, super().__hash__(), self.width, self.direction, self.accumulation_order))
+        return hash(
+            (
+                BGMWMultiplier,
+                super().__hash__(),
+                self.width,
+                self.direction,
+                self.accumulation_order,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, BGMWMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.direction == other.direction and self.accumulation_order == other.accumulation_order
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.width == other.width
+            and self.direction == other.direction
+            and self.accumulation_order == other.accumulation_order
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
@@ -147,12 +161,19 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.width = width
 
     def __hash__(self):
-        return hash((CombMultiplier, super().__hash__(), self.width, self.accumulation_order))
+        return hash(
+            (CombMultiplier, super().__hash__(), self.width, self.accumulation_order)
+        )
 
     def __eq__(self, other):
         if not isinstance(other, CombMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.accumulation_order == other.accumulation_order
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.width == other.width
+            and self.accumulation_order == other.accumulation_order
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name})"

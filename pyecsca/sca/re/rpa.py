@@ -8,10 +8,10 @@ from typing import MutableMapping, Optional, Callable, List, Set, cast
 
 from sympy import FF, sympify, Poly, symbols
 
-from .base import RE
-from .tree import Tree, Map
-from ...ec.coordinates import AffineCoordinateModel
-from ...ec.formula import (
+from pyecsca.sca.re.base import RE
+from pyecsca.sca.re.tree import Tree, Map
+from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.formula import (
     FormulaAction,
     DoublingFormula,
     AdditionFormula,
@@ -20,17 +20,17 @@ from ...ec.formula import (
     DifferentialAdditionFormula,
     LadderFormula,
 )
-from ...ec.mod import Mod
-from ...ec.mult import (
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.mult import (
     ScalarMultiplicationAction,
     PrecomputationAction,
     ScalarMultiplier,
 )
-from ...ec.params import DomainParameters
-from ...ec.model import ShortWeierstrassModel, MontgomeryModel
-from ...ec.point import Point
-from ...ec.context import Context, Action, local
-from ...misc.utils import log, warn
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
+from pyecsca.ec.point import Point
+from pyecsca.ec.context import Context, Action, local
+from pyecsca.misc.utils import log, warn
 
 
 @public
@@ -209,6 +209,7 @@ def rpa_distinguish(
 @public
 class RPA(RE):
     """RPA-based RE."""
+
     params: Optional[DomainParameters] = None
     """The domain parameters to use."""
     P0: Optional[Point] = None
@@ -306,7 +307,9 @@ class RPA(RE):
             if not tree.precise:
                 done += 1
                 if done > tries:
-                    warn(f"Tried more than {tries} times. Aborting. Distinguishing may not be precise.")
+                    warn(
+                        f"Tried more than {tries} times. Aborting. Distinguishing may not be precise."
+                    )
                     break
                 else:
                     continue
@@ -327,7 +330,12 @@ class RPA(RE):
         :param majority: Query the oracle up to `majority` times and take the majority vote of the results.
         :return: The set of possible multipliers.
         """
-        if self.tree is None or self.scalars is None or self.P0 is None or self.params is None:
+        if (
+            self.tree is None
+            or self.scalars is None
+            or self.P0 is None
+            or self.params is None
+        ):
             raise ValueError("Need to build tree first.")
 
         if (majority % 2) == 0:

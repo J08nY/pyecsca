@@ -10,13 +10,13 @@ from typing import List, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 from public import public
 from sympy import FF, symbols, Poly, Rational
 
-from ..context import ResultAction
-from .. import context
-from ..error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
-from ..mod import Mod, SymbolicMod
-from ..op import CodeOp, OpType
-from ...misc.cfg import getconfig
-from ...misc.cache import sympify, simplify
+from pyecsca.ec.context import ResultAction
+from pyecsca.ec import context
+from pyecsca.ec.error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
+from pyecsca.ec.mod import Mod, SymbolicMod
+from pyecsca.ec.op import CodeOp, OpType
+from pyecsca.misc.cfg import getconfig
+from pyecsca.misc.cache import sympify, simplify
 
 
 @public
@@ -237,7 +237,7 @@ class Formula(ABC):
         :param params: Parameters of the curve.
         :return: The resulting point(s).
         """
-        from ..point import Point
+        from pyecsca.ec.point import Point
 
         self.__validate_params(field, params)
         self.__validate_points(field, points, params)

@@ -12,8 +12,8 @@ from chipwhisperer.capture.scopes import ScopeTypes
 from chipwhisperer.capture.targets.SimpleSerial import SimpleSerial
 from public import public
 
-from .flash import Flashable
-from .simpleserial import SimpleSerialTarget
+from pyecsca.sca.target.flash import Flashable
+from pyecsca.sca.target.simpleserial import SimpleSerialTarget
 
 
 @public

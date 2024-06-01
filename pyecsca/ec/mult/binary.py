@@ -5,14 +5,15 @@ from typing import Optional
 
 from public import public
 
-from .base import ScalarMultiplier, ProcessingDirection, AccumulationOrder, ScalarMultiplicationAction, \
-    AccumulatorMultiplier
-from ..formula import (
-    AdditionFormula,
-    DoublingFormula,
-    ScalingFormula,
+from pyecsca.ec.mult.base import (
+    ScalarMultiplier,
+    ProcessingDirection,
+    AccumulationOrder,
+    ScalarMultiplicationAction,
+    AccumulatorMultiplier,
 )
-from ..point import Point
+from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
+from pyecsca.ec.point import Point
 
 
 @public
@@ -30,6 +31,7 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
     :param accumulation_order: The order of accumulation of points.
     :param complete: Whether it starts processing at full order-bit-length.
     """
+
     requires = {AdditionFormula, DoublingFormula}
     optionals = {ScalingFormula}
     always: bool
@@ -40,28 +42,50 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
     """Whether it starts processing at full order-bit-length."""
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            always: bool = False,
-            direction: ProcessingDirection = ProcessingDirection.LTR,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        always: bool = False,
+        direction: ProcessingDirection = ProcessingDirection.LTR,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
-        super().__init__(short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl)
+        super().__init__(
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            scl=scl,
+        )
         self.always = always
         self.direction = direction
         self.complete = complete
 
     def __hash__(self):
-        return hash((DoubleAndAddMultiplier, super().__hash__(), self.direction, self.accumulation_order, self.always, self.complete))
+        return hash(
+            (
+                DoubleAndAddMultiplier,
+                super().__hash__(),
+                self.direction,
+                self.accumulation_order,
+                self.always,
+                self.complete,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, DoubleAndAddMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order and self.always == other.always and self.complete == other.complete
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.direction == other.direction
+            and self.accumulation_order == other.accumulation_order
+            and self.always == other.always
+            and self.complete == other.complete
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name}, always={self.always}, complete={self.complete})"
@@ -130,18 +154,25 @@ class LTRMultiplier(DoubleAndAddMultiplier):
     """
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            always: bool = False,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        always: bool = False,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
-        super().__init__(short_circuit=short_circuit, direction=ProcessingDirection.LTR,
-                         accumulation_order=accumulation_order, always=always, complete=complete,
-                         add=add, dbl=dbl, scl=scl)
+        super().__init__(
+            short_circuit=short_circuit,
+            direction=ProcessingDirection.LTR,
+            accumulation_order=accumulation_order,
+            always=always,
+            complete=complete,
+            add=add,
+            dbl=dbl,
+            scl=scl,
+        )
 
 
 @public
@@ -157,18 +188,25 @@ class RTLMultiplier(DoubleAndAddMultiplier):
     """
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            always: bool = False,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        always: bool = False,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
-        super().__init__(short_circuit=short_circuit, direction=ProcessingDirection.RTL,
-                         accumulation_order=accumulation_order, always=always,
-                         add=add, dbl=dbl, scl=scl, complete=complete)
+        super().__init__(
+            short_circuit=short_circuit,
+            direction=ProcessingDirection.RTL,
+            accumulation_order=accumulation_order,
+            always=always,
+            add=add,
+            dbl=dbl,
+            scl=scl,
+            complete=complete,
+        )
 
 
 @public
@@ -186,11 +224,11 @@ class CoronMultiplier(ScalarMultiplier):
     optionals = {ScalingFormula}
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
 
@@ -200,7 +238,10 @@ class CoronMultiplier(ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, CoronMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+        )
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

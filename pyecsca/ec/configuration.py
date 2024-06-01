@@ -15,10 +15,10 @@ from typing import (
 
 from public import public
 
-from .coordinates import CoordinateModel
-from .formula import Formula
-from .model import CurveModel
-from .mult import ScalarMultiplier
+from pyecsca.ec.coordinates import CoordinateModel
+from pyecsca.ec.formula import Formula
+from pyecsca.ec.model import CurveModel
+from pyecsca.ec.mult import ScalarMultiplier
 
 
 @public

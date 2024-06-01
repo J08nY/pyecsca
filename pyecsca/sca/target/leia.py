@@ -3,7 +3,8 @@ from typing import Optional
 
 from smartleia import LEIA, create_APDU_from_bytes, T
 
-from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816, CardProtocol, CardConnectionException
+from pyecsca.sca.target.ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816, CardProtocol, \
+    CardConnectionException
 
 
 class LEIATarget(ISO7816Target):  # pragma: no cover

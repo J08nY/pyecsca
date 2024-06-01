@@ -1,7 +1,4 @@
 """Provides tools for working with formulas as graphs."""
-from .base import Formula
-from .code import CodeFormula
-from ..op import CodeOp, OpType
 import matplotlib.pyplot as plt
 import networkx as nx
 from ast import parse, Expression
@@ -9,6 +6,10 @@ from typing import Dict, List, Tuple, Set, Optional, MutableMapping, Any
 from copy import deepcopy
 from public import public
 from abc import ABC, abstractmethod
+
+from pyecsca.ec.formula.base import Formula
+from pyecsca.ec.formula.code import CodeFormula
+from pyecsca.ec.op import CodeOp, OpType
 
 
 @public

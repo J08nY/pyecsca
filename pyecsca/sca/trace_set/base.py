@@ -4,7 +4,7 @@ from typing import List, Union, BinaryIO
 
 from public import public
 
-from ..trace import Trace
+from pyecsca.sca.trace import Trace
 
 
 @public

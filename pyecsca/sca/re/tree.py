@@ -51,7 +51,7 @@ import pandas as pd
 from public import public
 from anytree import RenderTree, NodeMixin, AbstractStyle, PreOrderIter
 
-from ...misc.utils import log
+from pyecsca.misc.utils import log
 
 
 @public

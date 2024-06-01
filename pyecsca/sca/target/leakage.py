@@ -2,20 +2,20 @@ import numpy as np
 from typing import Optional, Tuple
 from public import public
 
-from ...ec.coordinates import CoordinateModel
-from ...ec.mod import Mod
-from ...ec.model import CurveModel
-from ...ec.params import DomainParameters
-from ...ec.point import Point
-from ...ec.mult import ScalarMultiplier
-from ...ec.key_generation import KeyGeneration
-from ...ec.key_agreement import KeyAgreement
-from ...ec.signature import Signature, SignatureResult
-from ...ec.formula import FormulaAction
-from ...ec.context import DefaultContext, local
-from ..attack import LeakageModel
-from ..trace import Trace
-from .base import Target
+from pyecsca.ec.coordinates import CoordinateModel
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import CurveModel
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
+from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.key_generation import KeyGeneration
+from pyecsca.ec.key_agreement import KeyAgreement
+from pyecsca.ec.signature import Signature, SignatureResult
+from pyecsca.ec.formula import FormulaAction
+from pyecsca.ec.context import DefaultContext, local
+from pyecsca.sca.attack import LeakageModel
+from pyecsca.sca.trace import Trace
+from pyecsca.sca.target.base import Target
 
 
 @public

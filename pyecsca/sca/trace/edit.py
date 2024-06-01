@@ -3,7 +3,7 @@ import numpy as np
 from public import public
 from typing import Union, Tuple, Any, Optional
 
-from .trace import Trace
+from pyecsca.sca.trace.trace import Trace
 
 
 @public

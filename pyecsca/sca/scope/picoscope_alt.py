@@ -9,8 +9,8 @@ from picoscope.ps5000 import PS5000
 from picoscope.ps6000 import PS6000
 from public import public
 
-from .base import Scope, SampleType
-from ..trace import Trace
+from pyecsca.sca.scope.base import Scope, SampleType
+from pyecsca.sca.trace import Trace
 
 
 @public

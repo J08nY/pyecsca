@@ -1,7 +1,7 @@
 """Contains exceptions and warnings used in the library."""
 import warnings
 from public import public
-from ..misc.cfg import getconfig
+from pyecsca.misc.cfg import getconfig
 
 
 @public

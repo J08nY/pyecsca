@@ -14,20 +14,20 @@ from importlib_resources import files
 
 from public import public
 
-from ..misc.cache import sympify
-from .coordinates import AffineCoordinateModel, CoordinateModel
-from .curve import EllipticCurve
-from .error import raise_unsatisified_assumption
-from .mod import Mod
-from .model import (
+from pyecsca.misc.cache import sympify
+from pyecsca.ec.coordinates import AffineCoordinateModel, CoordinateModel
+from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.error import raise_unsatisified_assumption
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import (
     CurveModel,
     ShortWeierstrassModel,
     MontgomeryModel,
     EdwardsModel,
     TwistedEdwardsModel,
 )
-from .point import Point, InfinityPoint
-from ..misc.cfg import getconfig
+from pyecsca.ec.point import Point, InfinityPoint
+from pyecsca.misc.cfg import getconfig
 
 
 @public

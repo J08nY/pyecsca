@@ -3,8 +3,8 @@ from copy import copy
 from typing import Optional, MutableMapping
 from public import public
 
-from ..params import DomainParameters
-from .base import (
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.mult.base import (
     ScalarMultiplier,
     AccumulationOrder,
     ScalarMultiplicationAction,
@@ -12,14 +12,19 @@ from .base import (
     ProcessingDirection,
     AccumulatorMultiplier,
 )
-from ..formula import (
+from pyecsca.ec.formula import (
     AdditionFormula,
     DoublingFormula,
     ScalingFormula,
     NegationFormula,
 )
-from ..point import Point
-from ..scalar import convert_base, sliding_window_rtl, sliding_window_ltr, booth_window
+from pyecsca.ec.point import Point
+from pyecsca.ec.scalar import (
+    convert_base,
+    sliding_window_rtl,
+    sliding_window_ltr,
+    booth_window,
+)
 
 
 @public
@@ -61,7 +66,15 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.recoding_direction = recoding_direction
 
     def __hash__(self):
-        return hash((SlidingWindowMultiplier, super().__hash__(), self.width, self.recoding_direction, self.accumulation_order))
+        return hash(
+            (
+                SlidingWindowMultiplier,
+                super().__hash__(),
+                self.width,
+                self.recoding_direction,
+                self.accumulation_order,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, SlidingWindowMultiplier):
@@ -150,7 +163,14 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.m = m
 
     def __hash__(self):
-        return hash((FixedWindowLTRMultiplier, super().__hash__(), self.m, self.accumulation_order))
+        return hash(
+            (
+                FixedWindowLTRMultiplier,
+                super().__hash__(),
+                self.m,
+                self.accumulation_order,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, FixedWindowLTRMultiplier):
@@ -252,7 +272,15 @@ class WindowBoothMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         self.precompute_negation = precompute_negation
 
     def __hash__(self):
-        return hash((WindowBoothMultiplier, super().__hash__(), self.width, self.precompute_negation, self.accumulation_order))
+        return hash(
+            (
+                WindowBoothMultiplier,
+                super().__hash__(),
+                self.width,
+                self.precompute_negation,
+                self.accumulation_order,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, WindowBoothMultiplier):

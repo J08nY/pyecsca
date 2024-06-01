@@ -16,8 +16,8 @@ import numpy as np
 from public import public
 from copy import deepcopy
 
-from .base import TraceSet
-from .. import Trace
+from pyecsca.sca.trace_set.base import TraceSet
+from pyecsca.sca import Trace
 
 
 @public

@@ -4,7 +4,7 @@ from typing import Any, Tuple
 
 from public import public
 
-from .base import (
+from pyecsca.ec.formula.base import (
     AdditionFormula,
     FormulaAction,
     Formula,
@@ -15,8 +15,8 @@ from .base import (
     ScalingFormula,
     DifferentialAdditionFormula,
 )
-from ..mod import Mod, Undefined
-from ..point import Point
+from pyecsca.ec.mod import Mod, Undefined
+from pyecsca.ec.point import Point
 
 
 @public
@@ -27,6 +27,7 @@ class FakeFormula(Formula, ABC):
     Useful for computing with the scalar multipliers without having concrete formulas
     and points (for example to get the addition chain via the MultipleContext).
     """
+
     def __init__(self, coordinate_model):
         # TODO: This is missing all of the other attributes
         self.coordinate_model = coordinate_model

@@ -6,7 +6,7 @@ from importlib_resources.abc import Traversable
 
 from public import public
 
-from .coordinates import EFDCoordinateModel, CoordinateModel
+from pyecsca.ec.coordinates import EFDCoordinateModel, CoordinateModel
 
 
 @public

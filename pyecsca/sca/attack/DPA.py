@@ -1,14 +1,14 @@
 from typing import Tuple, Dict
 from public import public
 
-from ...ec.mult import ScalarMultiplier
-from ...ec.point import Point
-from ...ec.context import DefaultContext, local
-from ...ec.params import DomainParameters
-from ..trace import Trace
-from ..trace.combine import average, subtract
-from ..trace.process import absolute
-from ..trace.plot import plot_trace
+from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.point import Point
+from pyecsca.ec.context import DefaultContext, local
+from pyecsca.ec.params import DomainParameters
+from pyecsca.sca.trace import Trace
+from pyecsca.sca.trace.combine import average, subtract
+from pyecsca.sca.trace.process import absolute
+from pyecsca.sca.trace.plot import plot_trace
 
 
 @public

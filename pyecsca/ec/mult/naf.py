@@ -3,17 +3,23 @@ from copy import copy
 from typing import Optional, List, MutableMapping
 from public import public
 
-from .base import ScalarMultiplier, ScalarMultiplicationAction, ProcessingDirection, AccumulationOrder, \
-    PrecomputationAction, AccumulatorMultiplier
-from ..formula import (
+from pyecsca.ec.mult.base import (
+    ScalarMultiplier,
+    ScalarMultiplicationAction,
+    ProcessingDirection,
+    AccumulationOrder,
+    PrecomputationAction,
+    AccumulatorMultiplier,
+)
+from pyecsca.ec.formula import (
     AdditionFormula,
     DoublingFormula,
     ScalingFormula,
-    NegationFormula
+    NegationFormula,
 )
-from ..params import DomainParameters
-from ..point import Point
-from ..scalar import naf, wnaf
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
+from pyecsca.ec.scalar import naf, wnaf
 
 
 @public
@@ -33,27 +39,44 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     _point_neg: Point
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            neg: NegationFormula,
-            scl: Optional[ScalingFormula] = None,
-            direction: ProcessingDirection = ProcessingDirection.LTR,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        neg: NegationFormula,
+        scl: Optional[ScalingFormula] = None,
+        direction: ProcessingDirection = ProcessingDirection.LTR,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, neg=neg, scl=scl
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            neg=neg,
+            scl=scl,
         )
         self.direction = direction
 
     def __hash__(self):
-        return hash((BinaryNAFMultiplier, super().__hash__(), self.direction, self.accumulation_order))
+        return hash(
+            (
+                BinaryNAFMultiplier,
+                super().__hash__(),
+                self.direction,
+                self.accumulation_order,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, BinaryNAFMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.direction == other.direction
+            and self.accumulation_order == other.accumulation_order
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
@@ -125,29 +148,48 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     """The width of the window."""
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            neg: NegationFormula,
-            width: int,
-            scl: Optional[ScalingFormula] = None,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            precompute_negation: bool = False,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        neg: NegationFormula,
+        width: int,
+        scl: Optional[ScalingFormula] = None,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        precompute_negation: bool = False,
+        short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, neg=neg, scl=scl
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            neg=neg,
+            scl=scl,
         )
         self.width = width
         self.precompute_negation = precompute_negation
 
     def __hash__(self):
-        return hash((WindowNAFMultiplier, super().__hash__(), self.width, self.precompute_negation, self.accumulation_order))
+        return hash(
+            (
+                WindowNAFMultiplier,
+                super().__hash__(),
+                self.width,
+                self.precompute_negation,
+                self.accumulation_order,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, WindowNAFMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.width == other.width and self.precompute_negation == other.precompute_negation and self.accumulation_order == other.accumulation_order
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.width == other.width
+            and self.precompute_negation == other.precompute_negation
+            and self.accumulation_order == other.accumulation_order
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"

@@ -4,11 +4,17 @@ from typing import MutableMapping, Optional
 
 from public import public
 
-from ..formula import AdditionFormula, DoublingFormula, ScalingFormula
-from ..mult import AccumulatorMultiplier, ScalarMultiplier, ProcessingDirection, AccumulationOrder, \
-    PrecomputationAction, ScalarMultiplicationAction
-from ..params import DomainParameters
-from ..point import Point
+from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
+from pyecsca.ec.mult import (
+    AccumulatorMultiplier,
+    ScalarMultiplier,
+    ProcessingDirection,
+    AccumulationOrder,
+    PrecomputationAction,
+    ScalarMultiplicationAction,
+)
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 
 
 @public
@@ -37,30 +43,49 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     _points: MutableMapping[int, Point]
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            always: bool = False,
-            direction: ProcessingDirection = ProcessingDirection.LTR,
-            accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        always: bool = False,
+        direction: ProcessingDirection = ProcessingDirection.LTR,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
         super().__init__(
-            short_circuit=short_circuit, accumulation_order=accumulation_order, add=add, dbl=dbl, scl=scl
+            short_circuit=short_circuit,
+            accumulation_order=accumulation_order,
+            add=add,
+            dbl=dbl,
+            scl=scl,
         )
         self.always = always
         self.direction = direction
         self.complete = complete
 
     def __hash__(self):
-        return hash((FullPrecompMultiplier, super().__hash__(), self.direction, self.accumulation_order, self.always))
+        return hash(
+            (
+                FullPrecompMultiplier,
+                super().__hash__(),
+                self.direction,
+                self.accumulation_order,
+                self.always,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, FullPrecompMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.direction == other.direction and self.accumulation_order == other.accumulation_order and self.always == other.always and self.complete == other.complete
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.direction == other.direction
+            and self.accumulation_order == other.accumulation_order
+            and self.always == other.always
+            and self.complete == other.complete
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order.name}, always={self.always}, complete={self.complete})"

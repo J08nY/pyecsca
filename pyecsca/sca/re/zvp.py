@@ -8,12 +8,12 @@ from public import public
 from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
-from .rpa import MultipleContext
-from ...ec.context import local
-from ...ec.curve import EllipticCurve
-from ...ec.model import CurveModel
-from ...ec.divpoly import mult_by_n
-from ...ec.formula import (
+from pyecsca.sca.re.rpa import MultipleContext
+from pyecsca.ec.context import local
+from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.model import CurveModel
+from pyecsca.ec.divpoly import mult_by_n
+from pyecsca.ec.formula import (
     Formula,
     AdditionFormula,
     DoublingFormula,
@@ -21,12 +21,12 @@ from ...ec.formula import (
     LadderFormula,
     NegationFormula,
 )
-from ...ec.formula.fake import FakePoint, FakeFormula
-from ...ec.formula.unroll import unroll_formula
-from ...ec.mod import Mod
-from ...ec.mult import ScalarMultiplier
-from ...ec.params import DomainParameters
-from ...ec.point import Point
+from pyecsca.ec.formula.fake import FakePoint, FakeFormula
+from pyecsca.ec.formula.unroll import unroll_formula
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 
 
 has_pari = False
@@ -146,7 +146,7 @@ def compute_factor_set(
     formula: Formula,
     affine: bool = True,
     filter_nonhomo: bool = True,
-    xonly: bool = False
+    xonly: bool = False,
 ) -> Set[Poly]:
     """
     Compute a set of factors present in the :paramref:`~.compute_factor_set.formula`.
@@ -163,7 +163,12 @@ def compute_factor_set(
     if affine:
         unrolled = map_to_affine(formula, unrolled)
     if xonly:
-        unrolled = list({(name, eliminate_y(poly, formula.coordinate_model.curve_model)) for name, poly in unrolled})
+        unrolled = list(
+            {
+                (name, eliminate_y(poly, formula.coordinate_model.curve_model))
+                for name, poly in unrolled
+            }
+        )
 
     curve_params = set(formula.coordinate_model.curve_model.parameter_names)
 
@@ -231,11 +236,10 @@ def symbolic_curve_equation(x: Symbol, model: CurveModel) -> Expr:
     :param model: The curve model to use.
     :return: The sympy expression of the "ysquared" curve polynomial.
     """
-    parameters = {
-        name: symbols(name)
-        for name in model.parameter_names
-    }
-    return eval(compile(model.ysquared, "", mode="eval"), {"x": x, **parameters})  # eval is OK here, skipcq: PYL-W0123
+    parameters = {name: symbols(name) for name in model.parameter_names}
+    return eval(
+        compile(model.ysquared, "", mode="eval"), {"x": x, **parameters}
+    )  # eval is OK here, skipcq: PYL-W0123
 
 
 def curve_equation(x: Symbol, curve: EllipticCurve) -> Expr:
@@ -247,7 +251,9 @@ def curve_equation(x: Symbol, curve: EllipticCurve) -> Expr:
     :param curve: The elliptic curve to use.
     :return: The sympy expression of the "ysquared" curve polynomial.
     """
-    return eval(compile(curve.model.ysquared, "", mode="eval"), {"x": x, **curve.parameters})  # eval is OK here, skipcq: PYL-W0123
+    return eval(
+        compile(curve.model.ysquared, "", mode="eval"), {"x": x, **curve.parameters}
+    )  # eval is OK here, skipcq: PYL-W0123
 
 
 def subs_curve_equation(poly: Poly, curve: EllipticCurve) -> Poly:
@@ -565,7 +571,7 @@ def solve_hard_dcp_cypari(
         for deg in range(polydeg + 1):
             monomial = pari.polcoef(polynomial, deg, x2)
             monomial *= num**deg
-            monomial *= den**(polydeg - deg)
+            monomial *= den ** (polydeg - deg)
             subspoly += monomial
         if subspoly == pari.zero():
             return {_deterministic_point_x(curve)}

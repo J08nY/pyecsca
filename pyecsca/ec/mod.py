@@ -15,9 +15,9 @@ from typing import Type, Dict, Any, Tuple, Union
 from public import public
 from sympy import Expr, FF
 
-from .error import raise_non_invertible, raise_non_residue
-from .context import ResultAction
-from ..misc.cfg import getconfig
+from pyecsca.ec.error import raise_non_invertible, raise_non_residue
+from pyecsca.ec.context import ResultAction
+from pyecsca.misc.cfg import getconfig
 
 has_gmp = False
 try:
@@ -317,18 +317,18 @@ class RawMod(Mod):
 
         m = s
         c = RawMod(z, self.n) ** q
-        t = self ** q
+        t = self**q
         r_exp = (q + 1) // 2
-        r = self ** r_exp
+        r = self**r_exp
 
         while t != 1:
             i = 1
-            while not (t ** (2 ** i)) == 1:
+            while not (t ** (2**i)) == 1:
                 i += 1
             two_exp = m - (i + 1)
             b = c ** int(RawMod(2, self.n) ** two_exp)
             m = int(RawMod(i, self.n))
-            c = b ** 2
+            c = b**2
             t *= c
             r *= b
         return r
@@ -374,6 +374,7 @@ _mod_classes["python"] = RawMod
 @public
 class Undefined(Mod):
     """A special undefined element."""
+
     __slots__ = ("x", "n")
 
     def __new__(cls, *args, **kwargs):
@@ -598,7 +599,12 @@ if has_gmp:
         def __new__(cls, *args, **kwargs):
             return object.__new__(cls)
 
-        def __init__(self, x: Union[int, gmpy2.mpz], n: Union[int, gmpy2.mpz], ensure: bool = True):
+        def __init__(
+            self,
+            x: Union[int, gmpy2.mpz],
+            n: Union[int, gmpy2.mpz],
+            ensure: bool = True,
+        ):
             if ensure:
                 self.n = gmpy2.mpz(n)
                 self.x = gmpy2.mpz(x % self.n)
@@ -657,12 +663,12 @@ if has_gmp:
 
             while t != 1:
                 i = 1
-                while not (t ** (2 ** i)) == 1:
+                while not (t ** (2**i)) == 1:
                     i += 1
                 two_exp = m - (i + 1)
                 b = c ** int(GMPMod(gmpy2.mpz(2), self.n, ensure=False) ** two_exp)
                 m = int(GMPMod(gmpy2.mpz(i), self.n, ensure=False))
-                c = b ** 2
+                c = b**2
                 t *= c
                 r *= b
             return r
@@ -718,6 +724,8 @@ if has_gmp:
                 return self.inverse() ** (-n)
             if n == 1:
                 return GMPMod(self.x, self.n, ensure=False)
-            return GMPMod(gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n, ensure=False)
+            return GMPMod(
+                gmpy2.powmod(self.x, gmpy2.mpz(n), self.n), self.n, ensure=False
+            )
 
     _mod_classes["gmp"] = GMPMod

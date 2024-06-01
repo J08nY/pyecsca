@@ -1,11 +1,18 @@
 from typing import List, Any, Generator
 from ast import parse
 from public import public
-from .base import Formula
-from ..op import OpType, CodeOp
-from .graph import FormulaGraph, CodeOpNode, ConstantNode, Node, CodeFormula
-from .fliparoo import find_fliparoos, AddFliparoo, MulFliparoo
 from copy import deepcopy
+
+from pyecsca.ec.formula.base import Formula
+from pyecsca.ec.op import OpType, CodeOp
+from pyecsca.ec.formula.graph import (
+    FormulaGraph,
+    CodeOpNode,
+    ConstantNode,
+    Node,
+    CodeFormula,
+)
+from pyecsca.ec.formula.fliparoo import find_fliparoos, AddFliparoo, MulFliparoo
 
 
 @public

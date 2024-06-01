@@ -10,7 +10,7 @@ from typing import Union, BinaryIO
 
 from public import public
 
-from .base import TraceSet
+from pyecsca.sca.trace_set.base import TraceSet
 
 
 @public

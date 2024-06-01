@@ -4,7 +4,7 @@ from typing import Tuple, Sequence, Optional
 
 from public import public
 
-from ..trace import Trace
+from pyecsca.sca.trace import Trace
 
 
 @public

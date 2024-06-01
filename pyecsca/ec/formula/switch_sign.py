@@ -1,18 +1,17 @@
 from typing import Dict, Iterator, List, Any
 from ast import parse
 from public import public
-from ..op import OpType, CodeOp
-from .base import Formula
-from .graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
 from itertools import chain, combinations
-from ..point import Point
-from ..mod import Mod
+
+from pyecsca.ec.op import OpType, CodeOp
+from pyecsca.ec.formula.base import Formula
+from pyecsca.ec.formula.graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
+from pyecsca.ec.point import Point
+from pyecsca.ec.mod import Mod
 
 
 @public
-def generate_switched_formulas(
-    formula: Formula, rename=True
-) -> Iterator[CodeFormula]:
+def generate_switched_formulas(formula: Formula, rename=True) -> Iterator[CodeFormula]:
     graph = FormulaGraph(formula, rename)
     for i, node_combination in enumerate(subnode_lists(graph)):
         try:
@@ -57,7 +56,7 @@ def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
         for out, sign in output_signs.items():
             if not out.endswith(ind):
                 continue
-            out_var = out[:out.index(ind)]
+            out_var = out[: out.index(ind)]
             if not out_var.isalpha():
                 continue
             point_dict[out_var] = Mod(sign, p)

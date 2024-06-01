@@ -3,12 +3,13 @@ from typing import Optional, Any, Set
 
 from public import public
 
-from .tree import Tree
+from pyecsca.sca.re.tree import Tree
 
 
 @public
 class RE(ABC):
     """A base class for Reverse-Engineering methods."""
+
     tree: Optional[Tree] = None
     """The RE tree (if any)."""
     configs: Set[Any]

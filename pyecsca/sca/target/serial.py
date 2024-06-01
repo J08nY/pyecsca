@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 from public import public
 
-from .base import Target
+from pyecsca.sca.target.base import Target
 
 
 @public

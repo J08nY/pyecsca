@@ -5,8 +5,8 @@ import numpy as np
 from chipwhisperer.capture.scopes.OpenADC import OpenADC
 from public import public
 
-from .base import Scope, SampleType
-from ..trace import Trace
+from pyecsca.sca.scope.base import Scope, SampleType
+from pyecsca.sca.trace import Trace
 
 
 @public

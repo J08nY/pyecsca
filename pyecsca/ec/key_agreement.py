@@ -4,11 +4,11 @@ from typing import Optional, Any
 
 from public import public
 
-from .context import ResultAction
-from .mod import Mod
-from .mult import ScalarMultiplier
-from .params import DomainParameters
-from .point import Point
+from pyecsca.ec.context import ResultAction
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 
 
 @public

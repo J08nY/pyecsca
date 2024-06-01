@@ -7,9 +7,9 @@ from public import public
 from sympy import symbols, FF, Poly
 import networkx as nx
 
-from .curve import EllipticCurve
-from .mod import Mod
-from .model import ShortWeierstrassModel
+from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import ShortWeierstrassModel
 
 has_pari = False
 try:

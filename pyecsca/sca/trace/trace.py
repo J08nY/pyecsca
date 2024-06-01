@@ -17,7 +17,10 @@ class Trace:
     samples: ndarray
 
     def __init__(
-        self, samples: ndarray, meta: Optional[Mapping[str, Any]] = None, trace_set: Any = None
+        self,
+        samples: ndarray,
+        meta: Optional[Mapping[str, Any]] = None,
+        trace_set: Any = None,
     ):
         """
         Construct a new trace.
@@ -104,8 +107,10 @@ class Trace:
 
     def __deepcopy__(self, memodict):
         return Trace(
-            deepcopy(self.samples, memo=memodict) if isinstance(self.samples, np.ndarray) else np.array(self.samples),
-            deepcopy(self.meta, memo=memodict)
+            deepcopy(self.samples, memo=memodict)
+            if isinstance(self.samples, np.ndarray)
+            else np.array(self.samples),
+            deepcopy(self.meta, memo=memodict),
         )
 
     def __repr__(self):

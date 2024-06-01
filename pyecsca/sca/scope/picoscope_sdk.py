@@ -31,8 +31,8 @@ except CannotFindPicoSDKError as exc:
     ps6000 = exc
 from public import public
 
-from .base import Scope, SampleType
-from ..trace import Trace
+from pyecsca.sca.scope.base import Scope, SampleType
+from pyecsca.sca.trace import Trace
 
 
 def adc2volt(

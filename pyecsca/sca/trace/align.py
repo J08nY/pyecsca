@@ -5,8 +5,8 @@ from fastdtw import fastdtw, dtw
 from public import public
 from typing import List, Callable, Tuple
 
-from .process import normalize
-from .trace import Trace
+from pyecsca.sca.trace.process import normalize
+from pyecsca.sca.trace.trace import Trace
 
 
 def _align_reference(
@@ -39,7 +39,7 @@ def align_correlation(
     reference_offset: int,
     reference_length: int,
     max_offset: int,
-    min_correlation: float = 0.5
+    min_correlation: float = 0.5,
 ) -> Tuple[List[Trace], List[int]]:
     """
     Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using correlation.
@@ -92,7 +92,7 @@ def align_peaks(
     *traces: Trace,
     reference_offset: int,
     reference_length: int,
-    max_offset: int
+    max_offset: int,
 ) -> Tuple[List[Trace], List[int]]:
     """
     Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using peaks.
@@ -133,7 +133,7 @@ def align_offset(
     reference_length: int,
     max_offset: int,
     dist_func: Callable[[np.ndarray, np.ndarray], float],
-    max_dist: float = float("inf")
+    max_dist: float = float("inf"),
 ) -> Tuple[List[Trace], List[int]]:
     """
     Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using a distance function.
@@ -183,7 +183,7 @@ def align_sad(
     *traces: Trace,
     reference_offset: int,
     reference_length: int,
-    max_offset: int
+    max_offset: int,
 ) -> Tuple[List[Trace], List[int]]:
     """
     Align :paramref:`~.align_correlation.traces` to the :paramref:`~.align_correlation.reference` trace using Sum of Absolute Differences.
@@ -209,7 +209,7 @@ def align_sad(
         reference_offset=reference_offset,
         reference_length=reference_length,
         max_offset=max_offset,
-        dist_func=sad
+        dist_func=sad,
     )
 
 

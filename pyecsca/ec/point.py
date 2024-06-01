@@ -4,10 +4,10 @@ from typing import Mapping, TYPE_CHECKING
 
 from public import public
 
-from .context import ResultAction
-from .coordinates import AffineCoordinateModel, CoordinateModel
-from .mod import Mod, Undefined
-from .op import CodeOp
+from pyecsca.ec.context import ResultAction
+from pyecsca.ec.coordinates import AffineCoordinateModel, CoordinateModel
+from pyecsca.ec.mod import Mod, Undefined
+from pyecsca.ec.op import CodeOp
 
 
 if TYPE_CHECKING:
@@ -140,7 +140,7 @@ class Point:
             if randomized:
                 lmbd = Mod.random(curve.prime)
                 for var, value in result.items():
-                    result[var] = value * (lmbd**coordinate_model.homogweights[var])
+                    result[var] = value * (lmbd ** coordinate_model.homogweights[var])
             return action.exit(Point(coordinate_model, **result))
 
     def equals_affine(self, other: "Point") -> bool:
@@ -226,8 +226,10 @@ class InfinityPoint(Point):
         return InfinityPoint(AffineCoordinateModel(self.coordinate_model.curve_model))
 
     def to_model(
-        self, coordinate_model: CoordinateModel, curve: "EllipticCurve",
-            randomized: bool = False
+        self,
+        coordinate_model: CoordinateModel,
+        curve: "EllipticCurve",
+        randomized: bool = False,
     ) -> "InfinityPoint":
         return InfinityPoint(coordinate_model)
 

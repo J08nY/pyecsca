@@ -7,15 +7,16 @@ from enum import Enum
 from public import public
 from typing import Mapping, Tuple, Optional, ClassVar, Set, Type
 
-from ..context import ResultAction, Action
-from ..formula import Formula
-from ..params import DomainParameters
-from ..point import Point
+from pyecsca.ec.context import ResultAction, Action
+from pyecsca.ec.formula import Formula
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 
 
 @public
 class ProcessingDirection(Enum):
     """Scalar processing direction."""
+
     LTR = "Left-to-right"
     RTL = "Right-to-left"
 
@@ -23,6 +24,7 @@ class ProcessingDirection(Enum):
 @public
 class AccumulationOrder(Enum):
     """Accumulation order (makes a difference for the projective result)."""
+
     PeqPR = "P = P + R"
     PeqRP = "P = R + P"
 
@@ -87,14 +89,14 @@ class ScalarMultiplier(ABC):
 
     def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
         if (
-                len(
-                    {
-                        formula.coordinate_model
-                        for formula in formulas.values()
-                        if formula is not None
-                    }
-                )
-                != 1
+            len(
+                {
+                    formula.coordinate_model
+                    for formula in formulas.values()
+                    if formula is not None
+                }
+            )
+            != 1
         ):
             raise ValueError("Formulas need to belong to the same coordinate model.")
         self.short_circuit = short_circuit
@@ -129,10 +131,7 @@ class ScalarMultiplier(ABC):
     def _dbl(self, point: Point) -> Point:
         if "dbl" not in self.formulas:
             raise NotImplementedError
-        if (
-                self.short_circuit
-                and point == self._params.curve.neutral
-        ):
+        if self.short_circuit and point == self._params.curve.neutral:
             return copy(point)
         return self.formulas["dbl"](
             self._params.curve.prime, point, **self._params.curve.parameters
@@ -181,12 +180,22 @@ class ScalarMultiplier(ABC):
         )[0]
 
     def __hash__(self):
-        return hash((ScalarMultiplier, tuple(self.formulas.keys()), tuple(self.formulas.values()), self.short_circuit))
+        return hash(
+            (
+                ScalarMultiplier,
+                tuple(self.formulas.keys()),
+                tuple(self.formulas.values()),
+                self.short_circuit,
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, ScalarMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit})"
@@ -203,10 +212,12 @@ class ScalarMultiplier(ABC):
         """
         coord_model = set(self.formulas.values()).pop().coordinate_model
         if (
-                params.curve.coordinate_model != coord_model
-                or point.coordinate_model != coord_model
+            params.curve.coordinate_model != coord_model
+            or point.coordinate_model != coord_model
         ):
-            raise ValueError("Coordinate models of the parameters, formulas or point are not compatible.")
+            raise ValueError(
+                "Coordinate models of the parameters, formulas or point are not compatible."
+            )
         self._params = params
         self._point = point
         self._initialized = True
@@ -232,10 +243,16 @@ class AccumulatorMultiplier(ScalarMultiplier, ABC):
 
     :param accumulation_order: The order of accumulation of points.
     """
+
     accumulation_order: AccumulationOrder
     """The order of accumulation of points."""
 
-    def __init__(self, *args, accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR, **kwargs):
+    def __init__(
+        self,
+        *args,
+        accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.accumulation_order = accumulation_order
 

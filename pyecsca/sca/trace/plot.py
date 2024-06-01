@@ -5,7 +5,7 @@ import holoviews as hv
 from holoviews.operation.datashader import datashade
 from public import public
 
-from .trace import Trace
+from pyecsca.sca.trace.trace import Trace
 
 
 @public

@@ -6,8 +6,8 @@ from typing import List, Any, MutableMapping
 
 from public import public
 
-from .formula.base import Formula
-from .formula.efd import (
+from pyecsca.ec.formula.base import Formula
+from pyecsca.ec.formula.efd import (
     EFDFormula,
     AdditionEFDFormula,
     DoublingEFDFormula,
@@ -61,6 +61,7 @@ class CoordinateModel:
 @public
 class AffineCoordinateModel(CoordinateModel):
     """An affine coordinate model (there is really only one per curve model)."""
+
     name = "affine"
     full_name = "Affine coordinates"
 

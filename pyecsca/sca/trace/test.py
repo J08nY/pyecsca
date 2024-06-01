@@ -5,9 +5,9 @@ import numpy as np
 from public import public
 from scipy.stats import ttest_ind, ks_2samp, t
 
-from .trace import Trace, CombinedTrace
-from .combine import average_and_variance
-from .edit import trim
+from pyecsca.sca.trace.trace import Trace, CombinedTrace
+from pyecsca.sca.trace.combine import average_and_variance
+from pyecsca.sca.trace.edit import trim
 
 
 def _ttest_func(

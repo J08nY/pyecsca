@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 import numpy as np
 from public import public
 
-from .trace import Trace, CombinedTrace
+from pyecsca.sca.trace.trace import Trace, CombinedTrace
 
 
 @public

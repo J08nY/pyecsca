@@ -1,12 +1,14 @@
 """Provides metrics for comparing formulas."""
-from public import public
-from .unroll import unroll_formula
-from .base import Formula
 import warnings
+
+from public import public
 from typing import Dict
 from operator import itemgetter, attrgetter
-from ..curve import EllipticCurve
-from ..context import DefaultContext, local
+
+from pyecsca.ec.formula.unroll import unroll_formula
+from pyecsca.ec.formula.base import Formula
+from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.context import DefaultContext, local
 
 
 @public

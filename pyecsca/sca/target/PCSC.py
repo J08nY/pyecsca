@@ -7,7 +7,8 @@ from smartcard.System import readers
 from smartcard.pcsc.PCSCCardConnection import PCSCCardConnection
 from smartcard.pcsc.PCSCReader import PCSCReader
 
-from .ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816, CardProtocol, CardConnectionException
+from pyecsca.sca.target.ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816, CardProtocol, \
+    CardConnectionException
 
 
 @public

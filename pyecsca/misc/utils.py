@@ -4,7 +4,7 @@ from ast import parse
 from contextlib import contextmanager
 from typing import List, Any, Generator
 
-from ..misc.cfg import getconfig, TemporaryConfig
+from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
 from concurrent.futures import ProcessPoolExecutor, as_completed, Future
 

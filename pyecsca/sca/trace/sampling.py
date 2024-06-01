@@ -5,7 +5,7 @@ import numpy as np
 from public import public
 from scipy.signal import decimate
 
-from .trace import Trace
+from pyecsca.sca.trace.trace import Trace
 
 
 @public

@@ -3,15 +3,15 @@ from copy import copy
 from typing import Optional
 from public import public
 
-from .base import ScalarMultiplier, ScalarMultiplicationAction
-from ..formula import (
+from pyecsca.ec.mult.base import ScalarMultiplier, ScalarMultiplicationAction
+from pyecsca.ec.formula import (
     AdditionFormula,
     DoublingFormula,
     ScalingFormula,
     LadderFormula,
-    DifferentialAdditionFormula
+    DifferentialAdditionFormula,
 )
-from ..point import Point
+from pyecsca.ec.point import Point
 
 
 @public
@@ -32,12 +32,12 @@ class LadderMultiplier(ScalarMultiplier):
     """Whether it starts processing at full order-bit-length."""
 
     def __init__(
-            self,
-            ladd: LadderFormula,
-            dbl: Optional[DoublingFormula] = None,
-            scl: Optional[ScalingFormula] = None,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        ladd: LadderFormula,
+        dbl: Optional[DoublingFormula] = None,
+        scl: Optional[ScalingFormula] = None,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, ladd=ladd, dbl=dbl, scl=scl)
         self.complete = complete
@@ -50,7 +50,11 @@ class LadderMultiplier(ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, LadderMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.complete == other.complete
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, complete={self.complete})"
@@ -96,12 +100,12 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     """Whether it starts processing at full order-bit-length."""
 
     def __init__(
-            self,
-            add: AdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        add: AdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, add=add, dbl=dbl, scl=scl)
         self.complete = complete
@@ -112,7 +116,11 @@ class SimpleLadderMultiplier(ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, SimpleLadderMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.complete == other.complete
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, complete={self.complete})"
@@ -157,12 +165,12 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
     """Whether it starts processing at full order-bit-length."""
 
     def __init__(
-            self,
-            dadd: DifferentialAdditionFormula,
-            dbl: DoublingFormula,
-            scl: Optional[ScalingFormula] = None,
-            complete: bool = True,
-            short_circuit: bool = True,
+        self,
+        dadd: DifferentialAdditionFormula,
+        dbl: DoublingFormula,
+        scl: Optional[ScalingFormula] = None,
+        complete: bool = True,
+        short_circuit: bool = True,
     ):
         super().__init__(short_circuit=short_circuit, dadd=dadd, dbl=dbl, scl=scl)
         self.complete = complete
@@ -173,7 +181,11 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
     def __eq__(self, other):
         if not isinstance(other, DifferentialLadderMultiplier):
             return False
-        return self.formulas == other.formulas and self.short_circuit == other.short_circuit and self.complete == other.complete
+        return (
+            self.formulas == other.formulas
+            and self.short_circuit == other.short_circuit
+            and self.complete == other.complete
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, complete={self.complete})"

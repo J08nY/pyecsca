@@ -3,14 +3,14 @@ from scipy.stats import pearsonr
 import numpy as np
 from numpy.typing import NDArray
 
-from ...ec.mult import ScalarMultiplier
-from ...ec.point import Point
-from ...ec.context import DefaultContext, local
-from ...ec.params import DomainParameters
-from ...ec.mod import Mod
-from ..trace import Trace
-from ..trace.plot import plot_trace
-from ..attack.leakage_model import LeakageModel
+from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.point import Point
+from pyecsca.ec.context import DefaultContext, local
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.mod import Mod
+from pyecsca.sca.trace import Trace
+from pyecsca.sca.trace.plot import plot_trace
+from pyecsca.sca.attack.leakage_model import LeakageModel
 
 
 @public

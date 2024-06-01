@@ -2,9 +2,10 @@
 from ast import parse
 from typing import Iterator, List, Type, Optional, Set
 from public import public
-from ..op import OpType
-from .base import Formula
-from .graph import FormulaGraph, Node, CodeOpNode, CodeOp, CodeFormula
+
+from pyecsca.ec.op import OpType
+from pyecsca.ec.formula.base import Formula
+from pyecsca.ec.formula.graph import FormulaGraph, Node, CodeOpNode, CodeOp, CodeFormula
 
 
 @public

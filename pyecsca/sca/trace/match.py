@@ -4,9 +4,9 @@ from scipy.signal import find_peaks
 from public import public
 from typing import List
 
-from .process import normalize
-from .edit import trim
-from .trace import Trace
+from pyecsca.sca.trace.process import normalize
+from pyecsca.sca.trace.edit import trim
+from pyecsca.sca.trace.trace import Trace
 
 
 @public

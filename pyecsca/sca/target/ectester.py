@@ -9,11 +9,18 @@ from typing import Optional, Mapping, List, Union
 
 from public import public
 
-from .ISO7816 import CommandAPDU, ResponseAPDU, ISO7816, ISO7816Target, CardProtocol, CardConnectionException
-from . import has_leia, has_pyscard
-from ...ec.model import ShortWeierstrassModel
-from ...ec.params import DomainParameters
-from ...ec.point import Point
+from pyecsca.sca.target.ISO7816 import (
+    CommandAPDU,
+    ResponseAPDU,
+    ISO7816,
+    ISO7816Target,
+    CardProtocol,
+    CardConnectionException,
+)
+from pyecsca.sca.target import has_leia, has_pyscard
+from pyecsca.ec.model import ShortWeierstrassModel
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 
 
 class ShiftableFlag(IntFlag):  # pragma: no cover
@@ -248,7 +255,7 @@ class Response(ABC):  # pragma: no cover
         offset = 0
         for i in range(num_sw):
             if len(resp.data) >= offset + 2:
-                self.sws[i] = int.from_bytes(resp.data[offset: offset + 2], "big")
+                self.sws[i] = int.from_bytes(resp.data[offset : offset + 2], "big")
                 offset += 2
                 if self.sws[i] != ISO7816.SW_NO_ERROR:
                     self.success = False
@@ -265,13 +272,13 @@ class Response(ABC):  # pragma: no cover
                 self.success = False
                 self.error = True
                 break
-            param_len = int.from_bytes(resp.data[offset: offset + 2], "big")
+            param_len = int.from_bytes(resp.data[offset : offset + 2], "big")
             offset += 2
             if len(resp.data) < offset + param_len:
                 self.success = False
                 self.error = True
                 break
-            self.params[i] = resp.data[offset: offset + param_len]
+            self.params[i] = resp.data[offset : offset + param_len]
             offset += param_len
 
     def __repr__(self):
@@ -343,11 +350,11 @@ class ExportResponse(Response):  # pragma: no cover
     parameters: ParameterEnum
 
     def __init__(
-            self,
-            resp: ResponseAPDU,
-            keypair: KeypairEnum,
-            key: KeyEnum,
-            params: ParameterEnum,
+        self,
+        resp: ResponseAPDU,
+        keypair: KeypairEnum,
+        key: KeyEnum,
+        params: ParameterEnum,
     ):
         self.keypair = keypair
         self.key = key
@@ -473,31 +480,31 @@ class InfoResponse(Response):  # pragma: no cover
         super().__init__(resp, 1, 0)
 
         offset = 2
-        version_len = int.from_bytes(resp.data[offset: offset + 2], "big")
+        version_len = int.from_bytes(resp.data[offset : offset + 2], "big")
         offset += 2
-        self.version = resp.data[offset: offset + version_len].decode()
+        self.version = resp.data[offset : offset + version_len].decode()
         offset += version_len
         self.base = AppletBaseEnum(
-            int.from_bytes(resp.data[offset: offset + 2], "big")
+            int.from_bytes(resp.data[offset : offset + 2], "big")
         )
         offset += 2
-        system_version = int.from_bytes(resp.data[offset: offset + 2], "big")
+        system_version = int.from_bytes(resp.data[offset : offset + 2], "big")
         system_major = system_version >> 8
         system_minor = system_version & 0xFF
         minor_size = 1 if system_minor == 0 else ceil(log(system_minor, 10))
         self.system_version = system_major + system_minor / (minor_size * 10)
         offset += 2
         self.object_deletion_supported = (
-                int.from_bytes(resp.data[offset: offset + 2], "big") == 1
+            int.from_bytes(resp.data[offset : offset + 2], "big") == 1
         )
         offset += 2
-        self.buf_len = int.from_bytes(resp.data[offset: offset + 2], "big")
+        self.buf_len = int.from_bytes(resp.data[offset : offset + 2], "big")
         offset += 2
-        self.ram1_len = int.from_bytes(resp.data[offset: offset + 2], "big")
+        self.ram1_len = int.from_bytes(resp.data[offset : offset + 2], "big")
         offset += 2
-        self.ram2_len = int.from_bytes(resp.data[offset: offset + 2], "big")
+        self.ram2_len = int.from_bytes(resp.data[offset : offset + 2], "big")
         offset += 2
-        self.apdu_len = int.from_bytes(resp.data[offset: offset + 2], "big")
+        self.apdu_len = int.from_bytes(resp.data[offset : offset + 2], "big")
         offset += 2
 
     def __repr__(self):
@@ -538,7 +545,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
                 chunk_length = 255
                 if chunk_start + chunk_length > len(data):
                     chunk_length = len(data) - chunk_start
-                chunk = data[chunk_start: chunk_start + chunk_length]
+                chunk = data[chunk_start : chunk_start + chunk_length]
                 chunk_apdu = CommandAPDU(
                     self.CLA_ECTESTER, InstructionEnum.INS_BUFFER, 0, 0, chunk
                 )
@@ -554,7 +561,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return resp
 
     def select_applet(
-            self, latest_version: bytes = AID_CURRENT_VERSION, count_back: int = 10
+        self, latest_version: bytes = AID_CURRENT_VERSION, count_back: int = 10
     ) -> bool:
         """
         Select the *ECTester* applet, with a specified version or older.
@@ -565,7 +572,11 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         """
         version_bytes = bytearray(latest_version)
         for _ in range(count_back):
-            for aid_suffix in (self.AID_SUFFIX_304, self.AID_SUFFIX_222, self.AID_SUFFIX_221):
+            for aid_suffix in (
+                self.AID_SUFFIX_304,
+                self.AID_SUFFIX_222,
+                self.AID_SUFFIX_221,
+            ):
                 aid = self.AID_PREFIX + version_bytes + aid_suffix
                 if self.select(aid):
                     return True
@@ -587,7 +598,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
 
     @staticmethod
     def encode_parameters(
-            params: ParameterEnum, obj: Union[DomainParameters, Point, int]
+        params: ParameterEnum, obj: Union[DomainParameters, Point, int]
     ) -> Mapping[ParameterEnum, bytes]:
         """Encode values from `obj` into the byte parameters that the **ECTester** applet expects."""
 
@@ -600,7 +611,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
 
         result = {}
         if isinstance(obj, DomainParameters) and isinstance(
-                obj.curve.model, ShortWeierstrassModel
+            obj.curve.model, ShortWeierstrassModel
         ):
             for param in params & ParameterEnum.DOMAIN_FP:
                 if param == ParameterEnum.G:
@@ -620,7 +631,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
                 result[param] = convert_point(obj)
         elif isinstance(obj, int):
             for param in params & (
-                    (ParameterEnum.DOMAIN_FP ^ ParameterEnum.G) | ParameterEnum.S
+                (ParameterEnum.DOMAIN_FP ^ ParameterEnum.G) | ParameterEnum.S
             ):
                 result[param] = convert_int(obj)
         else:
@@ -664,11 +675,11 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return AllocateSigResponse(resp)
 
     def allocate(
-            self,
-            keypair: KeypairEnum,
-            builder: KeyBuildEnum,
-            key_length: int,
-            key_class: KeyClassEnum,
+        self,
+        keypair: KeypairEnum,
+        builder: KeyBuildEnum,
+        key_length: int,
+        key_class: KeyClassEnum,
     ) -> AllocateResponse:
         """
         Send the Allocate KeyPair command.
@@ -703,11 +714,11 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return ClearResponse(resp, keypair)
 
     def set(
-            self,
-            keypair: KeypairEnum,
-            curve: CurveEnum,
-            params: ParameterEnum,
-            values: Optional[Mapping[ParameterEnum, bytes]] = None,
+        self,
+        keypair: KeypairEnum,
+        curve: CurveEnum,
+        params: ParameterEnum,
+        values: Optional[Mapping[ParameterEnum, bytes]] = None,
     ) -> SetResponse:
         """
         Send the Set command.
@@ -749,11 +760,11 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return SetResponse(resp, keypair)
 
     def transform(
-            self,
-            keypair: KeypairEnum,
-            key: KeyEnum,
-            params: ParameterEnum,
-            transformation: TransformationEnum,
+        self,
+        keypair: KeypairEnum,
+        key: KeyEnum,
+        params: ParameterEnum,
+        transformation: TransformationEnum,
     ) -> TransformResponse:
         """
         Send the Transform command.
@@ -790,7 +801,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return GenerateResponse(resp, keypair)
 
     def export(
-            self, keypair: KeypairEnum, key: KeyEnum, params: ParameterEnum
+        self, keypair: KeypairEnum, key: KeyEnum, params: ParameterEnum
     ) -> ExportResponse:
         """
         Send the Export command.
@@ -812,12 +823,12 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return ExportResponse(resp, keypair, key, params)
 
     def ecdh(
-            self,
-            pubkey: KeypairEnum,
-            privkey: KeypairEnum,
-            export: bool,
-            transformation: TransformationEnum,
-            ka_type: KeyAgreementEnum,
+        self,
+        pubkey: KeypairEnum,
+        privkey: KeypairEnum,
+        export: bool,
+        transformation: TransformationEnum,
+        ka_type: KeyAgreementEnum,
     ) -> ECDHResponse:
         """
         Send the ECDH command.
@@ -843,12 +854,12 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return ECDHResponse(resp, export)
 
     def ecdh_direct(
-            self,
-            privkey: KeypairEnum,
-            export: bool,
-            transformation: TransformationEnum,
-            ka_type: KeyAgreementEnum,
-            pubkey: bytes,
+        self,
+        privkey: KeypairEnum,
+        export: bool,
+        transformation: TransformationEnum,
+        ka_type: KeyAgreementEnum,
+        pubkey: bytes,
     ) -> ECDHResponse:
         """
         Send the ECDH direct command.
@@ -875,7 +886,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return ECDHResponse(resp, export)
 
     def ecdsa(
-            self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
+        self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
     ) -> ECDSAResponse:
         """
         Send the ECDSA command.
@@ -898,7 +909,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return ECDSAResponse(resp, export)
 
     def ecdsa_sign(
-            self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
+        self, keypair: KeypairEnum, export: bool, sig_type: SignatureEnum, data: bytes
     ) -> ECDSAResponse:
         """
         Send the ECDSA sign command.
@@ -921,7 +932,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         return ECDSAResponse(resp, export)
 
     def ecdsa_verify(
-            self, keypair: KeypairEnum, sig_type: SignatureEnum, sig: bytes, data: bytes
+        self, keypair: KeypairEnum, sig_type: SignatureEnum, sig: bytes, data: bytes
     ) -> ECDSAResponse:
         """
         Send the ECDSA verify command.
@@ -984,17 +995,20 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
 
 
 if has_pyscard:
-    from .PCSC import PCSCTarget
+    from pyecsca.sca.target.PCSC import PCSCTarget
 
     @public
     class ECTesterTargetPCSC(ECTesterTarget, PCSCTarget):
         """An ECTester-applet-based target that is connected via a PCSC-compatible reader."""
+
         pass
 
+
 if has_leia:
-    from .leia import LEIATarget
+    from pyecsca.sca.target.leia import LEIATarget
 
     @public
     class ECTesterTargetLEIA(ECTesterTarget, LEIATarget):
         """An ECTester-applet-based target that is connected via the LEIA board."""
+
         pass

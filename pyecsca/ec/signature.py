@@ -5,12 +5,12 @@ from typing import Optional, Any
 from asn1crypto.core import Sequence, SequenceOf, Integer
 from public import public
 
-from .context import Action
-from .formula import AdditionFormula
-from .mod import Mod
-from .mult import ScalarMultiplier
-from .params import DomainParameters
-from .point import Point
+from pyecsca.ec.context import Action
+from pyecsca.ec.formula import AdditionFormula
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 
 
 @public
@@ -67,7 +67,9 @@ class ECDSAAction(Action):
         self.msg = msg
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r})"
+        return (
+            f"{self.__class__.__name__}({self.params}, {self.hash_algo}, {self.msg!r})"
+        )
 
 
 @public

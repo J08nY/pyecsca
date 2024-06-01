@@ -4,7 +4,7 @@ from ast import Expression
 from astunparse import unparse
 from public import public
 
-from .base import (
+from pyecsca.ec.formula.base import (
     Formula,
     AdditionFormula,
     DoublingFormula,
@@ -14,8 +14,8 @@ from .base import (
     ScalingFormula,
     DifferentialAdditionFormula,
 )
-from ..op import CodeOp
-from ...misc.utils import peval
+from pyecsca.ec.op import CodeOp
+from pyecsca.misc.utils import peval
 
 
 @public

@@ -14,7 +14,7 @@ from ast import (
     Assign,
     operator as ast_operator,
     unaryop as ast_unaryop,
-    USub
+    USub,
 )
 from enum import Enum
 from types import CodeType
@@ -23,8 +23,8 @@ from typing import FrozenSet, cast, Any, Optional, Union, Tuple
 from astunparse import unparse
 from public import public
 
-from .mod import Mod
-from ..misc.utils import pexec
+from pyecsca.ec.mod import Mod
+from pyecsca.misc.utils import pexec
 
 
 @public
@@ -148,7 +148,12 @@ class CodeOp:
     def __eq__(self, other):
         if not isinstance(other, CodeOp):
             return False
-        return self.left == other.left and self.right == other.right and self.operator == other.operator and self.result == other.result
+        return (
+            self.left == other.left
+            and self.right == other.right
+            and self.operator == other.operator
+            and self.result == other.result
+        )
 
     def __getstate__(self):
         state = {"code": unparse(self.code).strip()}

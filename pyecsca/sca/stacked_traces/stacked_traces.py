@@ -4,7 +4,7 @@ import numpy as np
 from public import public
 from typing import Any, Mapping, Sequence
 
-from ...sca.trace_set.base import TraceSet
+from pyecsca.sca.trace_set.base import TraceSet
 
 
 @public

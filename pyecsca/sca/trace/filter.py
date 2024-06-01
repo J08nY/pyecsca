@@ -3,7 +3,7 @@ from public import public
 from scipy.signal import butter, lfilter
 from typing import Union, Tuple
 
-from .trace import Trace
+from pyecsca.sca.trace.trace import Trace
 
 
 def _filter_any(

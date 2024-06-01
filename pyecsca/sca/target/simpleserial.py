@@ -5,7 +5,7 @@ from typing import Mapping, Union
 
 from public import public
 
-from .serial import SerialTarget
+from pyecsca.sca.target.serial import SerialTarget
 
 
 @public

@@ -5,7 +5,7 @@ import numpy as np
 from scipy.signal import convolve
 from public import public
 
-from .trace import Trace
+from pyecsca.sca.trace.trace import Trace
 
 
 @public

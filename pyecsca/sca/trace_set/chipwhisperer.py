@@ -7,8 +7,8 @@ from typing import Union, BinaryIO
 import numpy as np
 from public import public
 
-from .base import TraceSet
-from ..trace import Trace
+from pyecsca.sca.trace_set.base import TraceSet
+from pyecsca.sca.trace import Trace
 
 
 @public

@@ -4,12 +4,17 @@ from typing import Tuple, Generator
 from public import public
 from sympy import FF, symbols, Poly
 
-from .coordinates import AffineCoordinateModel
-from .curve import EllipticCurve
-from .mod import Mod
-from .model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel, EdwardsModel
-from .params import DomainParameters
-from .point import InfinityPoint, Point
+from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.model import (
+    ShortWeierstrassModel,
+    MontgomeryModel,
+    TwistedEdwardsModel,
+    EdwardsModel,
+)
+from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import InfinityPoint, Point
 
 
 def __map(params, param_names, map_parameters, map_point, model):
@@ -40,13 +45,13 @@ def M2SW(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, MontgomeryModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
 
     def map_parameters(A, B):
-        a = (3 - A ** 2) / (3 * B ** 2)
-        b = (2 * A ** 3 - 9 * A) / (27 * B ** 3)
+        a = (3 - A**2) / (3 * B**2)
+        b = (2 * A**3 - 9 * A) / (27 * B**3)
         return {"a": a, "b": b}
 
     def map_point(A, B, pt, aff):
@@ -54,9 +59,7 @@ def M2SW(params: DomainParameters) -> DomainParameters:
         v = pt.y / B
         return Point(aff, x=u, y=v)
 
-    return __map(
-        params, ("a", "b"), map_parameters, map_point, ShortWeierstrassModel()
-    )
+    return __map(params, ("a", "b"), map_parameters, map_point, ShortWeierstrassModel())
 
 
 @public
@@ -68,7 +71,7 @@ def M2TE(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, MontgomeryModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
 
@@ -94,13 +97,13 @@ def M2E(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, MontgomeryModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
 
     def map_parameters(A, B):
         c = (B / (A + 2)).sqrt()
-        d = (A ** 2 - 4) / (B ** 2)
+        d = (A**2 - 4) / (B**2)
         return {"c": c, "d": d}
 
     def map_point(A, B, pt, aff):
@@ -120,7 +123,7 @@ def TE2M(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, TwistedEdwardsModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
 
@@ -146,7 +149,7 @@ def TE2E(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, TwistedEdwardsModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
 
@@ -172,13 +175,13 @@ def TE2SW(params: DomainParameters) -> DomainParameters:
     :return: The converted domain parameters.
     """
     if not isinstance(params.curve.model, TwistedEdwardsModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
 
     def map_parameters(A, D):
-        a = -(A ** 2 + 14 * D * A + D ** 2) / 48
-        b = (A + D) * (-A ** 2 + 34 * A * D - D ** 2) / 864
+        a = -(A**2 + 14 * D * A + D**2) / 48
+        b = (A + D) * (-(A**2) + 34 * A * D - D**2) / 864
         return {"a": a, "b": b}
 
     def map_point(A, D, pt, aff):
@@ -191,13 +194,13 @@ def TE2SW(params: DomainParameters) -> DomainParameters:
 
 def __sw_ab(params: DomainParameters) -> Generator[Tuple[Mod, Mod], None, None]:
     if not isinstance(params.curve.model, ShortWeierstrassModel) or not isinstance(
-            params.curve.coordinate_model, AffineCoordinateModel
+        params.curve.coordinate_model, AffineCoordinateModel
     ):
         raise ValueError
     ax = symbols("α")
     field = FF(params.curve.prime)
     rhs = Poly(
-        ax ** 3
+        ax**3
         + field(int(params.curve.parameters["a"])) * ax
         + field(int(params.curve.parameters["b"])),
         ax,
@@ -205,12 +208,10 @@ def __sw_ab(params: DomainParameters) -> Generator[Tuple[Mod, Mod], None, None]:
     )
     roots = rhs.ground_roots()
     if not roots:
-        raise ValueError(
-            "Curve cannot be transformed (x^3 + ax + b has no root)."
-        )
+        raise ValueError("Curve cannot be transformed (x^3 + ax + b has no root).")
     for root in roots:
         alpha = Mod(int(root), params.curve.prime)
-        beta = (3 * alpha ** 2 + params.curve.parameters["a"]).sqrt()
+        beta = (3 * alpha**2 + params.curve.parameters["a"]).sqrt()
         yield alpha, beta
 
 
@@ -277,14 +278,14 @@ def SW2E(params: DomainParameters) -> DomainParameters:
     """
     for alpha, beta in __sw_ab(params):
         s = beta.inverse()
-        t = (s / (3 * s * alpha + 2))
+        t = s / (3 * s * alpha + 2)
         if not t.is_residue():
             continue
         t = t.sqrt()
 
         def map_parameters(a, b):
             c = t
-            d = -4 * a - 3 * alpha ** 2
+            d = -4 * a - 3 * alpha**2
             return {"c": c, "d": d}
 
         def map_point(a, b, pt, aff):
