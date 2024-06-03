@@ -82,7 +82,23 @@ def test_0y_point(rpa_params):
     assert res.x == 0
 
 
-def test_distinguish(secp128r1, add, dbl, neg):
+@pytest.fixture()
+def distinguish_params(model, coords):
+    p = 0xcb5e1d94a6168511
+    a = Mod(0xb166ca7d2dfbf69f, p)
+    b = Mod(0x855bb40cb6937c4b, p)
+    gx = Mod(0x253b2638bd13d6f4, p)
+    gy = Mod(0x1e91a1a182287e71, p)
+    # (0x4880bcf620852a54, 0) RPA point
+    # (0, 0x6bed3155c9ada064) RPA point
+
+    infty = Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p))
+    g = Point(coords, X=gx, Y=gy, Z=Mod(1, p))
+    curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
+    return DomainParameters(curve, g, 0xcb5e1d94601a3ac5, 1)
+
+
+def test_distinguish(distinguish_params, add, dbl, neg):
     multipliers = [
         LTRMultiplier(add, dbl, None, False, AccumulationOrder.PeqPR, True, True),
         LTRMultiplier(add, dbl, None, True, AccumulationOrder.PeqPR, True, True),
@@ -177,15 +193,15 @@ def test_distinguish(secp128r1, add, dbl, neg):
 
         def simulated_oracle(scalar, affine_point):
             point = affine_point.to_model(
-                secp128r1.curve.coordinate_model, secp128r1.curve
+                distinguish_params.curve.coordinate_model, distinguish_params.curve
             )
             with local(MultipleContext()) as ctx:
-                real_mult.init(secp128r1, point)
+                real_mult.init(distinguish_params, point)
                 real_mult.multiply(scalar)
             return any(
                 map(lambda P: P.X == 0 or P.Y == 0, sum(ctx.parents.values(), []))
             )
 
-        result = rpa_distinguish(secp128r1, multipliers, simulated_oracle)
+        result = rpa_distinguish(distinguish_params, multipliers, simulated_oracle)
         assert real_mult in result
         assert 1 == len(result)
