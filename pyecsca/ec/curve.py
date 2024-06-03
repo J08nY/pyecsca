@@ -37,10 +37,10 @@ class EllipticCurve:
 
     >>> from pyecsca.ec.coordinates import AffineCoordinateModel
     >>> affine = AffineCoordinateModel(curve.model)
-    >>> points_P = sorted(curve.affine_lift_x(Mod(5, curve.prime)), key=lambda p: int(p.x))
+    >>> points_P = sorted(curve.affine_lift_x(Mod(5, curve.prime)), key=lambda p: int(p.y))
     >>> points_P  # doctest: +NORMALIZE_WHITESPACE
-    [Point([x=5, y=84324075564118526167843364924090959423913731519542450286139900919689799730227] in shortw/affine),
-     Point([x=5, y=31468013646237722594854082025316614106172411895747863909393730389177298123724] in shortw/affine)]
+    [Point([x=5, y=31468013646237722594854082025316614106172411895747863909393730389177298123724] in shortw/affine),
+     Point([x=5, y=84324075564118526167843364924090959423913731519542450286139900919689799730227] in shortw/affine)]
     >>> P = points_P[0]
     >>> Q = Point(affine, x=Mod(106156966968002564385990772707119429362097710917623193504777452220576981858057, curve.prime), y=Mod(89283496902772247016522581906930535517715184283144143693965440110672128480043, curve.prime))
     >>> curve.affine_add(P, Q)
