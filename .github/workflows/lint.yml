@@ -40,7 +40,7 @@ jobs:
           git clone https://github.com/picotech/picosdk-python-wrappers && cd picosdk-python-wrappers && pip install . && cd ..
       - name: Install dependencies
         run: |
-          pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, test, dev]"
+          pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, leia, test, dev]"
       - name: Typecheck
         run: |
           make typecheck

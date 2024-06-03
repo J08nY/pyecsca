@@ -50,8 +50,8 @@ jobs:
           git clone https://github.com/picotech/picosdk-python-wrappers && cd picosdk-python-wrappers && pip install . && cd ..
       - name: Install dependencies
         run: |
-          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, gmp, test, dev]"; fi
-          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, test, dev]"; fi
+          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, gmp, test, dev]"; fi
+          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, test, dev]"; fi
       - name: Perf
         run: |
           make perf
