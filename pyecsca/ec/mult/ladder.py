@@ -41,8 +41,11 @@ class LadderMultiplier(ScalarMultiplier):
     ):
         super().__init__(short_circuit=short_circuit, ladd=ladd, dbl=dbl, scl=scl)
         self.complete = complete
-        if (not complete) and dbl is None:
-            raise ValueError("When complete is not set LadderMultiplier requires a doubling formula.")
+        if dbl is None:
+            if not complete:
+                raise ValueError("When complete is not set LadderMultiplier requires a doubling formula.")
+            if short_circuit:  # complete = True
+                raise ValueError("When short_circuit is set LadderMultiplier requires a doubling formula.")
 
     def __hash__(self):
         return hash((LadderMultiplier, super().__hash__(), self.complete))
