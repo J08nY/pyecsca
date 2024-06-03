@@ -96,7 +96,7 @@ class RandomMod(EnumDefine):
 
 
 @public
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=True)
 class Configuration:
     """An ECC implementation configuration."""
 

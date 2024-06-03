@@ -84,7 +84,6 @@ def test_code_formula():
     graph = FormulaGraph(formula)
     code = graph.to_formula()
     data = pickle.dumps(code)
-    pickletools.dis(data)
     back = pickle.loads(data)
     assert code == back
 
