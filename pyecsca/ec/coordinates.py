@@ -33,12 +33,12 @@ class CoordinateModel:
     ['X', 'Y', 'Z']
     >>> coordinate_model.curve_model
     ShortWeierstrassModel()
-    >>> coordinate_model.formulas  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    {'mdbl-2007-bl': DoublingEFDFormula(mdbl-2007-bl for shortw/projective),
-     'dbl-2007-bl': DoublingEFDFormula(dbl-2007-bl for shortw/projective),
-      ...
-     'add-2007-bl': AdditionEFDFormula(add-2007-bl for shortw/projective),
-      ...
+    >>> sorted(coordinate_model.formulas.items())  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    [('add-1998-cmo', AdditionEFDFormula(add-1998-cmo for shortw/projective)),
+     ('add-1998-cmo-2', AdditionEFDFormula(add-1998-cmo-2 for shortw/projective)),
+     ...
+     ('dbl-2007-bl', DoublingEFDFormula(dbl-2007-bl for shortw/projective)),
+     ...]
     """
 
     name: str
