@@ -81,6 +81,7 @@
 [tool.pytest.ini_options]
   consider_namespace_packages = true
   testpaths = ["pyecsca", "test"]
+  pythonpath = ["."]
   markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
   ]
