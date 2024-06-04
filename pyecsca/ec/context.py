@@ -12,7 +12,7 @@ in the tree.
 """
 from abc import abstractmethod, ABC
 from copy import deepcopy
-from typing import List, Optional, ContextManager, Any, Tuple, Sequence, Callable
+from typing import List, Optional, ContextManager, Any, Sequence, Callable
 
 from public import public
 from anytree import RenderTree, NodeMixin, AbstractStyle, PostOrderIter
@@ -67,6 +67,7 @@ class ResultAction(Action):
 
     @property
     def result(self) -> Any:
+        """The result of the action."""
         if not self._has_result:
             raise AttributeError("No result set")
         return self._result
@@ -99,6 +100,7 @@ class Node(NodeMixin):
     """A node in an execution tree."""
 
     action: Action
+    """The action of the node."""
 
     def __init__(self, action: Action, parent=None, children=None):
         self.action = action
@@ -176,6 +178,9 @@ class Node(NodeMixin):
     def __str__(self):
         return self.render()
 
+    def __repr__(self):
+        return self.render()
+
 
 @public
 class Context(ABC):
@@ -212,7 +217,7 @@ class Context(ABC):
 @public
 class DefaultContext(Context):
     """
-    Context that traces executions of actions in a tree.
+    Context that traces executions of actions in a forest.
 
     >>> with local(DefaultContext()) as ctx:
     ...     with Action() as one_action:
@@ -220,28 +225,34 @@ class DefaultContext(Context):
     ...             r = other_action.exit("some result")
     ...         with Action() as yet_another:
     ...             pass
-    >>> print(ctx.actions) # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    >>> print(ctx.actions[0]) # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
     Action()
     ├──ResultAction(result='some result')
     └──Action()
-    >>> for other in ctx.actions.children: # doctest: +ELLIPSIS
+    >>> for other in ctx.actions[0].children: # doctest: +ELLIPSIS
     ...     print(other.action)
     ResultAction(result='some result')
     Action()
     """
 
-    actions: Optional[Node]
+    actions: List[Node]
+    """A forest of trees."""
     current: List[Action]
+    """The path to the current action."""
 
     def __init__(self):
-        self.actions = None
+        self.actions = []
         self.current = []
 
     def enter_action(self, action: Action) -> None:
-        if self.actions is None:
-            self.actions = Node(action)
+        if not self.actions:
+            self.actions.append(Node(action))
         else:
-            Node(action, parent=self.actions.get_by_key(self.current[1:]))
+            if self.current:
+                root = next(filter(lambda node: node.action == self.current[0], self.actions))
+                Node(action, parent=root.get_by_key(self.current[1:]))
+            else:
+                self.actions.append(Node(action))
         self.current.append(action)
 
     def exit_action(self, action: Action) -> None:
@@ -250,7 +261,7 @@ class DefaultContext(Context):
         self.current.pop()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(actions={self.actions.size if self.actions else 0}, current={self.current!r})"
+        return f"{self.__class__.__name__}(actions={sum(map(lambda action: action.size, self.actions))}, current={self.current!r})"
 
 
 @public
@@ -322,7 +333,7 @@ def local(ctx: Optional[Context] = None) -> ContextManager:
     >>> with local(DefaultContext()) as ctx:
     ...     with Action() as action:
     ...         pass
-    >>> ctx.actions.action == action
+    >>> ctx.actions[0].action == action
     True
 
     :param ctx: If none, current context is copied.

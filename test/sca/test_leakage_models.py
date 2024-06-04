@@ -81,7 +81,7 @@ def test_mult_hw(context):
                 leak = lm(intermediate.value)
                 trace.append(leak)
 
-    context.actions.walk(callback)
+    context.actions[0].walk(callback)
     assert len(trace) > 0
 
 
@@ -97,5 +97,5 @@ def test_mult_hd(context):
                     leak = lm(*values)
                     trace.append(leak)
 
-    context.actions.walk(callback)
+    context.actions[0].walk(callback)
     assert len(trace) > 0

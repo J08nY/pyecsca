@@ -54,7 +54,7 @@ class LeakageTarget(Target):
         temp_trace: list[int] = []
         if not context.actions:
             raise ValueError("Empty context")
-        context.actions.walk(callback)
+        context.actions[0].walk(callback)
         return Trace(np.array(temp_trace))
 
     def simulate_scalar_mult_traces(

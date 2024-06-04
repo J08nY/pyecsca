@@ -80,7 +80,7 @@ def test_null(mult):
 def test_default(mult):
     with local(DefaultContext()) as ctx:
         result = mult.multiply(59)
-    action = ctx.actions.action
+    action = ctx.actions[0].action
     assert isinstance(action, ScalarMultiplicationAction)
     assert result == action.result
 
