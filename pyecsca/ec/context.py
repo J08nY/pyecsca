@@ -11,11 +11,11 @@ A :py:class:`PathContext` works like a :py:class:`DefaultContext` that only trac
 in the tree.
 """
 from abc import abstractmethod, ABC
-from collections import OrderedDict
 from copy import deepcopy
 from typing import List, Optional, ContextManager, Any, Tuple, Sequence, Callable
 
 from public import public
+from anytree import RenderTree, NodeMixin, AbstractStyle, PostOrderIter
 
 
 @public
@@ -46,6 +46,9 @@ class Action:
         if current is not None:
             current.exit_action(self)
         self.inside = False
+
+    def __repr__(self):
+        return "Action()"
 
 
 @public
@@ -79,125 +82,99 @@ class ResultAction(Action):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if (
-                not self._has_result
-                and exc_type is None
-                and exc_val is None
-                and exc_tb is None
+            not self._has_result
+            and exc_type is None
+            and exc_val is None
+            and exc_tb is None
         ):
             raise RuntimeError("Result unset on action exit")
         super().__exit__(exc_type, exc_val, exc_tb)
 
+    def __repr__(self):
+        return f"ResultAction(result={self._result!r})"
+
 
 @public
-class Tree(OrderedDict):
-    """
-    A recursively-implemented tree.
+class Node(NodeMixin):
+    """A node in an execution tree."""
 
-    >>> tree = Tree()
-    >>> tree["a"] = Tree()
-    >>> tree["a"]["1"] = Tree()
-    >>> tree["a"]["2"] = Tree()
-    >>> tree # doctest: +NORMALIZE_WHITESPACE
-    a
-        1
-        2
-    <BLANKLINE>
-    """
+    action: Action
 
-    def get_by_key(self, path: List) -> Any:
+    def __init__(self, action: Action, parent=None, children=None):
+        self.action = action
+        self.parent = parent
+        if children:
+            self.children = children
+
+    def get_by_key(self, path: List[Action]) -> "Node":
         """
-        Get the value in the tree at a position given by the path.
+        Get a Node from the tree by a path of :py:class:`Action` s.
 
-        >>> one = Tree()
-        >>> tree = Tree()
-        >>> tree["a"] = Tree()
-        >>> tree["a"]["1"] = Tree()
-        >>> tree["a"]["2"] = one
-        >>> tree.get_by_key(["a", "2"]) == one
+        >>> tree = Node(Action())
+        >>> a_a = Action()
+        >>> a = Node(a_a, parent=tree)
+        >>> one_a = Action()
+        >>> one = Node(one_a, parent=a)
+        >>> other_a = Action()
+        >>> other = Node(other_a, parent=a)
+        >>> tree.get_by_key([]) == tree
+        True
+        >>> tree.get_by_key([a_a]) == a
+        True
+        >>> tree.get_by_key(([a_a, one_a])) == one
         True
 
-        :param path: The path to get.
-        :return: The value in the tree.
+        :param path: The path of actions to walk.
+        :return: The node.
         """
         if len(path) == 0:
             return self
-        value = self[path[0]]
-        if len(path) == 1:
-            return value
-        elif isinstance(value, Tree):
-            return value.get_by_key(path[1:])
-        else:
-            raise ValueError
+        for child in self.children:
+            if path[0] == child.action:
+                return child.get_by_key(path[1:])
+        raise ValueError("Path not found.")
 
-    def get_by_index(self, path: List[int]) -> Tuple[Any, Any]:
+    def get_by_index(self, path: List[int]) -> "Node":
         """
-        Get the key and value in the tree at a position given by the path of indices.
+        Get a Node from the tree by a path of indices.
 
-        The nodes inside a level of a tree are ordered by insertion order.
-
-        >>> one = Tree()
-        >>> tree = Tree()
-        >>> tree["a"] = Tree()
-        >>> tree["a"]["1"] = Tree()
-        >>> tree["a"]["2"] = one
-        >>> key, value = tree.get_by_index([0, 1])
-        >>> key
-        '2'
-        >>> value == one
+        >>> tree = Node(Action())
+        >>> a_a = Action()
+        >>> a = Node(a_a, parent=tree)
+        >>> one_a = Action()
+        >>> one = Node(one_a, parent=a)
+        >>> other_a = Action()
+        >>> other = Node(other_a, parent=a)
+        >>> tree.get_by_index([]) == tree
+        True
+        >>> tree.get_by_index([0]) == a
+        True
+        >>> tree.get_by_index(([0, 0])) == one
         True
 
-        :param path: The path to get.
-        :return: The key and value.
+        :param path: The path of indices.
+        :return: The node.
         """
         if len(path) == 0:
-            raise ValueError
-        key = list(self.keys())[path[0]]
-        value = self[key]
-        if len(path) == 1:
-            return key, value
-        elif isinstance(value, Tree):
-            return value.get_by_index(path[1:])
-        else:
-            raise ValueError
+            return self
+        return self.children[path[0]].get_by_index(path[1:])
 
-    def repr(self, depth: int = 0) -> str:
+    def walk(self, callback: Callable[[Action], None]):
         """
-        Construct a textual representation of the tree. Useful for visualization and debugging.
+        Walk the tree in post-order (as it was executed) and apply :paramref:`callback`.
 
-        :param depth:
-        :return: The resulting textual representation.
+        :param callback: The callback to apply to the actions in the nodes.
         """
-        result = ""
-        for key, value in self.items():
-            if isinstance(value, Tree):
-                result += "\t" * depth + str(key) + "\n"
-                result += value.repr(depth + 1)
-            else:
-                result += "\t" * depth + str(key) + ":" + str(value) + "\n"
-        return result
+        for node in PostOrderIter(self):
+            callback(node.action)
 
-    def walk(self, callback: Callable[[Any], None]) -> None:
-        """
-        Walk the tree, depth-first, with the callback.
+    def render(self) -> str:
+        """Render the tree."""
+        style = AbstractStyle("\u2502  ", "\u251c\u2500\u2500", "\u2514\u2500\u2500")
+        return RenderTree(self, style=style).by_attr(lambda node: node.action)
 
-        >>> tree = Tree()
-        >>> tree["a"] = Tree()
-        >>> tree["a"]["1"] = Tree()
-        >>> tree["a"]["2"] = Tree()
-        >>> tree.walk(lambda key: print(key))
-        a
-        1
-        2
-
-        :param callback: The callback to call for all values in the tree.
-        """
-        for key, val in self.items():
-            callback(key)
-            if isinstance(val, Tree):
-                val.walk(callback)
-
-    def __repr__(self):
-        return self.repr()
+    def __str__(self):
+        return self.render()
 
 
 @public
@@ -243,36 +220,37 @@ class DefaultContext(Context):
     ...             r = other_action.exit("some result")
     ...         with Action() as yet_another:
     ...             pass
-    >>> ctx.actions # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
-    <...Action ...
-        <...ResultAction ...
-        <...Action ...
-    <BLANKLINE>
-    >>> root, subtree = ctx.actions.get_by_index([0])
-    >>> for action in subtree: # doctest: +ELLIPSIS
-    ...     print(action)
-    <...ResultAction ...
-    <...Action ...
+    >>> print(ctx.actions) # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    Action()
+    ├──ResultAction(result='some result')
+    └──Action()
+    >>> for other in ctx.actions.children: # doctest: +ELLIPSIS
+    ...     print(other.action)
+    ResultAction(result='some result')
+    Action()
     """
 
-    actions: Tree
+    actions: Optional[Node]
     current: List[Action]
 
     def __init__(self):
-        self.actions = Tree()
+        self.actions = None
         self.current = []
 
     def enter_action(self, action: Action) -> None:
-        self.actions.get_by_key(self.current)[action] = Tree()
+        if self.actions is None:
+            self.actions = Node(action)
+        else:
+            Node(action, parent=self.actions.get_by_key(self.current[1:]))
         self.current.append(action)
 
     def exit_action(self, action: Action) -> None:
         if len(self.current) < 1 or self.current[-1] != action:
-            raise ValueError
+            raise ValueError("Cannot exit, not in an action.")
         self.current.pop()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.actions!r}, current={self.current!r})"
+        return f"{self.__class__.__name__}(actions={self.actions.size if self.actions else 0}, current={self.current!r})"
 
 
 @public
@@ -282,7 +260,7 @@ class PathContext(Context):
     path: List[int]
     current: List[int]
     current_depth: int
-    value: Any
+    value: Optional[Action]
 
     def __init__(self, path: Sequence[int]):
         """
@@ -344,7 +322,7 @@ def local(ctx: Optional[Context] = None) -> ContextManager:
     >>> with local(DefaultContext()) as ctx:
     ...     with Action() as action:
     ...         pass
-    >>> list(ctx.actions)[0] == action
+    >>> ctx.actions.action == action
     True
 
     :param ctx: If none, current context is copied.

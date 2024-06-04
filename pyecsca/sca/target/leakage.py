@@ -52,6 +52,8 @@ class LeakageTarget(Target):
                     temp_trace.append(leak)
 
         temp_trace: list[int] = []
+        if not context.actions:
+            raise ValueError("Empty context")
         context.actions.walk(callback)
         return Trace(np.array(temp_trace))
 

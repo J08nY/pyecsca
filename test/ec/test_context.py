@@ -3,8 +3,8 @@ import pytest
 from pyecsca.ec.context import (
     local,
     DefaultContext,
-    Tree,
-    PathContext
+    Node,
+    PathContext, Action
 )
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import RandomModAction
@@ -12,40 +12,49 @@ from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
 
 
 def test_walk_by_key():
-    tree = Tree()
-    tree["a"] = Tree()
-    tree["a"]["1"] = Tree()
-    tree["a"]["2"] = Tree()
-    assert "a" in tree
-    assert isinstance(tree.get_by_key([]), Tree)
-    assert isinstance(tree.get_by_key(["a"]), Tree)
-    assert isinstance(tree.get_by_key(["a", "1"]), Tree)
+    tree = Node(Action())
+    a_a = Action()
+    a = Node(a_a, parent=tree)
+    one_a = Action()
+    one = Node(one_a, parent=a)
+    other_a = Action()
+    other = Node(other_a, parent=a)
+
+    assert tree.get_by_key([]) == tree
+    assert tree.get_by_key([a_a]) == a
+    assert tree.get_by_key(([a_a, one_a])) == one
+    assert tree.get_by_key(([a_a, other_a])) == other
 
 
 def test_walk_by_index():
-    tree = Tree()
-    a = Tree()
-    tree["a"] = a
-    d = Tree()
-    b = Tree()
-    tree["a"]["d"] = d
-    tree["a"]["b"] = b
-    assert "a" in tree
-    with pytest.raises(ValueError):
-        tree.get_by_index([])
+    tree = Node(Action())
+    a_a = Action()
+    a = Node(a_a, parent=tree)
+    one_a = Action()
+    one = Node(one_a, parent=a)
+    other_a = Action()
+    other = Node(other_a, parent=a)
 
-    assert tree.get_by_index([0]) == ("a", a)
-    assert tree.get_by_index([0, 0]) == ("d", d)
+    assert tree.get_by_index([]) == tree
+    assert tree.get_by_index([0]) == a
+    assert tree.get_by_index([0, 0]) == one
+    assert tree.get_by_index([0, 1]) == other
 
 
-def test_repr():
-    tree = Tree()
-    tree["a"] = Tree()
-    tree["a"]["1"] = Tree()
-    tree["a"]["2"] = Tree()
-    txt = tree.repr()
-    assert txt.count("\t") == 2
-    assert txt.count("\n") == 3
+def test_render():
+    tree = Node(Action())
+    a_a = Action()
+    a = Node(a_a, parent=tree)
+    one_a = Action()
+    Node(one_a, parent=a)
+    other_a = Action()
+    Node(other_a, parent=a)
+
+    txt = tree.render()
+    assert txt == """Action()
+└──Action()
+   ├──Action()
+   └──Action()"""
 
 
 @pytest.fixture()
@@ -71,8 +80,7 @@ def test_null(mult):
 def test_default(mult):
     with local(DefaultContext()) as ctx:
         result = mult.multiply(59)
-    assert len(ctx.actions) == 1
-    action = next(iter(ctx.actions.keys()))
+    action = ctx.actions.action
     assert isinstance(action, ScalarMultiplicationAction)
     assert result == action.result
 

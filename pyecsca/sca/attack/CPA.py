@@ -55,7 +55,7 @@ class CPA:
                 action_index += 2
             elif bit == "0":
                 action_index += 1
-        result = ctx.actions.get_by_index([0, action_index])[0]
+        result = ctx.actions.get_by_index([action_index]).action
         return result.output_points[0].X
 
     def compute_correlation_trace(

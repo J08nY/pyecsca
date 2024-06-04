@@ -103,15 +103,15 @@ def formula_similarity_fuzz(
         inputs = (P, Q, R)[: one.num_inputs]
         with local(DefaultContext()) as ctx:
             res_one = one(curve.prime, *inputs, **curve.parameters)
-        action_one = ctx.actions.get_by_index([0])
+        action_one = ctx.actions.action
         ivs_one = set(
-            map(attrgetter("value"), sum(action_one[0].intermediates.values(), []))
+            map(attrgetter("value"), sum(action_one.intermediates.values(), []))
         )
         with local(DefaultContext()) as ctx:
             res_other = other(curve.prime, *inputs, **curve.parameters)
-        action_other = ctx.actions.get_by_index([0])
+        action_other = ctx.actions.action
         ivs_other = set(
-            map(attrgetter("value"), sum(action_other[0].intermediates.values(), []))
+            map(attrgetter("value"), sum(action_other.intermediates.values(), []))
         )
         iv_matches += len(ivs_one.intersection(ivs_other)) / max(
             len(ivs_one), len(ivs_other)
