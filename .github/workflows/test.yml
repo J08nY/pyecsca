@@ -55,6 +55,9 @@ jobs:
       - name: Test
         run: |
           make test
+      - name: Test notebooks
+        run: |
+          make test-notebooks
       - name: Code coverage
         uses: codecov/codecov-action@v4
         if: ${{ matrix.python-version == 3.9 }}

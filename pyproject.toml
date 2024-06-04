@@ -41,6 +41,7 @@
     "holoviews",
     "bokeh",
     "matplotlib",
+    "seaborn",
     "datashader",
     "dask[dataframe]",
     "xarray",
@@ -66,7 +67,7 @@
   "gmp" = ["gmpy2"]
   "pari" = ["cysignals", "cypari2"]
   "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools", "pydocstyle"]
-  "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock"]
+  "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock", "nbmake"]
   "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design", "alabaster>=0.7.16"]
 
 [tool.setuptools.packages.find]
