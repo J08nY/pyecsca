@@ -1,10 +1,10 @@
 # ![](docs/_static/logo_black_full.png)
 
-[![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://pyecsca.org/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) ![Test](https://github.com/J08nY/pyecsca/workflows/Test/badge.svg) ![Lint](https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) ![](https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen) [![DeepSource](https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge)
+[![docs](https://img.shields.io/badge/docs-pyecsca.org-black.svg)](https://pyecsca.org/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) ![Test](https://github.com/J08nY/pyecsca/workflows/Test/badge.svg) ![Lint](https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) [![DeepSource](https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
-For more info, see the [![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://pyecsca.org/).
+For more info, see the [![docs](https://img.shields.io/badge/docs-pyecsca.org-black.svg)](https://pyecsca.org/).
 
 ## Functionality
 

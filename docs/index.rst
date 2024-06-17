@@ -12,7 +12,6 @@ pyecsca [pɪɛtska]
    :target: https://github.com/J08nY/pyecsca/actions?query=workflow%3ALint
 .. image:: https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov
    :target: https://codecov.io/gh/J08nY/pyecsca
-.. image:: https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen
 .. image:: https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true
    :target: https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge
 
