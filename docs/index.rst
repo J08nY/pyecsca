@@ -55,6 +55,10 @@ It currently provides:
 
     Communication via PCSC/LEIA with a smartcard target (see :doc:`notebook/smartcards`)
 
+.. card:: Reverse-engineering
+
+    Reverse-engineering of black-box ECC via RPA-RE and ZVP-RE methods (see :doc:`notebook/re/rpa` and :doc:`notebook/re/zvp`)
+
 **pyecsca** consists of three repositories:
 
 .. grid:: 3
@@ -74,122 +78,17 @@ It currently provides:
         The `notebook <https://github.com/J08nY/pyecsca-notebook>`_ repository contains
         example notebooks that showcase functionality of the toolkit.
 
-
-:fas:`book` Notebooks
-=========================
-The notebooks below contain a showcase of what is possible using **pyecsca** and
-are the best source of documentation on how to use **pyecsca**.
-
 .. toctree::
-   :caption: Notebooks
+   :hidden:
    :titlesonly:
-   :maxdepth: 1
+   :maxdepth: 2
 
-   notebook/configuration_space
-   notebook/simulation
-   notebook/codegen
-   notebook/emulator
-   notebook/measurement
-   notebook/visualization
-   notebook/smartcards
-   notebook/re/formulas
-   notebook/re/rpa
-   notebook/re/zvp
-   notebook/re/epa
-
-
-:fas:`code` API reference
-=========================
-
-.. toctree::
-   :caption: API reference
-   :titlesonly:
-   :maxdepth: 3
-
-   api/pyecsca.ec
-   api/pyecsca.misc
-   api/pyecsca.sca
-   api/pyecsca.codegen
-
-:fas:`file` Miscellaneous
-=========================
-
-.. toctree::
-   :caption: Miscellaneous
-   :titlesonly:
-   :maxdepth: 1
-
+   installation
+   notebooks
+   api
    libraries
    references
 
-
-Requirements
-============
-
-.. dropdown:: General
-
-     - Numpy_
-     - Scipy_
-     - sympy_
-     - pandas_
-     - atpublic_
-     - fastdtw_
-     - asn1crypto_
-     - h5py_
-     - holoviews_
-     - bokeh_
-     - datashader_
-     - matplotlib_
-     - xarray_
-     - astunparse_
-     - numba_
-
-     - **Optionally**:
-
-       - **Oscilloscope support:**
-
-         - picosdk_
-         - picoscope_
-         - chipwhisperer_
-       - **Smartcard support:**
-
-         - pyscard_
-       - **LEIA support:**
-
-         - leia_
-       - **Faster arithmetic:**
-
-         - gmpy2_ (and also GMP library)
-         - cypari2_ (and also PARI library)
-
-    *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
-    The data was partially changed, to make working with it easier. It is available on Github at `crocs-muni/efd`_.
-
-    It uses `ChipWhisperer`_ as one of its targets. It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
-
-
-.. dropdown:: Testing & Development
-
-    See the Makefile for tests, performance measurement, codestyle and type checking commands.
-    Use black_ for code-formatting.
-
-     - pytest_
-     - mypy_
-     - flake8_
-     - coverage_
-     - interrogate_
-     - pyinstrument_
-     - pre-commit_
-     - black_
-
-
-.. dropdown:: Docs
-
-     - sphinx_
-     - sphinx-autodoc-typehints_
-     - nbsphinx_
-     - sphinx-paramlinks_
-     - sphinx-design_
 
 License
 =======
@@ -222,42 +121,3 @@ Thanks alot to contributors: Tomas Jusko, Andrej Batora, Vojtech Suchanek and
 to ChipWhisperer/NewAE.
 
 Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <https://www.muni.cz/en/research/projects/46834>`_.
-
-.. _Numpy: https://www.numpy.org
-.. _Scipy: https://www.scipy.org
-.. _sympy: https://sympy.org/
-.. _pandas: https://pandas.pydata.org/
-.. _matplotlib: https://matplotlib.org/
-.. _atpublic: https://public.readthedocs.io/
-.. _fastdtw: https://github.com/slaypni/fastdtw
-.. _asn1crypto: https://github.com/wbond/asn1crypto
-.. _h5py: https://www.h5py.org/
-.. _holoviews: https://holoviews.org
-.. _bokeh: https://bokeh.org
-.. _datashader: https://datashader.org
-.. _xarray: https://xarray.pydata.org/en/stable/
-.. _astunparse: https://astunparse.readthedocs.io/
-.. _numba: https://numba.pydata.org/
-.. _picosdk: https://github.com/picotech/picosdk-python-wrappers/
-.. _picoscope: https://github.com/colinoflynn/pico-python
-.. _pyscard: https://pyscard.sourceforge.io/
-.. _leia: https://pypi.org/project/smartleia/
-.. _gmpy2: https://gmpy2.readthedocs.io/
-.. _cypari2: https://cypari2.readthedocs.io/
-.. _pytest: https://pytest.org
-.. _mypy: http://mypy-lang.org/
-.. _flake8: https://flake8.pycqa.org/
-.. _coverage: https://coverage.readthedocs.io/
-.. _interrogate: https://interrogate.readthedocs.io/
-.. _pyinstrument: https://github.com/joerick/pyinstrument/
-.. _pre-commit: https://pre-commit.com
-.. _black: https://github.com/psf/black
-.. _sphinx: https://www.sphinx-doc.org/
-.. _sphinx-autodoc-typehints: https://pypi.org/project/sphinx-autodoc-typehints/
-.. _nbsphinx: https://nbsphinx.readthedocs.io/
-.. _sphinx-paramlinks: https://pypi.org/project/sphinx-paramlinks/
-.. _sphinx-design: https://pypi.org/project/sphinx_design/
-.. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
-.. _crocs-muni/efd: https://github.com/crocs-muni/efd
-.. _ChipWhisperer: https://chipwhisperer.com
-.. _Riscure: https://www.riscure.com/

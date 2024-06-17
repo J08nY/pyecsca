@@ -1,10 +1,10 @@
 # ![](docs/_static/logo_black_full.png)
 
-[![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) ![Test](https://github.com/J08nY/pyecsca/workflows/Test/badge.svg) ![Lint](https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) ![](https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen) [![DeepSource](https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge)
+[![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://pyecsca.org/)  [![License MIT ](https://img.shields.io/github/license/J08nY/pyecsca?color=brightgreen)](https://github.com/J08nY/pyecsca/blob/master/LICENSE) ![Test](https://github.com/J08nY/pyecsca/workflows/Test/badge.svg) ![Lint](https://github.com/J08nY/pyecsca/workflows/Lint/badge.svg) [![Codecov](https://img.shields.io/codecov/c/gh/J08nY/pyecsca?color=brightgreen&logo=codecov)](https://codecov.io/gh/J08nY/pyecsca) ![](https://img.shields.io/static/v1?label=mypy&message=No%20issues&color=brightgreen) [![DeepSource](https://deepsource.io/gh/J08nY/pyecsca.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/J08nY/pyecsca/?ref=repository-badge)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
-For more info, see the [![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://neuromancer.sk/pyecsca/).
+For more info, see the [![docs](https://img.shields.io/badge/docs-neuromancer.sk-brightgreen.svg)](https://pyecsca.org/).
 
 ## Functionality
 
@@ -15,78 +15,20 @@ is to be able to reverse engineer the curve model, coordinate system, addition f
 multiplier and even finite-field implementation details.
 
 It currently provides:
- - Enumeration of millions of possible ECC implementation configurations (see [notebook/configuration_space](https://neuromancer.sk/pyecsca/notebook/configuration_space.html))
- - Simulation and execution tracing of key generation, ECDH and ECDSA (see [notebook/simulation](https://neuromancer.sk/pyecsca/notebook/simulation.html))
- - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see [notebook/codegen](https://neuromancer.sk/pyecsca/notebook/codegen.html)),
-   CPU-level simulation of implementations (see [notebook/simulator](https://neuromancer.sk/pyecsca/notebook/simulator.html))
- - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see [notebook/measurement](https://neuromancer.sk/pyecsca/notebook/measurement.html))
- - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning ([pyecsca.sca](https://neuromancer.sk/pyecsca/api/pyecsca.sca.html))
- - Trace visualization using holoviews and datashader (see [notebook/visualization](https://neuromancer.sk/pyecsca/notebook/visualization.html))
- - Communication via PCSC/LEIA with a smartcard target (see [notebook/smartcards](https://neuromancer.sk/pyecsca/notebook/smartcards.html))
+ - Enumeration of millions of possible ECC implementation configurations (see [notebook/configuration_space](https://pyecsca.org/notebook/configuration_space.html))
+ - Simulation and execution tracing of key generation, ECDH and ECDSA (see [notebook/simulation](https://pyecsca.org/notebook/simulation.html))
+ - Synthesis of C implementations of ECC for embedded devices, given any implementation configuration (see [notebook/codegen](https://pyecsca.org/notebook/codegen.html)),
+   CPU-level simulation of implementations (see [notebook/simulator](https://pyecsca.org/notebook/simulator.html))
+ - Trace acquisition using PicoScope/ChipWhisperer oscilloscopes (see [notebook/measurement](https://pyecsca.org/notebook/measurement.html))
+ - Trace processing capabilities, e.g. signal-processing, filtering, averaging, cutting, aligning ([pyecsca.sca](https://pyecsca.org/api/pyecsca.sca.html))
+ - Trace visualization using holoviews and datashader (see [notebook/visualization](https://pyecsca.org/notebook/visualization.html))
+ - Communication via PCSC/LEIA with a smartcard target (see [notebook/smartcards](https://pyecsca.org/notebook/smartcards.html))
+ - Reverse-engineering of black-box ECC via RPA-RE and ZVP-RE methods (see [notebook/re/rpa](https://pyecsca.org/notebook/re/rpa.html) and [notebook/re/zvp](https://pyecsca.org/notebook/re/zvp.html))
 
 **pyecsca** consists of three packages:
  - the core: https://github.com/J08nY/pyecsca
  - the codegen package: https://github.com/J08nY/pyecsca-codegen
  - the notebook package: https://github.com/J08nY/pyecsca-notebook
-
-## Requirements
-
- - [Numpy](https://www.numpy.org/)
- - [Scipy](https://www.scipy.org/)
- - [sympy](https://sympy.org/)
- - [pandas](https://pandas.pydata.org/)
- - [atpublic](https://public.readthedocs.io/)
- - [fastdtw](https://github.com/slaypni/fastdtw)
- - [asn1crypto](https://github.com/wbond/asn1crypto)
- - [h5py](https://www.h5py.org/)
- - [holoviews](https://holoviews.org)
- - [bokeh](https://bokeh.org)
- - [datashader](https://datashader.org)
- - [matplotlib](https://matplotlib.org/)
- - [xarray](https://xarray.pydata.org/en/stable/)
- - [astunparse](https://astunparse.readthedocs.io/)
- - [numba](https://numba.pydata.org/)
- - **Optionally**:
-   - **Oscilloscope support:**
-     - [picosdk](https://github.com/picotech/picosdk-python-wrappers/)
-     - [picoscope](https://github.com/colinoflynn/pico-python)
-     - [chipwhisperer](https://github.com/newaetech/chipwhisperer)
-   - **Smartcard support:**
-     - [pyscard](https://pyscard.sourceforge.io/)
-   - **LEIA support:**
-     - [smartleia](https://pypi.org/project/smartleia/)
-   - **Faster arithmetic:**
-     - [gmpy2](https://gmpy2.readthedocs.io/) (and also GMP library)
-     - [cypari2](https://cypari2.readthedocs.io/) (and also PARI library)
-
-*pyecsca* contains data from the [Explicit-Formulas Database](https://www.hyperelliptic.org/EFD/index.html) by Daniel J. Bernstein and Tanja Lange.
-The data was partially changed, to make working with it easier. It is available on Github at [crocs-muni/efd](https://github.com/crocs-muni/efd).
-
-It uses [ChipWhisperer](https://chipwhisperer.com) as one of its targets. It also supports working with [Riscure](https://www.riscure.com) Inspector
-trace sets, which are of a proprietary format.
-
-### Testing & Development
-
-See the [Makefile](Makefile) for tests, performance measurement, codestyle and type checking commands.
-Use [black](https://github.com/psf/black) for code-formatting.
-
- - [pytest](https://pytest.org)
- - [mypy](http://mypy-lang.org/)
- - [flake8](https://flake8.pycqa.org/)
- - [coverage](https://coverage.readthedocs.io/)
- - [interrogate](https://interrogate.readthedocs.io/)
- - [pyinstrument](https://github.com/joerick/pyinstrument/)
- - [pre-commit](https://pre-commit.com/) at `.pre-commit-config.yaml`
- - [black](https://github.com/psf/black)
-
-### Docs
-
- - [sphinx](https://www.sphinx-doc.org/)
- - [sphinx-autodoc-typehints](https://pypi.org/project/sphinx-autodoc-typehints/)
- - [nbsphinx](https://nbsphinx.readthedocs.io/)
- - [sphinx-paramlinks](https://pypi.org/project/sphinx-paramlinks/)
- - [sphinx-design](https://sphinx-design.readthedocs.io/)
-
 
 ## License
 

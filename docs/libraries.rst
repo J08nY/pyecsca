@@ -1,6 +1,6 @@
-================
-ECC in Libraries
-================
+==============================
+:fas:`server;fa-fw` ECC in Libraries
+==============================
 
 .. contents:: Table of Contents
    :backlinks: none
