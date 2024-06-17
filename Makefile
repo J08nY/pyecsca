@@ -12,7 +12,7 @@ test-all:
 	pytest --cov=pyecsca
 
 test-notebooks:
-	pytest -m "not slow" --nbmake --cov=pyecsca notebook/simulation.ipynb notebook/visualization.ipynb
+	pytest -m "not slow" --nbmake --cov=pyecsca --cov-append notebook/simulation.ipynb notebook/visualization.ipynb
 
 typecheck:
 	mypy --namespace-packages -p pyecsca --ignore-missing-imports --show-error-codes --check-untyped-defs
