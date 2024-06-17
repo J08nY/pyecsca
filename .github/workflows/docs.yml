@@ -9,7 +9,7 @@ env:
   LLVM_CONFIG: /usr/bin/llvm-config-10
   PS_PACKAGES: libps4000 libps5000 libps6000
   GMP_PACKAGES: libgmp-dev libmpfr-dev libmpc-dev
-  OTHER_PACKAGES: swig gcc libpcsclite-dev llvm-10 libllvm10 llvm-10-dev libpari-dev pari-gp pari-seadata
+  OTHER_PACKAGES: swig gcc libpcsclite-dev llvm-10 libllvm10 llvm-10-dev libpari-dev pari-gp pari-seadata gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
 
 jobs:
   docs:
@@ -56,10 +56,14 @@ jobs:
           python -m pip install -U pip setuptools wheel
           git clone https://github.com/colinoflynn/pico-python && cd pico-python && pip install . && cd ..
           git clone https://github.com/picotech/picosdk-python-wrappers && cd picosdk-python-wrappers && pip install . && cd ..
-      - name: Install dependencies
+      - name: Install pyecsca
         working-directory: pyecsca
         run: |
           pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, leia, test, dev, doc]"
+      - name: Install pyecsca-codegen
+        working-directory: pyecsca-codegen
+        run: |
+          pip install -e "."
       - name: Build docs
         working-directory: pyecsca/docs
         run: |
