@@ -97,9 +97,10 @@ html_theme_options = {
     'logo_name': True,
     'logo_text_align': 'center',
     'fixed_sidebar': True,
-    'caption_font_family': 'Graphik Web, Helvetica Neue, sans-serif',
-    'head_font_family': 'Graphik Web, Helvetica Neue, sans-serif',
-    'font_family': "Helvetica Neue, sans-serif"
+    'code_font_family': "'IBM Plex Mono', 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace",
+    'caption_font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif",
+    'head_font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif",
+    'font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif"
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -111,8 +112,8 @@ html_favicon = "_static/logo_black.png"
 
 html_css_files = [
     'custom.css',
-    'graphik.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css'
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css',
+    'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap'
 ]
 
 # Custom sidebar templates, must be a dictionary that maps document names
