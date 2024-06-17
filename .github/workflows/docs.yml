@@ -66,6 +66,6 @@ jobs:
           make docs
       - uses: actions/upload-pages-artifact@v3.0.1
         with:
-          path: pyecsca/docs/_build/
+          path: pyecsca/docs/_build/html/
       - id: deployment
         uses: actions/deploy-pages@v4
