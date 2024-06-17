@@ -61,9 +61,10 @@ jobs:
         run: |
           pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, gmp, leia, test, dev, doc]"
       - name: Build docs
-        working-directory: pyecsca
+        working-directory: pyecsca/docs
         run: |
-          make docs
+          make apidoc
+          make html
       - uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: pyecsca/docs/_build/html/
