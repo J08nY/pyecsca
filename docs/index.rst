@@ -60,7 +60,7 @@ It currently provides:
 
 **pyecsca** consists of three repositories:
 
-.. grid:: 3
+.. grid:: 1 1 3 3
 
     .. grid-item-card::  Core
 

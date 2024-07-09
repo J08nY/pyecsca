@@ -1,6 +1,6 @@
-=====================
+===================================
 :fas:`hand-pointer;fa-fw` Notebooks
-=====================
+===================================
 The notebooks below contain a showcase of what is possible using **pyecsca** and
 are the best source of documentation on how to use **pyecsca**.
 
