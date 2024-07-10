@@ -96,7 +96,7 @@ def test_divpoly0(secp128r1):
     ]
     K = FF(secp128r1.curve.prime)
     poly = divpoly0(secp128r1.curve, 11)[11]
-    computed = list(map(K, poly.all_coeffs()))
+    computed = list(map(lambda x: K(int(x)), poly.all_coeffs()))
     assert coeffs == computed
 
 
@@ -162,8 +162,8 @@ def test_mult_by_n(secp128r1):
     }
     mx, my = mult_by_n(secp128r1.curve, 2)
     mx_num, mx_denom = mx
-    assert coeffs_mx_num == list(map(K, mx_num.all_coeffs()))
-    assert coeffs_mx_denom == list(map(K, mx_denom.all_coeffs()))
+    assert coeffs_mx_num == list(map(lambda x: K(int(x)), mx_num.all_coeffs()))
+    assert coeffs_mx_denom == list(map(lambda x: K(int(x)), mx_denom.all_coeffs()))
     my_num, my_denom = my
     assert my_num.as_dict() == coeffs_my_num
     assert my_denom.as_dict() == coeffs_my_denom

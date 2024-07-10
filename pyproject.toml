@@ -31,7 +31,7 @@
   dependencies = [
     "numpy",
     "scipy",
-    "sympy>=1.7.1",
+    "sympy>=1.7.1,<1.13", # <=1.13 required because of https://github.com/sympy/sympy/issues/26789 and https://github.com/sympy/sympy/issues/26791.
     "pandas",
     "atpublic",
     "cython",
