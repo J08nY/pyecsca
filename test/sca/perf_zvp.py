@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod import has_gmp
+from pyecsca.ec.mod import has_gmp, has_flint
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.sca.re.zvp import zvp_points, map_to_affine
 from pyecsca.ec.formula.unroll import unroll_formula
@@ -14,8 +14,8 @@ from test.utils import Profiler
 @click.option(
     "-m",
     "--mod",
-    type=click.Choice(("python", "gmp")),
-    default="gmp" if has_gmp else "python",
+    type=click.Choice(("python", "gmp", "flint")),
+    default="flint" if has_flint else "gmp" if has_gmp else "python",
 )
 @click.option("-o", "--operations", type=click.INT, default=1)
 @click.option(
