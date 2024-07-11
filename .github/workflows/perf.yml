@@ -64,3 +64,12 @@ jobs:
           name: perf-results-${{ matrix.mod }}-${{ matrix.python-version }}
           path:
             .perf
+  merge:
+    runs-on: ubuntu-20.04
+    needs: perf
+    steps:
+      - name: Merge perf results
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: perf-results
+          delete-merged: true
