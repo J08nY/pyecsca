@@ -725,7 +725,7 @@ if has_flint:
 
     @lru_cache
     def _fmpz_ctx(n):
-        if type(n) == flint.fmpz_mod_ctx:
+        if type(n) is flint.fmpz_mod_ctx:
             return n
         return flint.fmpz_mod_ctx(n)
 
