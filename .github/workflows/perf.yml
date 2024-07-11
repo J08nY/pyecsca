@@ -68,8 +68,20 @@ jobs:
     runs-on: ubuntu-20.04
     needs: perf
     steps:
-      - name: Merge perf results
-        uses: actions/upload-artifact/merge@v4
+      - name: Download perf results
+        uses: actions/download-artifact@v4
+      - name: Merge
+        run: |
+          mkdir out
+          for dir in */; do if [ "$dir" != "out/" ]; then echo $dir; for f in "$dir"*; do fname=$(basename $f); echo $fname; cat $f >> out/$fname; done; fi; done
+      - name: Upload merged
+        uses: actions/upload-artifact@v4
         with:
           name: perf-results
-          delete-merged: true
+          path:
+            out
+      - name: Delete old
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+              perf-results-*
