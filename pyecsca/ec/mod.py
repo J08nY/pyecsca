@@ -776,10 +776,10 @@ if has_flint:
         def is_residue(self) -> bool:
             try:
                 with warnings.catch_warnings(
-                    record=True, category=NonResidueWarning
+                    record=True
                 ) as warns:
                     self.sqrt()
-                if warns:
+                if warns and isinstance(warns[0], NonResidueWarning):
                     return False
             except NonResidueError:
                 return False
