@@ -863,4 +863,11 @@ if has_flint:
                 return FlintMod(self.x, self._ctx, ensure=False)
             return FlintMod(self.x**n, self._ctx, ensure=False)
 
+        def __getstate__(self):
+            return {"x": int(self.x), "n": int(self.n)}
+
+        def __setstate__(self, state):
+            self._ctx = _fmpz_ctx(state["n"])
+            self.x = self._ctx(state["x"])
+
     _mod_classes["flint"] = FlintMod
