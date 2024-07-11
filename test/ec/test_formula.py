@@ -139,7 +139,7 @@ def test_symbolic(secp128r1, dbl):
         generator_val = getattr(generator_double, outer_var).x
         for inner_var in coords.variables:
             symbolic_val = symbolic_val.subs(
-                inner_var, k(getattr(secp128r1.generator, inner_var).x)
+                inner_var, int(getattr(secp128r1.generator, inner_var).x)
             )
         assert Mod(int(symbolic_val), p) == Mod(generator_val, p)
 

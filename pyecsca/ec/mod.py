@@ -457,27 +457,6 @@ class Undefined(Mod):
         return NotImplemented
 
 
-@lru_cache
-def __ff_cache(n):
-    return FF(n)
-
-
-def _symbolic_check(func):
-    @wraps(func)
-    def method(self, other):
-        if type(self) is not type(other):
-            if type(other) is int:
-                other = self.__class__(__ff_cache(self.n)(other), self.n)
-            else:
-                other = self.__class__(other, self.n)
-        else:
-            if self.n != other.n:
-                raise ValueError
-        return func(self, other)
-
-    return method
-
-
 @public
 class SymbolicMod(Mod):
     """A symbolic element x of ℤₙ (implemented using sympy)."""
@@ -493,19 +472,19 @@ class SymbolicMod(Mod):
         self.x = x
         self.n = n
 
-    @_symbolic_check
+    @_check
     def __add__(self, other) -> "SymbolicMod":
         return self.__class__((self.x + other.x), self.n)
 
-    @_symbolic_check
+    @_check
     def __radd__(self, other) -> "SymbolicMod":
         return self + other
 
-    @_symbolic_check
+    @_check
     def __sub__(self, other) -> "SymbolicMod":
         return self.__class__((self.x - other.x), self.n)
 
-    @_symbolic_check
+    @_check
     def __rsub__(self, other) -> "SymbolicMod":
         return -self + other
 
@@ -527,27 +506,27 @@ class SymbolicMod(Mod):
     def __invert__(self) -> "SymbolicMod":
         return self.inverse()
 
-    @_symbolic_check
+    @_check
     def __mul__(self, other) -> "SymbolicMod":
         return self.__class__(self.x * other.x, self.n)
 
-    @_symbolic_check
+    @_check
     def __rmul__(self, other) -> "SymbolicMod":
         return self * other
 
-    @_symbolic_check
+    @_check
     def __truediv__(self, other) -> "SymbolicMod":
         return self * ~other
 
-    @_symbolic_check
+    @_check
     def __rtruediv__(self, other) -> "SymbolicMod":
         return ~self * other
 
-    @_symbolic_check
+    @_check
     def __floordiv__(self, other) -> "SymbolicMod":
         return self * ~other
 
-    @_symbolic_check
+    @_check
     def __rfloordiv__(self, other) -> "SymbolicMod":
         return ~self * other
 

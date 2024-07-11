@@ -8,7 +8,7 @@ from astunparse import unparse
 from typing import List, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from public import public
-from sympy import FF, symbols, Poly, Rational
+from sympy import FF, symbols, Poly, parse_expr
 
 from pyecsca.ec.context import ResultAction
 from pyecsca.ec import context
@@ -178,22 +178,20 @@ class Formula(ABC):
                     )
             elif lhs in self.parameters and is_symbolic:
                 # Handle a symbolic assignment to a new parameter.
-                k = FF(field)
                 expr = sympify(rhs, evaluate=False)
                 for curve_param, value in params.items():
                     if isinstance(value, SymbolicMod):
                         expr = expr.subs(curve_param, value.x)
                     else:
-                        expr = expr.subs(curve_param, k(value))
+                        expr = expr.subs(curve_param, int(value))
                 params[lhs] = SymbolicMod(expr, field)
             else:
-                k = FF(field)
                 expr = sympify(f"{rhs} - {lhs}", evaluate=False)
                 for curve_param, value in params.items():
                     if isinstance(value, SymbolicMod):
                         expr = expr.subs(curve_param, value.x)
                     else:
-                        expr = expr.subs(curve_param, k(value))
+                        expr = expr.subs(curve_param, int(value))
                 if (
                     len(expr.free_symbols) > 1
                     or (param := str(expr.free_symbols.pop())) not in self.parameters
@@ -201,31 +199,17 @@ class Formula(ABC):
                     raise ValueError(
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
                     )
-
-                def resolve(expression, k):
-                    if not expression.args:
-                        return expression
-                    args = []
-                    for arg in expression.args:
-                        if isinstance(arg, Rational):
-                            a = arg.p
-                            b = arg.q
-                            res = k(a) / k(b)
-                        else:
-                            res = resolve(arg, k)
-                        args.append(res)
-                    return expression.func(*args)
-
-                expr = resolve(simplify(expr), k)
-                poly = Poly(expr, symbols(param), domain=k)
+                numerator, denominator = expr.as_numer_denom()
+                domain = FF(field)
+                poly = Poly(numerator, symbols(param), domain=domain)
                 roots = poly.ground_roots()
                 for root in roots:
-                    params[param] = Mod(int(root), field)
+                    params[param] = Mod(int(domain.from_sympy(root)), field)
                     break
                 else:
                     raise UnsatisfiedAssumptionError(
                         f"Unsatisfied assumption in the formula ({assumption_string}).\n"
-                        f"'{expr}' has no roots in the base field {k}."
+                        f"'{expr}' has no roots in the base field GF({field})."
                     )
 
     def __call__(self, field: int, *points: Any, **params: Mod) -> Tuple[Any, ...]:

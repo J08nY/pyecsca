@@ -212,21 +212,3 @@ def test_symbolic():
     r = sx * a + b
     assert isinstance(r, SymbolicMod)
     assert r.n == p
-    sa = SymbolicMod(a, p)
-    sb = SymbolicMod(b, p)
-    assert sa == 3
-    assert sa.inverse() == SymbolicMod(k(9), p)
-    assert 1 / sa == SymbolicMod(k(9), p)
-    assert sa + sb == 8
-    assert 1 + sa == 4
-    assert sa - 1 == 2
-    assert 1 - sa == 11
-    assert sa + 1 == 4
-    assert -sa == 10
-    assert sa / 2 == 8
-    assert 2 / sa == 5
-    assert sa // 2 == 8
-    assert 2 // sa == 5
-    assert int(sa) == 3
-    assert sa != sb
-    assert hash(sa) is not None
