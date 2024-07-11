@@ -229,7 +229,7 @@ def _create_params(curve, coords, infty):
                     raise ValueError(
                         f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string})."
                     )
-                numerator, denominator = expr.as_numer_denom()
+                numerator, _ = expr.as_numer_denom()
                 poly = Poly(numerator, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots:

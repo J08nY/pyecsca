@@ -8,7 +8,7 @@ from astunparse import unparse
 from typing import List, Any, ClassVar, MutableMapping, Tuple, Union, Dict
 
 from public import public
-from sympy import FF, symbols, Poly, parse_expr
+from sympy import FF, symbols, Poly
 
 from pyecsca.ec.context import ResultAction
 from pyecsca.ec import context
@@ -16,7 +16,7 @@ from pyecsca.ec.error import UnsatisfiedAssumptionError, raise_unsatisified_assu
 from pyecsca.ec.mod import Mod, SymbolicMod
 from pyecsca.ec.op import CodeOp, OpType
 from pyecsca.misc.cfg import getconfig
-from pyecsca.misc.cache import sympify, simplify
+from pyecsca.misc.cache import sympify
 
 
 @public
@@ -199,7 +199,7 @@ class Formula(ABC):
                     raise ValueError(
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
                     )
-                numerator, denominator = expr.as_numer_denom()
+                numerator, _ = expr.as_numer_denom()
                 domain = FF(field)
                 poly = Poly(numerator, symbols(param), domain=domain)
                 roots = poly.ground_roots()

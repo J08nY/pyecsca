@@ -248,10 +248,6 @@ class Mod:
     def __rfloordiv__(self, other) -> "Mod":
         return ~self * other
 
-    @_check
-    def __divmod__(self, divisor):
-        raise NotImplementedError
-
     def __bytes__(self) -> bytes:
         raise NotImplementedError
 
@@ -448,9 +444,6 @@ class Undefined(Mod):
     def __rfloordiv__(self, other):
         return NotImplemented
 
-    def __divmod__(self, divisor):
-        return NotImplemented
-
     def __bytes__(self):
         raise NotImplementedError
 
@@ -545,9 +538,6 @@ class SymbolicMod(Mod):
     @_check
     def __rfloordiv__(self, other) -> "SymbolicMod":
         return ~self * other
-
-    def __divmod__(self, divisor) -> "SymbolicMod":
-        return NotImplemented
 
     def __bytes__(self):
         return int(self.x).to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")

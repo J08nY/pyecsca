@@ -165,8 +165,8 @@ def test_mult_by_n(secp128r1):
     }
     mx, my = mult_by_n(secp128r1.curve, 2)
     mx_num, mx_denom = mx
-    assert coeffs_mx_num == list(map(lambda x: K.from_sympy(x), mx_num.all_coeffs()))
-    assert coeffs_mx_denom == list(map(lambda x: K.from_sympy(x), mx_denom.all_coeffs()))
+    assert coeffs_mx_num == list(map(K.from_sympy, mx_num.all_coeffs()))
+    assert coeffs_mx_denom == list(map(K.from_sympy, mx_denom.all_coeffs()))
     my_num, my_denom = my
     assert {i: K.from_sympy(d) for i, d in my_num.as_dict().items()} == coeffs_my_num
     assert {i: K.from_sympy(d) for i, d in my_denom.as_dict().items()} == coeffs_my_denom
