@@ -767,23 +767,17 @@ if has_flint:
             return FlintMod(res, self._ctx, ensure=False)
 
         def is_residue(self) -> bool:
-            mod = self.n
-            if not _fmpz_is_prime(mod):
-                raise NotImplementedError
-            if self.x == 0:
-                return True
-            if mod == 2:
-                return self.x in (0, 1)
-            legendre_symbol = jacobi(int(self.x), int(mod))
-            return legendre_symbol == 1
+            res = self.sqrt()
+            return res is not None
 
         def sqrt(self) -> "FlintMod":
             mod = self.n
             if not _fmpz_is_prime(mod):
                 raise NotImplementedError
-            if self.x == 0:
-                return FlintMod(self._ctx(0), self._ctx, ensure=False)
-            if not self.is_residue():
+            try:
+                res = flint.fmpz(int(self.x)).sqrtmod(mod)
+                return FlintMod(self._ctx(res), self._ctx, ensure=False)
+            except ValueError:
                 raise_non_residue()
 
             if mod % 4 == 3:
