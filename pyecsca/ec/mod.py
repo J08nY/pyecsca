@@ -13,7 +13,7 @@ from functools import wraps, lru_cache
 from typing import Type, Dict, Any, Tuple, Union
 
 from public import public
-from sympy import Expr, FF
+from sympy import Expr
 
 from pyecsca.ec.error import raise_non_invertible, raise_non_residue
 from pyecsca.ec.context import ResultAction

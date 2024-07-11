@@ -4,7 +4,7 @@ from typing import cast
 import click
 
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula
-from pyecsca.ec.mod import has_gmp
+from pyecsca.ec.mod import has_gmp, has_flint
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import get_params
 from pyecsca.misc.cfg import TemporaryConfig
@@ -17,7 +17,7 @@ from test.utils import Profiler
     "-m",
     "--mod",
     type=click.Choice(("python", "gmp", "flint")),
-    default="gmp" if has_gmp else "python",
+    default="flint" if has_flint else "gmp" if has_gmp else "python",
 )
 @click.option("-o", "--operations", type=click.INT, default=50)
 @click.option(

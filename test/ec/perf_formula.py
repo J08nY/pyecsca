@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod import has_gmp
+from pyecsca.ec.mod import has_gmp, has_flint
 from pyecsca.ec.params import get_params
 from pyecsca.misc.cfg import TemporaryConfig
 from test.utils import Profiler
@@ -13,7 +13,7 @@ from test.utils import Profiler
     "-m",
     "--mod",
     type=click.Choice(("python", "gmp", "flint")),
-    default="gmp" if has_gmp else "python",
+    default="flint" if has_flint else "gmp" if has_gmp else "python",
 )
 @click.option("-o", "--operations", type=click.INT, default=5000)
 @click.option(
