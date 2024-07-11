@@ -570,7 +570,7 @@ _mod_classes["symbolic"] = SymbolicMod
 if has_gmp:
 
     @lru_cache
-    def _is_prime(x) -> bool:
+    def _gmpy_is_prime(x) -> bool:
         return gmpy2.is_prime(x)
 
     @public
@@ -613,7 +613,7 @@ if has_gmp:
             return GMPMod(res, self.n, ensure=False)
 
         def is_residue(self) -> bool:
-            if not _is_prime(self.n):
+            if not _gmpy_is_prime(self.n):
                 raise NotImplementedError
             if self.x == 0:
                 return True
@@ -622,7 +622,7 @@ if has_gmp:
             return gmpy2.legendre(self.x, self.n) == 1
 
         def sqrt(self) -> "GMPMod":
-            if not _is_prime(self.n):
+            if not _gmpy_is_prime(self.n):
                 raise NotImplementedError
             if self.x == 0:
                 return GMPMod(gmpy2.mpz(0), self.n, ensure=False)
@@ -714,10 +714,14 @@ if has_gmp:
 if has_flint:
 
     @lru_cache
-    def _fmpz_ctx(n):
+    def _fmpz_ctx(n: Union[int, flint.fmpz_mod_ctx]) -> flint.fmpz_mod_ctx:
         if type(n) is flint.fmpz_mod_ctx:
             return n
         return flint.fmpz_mod_ctx(n)
+
+    @lru_cache
+    def _fmpz_is_prime(x: flint.fmpz) -> bool:
+        return x.is_probable_prime()
 
     @public
     class FlintMod(Mod):
@@ -763,23 +767,25 @@ if has_flint:
             return FlintMod(res, self._ctx, ensure=False)
 
         def is_residue(self) -> bool:
-            if not self.n.is_prime():
+            mod = self.n
+            if not _fmpz_is_prime(mod):
                 raise NotImplementedError
             if self.x == 0:
                 return True
-            if self.n == 2:
+            if mod == 2:
                 return self.x in (0, 1)
-            legendre_symbol = jacobi(int(self.x), int(self.n))
+            legendre_symbol = jacobi(int(self.x), int(mod))
             return legendre_symbol == 1
 
         def sqrt(self) -> "FlintMod":
-            if not self.n.is_prime():
+            mod = self.n
+            if not _fmpz_is_prime(mod):
                 raise NotImplementedError
             if self.x == 0:
                 return FlintMod(self._ctx(0), self._ctx, ensure=False)
             if not self.is_residue():
                 raise_non_residue()
-            mod = self.n
+
             if mod % 4 == 3:
                 return self ** int((mod + 1) // 4)
             q = mod - 1
