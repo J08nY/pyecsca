@@ -12,7 +12,7 @@ from test.utils import Profiler
 @click.option(
     "-m",
     "--mod",
-    type=click.Choice(("python", "gmp")),
+    type=click.Choice(("python", "gmp", "flint")),
     default="gmp" if has_gmp else "python",
 )
 @click.option("-o", "--operations", type=click.INT, default=5000)

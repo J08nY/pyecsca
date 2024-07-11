@@ -157,7 +157,6 @@ def test_other():
     assert 5 // b == Mod(4, 7)
     assert a / 3 == Mod(4, 7)
     assert a // 3 == Mod(4, 7)
-    assert divmod(a, b) == (Mod(1, 7), Mod(2, 7))
     assert a + b == Mod(1, 7)
     assert 5 + b == Mod(1, 7)
     assert a + 3 == Mod(1, 7)

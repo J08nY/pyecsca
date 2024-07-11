@@ -6,6 +6,7 @@ env:
   LLVM_CONFIG: /usr/bin/llvm-config-10
   PS_PACKAGES: libps4000 libps5000 libps6000
   GMP_PACKAGES: libgmp-dev libmpfr-dev libmpc-dev
+  FLINT_PACKAGES: libflint-dev
   OTHER_PACKAGES: swig gcc libpcsclite-dev llvm-10 libllvm10 llvm-10-dev libpari-dev pari-gp pari-seadata
 
 jobs:
@@ -14,10 +15,10 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
-        gmp: [0, 1]
+        mod: ["python", "gmp", "flint"]
     env:
       PYTHON: ${{ matrix.python-version }}
-      USE_GMP: ${{ matrix.gmp }}
+      MOD_IMPL: ${{ matrix.mod }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,10 +26,10 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ matrix.gmp }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          key: pip-${{ runner.os }}-${{ matrix.mod }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
-            pip-${{ runner.os }}-${{ matrix.gmp }}-${{ matrix.python-version }}-
-            pip-${{ runner.os }}-${{ matrix.gmp }}-
+            pip-${{ runner.os }}-${{ matrix.mod }}-${{ matrix.python-version }}-
+            pip-${{ runner.os }}-${{ matrix.mod }}-
             pip-${{ runner.os }}-
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -42,22 +43,24 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get install -y $PS_PACKAGES $OTHER_PACKAGES
-          if [ $USE_GMP == 1 ]; then sudo apt-get install -y $GMP_PACKAGES; fi
+          if [ $MOD_IMPL == "gmp" ]; then sudo apt-get install -y $GMP_PACKAGES; fi
+          if [ $MOD_IMPL == "flint" ]; then sudo apt-get install -y $FLINT_PACKAGES; fi
       - name: Install picoscope bindings
         run: |
           python -m pip install -U pip setuptools wheel
           git clone https://github.com/colinoflynn/pico-python && cd pico-python && pip install . && cd ..
           git clone https://github.com/picotech/picosdk-python-wrappers && cd picosdk-python-wrappers && pip install . && cd ..
-      - name: Install dependencies
+      - name: Install
         run: |
-          if [ $USE_GMP == 1 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, gmp, test, dev]"; fi
-          if [ $USE_GMP == 0 ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, test, dev]"; fi
+          if [ $MOD_IMPL == "gmp" ];    then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, gmp, test, dev]"; fi
+          if [ $MOD_IMPL == "flint" ];  then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, flint, test, dev]"; fi
+          if [ $MOD_IMPL == "python" ]; then pip install -e ".[picoscope_sdk, picoscope_alt, chipwhisperer, smartcard, pari, leia, test, dev]"; fi
       - name: Perf
         run: |
           make perf
       - name: Archive perf results
         uses: actions/upload-artifact@v4
         with:
-          name: perf-results-${{ matrix.gmp }}-${{ matrix.python-version }}
+          name: perf-results-${{ matrix.mod }}-${{ matrix.python-version }}
           path:
             .perf

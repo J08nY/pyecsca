@@ -18,7 +18,7 @@ class ECConfig:
     _non_residue_action: str = "error"
     _unsatisfied_formula_assumption_action: str = "error"
     _unsatisfied_coordinate_assumption_action: str = "error"
-    _mod_implementation: str = "gmp"
+    _mod_implementation: str = "flint"
 
     @property
     def no_inverse_action(self) -> str:
@@ -109,6 +109,7 @@ class ECConfig:
 
         One of:
 
+         - ``"flint"``: Requires the flint library and `python-flint` package.
          - ``"gmp"``: Requires the GMP library and `gmpy2` package.
          - ``"python"``: Doesn't require anything.
          - ``"symbolic"``: Requires sympy.
@@ -117,8 +118,8 @@ class ECConfig:
 
     @mod_implementation.setter
     def mod_implementation(self, value: str):
-        if value not in ("python", "gmp", "symbolic"):
-            raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp' or 'symbolic'.")
+        if value not in ("python", "gmp", "flint", "symbolic"):
+            raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp', 'flint' or 'symbolic'.")
         self._mod_implementation = value
 
 

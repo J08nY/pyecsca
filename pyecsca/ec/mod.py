@@ -28,8 +28,21 @@ except ImportError:
     gmpy2 = None
 
 
+has_flint = False
+try:
+    import flint
+
+    _major, _minor, *_ = flint.__version__.split(".")
+    if (int(_major), int(_minor)) >= (0, 5):
+        has_flint = True
+    else:
+        flint = None
+except ImportError:
+    flint = None
+
+
 @public
-def gcd(a, b):
+def gcd(a: int, b: int) -> int:
     """Euclid's greatest common denominator algorithm."""
     if abs(a) < abs(b):
         return gcd(b, a)
@@ -42,7 +55,7 @@ def gcd(a, b):
 
 
 @public
-def extgcd(a, b):
+def extgcd(a: int, b: int) -> Tuple[int, int, int]:
     """Compute the extended Euclid's greatest common denominator algorithm."""
     if abs(b) > abs(a):
         x, y, d = extgcd(b, a)
@@ -138,6 +151,7 @@ class RandomModAction(ResultAction):
 
 
 _mod_classes: Dict[str, Type] = {}
+_mod_order = ["flint", "gmp", "python"]
 
 
 @public
@@ -156,7 +170,10 @@ class Mod:
         selected_class = getconfig().ec.mod_implementation
         if selected_class not in _mod_classes:
             # Fallback to something
-            selected_class = next(iter(_mod_classes.keys()))
+            for fallback in _mod_order:
+                if fallback in _mod_classes:
+                    selected_class = fallback
+                    break
         return _mod_classes[selected_class].__new__(
             _mod_classes[selected_class], *args, **kwargs
         )
@@ -232,9 +249,8 @@ class Mod:
         return ~self * other
 
     @_check
-    def __divmod__(self, divisor) -> Tuple["Mod", "Mod"]:
-        q, r = divmod(self.x, divisor.x)
-        return self.__class__(q, self.n), self.__class__(r, self.n)
+    def __divmod__(self, divisor):
+        raise NotImplementedError
 
     def __bytes__(self) -> bytes:
         raise NotImplementedError
@@ -667,11 +683,6 @@ if has_gmp:
         def __mul__(self, other) -> "GMPMod":
             return GMPMod((self.x * other.x) % self.n, self.n, ensure=False)
 
-        @_check
-        def __divmod__(self, divisor) -> Tuple["GMPMod", "GMPMod"]:
-            q, r = gmpy2.f_divmod(self.x, divisor.x)
-            return GMPMod(q, self.n, ensure=False), GMPMod(r, self.n, ensure=False)
-
         def __bytes__(self):
             return int(self.x).to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")
 
@@ -708,3 +719,158 @@ if has_gmp:
             )
 
     _mod_classes["gmp"] = GMPMod
+
+
+if has_flint:
+
+    @lru_cache
+    def _fmpz_ctx(n):
+        if type(n) == flint.fmpz_mod_ctx:
+            return n
+        return flint.fmpz_mod_ctx(n)
+
+    @public
+    class FlintMod(Mod):
+        """An element x of ℤₙ. Implemented by GMP."""
+
+        x: flint.fmpz_mod
+        _ctx: flint.fmpz_mod_ctx
+        __slots__ = ("x", "_ctx")
+
+        def __new__(cls, *args, **kwargs):
+            return object.__new__(cls)
+
+        def __init__(
+            self,
+            x: Union[int, flint.fmpz_mod],
+            n: Union[int, flint.fmpz_mod_ctx],
+            ensure: bool = True,
+        ):
+            if ensure:
+                self._ctx = _fmpz_ctx(n)
+                self.x = self._ctx(x)
+            else:
+                self._ctx = n
+                self.x = x
+
+        @property
+        def n(self) -> flint.fmpz:
+            return self._ctx.modulus()
+
+        def bit_length(self):
+            return int(self.x).bit_length()
+
+        def inverse(self) -> "FlintMod":
+            if self.x == 0:
+                raise_non_invertible()
+            if self.x == 1:
+                return FlintMod(self._ctx(1), self._ctx, ensure=False)
+            try:
+                res = self.x.inverse()
+            except ZeroDivisionError:
+                raise_non_invertible()
+                res = self._ctx(0)
+            return FlintMod(res, self._ctx, ensure=False)
+
+        def is_residue(self) -> bool:
+            if not self.n.is_prime():
+                raise NotImplementedError
+            if self.x == 0:
+                return True
+            if self.n == 2:
+                return self.x in (0, 1)
+            legendre_symbol = jacobi(int(self.x), int(self.n))
+            return legendre_symbol == 1
+
+        def sqrt(self) -> "FlintMod":
+            if not self.n.is_prime():
+                raise NotImplementedError
+            if self.x == 0:
+                return FlintMod(self._ctx(0), self._ctx, ensure=False)
+            if not self.is_residue():
+                raise_non_residue()
+            mod = self.n
+            if mod % 4 == 3:
+                return self ** int((mod + 1) // 4)
+            q = mod - 1
+            s = 0
+            while q % 2 == 0:
+                q //= 2
+                s += 1
+
+            z = self._ctx(2)
+            while FlintMod(z, self._ctx, ensure=False).is_residue():
+                z += 1
+
+            m = s
+            c = FlintMod(z, self._ctx, ensure=False) ** int(q)
+            t = self ** int(q)
+            r_exp = (q + 1) // 2
+            r = self ** int(r_exp)
+
+            while t != 1:
+                i = 1
+                while not (t ** (2**i)) == 1:
+                    i += 1
+                two_exp = m - (i + 1)
+                b = c ** int(FlintMod(self._ctx(2), self._ctx, ensure=False) ** two_exp)
+                m = int(FlintMod(self._ctx(i), self._ctx, ensure=False))
+                c = b**2
+                t *= c
+                r *= b
+            return r
+
+        @_check
+        def __add__(self, other) -> "FlintMod":
+            return FlintMod(self.x + other.x, self._ctx, ensure=False)
+
+        @_check
+        def __sub__(self, other) -> "FlintMod":
+            return FlintMod(self.x - other.x, self._ctx, ensure=False)
+
+        def __neg__(self) -> "FlintMod":
+            return FlintMod(-self.x, self._ctx, ensure=False)
+
+        @_check
+        def __mul__(self, other) -> "FlintMod":
+            return FlintMod(self.x * other.x, self._ctx, ensure=False)
+
+        def __bytes__(self):
+            return int(self.x).to_bytes(
+                (int(self.n).bit_length() + 7) // 8, byteorder="big"
+            )
+
+        def __int__(self):
+            return int(self.x)
+
+        def __eq__(self, other):
+            if type(other) is int:
+                return self.x == other
+            if type(other) is not FlintMod:
+                return False
+            try:
+                return self.x == other.x
+            except ValueError:
+                return False
+
+        def __ne__(self, other):
+            return not self == other
+
+        def __repr__(self):
+            return str(int(self.x))
+
+        def __hash__(self):
+            return hash(("FlintMod", self.x, self.n))
+
+        def __pow__(self, n) -> "FlintMod":
+            if type(n) not in (int, flint.fmpz):
+                raise TypeError
+            if n == 0:
+                return FlintMod(self._ctx(1), self._ctx, ensure=False)
+            if n < 0:
+                return self.inverse() ** (-n)
+            if n == 1:
+                return FlintMod(self.x, self._ctx, ensure=False)
+            return FlintMod(self.x**n, self._ctx, ensure=False)
+
+    _mod_classes["flint"] = FlintMod

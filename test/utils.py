@@ -70,6 +70,6 @@ class Profiler:
         if self._state != "out":
             raise ValueError
         if self._prof_type == "py":
-            return self._root_frame.time
+            return self._root_frame.time  # type: ignore
         else:
             return pstats.Stats(self._prof).total_tt  # type: ignore
