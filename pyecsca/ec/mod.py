@@ -151,7 +151,7 @@ class RandomModAction(ResultAction):
 
 
 _mod_classes: Dict[str, Type] = {}
-_mod_order = ["flint", "gmp", "python"]
+_mod_order = ["gmp", "flint", "python"]
 
 
 @public

@@ -18,7 +18,7 @@ class ECConfig:
     _non_residue_action: str = "error"
     _unsatisfied_formula_assumption_action: str = "error"
     _unsatisfied_coordinate_assumption_action: str = "error"
-    _mod_implementation: str = "flint"
+    _mod_implementation: str = "gmp"
 
     @property
     def no_inverse_action(self) -> str:
@@ -109,8 +109,8 @@ class ECConfig:
 
         One of:
 
-         - ``"flint"``: Requires the flint library and `python-flint` package.
          - ``"gmp"``: Requires the GMP library and `gmpy2` package.
+         - ``"flint"``: Requires the flint library and `python-flint` package.
          - ``"python"``: Doesn't require anything.
          - ``"symbolic"``: Requires sympy.
         """
