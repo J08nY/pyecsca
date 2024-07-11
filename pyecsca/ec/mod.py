@@ -730,6 +730,17 @@ if has_flint:
     def _fmpz_is_prime(x: flint.fmpz) -> bool:
         return x.is_probable_prime()
 
+    def _flint_check(func):
+        @wraps(func)
+        def method(self, other):
+            if self.__class__ is not type(other):
+                other = self.__class__(other, self.n)
+            elif self._ctx != other._ctx:
+                raise ValueError
+            return func(self, other)
+
+        return method
+
     @public
     class FlintMod(Mod):
         """An element x of ℤₙ. Implemented by GMP."""
@@ -775,9 +786,7 @@ if has_flint:
 
         def is_residue(self) -> bool:
             try:
-                with warnings.catch_warnings(
-                    record=True
-                ) as warns:
+                with warnings.catch_warnings(record=True) as warns:
                     self.sqrt()
                 if warns and isinstance(warns[0], NonResidueWarning):
                     return False
@@ -825,18 +834,18 @@ if has_flint:
                 r *= b
             return r
 
-        @_check
+        @_flint_check
         def __add__(self, other) -> "FlintMod":
             return FlintMod(self.x + other.x, self._ctx, ensure=False)
 
-        @_check
+        @_flint_check
         def __sub__(self, other) -> "FlintMod":
             return FlintMod(self.x - other.x, self._ctx, ensure=False)
 
         def __neg__(self) -> "FlintMod":
             return FlintMod(-self.x, self._ctx, ensure=False)
 
-        @_check
+        @_flint_check
         def __mul__(self, other) -> "FlintMod":
             return FlintMod(self.x * other.x, self._ctx, ensure=False)
 
