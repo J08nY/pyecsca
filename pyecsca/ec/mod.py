@@ -7,15 +7,22 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 :py:class:`RawMod`. A symbolic implementation based on sympy is available under :py:class:`SymbolicMod`. If
 `gmpy2` is installed, a GMP based implementation is available under :py:class:`GMPMod`.
 """
+import contextlib
 import random
 import secrets
+import warnings
 from functools import wraps, lru_cache
 from typing import Type, Dict, Any, Tuple, Union
 
 from public import public
 from sympy import Expr
 
-from pyecsca.ec.error import raise_non_invertible, raise_non_residue
+from pyecsca.ec.error import (
+    raise_non_invertible,
+    raise_non_residue,
+    NonResidueError,
+    NonResidueWarning,
+)
 from pyecsca.ec.context import ResultAction
 from pyecsca.misc.cfg import getconfig
 
@@ -767,8 +774,16 @@ if has_flint:
             return FlintMod(res, self._ctx, ensure=False)
 
         def is_residue(self) -> bool:
-            res = self.sqrt()
-            return res is not None
+            try:
+                with warnings.catch_warnings(
+                    record=True, category=NonResidueWarning
+                ) as warns:
+                    self.sqrt()
+                if warns:
+                    return False
+            except NonResidueError:
+                return False
+            return True
 
         def sqrt(self) -> "FlintMod":
             mod = self.n
