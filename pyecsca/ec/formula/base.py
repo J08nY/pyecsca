@@ -187,15 +187,18 @@ class Formula(ABC):
                 params[lhs] = SymbolicMod(expr, field)
             else:
                 expr = sympify(f"{rhs} - {lhs}", evaluate=False)
+                remaining = []
                 for symbol in expr.free_symbols:
                     if (value := params.get(str(symbol), None)) is not None:
                         if isinstance(value, SymbolicMod):
                             expr = expr.subs(symbol, value.x)
                         else:
                             expr = expr.subs(symbol, int(value))
+                    else:
+                        remaining.append(symbol)
                 if (
-                    len(expr.free_symbols) > 1
-                    or (param := str(expr.free_symbols.pop())) not in self.parameters
+                    len(remaining) > 1
+                    or (param := str(remaining[0])) not in self.parameters
                 ):
                     raise ValueError(
                         f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."

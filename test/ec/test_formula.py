@@ -26,7 +26,7 @@ from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params, DomainParameters
 from pyecsca.ec.point import Point
-from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
+from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel, EdwardsModel
 from pyecsca.ec.formula.efd import (
     AdditionEFDFormula,
     DoublingEFDFormula,
@@ -109,14 +109,23 @@ def test_assumptions(secp128r1, mdbl):
         assert pt is not None
 
 
-def test_parameters():
-    jac_secp128r1 = get_params("secg", "secp128r1", "jacobian")
-    jac_dbl = jac_secp128r1.curve.coordinate_model.formulas["dbl-1998-hnm"]
+@pytest.mark.parametrize(
+    "formula,category,curve,coords",
+    [("dbl-1998-hnm", "secg", "secp128r1", "jacobian"),
+     ("add-2015-rcb", "secg", "secp128r1", "projective"),
+     ("dbl-1987-m-2", "other", "Curve25519", "xz"),
+     ("add-20090311-hwcd", "other", "E-222", "projective")]
+)
+def test_eval(formula, category, curve, coords):
+    params = get_params(category, curve, coords)
+    f = params.curve.coordinate_model.formulas[formula]
 
-    res = jac_dbl(
-        jac_secp128r1.curve.prime,
-        jac_secp128r1.generator,
-        **jac_secp128r1.curve.parameters,
+    points = [params.curve.affine_random().to_model(params.curve.coordinate_model, params.curve) for _ in range(f.num_inputs)]
+
+    res = f(
+        params.curve.prime,
+        *points,
+        **params.curve.parameters,
     )
     assert res is not None
 
