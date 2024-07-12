@@ -176,15 +176,26 @@ class Formula(ABC):
                         getconfig().ec.unsatisfied_formula_assumption_action,
                         f"Unsatisfied assumption in the formula ({assumption_string}).",
                     )
-            elif lhs in self.parameters and is_symbolic:
-                # Handle a symbolic assignment to a new parameter.
+            elif lhs in self.parameters:
                 expr = sympify(rhs, evaluate=False)
-                for curve_param, value in params.items():
-                    if isinstance(value, SymbolicMod):
-                        expr = expr.subs(curve_param, value.x)
+                for symbol in expr.free_symbols:
+                    if (value := params.get(str(symbol), None)) is not None:
+                        if isinstance(value, SymbolicMod):
+                            expr = expr.subs(symbol, value.x)
+                        else:
+                            expr = expr.subs(symbol, int(value))
                     else:
-                        expr = expr.subs(curve_param, int(value))
-                params[lhs] = SymbolicMod(expr, field)
+                        raise_unsatisified_assumption(
+                            getconfig().ec.unsatisfied_formula_assumption_action,
+                            f"Unsatisfied assumption in the formula ({assumption_string}).",
+                        )
+                if is_symbolic:
+                    params[lhs] = SymbolicMod(expr, field)
+                else:
+                    domain = FF(field)
+                    numerator, denominator = expr.as_numer_denom()
+                    val = int(domain.from_sympy(numerator) / domain.from_sympy(denominator))
+                    params[lhs] = Mod(val, field)
             else:
                 expr = sympify(f"{rhs} - {lhs}", evaluate=False)
                 remaining = []
