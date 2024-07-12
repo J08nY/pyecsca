@@ -39,7 +39,7 @@ def unroll_formula_expr(formula: Formula) -> List[Tuple[str, Expr]]:
             # Handle a symbolic assignment to a new parameter.
             expr = sympify(rhs, evaluate=False)
             for curve_param, value in params.items():
-                expr = expr.subs(curve_param, value)
+                expr = expr.xreplace({curve_param: value})
             params[lhs] = expr
 
     locls = {**params, **inputs}

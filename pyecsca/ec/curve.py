@@ -121,7 +121,7 @@ class EllipticCurve:
                 expr = sympify(f"{rhs} - {lhs}")
                 for symbol in expr.free_symbols:
                     if (val := self.parameters.get(str(symbol), None)) is not None:
-                        expr = expr.subs(symbol, val)
+                        expr = expr.xreplace({symbol: val})
                 if len(expr.free_symbols) > 0:
                     raise ValueError(
                         f"Missing necessary coordinate model parameter ({assumption_string})."
