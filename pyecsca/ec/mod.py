@@ -839,8 +839,16 @@ if has_flint:
             return FlintMod(self.x + other.x, self._ctx, ensure=False)
 
         @_flint_check
+        def __radd__(self, other) -> "Mod":
+            return self + other
+
+        @_flint_check
         def __sub__(self, other) -> "FlintMod":
             return FlintMod(self.x - other.x, self._ctx, ensure=False)
+
+        @_flint_check
+        def __rsub__(self, other) -> "Mod":
+            return -self + other
 
         def __neg__(self) -> "FlintMod":
             return FlintMod(-self.x, self._ctx, ensure=False)
@@ -848,6 +856,26 @@ if has_flint:
         @_flint_check
         def __mul__(self, other) -> "FlintMod":
             return FlintMod(self.x * other.x, self._ctx, ensure=False)
+
+        @_flint_check
+        def __rmul__(self, other) -> "Mod":
+            return self * other
+
+        @_flint_check
+        def __truediv__(self, other) -> "Mod":
+            return self * ~other
+
+        @_flint_check
+        def __rtruediv__(self, other) -> "Mod":
+            return ~self * other
+
+        @_flint_check
+        def __floordiv__(self, other) -> "Mod":
+            return self * ~other
+
+        @_flint_check
+        def __rfloordiv__(self, other) -> "Mod":
+            return ~self * other
 
         def __bytes__(self):
             return int(self.x).to_bytes(
