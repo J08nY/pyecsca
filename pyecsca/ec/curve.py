@@ -119,8 +119,9 @@ class EllipticCurve:
                 assumption_string = unparse(assumption).strip()
                 lhs, rhs = assumption_string.split(" = ")
                 expr = sympify(f"{rhs} - {lhs}")
-                for curve_param, value in self.parameters.items():
-                    expr = expr.subs(curve_param, value)
+                for symbol in expr.free_symbols:
+                    if (value := self.parameters.get(str(symbol), None)) is not None:
+                        expr = expr.subs(symbol, value)
                 if len(expr.free_symbols) > 0:
                     raise ValueError(
                         f"Missing necessary coordinate model parameter ({assumption_string})."
