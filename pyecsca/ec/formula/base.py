@@ -202,9 +202,9 @@ class Formula(ABC):
         for symbol in expr.free_symbols:
             if (value := params.get(str(symbol), None)) is not None:
                 if isinstance(value, SymbolicMod):
-                    expr = expr.subs(symbol, value.x)
+                    expr = expr.xreplace({symbol: value.x})
                 else:
-                    expr = expr.subs(symbol, int(value))
+                    expr = expr.xreplace({symbol: int(value)})
             else:
                 remaining.append(symbol)
         if len(remaining) > 1 or (param := str(remaining[0])) not in self.parameters:
