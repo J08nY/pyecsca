@@ -108,6 +108,9 @@ class FormulaAction(ResultAction):
         return f"{self.__class__.__name__}({self.formula}, {self.input_points}) = {self.output_points}"
 
 
+_assumption_cache: Dict[Tuple[str, str, FF, Tuple[Mod, ...]], Mod] = {}
+
+
 @public
 class Formula(ABC):
     """Formula operating on points."""
@@ -157,75 +160,92 @@ class Formula(ABC):
                     )
                 params[coord + str(i + 1)] = value
 
+    def __validate_assumption_point(self, assumption, params):
+        # Handle an assumption check on value of input points.
+        alocals: Dict[str, Union[Mod, int]] = {**params}
+        compiled = compile(assumption, "", mode="eval")
+        holds = eval(compiled, None, alocals)  # eval is OK here, skipcq: PYL-W0123
+        return holds
+
+    def __validate_assumption_simple(self, lhs, rhs, field, params):
+        # Handle a simple parameter assignment (lhs is an unassigned parameter of the formula).
+        expr = sympify(rhs, evaluate=False)
+        used_symbols = sorted(expr.free_symbols)
+        used_params = []
+        for symbol in used_symbols:
+            if (value := params.get(str(symbol), None)) is not None:
+                used_params.append(value)
+                if isinstance(value, SymbolicMod):
+                    expr = expr.xreplace({symbol: value.x})
+                else:
+                    expr = expr.xreplace({symbol: int(value)})
+            else:
+                return False
+        cache_key = (lhs, rhs, field, tuple(used_params))
+        if cache_key in _assumption_cache:
+            params[lhs] = _assumption_cache[cache_key]
+        else:
+            if any(isinstance(x, SymbolicMod) for x in params.values()):
+                params[lhs] = SymbolicMod(expr, field)
+            else:
+                domain = FF(field)
+                numerator, denominator = expr.as_numer_denom()
+                val = int(domain.from_sympy(numerator) / domain.from_sympy(denominator))
+                params[lhs] = Mod(val, field)
+            _assumption_cache[cache_key] = params[lhs]
+        return True
+
+    def __validate_assumption_generic(self, lhs, rhs, field, params, assumption_string):
+        # Handle a generic parameter assignment (parameter may be anyway in the assumption).
+        expr = sympify(f"{rhs} - {lhs}", evaluate=False)
+        remaining = []
+        for symbol in expr.free_symbols:
+            if (value := params.get(str(symbol), None)) is not None:
+                if isinstance(value, SymbolicMod):
+                    expr = expr.subs(symbol, value.x)
+                else:
+                    expr = expr.subs(symbol, int(value))
+            else:
+                remaining.append(symbol)
+        if len(remaining) > 1 or (param := str(remaining[0])) not in self.parameters:
+            raise ValueError(
+                f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
+            )
+        numerator, _ = expr.as_numer_denom()
+        domain = FF(field)
+        poly = Poly(numerator, symbols(param), domain=domain)
+        roots = poly.ground_roots()
+        for root in roots:
+            params[param] = Mod(int(domain.from_sympy(root)), field)
+            return
+        raise UnsatisfiedAssumptionError(
+            f"Unsatisfied assumption in the formula ({assumption_string}).\n"
+            f"'{expr}' has no roots in the base field GF({field})."
+        )
+
     def __validate_assumptions(self, field, params):
         # Validate assumptions and compute formula parameters.
         # TODO: Should this also validate coordinate assumptions and compute their parameters?
-        is_symbolic = any(isinstance(x, SymbolicMod) for x in params.values())
         for assumption, assumption_string in zip(
             self.assumptions, self.assumptions_str
         ):
             lhs, rhs = assumption_string.split(" == ")
             if lhs in params:
-                # Handle an assumption check on value of input points.
-                alocals: Dict[str, Union[Mod, int]] = {**params}
-                compiled = compile(assumption, "", mode="eval")
-                holds = eval(compiled, None, alocals)  # eval is OK here, skipcq: PYL-W0123
-                if not holds:
-                    # The assumption doesn't hold, see what is the current configured action and do it.
+                if not self.__validate_assumption_point(assumption, params):
                     raise_unsatisified_assumption(
                         getconfig().ec.unsatisfied_formula_assumption_action,
                         f"Unsatisfied assumption in the formula ({assumption_string}).",
                     )
             elif lhs in self.parameters:
-                expr = sympify(rhs, evaluate=False)
-                for symbol in expr.free_symbols:
-                    if (value := params.get(str(symbol), None)) is not None:
-                        if isinstance(value, SymbolicMod):
-                            expr = expr.subs(symbol, value.x)
-                        else:
-                            expr = expr.subs(symbol, int(value))
-                    else:
-                        raise_unsatisified_assumption(
-                            getconfig().ec.unsatisfied_formula_assumption_action,
-                            f"Unsatisfied assumption in the formula ({assumption_string}).",
-                        )
-                if is_symbolic:
-                    params[lhs] = SymbolicMod(expr, field)
-                else:
-                    domain = FF(field)
-                    numerator, denominator = expr.as_numer_denom()
-                    val = int(domain.from_sympy(numerator) / domain.from_sympy(denominator))
-                    params[lhs] = Mod(val, field)
+                if not self.__validate_assumption_simple(lhs, rhs, field, params):
+                    raise_unsatisified_assumption(
+                        getconfig().ec.unsatisfied_formula_assumption_action,
+                        f"Unsatisfied assumption in the formula ({assumption_string}).",
+                    )
             else:
-                expr = sympify(f"{rhs} - {lhs}", evaluate=False)
-                remaining = []
-                for symbol in expr.free_symbols:
-                    if (value := params.get(str(symbol), None)) is not None:
-                        if isinstance(value, SymbolicMod):
-                            expr = expr.subs(symbol, value.x)
-                        else:
-                            expr = expr.subs(symbol, int(value))
-                    else:
-                        remaining.append(symbol)
-                if (
-                    len(remaining) > 1
-                    or (param := str(remaining[0])) not in self.parameters
-                ):
-                    raise ValueError(
-                        f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
-                    )
-                numerator, _ = expr.as_numer_denom()
-                domain = FF(field)
-                poly = Poly(numerator, symbols(param), domain=domain)
-                roots = poly.ground_roots()
-                for root in roots:
-                    params[param] = Mod(int(domain.from_sympy(root)), field)
-                    break
-                else:
-                    raise UnsatisfiedAssumptionError(
-                        f"Unsatisfied assumption in the formula ({assumption_string}).\n"
-                        f"'{expr}' has no roots in the base field GF({field})."
-                    )
+                self.__validate_assumption_generic(
+                    lhs, rhs, field, params, assumption_string
+                )
 
     def __call__(self, field: int, *points: Any, **params: Mod) -> Tuple[Any, ...]:
         """
