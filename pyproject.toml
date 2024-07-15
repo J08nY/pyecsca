@@ -31,7 +31,7 @@
   dependencies = [
     "numpy",
     "scipy",
-    "sympy>=1.7.1,<1.13", # <=1.13 required because of https://github.com/sympy/sympy/issues/26789 and https://github.com/sympy/sympy/issues/26791.
+    "sympy>=1.7.1",
     "pandas",
     "atpublic",
     "cython",
@@ -65,6 +65,7 @@
   "smartcard" = ["pyscard"]
   "leia" = ["smartleia"]
   "gmp" = ["gmpy2"]
+  "flint" = ["python-flint>=0.5.0"]
   "pari" = ["cysignals", "cypari2"]
   "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools", "pydocstyle"]
   "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock", "nbmake"]

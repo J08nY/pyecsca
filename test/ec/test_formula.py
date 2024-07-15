@@ -109,16 +109,32 @@ def test_assumptions(secp128r1, mdbl):
         assert pt is not None
 
 
-def test_parameters():
-    jac_secp128r1 = get_params("secg", "secp128r1", "jacobian")
-    jac_dbl = jac_secp128r1.curve.coordinate_model.formulas["dbl-1998-hnm"]
+@pytest.mark.parametrize(
+    "formula,category,curve,coords",
+    [("dbl-1998-hnm", "secg", "secp128r1", "jacobian"),
+     ("add-2015-rcb", "secg", "secp128r1", "projective"),
+     ("dbl-1987-m-2", "other", "Curve25519", "xz"),
+     ("add-20090311-hwcd", "other", "E-222", "projective")]
+)
+def test_eval(formula, category, curve, coords):
+    params = get_params(category, curve, coords)
+    f = params.curve.coordinate_model.formulas[formula]
 
-    res = jac_dbl(
-        jac_secp128r1.curve.prime,
-        jac_secp128r1.generator,
-        **jac_secp128r1.curve.parameters,
+    points_aff = [params.curve.affine_random() for _ in range(f.num_inputs)]
+    points = [point.to_model(params.curve.coordinate_model, params.curve) for point in points_aff]
+    expected = params.curve.affine_double(*points_aff) if f.shortname == "dbl" else params.curve.affine_add(*points_aff)
+
+    res = f(
+        params.curve.prime,
+        *points,
+        **params.curve.parameters,
     )
     assert res is not None
+    try:
+        res_aff = res[0].to_affine()
+        assert expected == res_aff
+    except NotImplementedError:
+        pass
 
 
 def test_symbolic(secp128r1, dbl):
@@ -139,7 +155,7 @@ def test_symbolic(secp128r1, dbl):
         generator_val = getattr(generator_double, outer_var).x
         for inner_var in coords.variables:
             symbolic_val = symbolic_val.subs(
-                inner_var, k(getattr(secp128r1.generator, inner_var).x)
+                inner_var, int(getattr(secp128r1.generator, inner_var).x)
             )
         assert Mod(int(symbolic_val), p) == Mod(generator_val, p)
 

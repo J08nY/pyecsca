@@ -54,7 +54,7 @@ class KeyGeneration:
         """
         with KeygenAction(self.params) as action:
             privkey = Mod.random(self.params.order)
-            pubkey = self.mult.multiply(privkey.x)
+            pubkey = self.mult.multiply(int(privkey.x))
             if self.affine:
                 pubkey = pubkey.to_affine()
             return action.exit((privkey, pubkey))

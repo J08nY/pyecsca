@@ -220,7 +220,7 @@ def _create_params(curve, coords, infty):
                 lhs, rhs = assumption_string.split(" = ")
                 expr = sympify(f"{rhs} - {lhs}")
                 for curve_param, value in params.items():
-                    expr = expr.subs(curve_param, k(value))
+                    expr = expr.subs(curve_param, value)
                 if (
                     len(expr.free_symbols) > 1
                     or (param := str(expr.free_symbols.pop()))
@@ -229,10 +229,11 @@ def _create_params(curve, coords, infty):
                     raise ValueError(
                         f"This coordinate model couldn't be loaded due to an unsupported assumption ({assumption_string})."
                     )
-                poly = Poly(expr, symbols(param), domain=k)
+                numerator, _ = expr.as_numer_denom()
+                poly = Poly(numerator, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots:
-                    params[param] = Mod(int(root), field)
+                    params[param] = Mod(int(k.from_sympy(root)), field)
                     break
                 else:
                     raise_unsatisified_assumption(

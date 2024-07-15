@@ -40,6 +40,7 @@ Requirements
        - **Faster arithmetic:**
 
          - gmpy2_ (and also GMP library)
+         - python-flint_ (and also Flint library)
          - cypari2_ (and also PARI library)
 
     *pyecsca* contains data from the `Explicit-Formulas Database`_ by Daniel J. Bernstein and Tanja Lange.
@@ -92,6 +93,7 @@ Requirements
 .. _pyscard: https://pyscard.sourceforge.io/
 .. _leia: https://pypi.org/project/smartleia/
 .. _gmpy2: https://gmpy2.readthedocs.io/
+.. _python-flint: https://fredrikj.net/python-flint/
 .. _cypari2: https://cypari2.readthedocs.io/
 .. _pytest: https://pytest.org
 .. _mypy: http://mypy-lang.org/

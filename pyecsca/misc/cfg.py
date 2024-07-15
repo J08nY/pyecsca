@@ -110,6 +110,7 @@ class ECConfig:
         One of:
 
          - ``"gmp"``: Requires the GMP library and `gmpy2` package.
+         - ``"flint"``: Requires the flint library and `python-flint` package.
          - ``"python"``: Doesn't require anything.
          - ``"symbolic"``: Requires sympy.
         """
@@ -117,8 +118,8 @@ class ECConfig:
 
     @mod_implementation.setter
     def mod_implementation(self, value: str):
-        if value not in ("python", "gmp", "symbolic"):
-            raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp' or 'symbolic'.")
+        if value not in ("python", "gmp", "flint", "symbolic"):
+            raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp', 'flint' or 'symbolic'.")
         self._mod_implementation = value
 
 

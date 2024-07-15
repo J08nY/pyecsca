@@ -119,13 +119,14 @@ class EllipticCurve:
                 assumption_string = unparse(assumption).strip()
                 lhs, rhs = assumption_string.split(" = ")
                 expr = sympify(f"{rhs} - {lhs}")
-                for curve_param, value in self.parameters.items():
-                    expr = expr.subs(curve_param, k(value))
+                for symbol in expr.free_symbols:
+                    if (val := self.parameters.get(str(symbol), None)) is not None:
+                        expr = expr.xreplace({symbol: val})
                 if len(expr.free_symbols) > 0:
                     raise ValueError(
                         f"Missing necessary coordinate model parameter ({assumption_string})."
                     )
-                if k(expr) != 0:
+                if k.from_sympy(expr) != 0:
                     raise_unsatisified_assumption(
                         getconfig().ec.unsatisfied_coordinate_assumption_action,
                         f"Coordinate model {self.coordinate_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."

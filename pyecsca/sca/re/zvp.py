@@ -180,7 +180,7 @@ def compute_factor_set(
         # Go over all the factors of the intermediate, forget the power
         for factor, power in factor_list:
             # Remove unnecessary variables from the Poly
-            reduced = factor.exclude()
+            reduced = factor.exclude() if not factor.is_univariate else factor
             # If there are only curve parameters, we do not care about the polynomial
             if set(reduced.gens).issubset(curve_params):  # type: ignore[attr-defined]
                 continue

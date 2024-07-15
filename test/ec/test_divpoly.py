@@ -111,7 +111,8 @@ def test_divpoly(secp128r1):
         (4,): K(340282366762482138434845932244680310753),
         (6,): K(2),
     }
-    assert divpoly(secp128r1.curve, 4, 0).as_dict() == coeffs_0
+    d_0 = {i: K.from_sympy(d) for i, d in divpoly(secp128r1.curve, 4, 0).as_dict().items()}
+    assert d_0 == coeffs_0
     coeffs_1 = {
         (6, 1): K(4),
         (4, 1): K(340282366762482138434845932244680310723),
@@ -120,7 +121,8 @@ def test_divpoly(secp128r1):
         (1, 1): K(199419663881059632785909763469900629947),
         (0, 1): K(32040881350774765434229461361345098032),
     }
-    assert divpoly(secp128r1.curve, 4, 1).as_dict() == coeffs_1
+    d_1 = {i: K.from_sympy(d) for i, d in divpoly(secp128r1.curve, 4, 1).as_dict().items()}
+    assert d_1 == coeffs_1
     coeffs_2 = {
         (9,): K(8),
         (7,): K(340282366762482138434845932244680310639),
@@ -131,7 +133,8 @@ def test_divpoly(secp128r1):
         (1,): K(51914434605509249526780779992574428819),
         (0,): K(60581150995923875019702403440670701629),
     }
-    assert divpoly(secp128r1.curve, 4, 2).as_dict() == coeffs_2
+    d_2 = {i: K.from_sympy(d) for i, d in divpoly(secp128r1.curve, 4, 2).as_dict().items()}
+    assert d_2 == coeffs_2
 
 
 def test_mult_by_n(secp128r1):
@@ -162,11 +165,11 @@ def test_mult_by_n(secp128r1):
     }
     mx, my = mult_by_n(secp128r1.curve, 2)
     mx_num, mx_denom = mx
-    assert coeffs_mx_num == list(map(lambda x: K(int(x)), mx_num.all_coeffs()))
-    assert coeffs_mx_denom == list(map(lambda x: K(int(x)), mx_denom.all_coeffs()))
+    assert coeffs_mx_num == list(map(K.from_sympy, mx_num.all_coeffs()))
+    assert coeffs_mx_denom == list(map(K.from_sympy, mx_denom.all_coeffs()))
     my_num, my_denom = my
-    assert my_num.as_dict() == coeffs_my_num
-    assert my_denom.as_dict() == coeffs_my_denom
+    assert {i: K.from_sympy(d) for i, d in my_num.as_dict().items()} == coeffs_my_num
+    assert {i: K.from_sympy(d) for i, d in my_denom.as_dict().items()} == coeffs_my_denom
 
 
 def test_mult_by_n_large(secp128r1):
@@ -187,10 +190,10 @@ def test_mult_by_n_large(secp128r1):
             eval(key): K(val) for key, val in sage_data["my"][1].items()  # eval is OK here, skipcq: PYL-W0123
         }
 
-        assert mx[0].as_dict() == sage_data["mx"][0]
-        assert mx[1].as_dict() == sage_data["mx"][1]
-        assert my[0].as_dict() == sage_data["my"][0]
-        assert my[1].as_dict() == sage_data["my"][1]
+        assert {i: K.from_sympy(d) for i, d in mx[0].as_dict().items()} == sage_data["mx"][0]
+        assert {i: K.from_sympy(d) for i, d in mx[1].as_dict().items()} == sage_data["mx"][1]
+        assert {i: K.from_sympy(d) for i, d in my[0].as_dict().items()} == sage_data["my"][0]
+        assert {i: K.from_sympy(d) for i, d in my[1].as_dict().items()} == sage_data["my"][1]
 
 
 def test_mult_by_n_pari(secp128r1):
