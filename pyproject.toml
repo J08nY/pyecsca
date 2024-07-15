@@ -5,7 +5,7 @@
 
 [project]
   name = "pyecsca"
-  version = "0.3.0"
+  version = "0.3.1"
   authors = [
     { name = "Jan Jancar", email = "johny@neuromancer.sk" },
     { name = "Tomas Jusko" },
