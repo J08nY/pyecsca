@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod as make_mod
 from pyecsca.ec.mod.gmp import has_gmp
 from pyecsca.ec.mod.flint import has_flint
 from pyecsca.misc.cfg import TemporaryConfig
@@ -28,8 +28,8 @@ def main(profiler, mod, operations, directory):
     with TemporaryConfig() as cfg:
         cfg.ec.mod_implementation = mod
         n = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
-        a = Mod(0x11111111111111111111111111111111, n)
-        b = Mod(0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB, n)
+        a = make_mod(0x11111111111111111111111111111111, n)
+        b = make_mod(0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB, n)
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular inverse...")
         with Profiler(profiler, directory, f"mod_256b_inverse_{operations}_{mod}"):
             for _ in range(operations):
