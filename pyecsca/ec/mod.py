@@ -169,7 +169,7 @@ class Mod:
     .. note::
         This class dispatches to one of :py:class:`RawMod`, :py:class:`GMPMod` or :py:class:`FlintMod`
         based on what packages are installed and what implementation is configured (see
-        :py:module:`pyecsca.misc.cfg`).
+        :py:mod:`pyecsca.misc.cfg`).
 
     Has all the usual special methods that upcast integers automatically:
 
@@ -781,7 +781,7 @@ if has_flint:
 
     @public
     class FlintMod(Mod):
-        """An element x of ℤₙ. Implemented by GMP."""
+        """An element x of ℤₙ. Implemented by flint."""
 
         x: flint.fmpz_mod
         _ctx: flint.fmpz_mod_ctx
