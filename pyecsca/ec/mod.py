@@ -194,7 +194,7 @@ class Mod:
     False
     >>> (a**2).is_residue()
     True
-    >>> (a**2).sqrt() == a
+    >>> (a**2).sqrt() in (a, -a)
     True
     """
 
