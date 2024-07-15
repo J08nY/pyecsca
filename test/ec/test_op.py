@@ -3,7 +3,7 @@ from ast import parse
 import pytest
 
 from pyecsca.ec.formula import OpResult
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.op import CodeOp, OpType
 
 
@@ -21,8 +21,8 @@ def test_str(name, module, result, op_type):
 
 
 @pytest.mark.parametrize("name,module,locals,result",
-                         [("add", "x = a+b", {"a": Mod(5, 21), "b": Mod(7, 21)}, Mod(12, 21)),
-                          ("sub", "x = a-b", {"a": Mod(7, 21), "b": Mod(5, 21)}, Mod(2, 21)), ])
+                         [("add", "x = a+b", {"a": mod(5, 21), "b": mod(7, 21)}, mod(12, 21)),
+                          ("sub", "x = a-b", {"a": mod(7, 21), "b": mod(5, 21)}, mod(2, 21)), ])
 def test_call(name, module, locals, result):
     code = parse(module, mode="exec")
     op = CodeOp(code)
@@ -31,9 +31,9 @@ def test_call(name, module, locals, result):
 
 
 def test_opresult_repr():
-    res = OpResult("a", Mod(7, 11), OpType.Neg, "b")
+    res = OpResult("a", mod(7, 11), OpType.Neg, "b")
     assert repr(res) == "a = -b"
-    res = OpResult("a", Mod(5, 7), OpType.Add, "c", 3)
+    res = OpResult("a", mod(5, 7), OpType.Add, "c", 3)
     assert repr(res) == "a = c+3"
-    res = OpResult("a", Mod(3, 11), OpType.Inv, "d")
+    res = OpResult("a", mod(3, 11), OpType.Inv, "d")
     assert repr(res) == "a = 1/d"

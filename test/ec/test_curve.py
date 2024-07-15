@@ -4,7 +4,7 @@ import pytest
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.error import UnsatisfiedAssumptionError
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.model import MontgomeryModel
 from pyecsca.ec.point import Point, InfinityPoint
 
@@ -34,7 +34,7 @@ def test_init(secp128r1):
             secp128r1.curve.coordinate_model,
             15,
             InfinityPoint(secp128r1.curve.coordinate_model),
-            parameters={"a": Mod(1, 5), "b": Mod(2, 5)},
+            parameters={"a": mod(1, 5), "b": mod(2, 5)},
         )
 
 
@@ -64,17 +64,17 @@ def test_is_on_curve(secp128r1, curve25519):
     assert secp128r1.curve.is_on_curve(secp128r1.curve.neutral)
     pt = Point(
         secp128r1.curve.coordinate_model,
-        X=Mod(0x161FF7528B899B2D0C28607CA52C5B86, secp128r1.curve.prime),
-        Y=Mod(0xCF5AC8395BAFEB13C02DA292DDED7A83, secp128r1.curve.prime),
-        Z=Mod(1, secp128r1.curve.prime),
+        X=mod(0x161FF7528B899B2D0C28607CA52C5B86, secp128r1.curve.prime),
+        Y=mod(0xCF5AC8395BAFEB13C02DA292DDED7A83, secp128r1.curve.prime),
+        Z=mod(1, secp128r1.curve.prime),
     )
     assert secp128r1.curve.is_on_curve(pt)
     assert secp128r1.curve.is_on_curve(pt.to_affine())
     other = Point(
         secp128r1.curve.coordinate_model,
-        X=Mod(0x161FF7528B899B2D0C28607CA52C5B86, secp128r1.curve.prime),
-        Y=Mod(0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, secp128r1.curve.prime),
-        Z=Mod(1, secp128r1.curve.prime),
+        X=mod(0x161FF7528B899B2D0C28607CA52C5B86, secp128r1.curve.prime),
+        Y=mod(0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, secp128r1.curve.prime),
+        Z=mod(1, secp128r1.curve.prime),
     )
     assert not secp128r1.curve.is_on_curve(other)
     assert not secp128r1.curve.is_on_curve(curve25519.generator)
@@ -83,8 +83,8 @@ def test_is_on_curve(secp128r1, curve25519):
 def test_affine_add(secp128r1):
     pt = Point(
         AffineCoordinateModel(secp128r1.curve.model),
-        x=Mod(0xEB916224EDA4FB356421773573297C15, secp128r1.curve.prime),
-        y=Mod(0xBCDAF32A2C08FD4271228FEF35070848, secp128r1.curve.prime),
+        x=mod(0xEB916224EDA4FB356421773573297C15, secp128r1.curve.prime),
+        y=mod(0xBCDAF32A2C08FD4271228FEF35070848, secp128r1.curve.prime),
     )
     affine_base = secp128r1.generator.to_affine()
     assert secp128r1.curve.affine_add(affine_base, pt) is not None

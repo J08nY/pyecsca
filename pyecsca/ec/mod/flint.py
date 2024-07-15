@@ -56,9 +56,6 @@ if has_flint:
         _ctx: flint.fmpz_mod_ctx
         __slots__ = ("x", "_ctx")
 
-        def __new__(cls, *args, **kwargs):
-            return object.__new__(cls)
-
         def __init__(
             self,
             x: Union[int, flint.fmpz_mod],

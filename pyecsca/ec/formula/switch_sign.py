@@ -7,7 +7,7 @@ from pyecsca.ec.op import OpType, CodeOp
 from pyecsca.ec.formula.base import Formula
 from pyecsca.ec.formula.graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
 from pyecsca.ec.point import Point
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 
 
 @public
@@ -59,7 +59,7 @@ def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
             out_var = out[: out.index(ind)]
             if not out_var.isalpha():
                 continue
-            point_dict[out_var] = Mod(sign, p)
+            point_dict[out_var] = mod(sign, p)
         point = Point(coordinate_model, **point_dict)
         try:
             apoint = point.to_affine()
@@ -68,7 +68,7 @@ def sign_test(output_signs: Dict[str, int], coordinate_model: Any):
             if scale is None:
                 raise BadSignSwitch
             apoint = scale(p, point)[0]
-        if set(apoint.coords.values()) != {Mod(1, p)}:
+        if set(apoint.coords.values()) != {mod(1, p)}:
             raise BadSignSwitch
 
 

@@ -1,7 +1,11 @@
-import cython
+cdef class Test:
+    def __init__(self):
+        print("here")
 
+cdef class SubTest(Test):
+    def __init__(self):
+        print("sub init")
 
-@cython.cclass
-class Test:
-    def __new__(cls, *args, **kwargs):
-        pass
+cdef class OtherTest(Test):
+    def __init__(self):
+        print("other init")

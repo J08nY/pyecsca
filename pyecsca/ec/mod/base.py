@@ -1,5 +1,6 @@
 import random
 import secrets
+from abc import ABC
 from functools import lru_cache, wraps
 
 from public import public
@@ -123,7 +124,7 @@ _mod_order = ["gmp", "flint", "python"]
 
 
 @public
-class Mod:
+class Mod(ABC):
     """
     An element x of ℤₙ.
 
@@ -134,8 +135,8 @@ class Mod:
 
     Has all the usual special methods that upcast integers automatically:
 
-    >>> a = Mod(3, 5)
-    >>> b = Mod(2, 5)
+    >>> a = mod(3, 5)
+    >>> b = mod(2, 5)
     >>> a + b
     0
     >>> a * 2
@@ -163,21 +164,9 @@ class Mod:
     n: Any
     __slots__ = ("x", "n")
 
-    def __new__(cls, *args, **kwargs) -> "Mod":
-        if cls != Mod:
-            return cls.__new__(cls, *args, **kwargs)
-        if not _mod_classes:
-            raise ValueError("Cannot find any working Mod class.")
-        selected_class = getconfig().ec.mod_implementation
-        if selected_class not in _mod_classes:
-            # Fallback to something
-            for fallback in _mod_order:
-                if fallback in _mod_classes:
-                    selected_class = fallback
-                    break
-        return _mod_classes[selected_class].__new__(
-            _mod_classes[selected_class], *args, **kwargs
-        )
+    def __init__(self, x, n):
+        self.x = x
+        self.n = n
 
     @_check
     def __add__(self, other) -> "Mod":
@@ -269,7 +258,7 @@ class Mod:
         :return: The random :py:class:`Mod`.
         """
         with RandomModAction(n) as action:
-            return action.exit(cls(secrets.randbelow(n), n))
+            return action.exit(mod(secrets.randbelow(n), n))
 
     def __pow__(self, n) -> "Mod":
         return NotImplemented
@@ -288,8 +277,7 @@ class Undefined(Mod):
         return object.__new__(cls)
 
     def __init__(self):
-        self.x = None
-        self.n = None
+        super().__init__(None, None)
 
     def __add__(self, other):
         return NotImplemented
@@ -359,3 +347,17 @@ class Undefined(Mod):
 
     def __pow__(self, n):
         return NotImplemented
+
+
+@public
+def mod(x, n) -> Mod:
+    if not _mod_classes:
+        raise ValueError("Cannot find any working Mod class.")
+    selected_class = getconfig().ec.mod_implementation
+    if selected_class not in _mod_classes:
+        # Fallback to something
+        for fallback in _mod_order:
+            if fallback in _mod_classes:
+                selected_class = fallback
+                break
+    return _mod_classes[selected_class](x, n)

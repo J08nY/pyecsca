@@ -20,7 +20,7 @@ from pyecsca.ec.formula import (
     DifferentialAdditionFormula,
     LadderFormula,
 )
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     ScalarMultiplicationAction,
     PrecomputationAction,
@@ -129,13 +129,13 @@ def rpa_point_0y(params: DomainParameters) -> Optional[Point]:
         y = params.curve.parameters["b"].sqrt()
         # TODO: We can take the negative as well.
         return Point(
-            AffineCoordinateModel(params.curve.model), x=Mod(0, params.curve.prime), y=y
+            AffineCoordinateModel(params.curve.model), x=mod(0, params.curve.prime), y=y
         )
     elif isinstance(params.curve.model, MontgomeryModel):
         return Point(
             AffineCoordinateModel(params.curve.model),
-            x=Mod(0, params.curve.prime),
-            y=Mod(0, params.curve.prime),
+            x=mod(0, params.curve.prime),
+            y=mod(0, params.curve.prime),
         )
     else:
         raise NotImplementedError
@@ -155,15 +155,15 @@ def rpa_point_x0(params: DomainParameters) -> Optional[Point]:
         roots = poly.ground_roots()
         if not roots:
             return None
-        x = Mod(int(next(iter(roots.keys()))), params.curve.prime)
+        x = mod(int(next(iter(roots.keys()))), params.curve.prime)
         return Point(
-            AffineCoordinateModel(params.curve.model), x=x, y=Mod(0, params.curve.prime)
+            AffineCoordinateModel(params.curve.model), x=x, y=mod(0, params.curve.prime)
         )
     elif isinstance(params.curve.model, MontgomeryModel):
         return Point(
             AffineCoordinateModel(params.curve.model),
-            x=Mod(0, params.curve.prime),
-            y=Mod(0, params.curve.prime),
+            x=mod(0, params.curve.prime),
+            y=mod(0, params.curve.prime),
         )
     else:
         raise NotImplementedError
@@ -269,7 +269,7 @@ class RPA(RE):
                 # Go over the parents and map them to multiples of the base (plus-minus sign)
                 init_multiples = set(
                     map(
-                        lambda v: Mod(v, params.order),
+                        lambda v: mod(v, params.order),
                         (init_context.points[parent] for parent in init_parents),
                     )
                 )
@@ -283,7 +283,7 @@ class RPA(RE):
                 )
                 multiply_multiples = set(
                     map(
-                        lambda v: Mod(v, params.order),
+                        lambda v: mod(v, params.order),
                         (ctx.points[parent] for parent in multiply_parents),
                     )
                 )

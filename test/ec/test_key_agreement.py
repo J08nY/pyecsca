@@ -13,7 +13,7 @@ from pyecsca.ec.key_agreement import (
     ECDH_SHA384,
     ECDH_SHA512,
 )
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import LTRMultiplier
 import test.data.ec
 from pyecsca.ec.params import get_params
@@ -29,7 +29,7 @@ def mult(secp128r1):
 
 @pytest.fixture()
 def keypair_a(secp128r1, mult):
-    priv_a = Mod(0xDEADBEEF, secp128r1.order)
+    priv_a = mod(0xDEADBEEF, secp128r1.order)
     mult.init(secp128r1, secp128r1.generator)
     pub_a = mult.multiply(int(priv_a))
     return priv_a, pub_a
@@ -37,7 +37,7 @@ def keypair_a(secp128r1, mult):
 
 @pytest.fixture()
 def keypair_b(secp128r1, mult):
-    priv_b = Mod(0xCAFEBABE, secp128r1.order)
+    priv_b = mod(0xCAFEBABE, secp128r1.order)
     mult.init(secp128r1, secp128r1.generator)
     pub_b = mult.multiply(int(priv_b))
     return priv_b, pub_b
@@ -58,15 +58,15 @@ def test_ka_secg():
     add = secp160r1.curve.coordinate_model.formulas["add-2015-rcb"]
     dbl = secp160r1.curve.coordinate_model.formulas["dbl-2015-rcb"]
     mult = LTRMultiplier(add, dbl)
-    privA = Mod(int(secg_data["keyA"]["priv"], 16), secp160r1.order)
+    privA = mod(int(secg_data["keyA"]["priv"], 16), secp160r1.order)
     pubA_affine = Point(affine_model,
-                        x=Mod(int(secg_data["keyA"]["pub"]["x"], 16), secp160r1.curve.prime),
-                        y=Mod(int(secg_data["keyA"]["pub"]["y"], 16), secp160r1.curve.prime))
+                        x=mod(int(secg_data["keyA"]["pub"]["x"], 16), secp160r1.curve.prime),
+                        y=mod(int(secg_data["keyA"]["pub"]["y"], 16), secp160r1.curve.prime))
     pubA = pubA_affine.to_model(secp160r1.curve.coordinate_model, secp160r1.curve)
-    privB = Mod(int(secg_data["keyB"]["priv"], 16), secp160r1.order)
+    privB = mod(int(secg_data["keyB"]["priv"], 16), secp160r1.order)
     pubB_affine = Point(affine_model,
-                        x=Mod(int(secg_data["keyB"]["pub"]["x"], 16), secp160r1.curve.prime),
-                        y=Mod(int(secg_data["keyB"]["pub"]["y"], 16), secp160r1.curve.prime))
+                        x=mod(int(secg_data["keyB"]["pub"]["x"], 16), secp160r1.curve.prime),
+                        y=mod(int(secg_data["keyB"]["pub"]["y"], 16), secp160r1.curve.prime))
     pubB = pubB_affine.to_model(secp160r1.curve.coordinate_model, secp160r1.curve)
 
     algoAB = ECDH_SHA1(copy(mult), secp160r1, pubA, privB)

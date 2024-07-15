@@ -1,9 +1,9 @@
 from itertools import product
-from typing import Sequence
+from typing import Sequence, List
 
 import pytest
 
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     DoubleAndAddMultiplier,
     LTRMultiplier,
@@ -191,21 +191,21 @@ def test_ladder(curve25519):
 )
 def test_ladder_full(curve25519, scalar, x, res):
     p = curve25519.curve.prime
-    point = Point(curve25519.curve.coordinate_model, X=Mod(x, p), Z=Mod(1, p))
-    result = Point(curve25519.curve.coordinate_model, X=Mod(res, p), Z=Mod(1, p))
+    point = Point(curve25519.curve.coordinate_model, X=mod(x, p), Z=mod(1, p))
+    result = Point(curve25519.curve.coordinate_model, X=mod(res, p), Z=mod(1, p))
 
     mult = LadderMultiplier(
         curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
         curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
         # complete=False
     )
-    fixed = int(Mod(scalar, curve25519.order))
+    fixed = int(mod(scalar, curve25519.order))
 
     mult.init(curve25519, point)
     computed = mult.multiply(fixed)
 
-    point_aff = list(curve25519.curve.affine_lift_x(Mod(x, p)))[0]
-    result_aff = list(curve25519.curve.affine_lift_x(Mod(res, p)))[0]
+    point_aff = list(curve25519.curve.affine_lift_x(mod(x, p)))[0]
+    result_aff = list(curve25519.curve.affine_lift_x(mod(res, p)))[0]
     computed_aff = curve25519.curve.affine_multiply(point_aff, scalar)
 
     scale = curve25519.curve.coordinate_model.formulas["scale"]
@@ -480,7 +480,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         + bgmws
         + combs
     )
-    results = []
+    results: List[Point] = []
     for mult in mults:
         mult.init(secp128r1, secp128r1.generator)
         res = mult.multiply(num)

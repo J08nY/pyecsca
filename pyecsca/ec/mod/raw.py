@@ -15,9 +15,6 @@ class RawMod(Mod):
     n: int
     __slots__ = ("x", "n")
 
-    def __new__(cls, *args, **kwargs):
-        return object.__new__(cls)
-
     def __init__(self, x: int, n: int):
         self.x = x % n
         self.n = n
@@ -115,6 +112,6 @@ class RawMod(Mod):
         return RawMod(pow(self.x, n, self.n), self.n)
 
 
-from pyecsca.ec.mod.base import _mod_classes
+from pyecsca.ec.mod.base import _mod_classes  # noqa
 
 _mod_classes["python"] = RawMod

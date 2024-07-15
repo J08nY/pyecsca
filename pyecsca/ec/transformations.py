@@ -6,7 +6,7 @@ from sympy import FF, symbols, Poly
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.model import (
     ShortWeierstrassModel,
     MontgomeryModel,
@@ -210,7 +210,7 @@ def __sw_ab(params: DomainParameters) -> Generator[Tuple[Mod, Mod], None, None]:
     if not roots:
         raise ValueError("Curve cannot be transformed (x^3 + ax + b has no root).")
     for root in roots:
-        alpha = Mod(int(root), params.curve.prime)
+        alpha = mod(int(root), params.curve.prime)
         beta = (3 * alpha**2 + params.curve.parameters["a"]).sqrt()
         yield alpha, beta
 
@@ -255,11 +255,11 @@ def SW2TE(params: DomainParameters) -> DomainParameters:
 
     def map_point(a, b, pt, aff):
         if params.curve.is_neutral(pt):
-            u = Mod(0, params.curve.prime)
-            v = Mod(1, params.curve.prime)
+            u = mod(0, params.curve.prime)
+            v = mod(1, params.curve.prime)
         elif pt.x == alpha and pt.y == 0:
-            u = Mod(0, params.curve.prime)
-            v = Mod(-1, params.curve.prime)
+            u = mod(0, params.curve.prime)
+            v = mod(-1, params.curve.prime)
         else:
             u = (pt.x - alpha) / pt.y
             v = (pt.x - alpha - beta) / (pt.x - alpha + beta)

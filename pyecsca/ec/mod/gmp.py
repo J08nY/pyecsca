@@ -44,9 +44,6 @@ if has_gmp:
         n: gmpy2.mpz
         __slots__ = ("x", "n")
 
-        def __new__(cls, *args, **kwargs):
-            return object.__new__(cls)
-
         def __init__(
             self,
             x: Union[int, gmpy2.mpz],

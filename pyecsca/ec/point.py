@@ -6,7 +6,7 @@ from public import public
 
 from pyecsca.ec.context import ResultAction
 from pyecsca.ec.coordinates import AffineCoordinateModel, CoordinateModel
-from pyecsca.ec.mod import Mod, Undefined
+from pyecsca.ec.mod import Mod, Undefined, mod
 from pyecsca.ec.op import CodeOp
 
 
@@ -131,7 +131,7 @@ class Point:
             for var in coordinate_model.variables:
                 if var in locls:
                     result[var] = (
-                        Mod(locls[var], curve.prime)
+                        mod(locls[var], curve.prime)
                         if not isinstance(locls[var], Mod)
                         else locls[var]
                     )

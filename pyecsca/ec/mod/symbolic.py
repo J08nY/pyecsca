@@ -26,9 +26,6 @@ class SymbolicMod(Mod):
     n: int
     __slots__ = ("x", "n")
 
-    def __new__(cls, *args, **kwargs):
-        return object.__new__(cls)
-
     def __init__(self, x: Expr, n: int):
         self.x = x
         self.n = n
@@ -117,6 +114,6 @@ class SymbolicMod(Mod):
         return self.__class__(pow(self.x, n), self.n)
 
 
-from pyecsca.ec.mod.base import _mod_classes
+from pyecsca.ec.mod.base import _mod_classes  # noqa
 
 _mod_classes["symbolic"] = SymbolicMod

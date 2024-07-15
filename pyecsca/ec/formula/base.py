@@ -13,7 +13,7 @@ from sympy import FF, symbols, Poly
 from pyecsca.ec.context import ResultAction
 from pyecsca.ec import context
 from pyecsca.ec.error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
-from pyecsca.ec.mod import Mod, SymbolicMod
+from pyecsca.ec.mod import Mod, SymbolicMod, mod
 from pyecsca.ec.op import CodeOp, OpType
 from pyecsca.misc.cfg import getconfig
 from pyecsca.misc.cache import sympify
@@ -191,7 +191,7 @@ class Formula(ABC):
                 domain = FF(field)
                 numerator, denominator = expr.as_numer_denom()
                 val = int(domain.from_sympy(numerator) / domain.from_sympy(denominator))
-                params[lhs] = Mod(val, field)
+                params[lhs] = mod(val, field)
             _assumption_cache[cache_key] = params[lhs]
         return True
 
@@ -216,7 +216,7 @@ class Formula(ABC):
         poly = Poly(numerator, symbols(param), domain=domain)
         roots = poly.ground_roots()
         for root in roots:
-            params[param] = Mod(int(domain.from_sympy(root)), field)
+            params[param] = mod(int(domain.from_sympy(root)), field)
             return
         raise UnsatisfiedAssumptionError(
             f"Unsatisfied assumption in the formula ({assumption_string}).\n"
@@ -274,7 +274,7 @@ class Formula(ABC):
                         f"Bad stuff happened in op {op}, floats will pollute the results."
                     )
                 if not isinstance(op_result, Mod):
-                    op_result = Mod(op_result, field)
+                    op_result = mod(op_result, field)
                 if context.current is not None:
                     action.add_operation(op, op_result)
                 params[op.result] = op_result
