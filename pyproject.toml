@@ -53,8 +53,8 @@
   ]
 
 [project.urls]
-  "Homepage" = "https://https://neuromancer.sk/pyecsca/"
-  "Documentation" = "https://https://neuromancer.sk/pyecsca/"
+  "Homepage" = "https://pyecsca.org"
+  "Documentation" = "https://pyecsca.org"
   "Bug Tracker" = "https://github.com/J08nY/pyecsca/issues"
   "Repository" = "https://github.com/J08nY/pyecsca"
 
