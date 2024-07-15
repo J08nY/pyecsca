@@ -3,6 +3,7 @@ from typing import cast
 
 import click
 
+from pyecsca.ec.context import local, DefaultContext
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula
 from pyecsca.ec.mod import has_gmp, has_flint
 from pyecsca.ec.mult import LTRMultiplier
@@ -45,6 +46,17 @@ def main(profiler, mod, operations, directory):
                 one_point = mult.multiply(
                     0x71A55E0C1ABB3A0E069419E0F837BC195F1B9545E69FC51E53C4D48D7FEA3B1A
                 )
+        click.echo(
+            f"Profiling {operations} {p256.curve.prime.bit_length()}-bit scalar multiplication executions (with tracing)..."
+        )
+        with local(DefaultContext()):
+            one_point = p256.generator
+            with Profiler(profiler, directory, f"mult_ltr_rcb_p256_wtrace_{operations}_{mod}"):
+                for _ in range(operations):
+                    mult.init(p256, one_point)
+                    one_point = mult.multiply(
+                        0x71A55E0C1ABB3A0E069419E0F837BC195F1B9545E69FC51E53C4D48D7FEA3B1A
+                    )
 
 
 if __name__ == "__main__":
