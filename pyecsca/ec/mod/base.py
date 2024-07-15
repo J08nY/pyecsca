@@ -1,6 +1,5 @@
 import random
 import secrets
-from abc import ABC
 from functools import lru_cache, wraps
 
 from public import public
@@ -124,7 +123,7 @@ _mod_order = ["gmp", "flint", "python"]
 
 
 @public
-class Mod(ABC):
+class Mod:
     """
     An element x of ℤₙ.
 
