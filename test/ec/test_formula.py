@@ -26,7 +26,7 @@ from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params, DomainParameters
 from pyecsca.ec.point import Point
-from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel, EdwardsModel
+from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
 from pyecsca.ec.formula.efd import (
     AdditionEFDFormula,
     DoublingEFDFormula,
@@ -120,7 +120,9 @@ def test_eval(formula, category, curve, coords):
     params = get_params(category, curve, coords)
     f = params.curve.coordinate_model.formulas[formula]
 
-    points = [params.curve.affine_random().to_model(params.curve.coordinate_model, params.curve) for _ in range(f.num_inputs)]
+    points_aff = [params.curve.affine_random() for _ in range(f.num_inputs)]
+    points = [point.to_model(params.curve.coordinate_model, params.curve) for point in points_aff]
+    expected = params.curve.affine_double(*points_aff) if f.shortname == "dbl" else params.curve.affine_add(*points_aff)
 
     res = f(
         params.curve.prime,
@@ -128,6 +130,11 @@ def test_eval(formula, category, curve, coords):
         **params.curve.parameters,
     )
     assert res is not None
+    try:
+        res_aff = res[0].to_affine()
+        assert expected == res_aff
+    except NotImplementedError:
+        pass
 
 
 def test_symbolic(secp128r1, dbl):

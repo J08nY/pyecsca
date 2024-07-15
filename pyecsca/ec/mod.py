@@ -7,7 +7,6 @@ dispatches to the implementation chosen by the runtime configuration of the libr
 :py:class:`RawMod`. A symbolic implementation based on sympy is available under :py:class:`SymbolicMod`. If
 `gmpy2` is installed, a GMP based implementation is available under :py:class:`GMPMod`.
 """
-import contextlib
 import random
 import secrets
 import warnings
