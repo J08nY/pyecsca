@@ -7,7 +7,7 @@ from test.utils import Profiler
 
 
 @click.command()
-@click.option("-p", "--profiler", type=click.Choice(("py", "c")), default="py")
+@click.option("-p", "--profiler", type=click.Choice(("py", "c", "raw")), default="py")
 @click.option(
     "-m",
     "--mod",

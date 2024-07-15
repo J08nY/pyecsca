@@ -16,7 +16,7 @@ from pyecsca.sca import (
 
 
 @click.command()
-@click.option("-p", "--profiler", type=click.Choice(("py", "c")), default="py")
+@click.option("-p", "--profiler", type=click.Choice(("py", "c", "raw")), default="py")
 @click.option("-o", "--operations", type=click.INT, default=100)
 @click.option(
     "-d",
