@@ -5,7 +5,8 @@ import click
 
 from pyecsca.ec.context import local, DefaultContext
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula
-from pyecsca.ec.mod import has_gmp, has_flint
+from pyecsca.ec.mod.gmp import has_gmp
+from pyecsca.ec.mod.flint import has_flint
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import get_params
 from pyecsca.misc.cfg import TemporaryConfig

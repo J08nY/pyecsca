@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod import Mod, has_gmp, has_flint
+from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod.gmp import has_gmp
+from pyecsca.ec.mod.flint import has_flint
 from pyecsca.misc.cfg import TemporaryConfig
 from test.utils import Profiler
 
