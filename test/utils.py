@@ -11,6 +11,10 @@ from cProfile import Profile as cProfiler
 
 
 class RawTimer:
+    start: int
+    end: int
+    duration: float
+
     def __enter__(self):
         self.start = time.perf_counter_ns()
 
@@ -20,8 +24,17 @@ class RawTimer:
 
 
 class Profiler:
-    def __init__(self, prof_type: Union[Literal["py"], Literal["c"], Literal["raw"]], output_directory: str, benchmark_name: str):
-        self._prof: Union[PyProfiler, cProfiler, RawTimer] = {"py": PyProfiler, "c": cProfiler, "raw": RawTimer}[prof_type]()
+    def __init__(
+        self,
+        prof_type: Union[Literal["py"], Literal["c"], Literal["raw"]],
+        output_directory: str,
+        benchmark_name: str,
+    ):
+        self._prof: Union[PyProfiler, cProfiler, RawTimer] = {
+            "py": PyProfiler,
+            "c": cProfiler,
+            "raw": RawTimer,
+        }[prof_type]()
         self._prof_type: Union[Literal["py"], Literal["c"], Literal["raw"]] = prof_type
         self._root_frame = None
         self._state = "out"
