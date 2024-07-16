@@ -258,8 +258,9 @@ def _create_params(curve, coords, infty):
                 )
             value = ilocals[coordinate]
             if isinstance(value, int):
-                value = mod(value, field)
-            infinity_coords[coordinate] = value
+                infinity_coords[coordinate] = mod(value, field)
+            else:
+                infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
     if "generator" not in curve:

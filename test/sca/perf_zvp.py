@@ -11,12 +11,19 @@ from test.utils import Profiler
 
 
 @click.command()
-@click.option("-p", "--profiler", type=click.Choice(("py", "c", "raw")), default="py")
+@click.option(
+    "-p",
+    "--profiler",
+    type=click.Choice(("py", "c", "raw")),
+    default="py",
+    envvar="PROF",
+)
 @click.option(
     "-m",
     "--mod",
     type=click.Choice(("python", "gmp", "flint")),
     default="flint" if has_flint else "gmp" if has_gmp else "python",
+    envvar="MOD",
 )
 @click.option("-o", "--operations", type=click.INT, default=1)
 @click.option(

@@ -93,9 +93,10 @@ class EllipticCurve:
             if isinstance(value, Mod):
                 if value.n != prime:
                     raise ValueError(f"Parameter {name} has wrong modulus.")
+                val = value
             else:
-                value = mod(value, prime)
-            self.parameters[name] = value
+                val = mod(value, prime)
+            self.parameters[name] = val
         self.neutral = neutral
         self.__validate_coord_assumptions()
 

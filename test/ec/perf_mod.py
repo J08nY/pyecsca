@@ -9,12 +9,19 @@ from test.utils import Profiler
 
 
 @click.command()
-@click.option("-p", "--profiler", type=click.Choice(("py", "c", "raw")), default="py")
+@click.option(
+    "-p",
+    "--profiler",
+    type=click.Choice(("py", "c", "raw")),
+    default="py",
+    envvar="PROF",
+)
 @click.option(
     "-m",
     "--mod",
     type=click.Choice(("python", "gmp", "flint")),
     default="flint" if has_flint else "gmp" if has_gmp else "python",
+    envvar="MOD",
 )
 @click.option("-o", "--operations", type=click.INT, default=100000)
 @click.option(
@@ -31,18 +38,24 @@ def main(profiler, mod, operations, directory):
         a = make_mod(0x11111111111111111111111111111111, n)
         b = make_mod(0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB, n)
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular inverse...")
-        with Profiler(profiler, directory, f"mod_256b_inverse_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_inverse_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 a.inverse()
         click.echo(
             f"Profiling {operations} {n.bit_length()}-bit modular square root..."
         )
-        with Profiler(profiler, directory, f"mod_256b_sqrt_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_sqrt_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 a.sqrt()
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular multiply...")
         c = a
-        with Profiler(profiler, directory, f"mod_256b_multiply_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_multiply_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 c = c * b
         click.echo(
@@ -50,33 +63,46 @@ def main(profiler, mod, operations, directory):
         )
         c = a
         with Profiler(
-            profiler, directory, f"mod_256b_constmultiply_{operations}_{mod}"
+            profiler,
+            directory,
+            f"mod_256b_constmultiply_{operations}_{mod}",
+            operations,
         ):
             for _ in range(operations):
                 c = c * 48006
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular square...")
         c = a
-        with Profiler(profiler, directory, f"mod_256b_square_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_square_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
-                c = c ** 2
+                c = c**2
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular add...")
         c = a
-        with Profiler(profiler, directory, f"mod_256b_add_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_add_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 c = c + b
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular subtract...")
         c = a
-        with Profiler(profiler, directory, f"mod_256b_subtract_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_subtract_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 c = c - b
         click.echo(
             f"Profiling {operations} {n.bit_length()}-bit modular quadratic residue checks..."
         )
-        with Profiler(profiler, directory, f"mod_256b_isresidue_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_isresidue_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 a.is_residue()
         click.echo(f"Profiling {operations} {n.bit_length()}-bit modular random...")
-        with Profiler(profiler, directory, f"mod_256b_random_{operations}_{mod}"):
+        with Profiler(
+            profiler, directory, f"mod_256b_random_{operations}_{mod}", operations
+        ):
             for _ in range(operations):
                 Mod.random(n)
 

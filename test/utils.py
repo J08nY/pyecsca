@@ -29,6 +29,7 @@ class Profiler:
         prof_type: Union[Literal["py"], Literal["c"], Literal["raw"]],
         output_directory: str,
         benchmark_name: str,
+        operations: int = 0
     ):
         self._prof: Union[PyProfiler, cProfiler, RawTimer] = {
             "py": PyProfiler,
@@ -40,6 +41,7 @@ class Profiler:
         self._state = "out"
         self._output_directory = output_directory
         self._benchmark_name = benchmark_name
+        self._operations = operations
 
     def __enter__(self):
         self._prof.__enter__()
@@ -90,7 +92,7 @@ class Profiler:
         elif self._prof_type == "c":
             self._prof.print_stats("cumtime")  # type: ignore
         elif self._prof_type == "raw":
-            print(f"{self._prof.duration:.4} s")  # type: ignore
+            print(f"{self._prof.duration:.4f}s {(self._operations/self._prof.duration) if self._operations else '-':.1f}op/s")  # type: ignore
 
     def get_time(self) -> float:
         if self._state != "out":

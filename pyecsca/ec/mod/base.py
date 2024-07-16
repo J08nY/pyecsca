@@ -164,8 +164,7 @@ class Mod:
     __slots__ = ("x", "n")
 
     def __init__(self, x, n):
-        self.x = x
-        self.n = n
+        raise TypeError("Abstract")
 
     @_check
     def __add__(self, other) -> "Mod":
@@ -273,7 +272,6 @@ class Undefined(Mod):
     __slots__ = ("x", "n")
 
     def __init__(self):
-        super().__init__(None, None)
         self.x = None
         self.n = None
 
@@ -348,7 +346,15 @@ class Undefined(Mod):
 
 
 @public
-def mod(x, n) -> Mod:
+def mod(x: int, n: int) -> Mod:
+    """
+    Construct a :py:class:`Mod`.
+
+    :param x: The value.
+    :param n: The modulus.
+    :return: A selected Mod implementation object.
+    :raises: ValueError in case a working Mod implementation cannot be found.
+    """
     if not _mod_classes:
         raise ValueError("Cannot find any working Mod class.")
     selected_class = getconfig().ec.mod_implementation
