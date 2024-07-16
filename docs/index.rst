@@ -19,9 +19,7 @@ pyecsca [pɪɛtska]
 
 **pyecsca** aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
 black-box implementations of ECC and presents a way to extract implementation information
-about a black-box implementation of ECC through side-channels. The main goal of **pyecsca**
-is to be able to reverse engineer the curve model, coordinate system, addition formulas, scalar
-multiplier and even finite-field implementation details.
+about a black-box implementation of ECC through side-channels.
 
 It currently provides:
 
@@ -64,12 +62,12 @@ It currently provides:
 
     .. grid-item-card::  Core
 
-        The `core <https://github.com/J08nY/pyecsca>`_ package contains the core of the
+        The `core <https://github.com/J08nY/pyecsca>`_ repository contains the core of the
         functionality, except the code generation and notebooks.
 
     .. grid-item-card::  Codegen
 
-        The `codegen <https://github.com/J08nY/pyecsca-codegen>`_ package contains
+        The `codegen <https://github.com/J08nY/pyecsca-codegen>`_ repository contains
         the code generation functionality.
 
     .. grid-item-card::  Notebook
