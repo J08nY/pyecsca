@@ -2,7 +2,7 @@ import pickle
 from contextlib import nullcontext as does_not_raise
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.params import get_params
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point, InfinityPoint
 import pytest
@@ -22,7 +22,7 @@ def test_construction(secp128r1_coords):
     with pytest.raises(ValueError):
         Point(secp128r1_coords)
     with pytest.raises(ValueError):
-        Point(secp128r1_coords, X=Mod(1, 3), Y=Mod(2, 7), Z=Mod(1, 3))
+        Point(secp128r1_coords, X=mod(1, 3), Y=mod(2, 7), Z=mod(1, 3))
 
 
 def test_to_affine(secp128r1, secp128r1_coords, affine_model):
