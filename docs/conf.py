@@ -45,7 +45,7 @@ extensions = [
     'sphinx_autodoc_typehints',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'sphinx_paramlinks',
     'sphinx_design',
     'nbsphinx'
@@ -220,3 +220,15 @@ autoclass_content = "both"
 
 nbsphinx_allow_errors = True
 nbsphinx_execute = "never"
+
+
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    if "codegen" in filename:
+        return "https://github.com/J08nY/pyecsca-codegen/tree/master/%s.py" % filename
+    else:
+        return "https://github.com/J08nY/pyecsca/tree/master/%s.py" % filename
