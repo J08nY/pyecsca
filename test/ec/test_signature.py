@@ -4,7 +4,7 @@ import pytest
 from importlib_resources import files
 import test.data.ec
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point
@@ -33,7 +33,7 @@ def mult(secp128r1, add):
 
 @pytest.fixture()
 def keypair(secp128r1, mult):
-    priv = Mod(0xDEADBEEF, secp128r1.order)
+    priv = mod(0xDEADBEEF, secp128r1.order)
     mult.init(secp128r1, secp128r1.generator)
     pub = mult.multiply(int(priv))
     return priv, pub
@@ -126,11 +126,11 @@ def test_ecdsa_nist():
     add = P192.curve.coordinate_model.formulas["add-2015-rcb"]
     dbl = P192.curve.coordinate_model.formulas["dbl-2015-rcb"]
     mult = LTRMultiplier(add, dbl)
-    priv = Mod(int(nist_data["priv"], 16), P192.order)
+    priv = mod(int(nist_data["priv"], 16), P192.order)
 
     pub_affine = Point(affine_model,
-                       x=Mod(int(nist_data["pub"]["x"], 16), P192.curve.prime),
-                       y=Mod(int(nist_data["pub"]["y"], 16), P192.curve.prime))
+                       x=mod(int(nist_data["pub"]["x"], 16), P192.curve.prime),
+                       y=mod(int(nist_data["pub"]["y"], 16), P192.curve.prime))
     pub = pub_affine.to_model(P192.curve.coordinate_model, P192.curve)
 
     signer = ECDSA_SHA1(mult, P192, add, pub, priv)

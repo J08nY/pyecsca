@@ -8,7 +8,7 @@ from sympy import symbols, FF, Poly
 import networkx as nx
 
 from pyecsca.ec.curve import EllipticCurve
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.model import ShortWeierstrassModel
 
 has_pari = False
@@ -90,9 +90,9 @@ def a_invariants(curve: EllipticCurve) -> Tuple[Mod, ...]:
     :return: A tuple of 5 a-invariants (a1, a2, a3, a4, a6).
     """
     if isinstance(curve.model, ShortWeierstrassModel):
-        a1 = Mod(0, curve.prime)
-        a2 = Mod(0, curve.prime)
-        a3 = Mod(0, curve.prime)
+        a1 = mod(0, curve.prime)
+        a2 = mod(0, curve.prime)
+        a3 = mod(0, curve.prime)
         a4 = curve.parameters["a"]
         a6 = curve.parameters["b"]
         return a1, a2, a3, a4, a6

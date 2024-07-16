@@ -21,7 +21,7 @@ from pyecsca.ec.formula.partitions import (
     generate_partitioned_formulas,
 )
 from pyecsca.ec.formula.switch_sign import generate_switched_formulas
-from pyecsca.ec.mod import SymbolicMod, Mod
+from pyecsca.ec.mod import SymbolicMod, Mod, mod
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.params import get_params, DomainParameters
@@ -157,7 +157,7 @@ def test_symbolic(secp128r1, dbl):
             symbolic_val = symbolic_val.subs(
                 inner_var, int(getattr(secp128r1.generator, inner_var).x)
             )
-        assert Mod(int(symbolic_val), p) == Mod(generator_val, p)
+        assert mod(int(symbolic_val), p) == mod(generator_val, p)
 
 
 def test_pickle(add, dbl):

@@ -7,7 +7,7 @@ from public import public
 
 from pyecsca.ec.context import Action
 from pyecsca.ec.formula import AdditionFormula
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -165,7 +165,7 @@ class Signature:
         if nonce is None:
             return Mod.random(self.params.order)
         else:
-            return Mod(nonce, self.params.order)
+            return mod(nonce, self.params.order)
 
     def _do_sign(self, nonce: Mod, digest: bytes) -> SignatureResult:
         z = int.from_bytes(digest, byteorder="big")
@@ -174,8 +174,8 @@ class Signature:
         self.mult.init(self.params, self.params.generator)
         point = self.mult.multiply(int(nonce))
         affine_point = point.to_affine()
-        r = Mod(int(affine_point.x), self.params.order)
-        s = nonce.inverse() * (Mod(z, self.params.order) + r * self.privkey)
+        r = mod(int(affine_point.x), self.params.order)
+        s = nonce.inverse() * (mod(z, self.params.order) + r * self.privkey)
         return SignatureResult(int(r), int(s))
 
     def sign_hash(self, digest: bytes, nonce: Optional[int] = None) -> SignatureResult:
@@ -203,16 +203,16 @@ class Signature:
         z = int.from_bytes(digest, byteorder="big")
         if len(digest) * 8 > self.params.order.bit_length():
             z >>= len(digest) * 8 - self.params.order.bit_length()
-        c = Mod(signature.s, self.params.order).inverse()
-        u1 = Mod(z, self.params.order) * c
-        u2 = Mod(signature.r, self.params.order) * c
+        c = mod(signature.s, self.params.order).inverse()
+        u1 = mod(z, self.params.order) * c
+        u2 = mod(signature.r, self.params.order) * c
         self.mult.init(self.params, self.params.generator)
         p1 = self.mult.multiply(int(u1))
         self.mult.init(self.params, self.pubkey)
         p2 = self.mult.multiply(int(u2))
         p = self.add(self.params.curve.prime, p1, p2, **self.params.curve.parameters)[0]
         affine = p.to_affine()
-        v = Mod(int(affine.x), self.params.order)
+        v = mod(int(affine.x), self.params.order)
         return signature.r == int(v)
 
     def verify_hash(self, signature: SignatureResult, digest: bytes) -> bool:

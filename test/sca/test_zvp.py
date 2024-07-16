@@ -1,7 +1,7 @@
 import pytest
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import LTRMultiplier, AccumulationOrder
 from pyecsca.ec.point import Point
 from pyecsca.sca.re.zvp import (
@@ -233,8 +233,8 @@ def test_zvp(secp128r1, formula):
 def test_points(secp128r1, poly_str, point, k):
     pt = Point(
         AffineCoordinateModel(secp128r1.curve.model),
-        x=Mod(point[0], secp128r1.curve.prime),
-        y=Mod(point[1], secp128r1.curve.prime),
+        x=mod(point[0], secp128r1.curve.prime),
+        y=mod(point[1], secp128r1.curve.prime),
     )
     poly_expr = sympify(poly_str)
     poly = Poly(poly_expr, domain=FF(secp128r1.curve.prime))

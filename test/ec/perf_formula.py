@@ -1,19 +1,27 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod import has_gmp, has_flint
+from pyecsca.ec.mod.gmp import has_gmp
+from pyecsca.ec.mod.flint import has_flint
 from pyecsca.ec.params import get_params
 from pyecsca.misc.cfg import TemporaryConfig
 from test.utils import Profiler
 
 
 @click.command()
-@click.option("-p", "--profiler", type=click.Choice(("py", "c", "raw")), default="py")
+@click.option(
+    "-p",
+    "--profiler",
+    type=click.Choice(("py", "c", "raw")),
+    default="py",
+    envvar="PROF",
+)
 @click.option(
     "-m",
     "--mod",
     type=click.Choice(("python", "gmp", "flint")),
     default="flint" if has_flint else "gmp" if has_gmp else "python",
+    envvar="MOD",
 )
 @click.option("-o", "--operations", type=click.INT, default=5000)
 @click.option(
@@ -35,7 +43,10 @@ def main(profiler, mod, operations, directory):
         )
         one_point = p256.generator
         with Profiler(
-            profiler, directory, f"formula_dbl2016rcb_p256_{operations}_{mod}"
+            profiler,
+            directory,
+            f"formula_dbl2016rcb_p256_{operations}_{mod}",
+            operations,
         ):
             for _ in range(operations):
                 one_point = dbl(p256.curve.prime, one_point, **p256.curve.parameters)[0]
@@ -44,7 +55,10 @@ def main(profiler, mod, operations, directory):
         )
         other_point = p256.generator
         with Profiler(
-            profiler, directory, f"formula_add2016rcb_p256_{operations}_{mod}"
+            profiler,
+            directory,
+            f"formula_add2016rcb_p256_{operations}_{mod}",
+            operations,
         ):
             for _ in range(operations):
                 one_point = add(
@@ -58,7 +72,10 @@ def main(profiler, mod, operations, directory):
         )
         eone_point = ed25519.generator
         with Profiler(
-            profiler, directory, f"formula_mdbl2008hwcd_ed25519_{operations}_{mod}"
+            profiler,
+            directory,
+            f"formula_mdbl2008hwcd_ed25519_{operations}_{mod}",
+            operations,
         ):
             for _ in range(operations):
                 dblg(ed25519.curve.prime, eone_point, **ed25519.curve.parameters)

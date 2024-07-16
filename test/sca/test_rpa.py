@@ -3,7 +3,7 @@ import pytest
 from pyecsca.ec.context import local
 from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.curve import EllipticCurve
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     LTRMultiplier,
     RTLMultiplier,
@@ -57,15 +57,15 @@ def neg(coords):
 @pytest.fixture()
 def rpa_params(model, coords):
     p = 0x85D265945A4F5681
-    a = Mod(0x7FC57B4110698BC0, p)
-    b = Mod(0x37113EA591B04527, p)
-    gx = Mod(0x80D2D78FDDB97597, p)
-    gy = Mod(0x5586D818B7910930, p)
+    a = mod(0x7FC57B4110698BC0, p)
+    b = mod(0x37113EA591B04527, p)
+    gx = mod(0x80D2D78FDDB97597, p)
+    gy = mod(0x5586D818B7910930, p)
     # (0x4880bcf620852a54, 0) RPA point
     # (0, 0x6bed3155c9ada064) RPA point
 
-    infty = Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p))
-    g = Point(coords, X=gx, Y=gy, Z=Mod(1, p))
+    infty = Point(coords, X=mod(0, p), Y=mod(1, p), Z=mod(0, p))
+    g = Point(coords, X=gx, Y=gy, Z=mod(1, p))
     curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
     return DomainParameters(curve, g, 0x85D265932D90785C, 1)
 
@@ -85,15 +85,15 @@ def test_0y_point(rpa_params):
 @pytest.fixture()
 def distinguish_params(model, coords):
     p = 0xcb5e1d94a6168511
-    a = Mod(0xb166ca7d2dfbf69f, p)
-    b = Mod(0x855bb40cb6937c4b, p)
-    gx = Mod(0x253b2638bd13d6f4, p)
-    gy = Mod(0x1e91a1a182287e71, p)
+    a = mod(0xb166ca7d2dfbf69f, p)
+    b = mod(0x855bb40cb6937c4b, p)
+    gx = mod(0x253b2638bd13d6f4, p)
+    gy = mod(0x1e91a1a182287e71, p)
     # (0x4880bcf620852a54, 0) RPA point
     # (0, 0x6bed3155c9ada064) RPA point
 
-    infty = Point(coords, X=Mod(0, p), Y=Mod(1, p), Z=Mod(0, p))
-    g = Point(coords, X=gx, Y=gy, Z=Mod(1, p))
+    infty = Point(coords, X=mod(0, p), Y=mod(1, p), Z=mod(0, p))
+    g = Point(coords, X=gx, Y=gy, Z=mod(1, p))
     curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
     return DomainParameters(curve, g, 0xcb5e1d94601a3ac5, 1)
 

@@ -5,7 +5,7 @@ from importlib_resources import files, as_file
 import pytest
 
 import test.data.ec
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.point import Point, InfinityPoint
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.coordinates import AffineCoordinateModel
@@ -131,11 +131,11 @@ def test_custom_params():
     model = ShortWeierstrassModel()
     coords = model.coordinates["projective"]
     p = 0xd7d1247f
-    a = Mod(0xa4a44016, p)
-    b = Mod(0x73f76716, p)
+    a = mod(0xa4a44016, p)
+    b = mod(0x73f76716, p)
     n = 0xd7d2a475
     h = 1
-    gx, gy, gz = Mod(0x54eed6d7, p), Mod(0x6f1e55ac, p), Mod(1, p)
+    gx, gy, gz = mod(0x54eed6d7, p), mod(0x6f1e55ac, p), mod(1, p)
     generator = Point(coords, X=gx, Y=gy, Z=gz)
     neutral = InfinityPoint(coords)
 

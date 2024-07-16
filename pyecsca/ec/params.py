@@ -18,7 +18,7 @@ from pyecsca.misc.cache import sympify
 from pyecsca.ec.coordinates import AffineCoordinateModel, CoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.error import raise_unsatisified_assumption
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.model import (
     CurveModel,
     ShortWeierstrassModel,
@@ -189,7 +189,7 @@ def _create_params(curve, coords, infty):
     else:
         raise ValueError("Unknown curve model.")
     params = {
-        name: Mod(int(curve["params"][name]["raw"], 16), field) for name in param_names
+        name: mod(int(curve["params"][name]["raw"], 16), field) for name in param_names
     }
 
     # Check coordinate model name and assumptions
@@ -233,7 +233,7 @@ def _create_params(curve, coords, infty):
                 poly = Poly(numerator, symbols(param), domain=k)
                 roots = poly.ground_roots()
                 for root in roots:
-                    params[param] = Mod(int(k.from_sympy(root)), field)
+                    params[param] = mod(int(k.from_sympy(root)), field)
                     break
                 else:
                     raise_unsatisified_assumption(
@@ -258,16 +258,17 @@ def _create_params(curve, coords, infty):
                 )
             value = ilocals[coordinate]
             if isinstance(value, int):
-                value = Mod(value, field)
-            infinity_coords[coordinate] = value
+                infinity_coords[coordinate] = mod(value, field)
+            else:
+                infinity_coords[coordinate] = value
         infinity = Point(coord_model, **infinity_coords)
     elliptic_curve = EllipticCurve(model, coord_model, field, infinity, params)  # type: ignore[arg-type]
     if "generator" not in curve:
         raise ValueError("Cannot construct curve, missing generator.")
     affine = Point(
         AffineCoordinateModel(model),
-        x=Mod(int(curve["generator"]["x"]["raw"], 16), field),
-        y=Mod(int(curve["generator"]["y"]["raw"], 16), field),
+        x=mod(int(curve["generator"]["x"]["raw"], 16), field),
+        y=mod(int(curve["generator"]["y"]["raw"], 16), field),
     )
     if not isinstance(coord_model, AffineCoordinateModel):
         generator = affine.to_model(coord_model, elliptic_curve)

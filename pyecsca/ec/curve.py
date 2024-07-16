@@ -12,7 +12,7 @@ from pyecsca.misc.cfg import getconfig
 
 from pyecsca.ec.coordinates import CoordinateModel, AffineCoordinateModel
 from pyecsca.ec.error import raise_unsatisified_assumption
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.model import CurveModel
 from pyecsca.ec.point import Point, InfinityPoint
 
@@ -37,12 +37,12 @@ class EllipticCurve:
 
     >>> from pyecsca.ec.coordinates import AffineCoordinateModel
     >>> affine = AffineCoordinateModel(curve.model)
-    >>> points_P = sorted(curve.affine_lift_x(Mod(5, curve.prime)), key=lambda p: int(p.y))
+    >>> points_P = sorted(curve.affine_lift_x(mod(5, curve.prime)), key=lambda p: int(p.y))
     >>> points_P  # doctest: +NORMALIZE_WHITESPACE
     [Point([x=5, y=31468013646237722594854082025316614106172411895747863909393730389177298123724] in shortw/affine),
      Point([x=5, y=84324075564118526167843364924090959423913731519542450286139900919689799730227] in shortw/affine)]
     >>> P = points_P[0]
-    >>> Q = Point(affine, x=Mod(106156966968002564385990772707119429362097710917623193504777452220576981858057, curve.prime), y=Mod(89283496902772247016522581906930535517715184283144143693965440110672128480043, curve.prime))
+    >>> Q = Point(affine, x=mod(106156966968002564385990772707119429362097710917623193504777452220576981858057, curve.prime), y=mod(89283496902772247016522581906930535517715184283144143693965440110672128480043, curve.prime))
     >>> curve.affine_add(P, Q)
     Point([x=110884201872336783252492544257507655322265785208411447156687491781308462893723, y=17851997459724035659875545393642578516937407971293368958749928013979790074156] in shortw/affine)
     >>> curve.affine_multiply(P, 10)
@@ -93,9 +93,10 @@ class EllipticCurve:
             if isinstance(value, Mod):
                 if value.n != prime:
                     raise ValueError(f"Parameter {name} has wrong modulus.")
+                val = value
             else:
-                value = Mod(value, prime)
-            self.parameters[name] = value
+                val = mod(value, prime)
+            self.parameters[name] = val
         self.neutral = neutral
         self.__validate_coord_assumptions()
 
@@ -147,9 +148,9 @@ class EllipticCurve:
         for line in formulas:
             exec(compile(line, "", mode="exec"), None, locls)  # exec is OK here, skipcq: PYL-W0122
         if not isinstance(locls["x"], Mod):
-            locls["x"] = Mod(locls["x"], self.prime)
+            locls["x"] = mod(locls["x"], self.prime)
         if not isinstance(locls["y"], Mod):
-            locls["y"] = Mod(locls["y"], self.prime)
+            locls["y"] = mod(locls["y"], self.prime)
         return Point(AffineCoordinateModel(self.model), x=locls["x"], y=locls["y"])
 
     def affine_add(self, one: Point, other: Point) -> Point:
@@ -234,9 +235,9 @@ class EllipticCurve:
         for line in self.model.base_neutral:
             exec(compile(line, "", mode="exec"), None, locls)  # exec is OK here, skipcq: PYL-W0122
         if not isinstance(locls["x"], Mod):
-            locls["x"] = Mod(locls["x"], self.prime)
+            locls["x"] = mod(locls["x"], self.prime)
         if not isinstance(locls["y"], Mod):
-            locls["y"] = Mod(locls["y"], self.prime)
+            locls["y"] = mod(locls["y"], self.prime)
         return Point(AffineCoordinateModel(self.model), x=locls["x"], y=locls["y"])
 
     @property
@@ -314,7 +315,7 @@ class EllipticCurve:
                 raise ValueError("Encoded point has bad length")
             coords = {}
             for var in sorted(self.coordinate_model.variables):
-                coords[var] = Mod(int.from_bytes(data[:coord_len], "big"), self.prime)
+                coords[var] = mod(int.from_bytes(data[:coord_len], "big"), self.prime)
                 data = data[coord_len:]
             return Point(self.coordinate_model, **coords)
         elif encoded[0] in (0x02, 0x03):
@@ -322,7 +323,7 @@ class EllipticCurve:
                 data = encoded[1:]
                 if len(data) != coord_len:
                     raise ValueError("Encoded point has bad length")
-                x = Mod(int.from_bytes(data, "big"), self.prime)
+                x = mod(int.from_bytes(data, "big"), self.prime)
                 loc = {**self.parameters, "x": x}
                 rhs = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
                 if not rhs.is_residue():

@@ -23,7 +23,7 @@ from pyecsca.ec.formula import (
 )
 from pyecsca.ec.formula.fake import FakePoint, FakeFormula
 from pyecsca.ec.formula.unroll import unroll_formula
-from pyecsca.ec.mod import Mod
+from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -444,7 +444,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
                 points.add(point)
     elif only_2:
         # if only_2, dlog sub is not necessary, then multiply with k_inverse to obtain target point
-        k_inv = Mod(k, n).inverse()
+        k_inv = mod(k, n).inverse()
         for point in solve_easy_dcp(eliminated, curve):
             inputs = {"x2": point.x, "y2": point.y, **curve.parameters}
             res = poly.eval([inputs[str(gen)] for gen in poly.gens])  # type: ignore[attr-defined]
@@ -471,7 +471,7 @@ def zvp_points(poly: Poly, curve: EllipticCurve, k: int, n: int) -> Set[Point]:
 
 def _deterministic_point_x(curve: EllipticCurve) -> int:
     """Obtain a "random" coordinate `x` on  given curve."""
-    x = Mod(1, curve.prime)
+    x = mod(1, curve.prime)
     while True:
         points = curve.affine_lift_x(x)
         if points:
@@ -502,7 +502,7 @@ def solve_easy_dcp(xonly_polynomial: Poly, curve: EllipticCurve) -> Set[Point]:
         roots = final.ground_roots().keys()
 
     for root in roots:
-        points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
+        points.update(curve.affine_lift_x(mod(int(root), curve.prime)))
     return points
 
 
@@ -533,7 +533,7 @@ def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[
 
     # Finally lift the roots to find the points (if any)
     for root in roots:
-        points.update(curve.affine_lift_x(Mod(int(root), curve.prime)))
+        points.update(curve.affine_lift_x(mod(int(root), curve.prime)))
     return points
 
 

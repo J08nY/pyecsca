@@ -4,16 +4,17 @@ import pytest
 from sympy import FF, symbols
 
 from pyecsca.ec.mod import (
+    mod,
     Mod,
     gcd,
     extgcd,
     Undefined,
     miller_rabin,
-    has_gmp,
     RawMod,
     SymbolicMod,
     jacobi,
 )
+from pyecsca.ec.mod.gmp import has_gmp
 from pyecsca.ec.error import (
     NonInvertibleError,
     NonResidueError,
@@ -46,120 +47,120 @@ def test_miller_rabin():
 
 def test_inverse():
     p = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
-    assert Mod(
+    assert mod(
         0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
-    ).inverse() == Mod(0x1CB2E5274BBA085C4CA88EEDE75AE77949E7A410C80368376E97AB22EB590F9D, p)
+    ).inverse() == mod(0x1CB2E5274BBA085C4CA88EEDE75AE77949E7A410C80368376E97AB22EB590F9D, p)
     with pytest.raises(NonInvertibleError):
-        Mod(0, p).inverse()
+        mod(0, p).inverse()
     with pytest.raises(NonInvertibleError):
-        Mod(5, 10).inverse()
+        mod(5, 10).inverse()
     getconfig().ec.no_inverse_action = "warning"
     with warnings.catch_warnings(record=True) as w:
-        Mod(0, p).inverse()
+        mod(0, p).inverse()
         assert issubclass(w[0].category, NonInvertibleWarning)
     with warnings.catch_warnings(record=True) as w:
-        Mod(5, 10).inverse()
+        mod(5, 10).inverse()
         assert issubclass(w[0].category, NonInvertibleWarning)
     getconfig().ec.no_inverse_action = "ignore"
-    Mod(0, p).inverse()
-    Mod(5, 10).inverse()
+    mod(0, p).inverse()
+    mod(5, 10).inverse()
     getconfig().ec.no_inverse_action = "error"
 
 
 def test_is_residue():
-    assert Mod(4, 11).is_residue()
-    assert not Mod(11, 31).is_residue()
-    assert Mod(0, 7).is_residue()
-    assert Mod(1, 2).is_residue()
+    assert mod(4, 11).is_residue()
+    assert not mod(11, 31).is_residue()
+    assert mod(0, 7).is_residue()
+    assert mod(1, 2).is_residue()
 
 
 def test_bit_length():
-    x = Mod(3, 5)
+    x = mod(3, 5)
     assert x.bit_length() == 2
 
 
 def test_sqrt():
     p = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
-    assert Mod(
+    assert mod(
         0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC, p
     ).sqrt() in (
                0x9ADD512515B70D9EC471151C1DEC46625CD18B37BDE7CA7FB2C8B31D7033599D,
                0x6522AED9EA48F2623B8EEAE3E213B99DA32E74C9421835804D374CE28FCCA662,
            )
     with pytest.raises(NonResidueError):
-        Mod(
+        mod(
             0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
         ).sqrt()
     getconfig().ec.non_residue_action = "warning"
     with warnings.catch_warnings(record=True) as w:
-        Mod(
+        mod(
             0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
         ).sqrt()
         assert issubclass(w[0].category, NonResidueWarning)
     getconfig().ec.non_residue_action = "ignore"
-    Mod(
+    mod(
         0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1, p
     ).sqrt()
     with TemporaryConfig() as cfg:
         cfg.ec.non_residue_action = "warning"
         with warnings.catch_warnings(record=True) as w:
-            Mod(
+            mod(
                 0x702BDAFD3C1C837B23A1CB196ED7F9FADB333C5CFE4A462BE32ADCD67BFB6AC1,
                 p,
             ).sqrt()
             assert issubclass(w[0].category, NonResidueWarning)
-    assert Mod(0, p).sqrt() == Mod(0, p)
+    assert mod(0, p).sqrt() == mod(0, p)
     q = 0x75D44FEE9A71841AE8403C0C251FBAD
-    assert Mod(0x591E0DB18CF1BD81A11B2985A821EB3, q).sqrt() in \
+    assert mod(0x591E0DB18CF1BD81A11B2985A821EB3, q).sqrt() in \
            (0x113B41A1A2B73F636E73BE3F9A3716E, 0x64990E4CF7BA44B779CC7DCC8AE8A3F)
     getconfig().ec.non_residue_action = "error"
 
 
 def test_eq():
-    assert Mod(1, 7) == 1
-    assert Mod(1, 7) != "1"
-    assert Mod(1, 7) == Mod(1, 7)
-    assert Mod(1, 7) != Mod(5, 7)
-    assert Mod(1, 7) != Mod(1, 5)
+    assert mod(1, 7) == 1
+    assert mod(1, 7) != "1"
+    assert mod(1, 7) == mod(1, 7)
+    assert mod(1, 7) != mod(5, 7)
+    assert mod(1, 7) != mod(1, 5)
 
 
 def test_pow():
-    a = Mod(5, 7)
+    a = mod(5, 7)
     assert a ** (-1) == a.inverse()
-    assert a ** 0 == Mod(1, 7)
+    assert a ** 0 == mod(1, 7)
     assert a ** (-2) == a.inverse() ** 2
 
 
 def test_wrong_mod():
-    a = Mod(5, 7)
-    b = Mod(4, 11)
+    a = mod(5, 7)
+    b = mod(4, 11)
     with pytest.raises(ValueError):
         a + b
 
 
 def test_wrong_pow():
-    a = Mod(5, 7)
-    c = Mod(4, 11)
+    a = mod(5, 7)
+    c = mod(4, 11)
     with pytest.raises(TypeError):
         a ** c
 
 
 def test_other():
-    a = Mod(5, 7)
-    b = Mod(3, 7)
+    a = mod(5, 7)
+    b = mod(3, 7)
     assert int(-a) == 2
     assert str(a) == "5"
-    assert 6 - a == Mod(1, 7)
+    assert 6 - a == mod(1, 7)
     assert a != b
-    assert a / b == Mod(4, 7)
-    assert a // b == Mod(4, 7)
-    assert 5 / b == Mod(4, 7)
-    assert 5 // b == Mod(4, 7)
-    assert a / 3 == Mod(4, 7)
-    assert a // 3 == Mod(4, 7)
-    assert a + b == Mod(1, 7)
-    assert 5 + b == Mod(1, 7)
-    assert a + 3 == Mod(1, 7)
+    assert a / b == mod(4, 7)
+    assert a // b == mod(4, 7)
+    assert 5 / b == mod(4, 7)
+    assert 5 // b == mod(4, 7)
+    assert a / 3 == mod(4, 7)
+    assert a // 3 == mod(4, 7)
+    assert a + b == mod(1, 7)
+    assert 5 + b == mod(1, 7)
+    assert a + 3 == mod(1, 7)
     assert a != 6
     assert hash(a) is not None
 
@@ -198,7 +199,7 @@ def test_implementation():
         pytest.skip("Only makes sense if more Mod implementations are available.")
     with TemporaryConfig() as cfg:
         cfg.ec.mod_implementation = "python"
-        assert isinstance(Mod(5, 7), RawMod)
+        assert isinstance(mod(5, 7), RawMod)
 
 
 def test_symbolic():
