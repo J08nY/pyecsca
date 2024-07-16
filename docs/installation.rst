@@ -48,6 +48,7 @@ Requirements
 
     It uses `ChipWhisperer`_ as one of its targets. It also supports working with Riscure_ Inspector trace sets, which are of a proprietary format.
 
+    Optionally, you can Cythonize the `pyecsca/ec/mod` subpackage and sometimes gain a performance benefit, YMMV.
 
 .. dropdown:: Testing & Development
 

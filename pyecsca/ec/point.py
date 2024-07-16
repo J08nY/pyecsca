@@ -131,7 +131,7 @@ class Point:
             for var in coordinate_model.variables:
                 if var in locls:
                     result[var] = (
-                        mod(locls[var], curve.prime)
+                        mod(locls[var], curve.prime)  # type: ignore
                         if not isinstance(locls[var], Mod)
                         else locls[var]
                     )
