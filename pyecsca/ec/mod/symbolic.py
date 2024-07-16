@@ -110,7 +110,7 @@ class SymbolicMod(Mod):
     def __hash__(self):
         return hash(("SymbolicMod", self.x, self.n))
 
-    def __pow__(self, n) -> "SymbolicMod":
+    def __pow__(self, n, _=None) -> "SymbolicMod":
         return self.__class__(pow(self.x, n), self.n)
 
 

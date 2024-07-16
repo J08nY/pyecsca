@@ -155,7 +155,7 @@ if has_gmp:
         def __hash__(self):
             return hash(("GMPMod", self.x, self.n))
 
-        def __pow__(self, n) -> "GMPMod":
+        def __pow__(self, n, _=None) -> "GMPMod":
             if type(n) not in (int, gmpy2.mpz):
                 raise TypeError
             if n == 0:

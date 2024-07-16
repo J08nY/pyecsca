@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod import Mod, mod as make_mod
+from pyecsca.ec.mod.base import Mod, mod as make_mod
 from pyecsca.ec.mod.gmp import has_gmp
 from pyecsca.ec.mod.flint import has_flint
 from pyecsca.misc.cfg import TemporaryConfig

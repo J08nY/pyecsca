@@ -99,7 +99,7 @@ class RawMod(Mod):
     def __hash__(self):
         return hash(("RawMod", self.x, self.n))
 
-    def __pow__(self, n) -> "RawMod":
+    def __pow__(self, n, _=None) -> "RawMod":
         if type(n) is not int:
             raise TypeError
         if n == 0:

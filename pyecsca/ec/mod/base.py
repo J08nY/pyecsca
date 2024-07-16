@@ -259,7 +259,7 @@ class Mod:
         with RandomModAction(n) as action:
             return action.exit(mod(secrets.randbelow(n), n))
 
-    def __pow__(self, n) -> "Mod":
+    def __pow__(self, n, _=None) -> "Mod":
         return NotImplemented
 
     def __str__(self):
@@ -272,11 +272,10 @@ class Undefined(Mod):
 
     __slots__ = ("x", "n")
 
-    def __new__(cls, *args, **kwargs):
-        return object.__new__(cls)
-
     def __init__(self):
         super().__init__(None, None)
+        self.x = None
+        self.n = None
 
     def __add__(self, other):
         return NotImplemented
@@ -344,7 +343,7 @@ class Undefined(Mod):
     def __hash__(self):
         return hash("Undefined") + 1
 
-    def __pow__(self, n):
+    def __pow__(self, n, _=None):
         return NotImplemented
 
 

@@ -13,7 +13,7 @@ from sympy import FF, symbols, Poly
 from pyecsca.ec.context import ResultAction
 from pyecsca.ec import context
 from pyecsca.ec.error import UnsatisfiedAssumptionError, raise_unsatisified_assumption
-from pyecsca.ec.mod import Mod, SymbolicMod, mod
+from pyecsca.ec.mod import Mod, mod, SymbolicMod
 from pyecsca.ec.op import CodeOp, OpType
 from pyecsca.misc.cfg import getconfig
 from pyecsca.misc.cache import sympify

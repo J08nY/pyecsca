@@ -208,7 +208,7 @@ if has_flint:
         def __hash__(self):
             return hash(("FlintMod", self.x, self.n))
 
-        def __pow__(self, n) -> "FlintMod":
+        def __pow__(self, n, _=None) -> "FlintMod":
             if type(n) not in (int, flint.fmpz):
                 raise TypeError
             if n == 0:
