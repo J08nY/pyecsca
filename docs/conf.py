@@ -234,6 +234,14 @@ autoclass_content = "both"
 nbsphinx_allow_errors = True
 nbsphinx_execute = "never"
 
+nbsphinx_prolog = """
+{% set notebook_path = env.doc2path(env.docname, base=None) | replace("notebook/", "") %}
+.. raw:: html
+
+    <a href="https://mybinder.org/v2/gh/J08nY/pyecsca-notebook/HEAD?labpath={{ notebook_path }}" class="sd-badge sd-outline-primary">MyBinder</a>
+
+"""
+
 
 def linkcode_resolve(domain, info):
     if domain != 'py':
