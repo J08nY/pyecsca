@@ -100,7 +100,11 @@ html_theme_options = {
     'code_font_family': "'IBM Plex Mono', 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace",
     'caption_font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif",
     'head_font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif",
-    'font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif"
+    'font_family': "'IBM Plex Sans', 'Helvetica Neue', sans-serif",
+    'github_button': False,
+    'github_banner': False,
+    'github_user': 'J08nY',
+    'github_repo': 'pyecsca'
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -124,7 +128,16 @@ html_css_files = [
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'nav.html',
+        'relations.html',
+        'searchfield.html'
+    ]
+}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
