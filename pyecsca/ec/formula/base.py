@@ -173,7 +173,7 @@ class Formula(ABC):
         used_symbols = sorted(expr.free_symbols)
         used_params = []
         for symbol in used_symbols:
-            if (value := params.get(str(symbol), None)) is not None:
+            if (value := params.get(symbol.name, None)) is not None:
                 used_params.append(value)
                 if isinstance(value, SymbolicMod):
                     expr = expr.xreplace({symbol: value.x})
@@ -200,14 +200,14 @@ class Formula(ABC):
         expr = sympify(f"{rhs} - {lhs}", evaluate=False)
         remaining = []
         for symbol in expr.free_symbols:
-            if (value := params.get(str(symbol), None)) is not None:
+            if (value := params.get(symbol.name, None)) is not None:
                 if isinstance(value, SymbolicMod):
                     expr = expr.xreplace({symbol: value.x})
                 else:
                     expr = expr.xreplace({symbol: int(value)})
             else:
                 remaining.append(symbol)
-        if len(remaining) > 1 or (param := str(remaining[0])) not in self.parameters:
+        if len(remaining) > 1 or (param := remaining[0].name) not in self.parameters:
             raise ValueError(
                 f"This formula couldn't be executed due to an unsupported assumption ({assumption_string})."
             )
