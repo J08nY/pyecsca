@@ -146,7 +146,15 @@ Notebooks
 =========
 
 The notebook repository is included as a submodule in the core repository.
-However, this version can get outdated during active development.
+However, this version can get outdated during active development. Note that
+the notebooks have some additional requirements that are specified in the ``requirements.txt`` file,
+which you can install with:
+
+.. code-block:: shell
+
+    pip install -r requirements.txt
+
+inside the notebook repository.
 
 .. _Numpy: https://www.numpy.org
 .. _Scipy: https://www.scipy.org
