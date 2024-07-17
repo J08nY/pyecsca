@@ -5,12 +5,15 @@
 
 [project]
   name = "pyecsca"
-  version = "0.3.1"
+  version = "0.3.2"
   authors = [
     { name = "Jan Jancar", email = "johny@neuromancer.sk" },
     { name = "Tomas Jusko" },
     { name = "Andrej Batora" },
     { name = "Vojtech Suchanek" }
+  ]
+  maintainers = [
+  	{ name = "Jan Jancar", email = "johny@neuromancer.sk" }
   ]
   description = "Python Elliptic Curve cryptography Side Channel Analysis toolkit."
   readme = "README.md"
