@@ -10,11 +10,11 @@ env:
   PS_PACKAGES: libps4000 libps5000 libps6000
   GMP_PACKAGES: libgmp-dev libmpfr-dev libmpc-dev
   FLINT_PACKAGES: libflint-dev
-  OTHER_PACKAGES: pandoc swig gcc libpcsclite-dev llvm-10 libllvm10 llvm-10-dev libpari-dev pari-gp pari-seadata gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+  OTHER_PACKAGES: pandoc swig gcc libpcsclite-dev llvm-14 libllvm14 llvm-14-dev libpari-dev pari-gp pari-seadata gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
 
 jobs:
   docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
       pages: write      # to deploy to Pages
