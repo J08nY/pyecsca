@@ -79,7 +79,7 @@
   namespaces = true
 
 [tool.setuptools.package-data]
-  pyecsca = ["ec/efd/*/*", "ec/efd/*/*/*", "ec/efd/*/*/*/*", "ec/std/*", "ec/std/*/*"]
+  pyecsca = ["ec/efd/*/*", "ec/efd/*/*/*", "ec/efd/*/*/*/*", "ec/std/*", "ec/std/*/*", "ec/data/*", "ec/data/*/*"]
 
 [tool.setuptools_scm]
 

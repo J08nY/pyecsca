@@ -1,7 +1,11 @@
 include README.md
-include docs/_static/logo_black_full.png
 graft pyecsca/ec/efd/
 graft pyecsca/ec/std/
+graft pyecsca/ec/data/
+prune .github/
+prune docs/
+prune test/
+exclude .coveragerc .deepsource.toml .pre-commit-config.yml codecov.yml
 global-exclude .git*
 exclude pyecsca/ec/efd/README.md pyecsca/ec/std/README.md
 prune pyecsca/ec/std/.github/
