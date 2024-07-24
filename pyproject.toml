@@ -5,9 +5,10 @@
 
 [project]
   name = "pyecsca"
-  version = "0.3.2"
+  dynamic = ["version"]
   authors = [
     { name = "Jan Jancar", email = "johny@neuromancer.sk" },
+    { name = "Jan Jancar"},
     { name = "Tomas Jusko" },
     { name = "Andrej Batora" },
     { name = "Vojtech Suchanek" }

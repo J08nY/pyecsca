@@ -14,6 +14,7 @@
 #
 import os
 import sys
+from importlib.metadata import version as get_version
 sys.path.insert(0, os.path.abspath('../notebook/'))
 
 
@@ -25,10 +26,9 @@ author = 'Jan Jancar'
 
 sys.path.append(os.path.abspath('..'))
 
-# The short X.Y version
-version = '0.3.2'
-# The full version, including alpha/beta/rc tags
-release = '0.3.2'
+release: str = get_version("pyecsca")
+# for example take major/minor
+version: str = ".".join(release.split('.')[:2])
 
 
 # -- General configuration ---------------------------------------------------
