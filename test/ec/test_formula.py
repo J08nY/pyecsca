@@ -5,7 +5,7 @@ from typing import Tuple
 import pytest
 from sympy import FF, symbols
 from importlib_resources import files, as_file
-import test.data.formulas
+import pyecsca.ec
 from pyecsca.ec.formula.expand import expand_formula_set
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
@@ -418,8 +418,8 @@ def library_formula_params(request) -> Tuple[CodeFormula, DomainParameters]:
     name, model, coords_name, param_spec, formula_type = request.param
     model = model()
     coordinate_model = model.coordinates[coords_name]
-    with as_file(files(test.data.formulas).joinpath(name)) as meta_path, as_file(
-        files(test.data.formulas).joinpath(name + ".op3")
+    with as_file(files(pyecsca.ec).joinpath("data", "formulas", name)) as meta_path, as_file(
+        files(pyecsca.ec).joinpath("data", "formulas", name + ".op3")
     ) as op3_path:
         formula = formula_type(meta_path, op3_path, name, coordinate_model).to_code()
     params = get_params(*param_spec, coords_name)
