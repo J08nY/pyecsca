@@ -30,6 +30,12 @@ It currently provides:
  - the codegen package: https://github.com/J08nY/pyecsca-codegen
  - the notebook package: https://github.com/J08nY/pyecsca-notebook
 
+## Tutorials
+
+To learn more about the toolkit you can check out two tutorials on it.
+ - One from the [SummerSchool on Real-World Crypto and Privacy 2024](https://github.com/J08nY/pyecsca-tutorial-croatia2024) in Vodice, Croatia.
+ - One from the [Cryptographic Hardware and Embedded Systems (CHES) 2024](https://github.com/J08nY/pyecsca-tutorial-ches2024) conference in Halifax, Canada.
+
 ## License
 
     MIT License

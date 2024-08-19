@@ -75,6 +75,13 @@ It currently provides:
         The `notebook <https://github.com/J08nY/pyecsca-notebook>`_ repository contains
         example notebooks that showcase functionality of the toolkit.
 
+Tutorials
+=========
+
+To learn more about the toolkit you can check out two tutorials on it.
+ - One from the `SummerSchool on Real-World Crypto and Privacy 2024 <https://github.com/J08nY/pyecsca-tutorial-croatia2024>`_ in Vodice, Croatia.
+ - One from the `Cryptographic Hardware and Embedded Systems (CHES) 2024 <https://github.com/J08nY/pyecsca-tutorial-ches2024>`_ conference in Halifax, Canada.
+
 .. toctree::
    :hidden:
    :titlesonly:
