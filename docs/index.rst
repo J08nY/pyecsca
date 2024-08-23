@@ -91,6 +91,7 @@ To learn more about the toolkit you can check out two tutorials on it.
    notebooks
    api
    libraries
+   papers
    references
 
 

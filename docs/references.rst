@@ -1,6 +1,6 @@
-==========================
+================================
 :fas:`asterisk;fa-fw` References
-==========================
+================================
 
 .. [STD] Standard Curve Database, https://neuromancer.sk/std/
 .. [EFD] Explicit Formulas Database, https://hyperelliptic.org/EFD/
