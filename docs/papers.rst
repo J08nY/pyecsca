@@ -17,7 +17,7 @@ Jan Jancar, Vojtech Suchanek, Petr Svenda, Vladimir Sedlacek, Lukasz Chmielewski
         :columns: auto
 
         .. button-link:: _static/pyecsca_ches24.pdf
-            :color: primary
+            :color: secondary
 
             :fas:`file-alt;fa-fw` Preprint
 
@@ -25,7 +25,7 @@ Jan Jancar, Vojtech Suchanek, Petr Svenda, Vladimir Sedlacek, Lukasz Chmielewski
         :columns: auto
 
         .. button-link:: https://github.com/J08nY/pyecsca-artifact
-            :color: primary
+            :color: secondary
 
             :fas:`file-zipper;fa-fw` Artifact
 

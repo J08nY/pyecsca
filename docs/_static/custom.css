@@ -9,3 +9,15 @@ img.logo {
 dl.class, dl.function {
     margin-bottom: 2em;
 }
+
+a {
+    color: #004B6B;
+}
+
+a:visited {
+    color: #001c63;
+}
+
+dt:target, .highlight {
+    background: #ffffff;
+}
