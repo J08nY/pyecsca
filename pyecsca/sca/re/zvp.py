@@ -5,6 +5,7 @@ Implements ZVP point construction from [FFD]_.
 """
 from typing import List, Set, Tuple, Dict, Type
 from public import public
+import warnings
 from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
@@ -521,6 +522,7 @@ def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[
     if has_pari:
         roots = solve_hard_dcp_cypari(xonly_polynomial, curve, k)
     else:
+        warnings.warn("Falling-back to slow hard-DCP computation due to missing [pari] (cypari2 and libpari) dependency.")
         # Substitute in the mult-by-k map
         dlog = subs_dlog(xonly_polynomial, k, curve)
         # Put in concrete curve parameters

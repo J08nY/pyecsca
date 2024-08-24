@@ -3,6 +3,7 @@ Provides functions for computing division polynomials and the multiplication-by-
 """
 from typing import Tuple, Dict, Set, Mapping, Optional
 from public import public
+import warnings
 
 from sympy import symbols, FF, Poly
 import networkx as nx
@@ -291,6 +292,8 @@ def mult_by_n(
     if use_pari and has_pari:
         mx = mult_by_n_pari(curve, n)
     else:
+        if use_pari:
+            warnings.warn("Falling-back to slow mult-by-n map computation due to missing [pari] (cypari2 and libpari) dependency.")
         mx = mult_by_n_own(curve, n)
 
     if x_only:
