@@ -125,7 +125,7 @@ class CodeOpNode(Node):
 
     @property
     def label(self) -> str:
-        return f"{self.op.result}:{self.op.operator.op_str}"
+        return f"{self.op.result}:{self.op.operator.op_str}"  # noqa
 
     @property
     def result(self) -> str:
@@ -282,8 +282,8 @@ class FormulaGraph:
 
     def networkx_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
-        vertices = list(range(len(self.nodes)))
-        graph.add_nodes_from(vertices)
+        for i, node in enumerate(self.nodes):
+            graph.add_node(i, result=node.result, label=node.label, op=getattr(node, "op", None))
         stack = self.roots.copy()
         while stack:
             node = stack.pop()
