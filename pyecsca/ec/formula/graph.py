@@ -198,7 +198,7 @@ class InputNode(Node):
 
 def formula_input_variables(formula: Formula) -> List[str]:
     return (
-        list(formula.inputs)
+        sorted(formula.inputs)
         + formula.parameters
         + formula.coordinate_model.curve_model.parameter_names
     )
@@ -284,11 +284,8 @@ class FormulaGraph:
         graph = nx.DiGraph()
         for i, node in enumerate(self.nodes):
             graph.add_node(i, result=node.result, label=node.label, op=getattr(node, "op", None))
-        stack = self.roots.copy()
-        while stack:
-            node = stack.pop()
+        for node in self.nodes:
             for out in node.outgoing_nodes:
-                stack.append(out)
                 graph.add_edge(self.node_index(node), self.node_index(out))
         return graph
 
