@@ -6,9 +6,9 @@ from itertools import chain, combinations
 
 from pyecsca.ec.op import OpType, CodeOp
 from pyecsca.ec.formula.base import Formula
-from pyecsca.ec.formula.graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula, Node
+from pyecsca.ec.formula.graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
 from pyecsca.ec.point import Point
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 
 
 @public
@@ -21,11 +21,17 @@ def generate_switched_formulas(formula: Formula, rename=True) -> Iterator[CodeFo
             continue
 
 
+def switch_signs(formula: Formula, rename=True) -> List[CodeFormula]:
+    return list(generate_switched_formulas(formula, rename))
+
+
 def subnode_lists(graph: FormulaGraph) -> List[List[CodeOpNode]]:
     return powerlist(filter(lambda x: x not in graph.roots and x.is_sub, graph.nodes))
 
 
-def switch_sign(graph: FormulaGraph, node_combination: List[CodeOpNode]) -> FormulaGraph:
+def switch_sign(
+    graph: FormulaGraph, node_combination: List[CodeOpNode]
+) -> FormulaGraph:
     nodes_i = [graph.node_index(node) for node in node_combination]
     graph = graph.deepcopy()
     node_combination = [graph.nodes[node_i] for node_i in nodes_i]  # type: ignore

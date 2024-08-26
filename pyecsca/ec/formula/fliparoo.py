@@ -1,6 +1,6 @@
 """Provides a way to Fliparoo formulas."""
 from ast import parse
-from typing import Iterator, List, Type, Optional, Set
+from typing import Iterator, List, Type, Optional
 from public import public
 
 from pyecsca.ec.op import OpType
@@ -254,7 +254,7 @@ def generate_fliparood_formulas(
     fliparoos = find_fliparoos(graph)
     for i, fliparoo in enumerate(fliparoos):
         for j, flip_graph in enumerate(generate_fliparood_graphs(fliparoo)):
-            yield flip_graph.to_formula(f"fliparoo[{i},{j}]")
+            yield flip_graph.to_formula(f"fliparoo[{i},{j}]")  # noqa
 
 
 def generate_fliparood_graphs(fliparoo: Fliparoo) -> Iterator[FormulaGraph]:
