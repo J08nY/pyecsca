@@ -348,7 +348,7 @@ class FormulaGraph:
             iu = self.node_index(u)
             for v in self.output_nodes():
                 iv = self.node_index(v)
-                index_paths.extend(nx.all_simple_paths(gnx, iu, iv))
+                index_paths.extend(sorted(nx.all_simple_paths(gnx, iu, iv)))
         paths = []
         for p in index_paths:
             paths.append([self.nodes[v] for v in p])

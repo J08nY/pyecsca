@@ -380,19 +380,19 @@ def combine_signed_nodes(
 
 
 @public
-def recursive_fliparoo(formula: Formula, depth: int = 2) -> Set[Formula]:
-    all_fliparoos = {0: {formula}}
+def recursive_fliparoo(formula: Formula, depth: int = 2) -> List[Formula]:
+    all_fliparoos = {0: [formula]}
     counter = 0
     while depth > counter:
         prev_level = all_fliparoos[counter]
-        fliparoo_level: Set[Formula] = set()
+        fliparoo_level: List[Formula] = []
         for flipparood_formula in prev_level:
             rename = not counter  # rename ivs before the first fliparoo
             for newly_fliparood in generate_fliparood_formulas(
                 flipparood_formula, rename
             ):
-                fliparoo_level.add(newly_fliparood)
+                fliparoo_level.append(newly_fliparood)
         counter += 1
         all_fliparoos[counter] = fliparoo_level
 
-    return set().union(*all_fliparoos.values())
+    return sum(all_fliparoos.values(), [])

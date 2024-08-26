@@ -1,27 +1,44 @@
 """Provides a formula expansion function."""
-from typing import Set, Callable, Any
+
+from typing import Set, Callable, Any, List, Iterable
 from public import public
+from operator import attrgetter
+from functools import lru_cache
 
 from pyecsca.ec.formula.base import Formula
 from pyecsca.ec.formula.efd import EFDFormula
 from pyecsca.ec.formula.fliparoo import recursive_fliparoo
 from pyecsca.ec.formula.metrics import ivs_norm
-from pyecsca.ec.formula.partitions import reduce_all_adds, expand_all_muls, expand_all_nopower2_muls
+from pyecsca.ec.formula.partitions import (
+    reduce_all_adds,
+    expand_all_muls,
+    expand_all_nopower2_muls,
+)
 from pyecsca.ec.formula.switch_sign import generate_switched_formulas
 
 
 def reduce_with_similarity(
-    formulas: Set[Formula], norm: Callable[[Formula], Any]
-) -> Set[Formula]:
-    reduced = set(filter(lambda x: isinstance(x, EFDFormula), formulas))
+    formulas: List[Formula], norm: Callable[[Formula], Any]
+) -> List[Formula]:
+    reduced = list(filter(lambda x: isinstance(x, EFDFormula), formulas))
     similarities = list(map(norm, reduced))
     for formula in formulas:
         n = norm(formula)
         if n in similarities:
             continue
         similarities.append(n)
-        reduced.add(formula)
+        reduced.append(formula)
     return reduced
+
+
+def reduce_by_eq(formulas: Iterable[Formula]) -> List[Formula]:
+    unique = set()
+    result = []
+    for formula in formulas:
+        if formula not in unique:
+            unique.add(formula)
+            result.append(formula)
+    return result
 
 
 @public
@@ -38,25 +55,31 @@ def expand_formula_set(
     :param norm:
     :return:
     """
-    extended = reduce_with_similarity(formulas, norm)
+    @lru_cache(maxsize=1000)
+    def cached(formula):
+        return norm(formula)
 
-    fliparood: Set[Formula] = set().union(*map(recursive_fliparoo, extended))
-    extended.update(fliparood)
-    extended = reduce_with_similarity(extended, norm)
+    extended = sorted(formulas, key=attrgetter("name"))
+    extended = reduce_with_similarity(extended, cached)
 
-    switch_signs: Set[Formula] = set().union(
-        *(set(generate_switched_formulas(f)) for f in extended)
-    )
-    extended.update(switch_signs)
-    extended = reduce_with_similarity(extended, norm)
+    fliparood: List[Formula] = reduce_by_eq(sum(map(lambda f: reduce_by_eq(recursive_fliparoo(f)), extended), []))
+    extended.extend(fliparood)
+    extended = reduce_with_similarity(extended, cached)
 
-    extended.update(set(map(reduce_all_adds, extended)))
-    extended = reduce_with_similarity(extended, norm)
+    switch_signs: List[Formula] = reduce_by_eq(sum(map(lambda f: reduce_by_eq(generate_switched_formulas(f)), extended), []))
+    extended.extend(switch_signs)
+    extended = reduce_with_similarity(extended, cached)
 
-    extended.update(set(map(expand_all_muls, extended)))
-    extended = reduce_with_similarity(extended, norm)
+    add_reduced: List[Formula] = reduce_by_eq(list(map(reduce_all_adds, extended)))
+    extended.extend(add_reduced)
+    extended = reduce_with_similarity(extended, cached)
 
-    extended.update(set(map(expand_all_nopower2_muls, extended)))
-    extended = reduce_with_similarity(extended, norm)
+    mul_expanded: List[Formula] = reduce_by_eq(list(map(expand_all_muls, extended)))
+    extended.extend(mul_expanded)
+    extended = reduce_with_similarity(extended, cached)
 
-    return extended
+    np2_expanded: List[Formula] = reduce_by_eq(list(map(expand_all_nopower2_muls, extended)))
+    extended.extend(np2_expanded)
+    extended = reduce_with_similarity(extended, cached)
+
+    return set(reduce_by_eq(extended))

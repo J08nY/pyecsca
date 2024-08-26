@@ -1,11 +1,13 @@
 from typing import Dict, Iterator, List, Any
 from ast import parse
+
+from mypy.errors import Iterable
 from public import public
 from itertools import chain, combinations
 
 from pyecsca.ec.op import OpType, CodeOp
 from pyecsca.ec.formula.base import Formula
-from pyecsca.ec.formula.graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula
+from pyecsca.ec.formula.graph import FormulaGraph, ConstantNode, CodeOpNode, CodeFormula, Node
 from pyecsca.ec.point import Point
 from pyecsca.ec.mod import Mod, mod
 
@@ -20,14 +22,14 @@ def generate_switched_formulas(formula: Formula, rename=True) -> Iterator[CodeFo
             continue
 
 
-def subnode_lists(graph: FormulaGraph):
+def subnode_lists(graph: FormulaGraph) -> List[List[CodeOpNode]]:
     return powerlist(filter(lambda x: x not in graph.roots and x.is_sub, graph.nodes))
 
 
-def switch_sign(graph: FormulaGraph, node_combination) -> FormulaGraph:
+def switch_sign(graph: FormulaGraph, node_combination: List[CodeOpNode]) -> FormulaGraph:
     nodes_i = [graph.node_index(node) for node in node_combination]
     graph = graph.deepcopy()
-    node_combination = {graph.nodes[node_i] for node_i in nodes_i}
+    node_combination = [graph.nodes[node_i] for node_i in nodes_i]  # type: ignore
     output_signs = {out: 1 for out in graph.output_names}
 
     queue = []
@@ -131,6 +133,6 @@ def change_sides(node):
     )
 
 
-def powerlist(iterable: Iterator) -> List:
+def powerlist(iterable: Iterable) -> List:
     s = list(iterable)
     return list(chain.from_iterable(combinations(s, r) for r in range(len(s) + 1)))
