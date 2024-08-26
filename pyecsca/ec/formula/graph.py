@@ -125,7 +125,7 @@ class CodeOpNode(Node):
 
     @property
     def label(self) -> str:
-        return f"{self.op.result}:{self.op.operator.op_str}"
+        return f"{self.op.result}:{self.op.operator.op_str}"  # noqa
 
     @property
     def result(self) -> str:
@@ -198,7 +198,7 @@ class InputNode(Node):
 
 def formula_input_variables(formula: Formula) -> List[str]:
     return (
-        list(formula.inputs)
+        sorted(formula.inputs)
         + formula.parameters
         + formula.coordinate_model.curve_model.parameter_names
     )
@@ -282,13 +282,10 @@ class FormulaGraph:
 
     def networkx_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
-        vertices = list(range(len(self.nodes)))
-        graph.add_nodes_from(vertices)
-        stack = self.roots.copy()
-        while stack:
-            node = stack.pop()
+        for i, node in enumerate(self.nodes):
+            graph.add_node(i, result=node.result, label=node.label, op=getattr(node, "op", None))
+        for node in self.nodes:
             for out in node.outgoing_nodes:
-                stack.append(out)
                 graph.add_edge(self.node_index(node), self.node_index(out))
         return graph
 
@@ -348,7 +345,7 @@ class FormulaGraph:
             iu = self.node_index(u)
             for v in self.output_nodes():
                 iv = self.node_index(v)
-                index_paths.extend(nx.all_simple_paths(gnx, iu, iv))
+                index_paths.extend(sorted(nx.all_simple_paths(gnx, iu, iv)))
         paths = []
         for p in index_paths:
             paths.append([self.nodes[v] for v in p])

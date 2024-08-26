@@ -1,12 +1,13 @@
 import pickle
 from operator import itemgetter
 from typing import Tuple
+import multiprocessing as mp
 
 import pytest
 from sympy import FF, symbols
 from importlib_resources import files, as_file
 import pyecsca.ec
-from pyecsca.ec.formula.expand import expand_formula_set
+from pyecsca.ec.formula.expand import expand_formula_set, expand_formula_set_parallel
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
 from pyecsca.ec.formula.metrics import (
@@ -111,18 +112,27 @@ def test_assumptions(secp128r1, mdbl):
 
 @pytest.mark.parametrize(
     "formula,category,curve,coords",
-    [("dbl-1998-hnm", "secg", "secp128r1", "jacobian"),
-     ("add-2015-rcb", "secg", "secp128r1", "projective"),
-     ("dbl-1987-m-2", "other", "Curve25519", "xz"),
-     ("add-20090311-hwcd", "other", "E-222", "projective")]
+    [
+        ("dbl-1998-hnm", "secg", "secp128r1", "jacobian"),
+        ("add-2015-rcb", "secg", "secp128r1", "projective"),
+        ("dbl-1987-m-2", "other", "Curve25519", "xz"),
+        ("add-20090311-hwcd", "other", "E-222", "projective"),
+    ],
 )
 def test_eval(formula, category, curve, coords):
     params = get_params(category, curve, coords)
     f = params.curve.coordinate_model.formulas[formula]
 
     points_aff = [params.curve.affine_random() for _ in range(f.num_inputs)]
-    points = [point.to_model(params.curve.coordinate_model, params.curve) for point in points_aff]
-    expected = params.curve.affine_double(*points_aff) if f.shortname == "dbl" else params.curve.affine_add(*points_aff)
+    points = [
+        point.to_model(params.curve.coordinate_model, params.curve)
+        for point in points_aff
+    ]
+    expected = (
+        params.curve.affine_double(*points_aff)
+        if f.shortname == "dbl"
+        else params.curve.affine_add(*points_aff)
+    )
 
     res = f(
         params.curve.prime,
@@ -418,9 +428,12 @@ def library_formula_params(request) -> Tuple[CodeFormula, DomainParameters]:
     name, model, coords_name, param_spec, formula_type = request.param
     model = model()
     coordinate_model = model.coordinates[coords_name]
-    with as_file(files(pyecsca.ec).joinpath("data", "formulas", name)) as meta_path, as_file(
-        files(pyecsca.ec).joinpath("data", "formulas", name + ".op3")
-    ) as op3_path:
+    with (
+        as_file(files(pyecsca.ec).joinpath("data", "formulas", name)) as meta_path,
+        as_file(
+            files(pyecsca.ec).joinpath("data", "formulas", name + ".op3")
+        ) as op3_path,
+    ):
         formula = formula_type(meta_path, op3_path, name, coordinate_model).to_code()
     params = get_params(*param_spec, coords_name)
     return formula, params
@@ -543,3 +556,18 @@ def test_formula_correctness(library_formula_params):
 def test_formula_expand(add):
     res = expand_formula_set({add})
     assert len(res) > 1
+
+
+def test_formula_expand_parallel(add):
+    res = expand_formula_set_parallel({add})
+    assert len(res) > 1
+    other = expand_formula_set({add})
+    assert res == other
+
+
+def test_formula_expand_deterministic(add):
+    ctx = mp.get_context("spawn")
+    with ctx.Pool(4) as p:
+        results = p.map(expand_formula_set, [{add}] * 10)
+    for result in results:
+        assert result == results[0]
