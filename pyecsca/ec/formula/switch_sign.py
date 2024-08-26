@@ -1,7 +1,6 @@
-from typing import Dict, Iterator, List, Any
+from typing import Dict, Iterator, List, Any, Iterable
 from ast import parse
 
-from mypy.errors import Iterable
 from public import public
 from itertools import chain, combinations
 
