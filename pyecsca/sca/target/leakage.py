@@ -9,7 +9,7 @@ from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.key_generation import KeyGeneration
-from pyecsca.ec.key_agreement import KeyAgreement
+from pyecsca.ec.key_agreement import ECDH
 from pyecsca.ec.signature import Signature, SignatureResult
 from pyecsca.ec.formula import FormulaAction
 from pyecsca.ec.context import DefaultContext, local
@@ -121,7 +121,7 @@ class LeakageTarget(Target):
         if self.privkey is None:
             raise ValueError("Missing privkey")
         with local(DefaultContext()) as ctx:
-            ecdh = KeyAgreement(
+            ecdh = ECDH(
                 self.mult, self.params, other_pubkey, self.privkey, hash_algo
             )
             shared_secret = ecdh.perform()

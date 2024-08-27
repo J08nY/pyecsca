@@ -3,6 +3,7 @@ Provides functions for obtaining domain parameters from the `std-curves <https:/
 
 It also provides a domain parameter class and a class for a whole category of domain parameters.
 """
+
 import json
 import csv
 from sympy import Poly, FF, symbols
@@ -114,6 +115,10 @@ class DomainParameters:
         return DomainParameters(
             curve, generator, self.order, self.cofactor, self.name, self.category
         )
+
+    @property
+    def full_order(self) -> int:
+        return self.order * self.cofactor
 
     def __get_name(self):
         if self.name and self.category:
@@ -478,7 +483,7 @@ def get_params(
         if curve["name"] == name:
             break
     else:
-        raise ValueError(f"Curve {name} not found in category {category}.")
+        raise ValueError(f"Curve {name} not found in category {category}.")  # noqa
 
     return _create_params(curve, coords, infty)
 

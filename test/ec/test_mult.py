@@ -3,6 +3,7 @@ from typing import Sequence, List
 
 import pytest
 
+from pyecsca.ec.context import local, DefaultContext
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     DoubleAndAddMultiplier,
@@ -22,9 +23,11 @@ from pyecsca.ec.mult import (
     BGMWMultiplier,
     CombMultiplier,
     WindowBoothMultiplier,
+    SwapLadderMultiplier,
 )
 from pyecsca.ec.mult.fixed import FullPrecompMultiplier
 from pyecsca.ec.point import InfinityPoint, Point
+from pyecsca.sca import MultipleContext
 
 
 def get_formulas(coords, *names):
@@ -54,7 +57,7 @@ def do_basic_test(mult_class, params, base, add, dbl, scale, neg=None, **kwargs)
     except NotImplementedError:
         pass
     mult.init(params, base)
-    assert InfinityPoint(params.curve.coordinate_model) == mult.multiply(0)
+    assert params.curve.neutral == mult.multiply(0)
     return res
 
 
@@ -186,7 +189,7 @@ def test_ladder(curve25519):
             29893438142586401087946310744922998080771935139441267052026283852717044358472,
             48084050389777770101701157326923977117307187144965043058462938058489685090437,
             40694087602335028385342029955981451169449898924211721351135404099078471497195,
-        )
+        ),
     ],
 )
 def test_ladder_full(curve25519, scalar, x, res):
@@ -194,24 +197,19 @@ def test_ladder_full(curve25519, scalar, x, res):
     point = Point(curve25519.curve.coordinate_model, X=mod(x, p), Z=mod(1, p))
     result = Point(curve25519.curve.coordinate_model, X=mod(res, p), Z=mod(1, p))
 
-    mult = LadderMultiplier(
-        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
-        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
-        # complete=False
-    )
-    fixed = int(mod(scalar, curve25519.order))
+    for complete in (True, False):
+        mult = LadderMultiplier(
+            curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
+            curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
+            complete=complete,
+        )
 
-    mult.init(curve25519, point)
-    computed = mult.multiply(fixed)
+        mult.init(curve25519, point)
+        computed = mult.multiply(scalar)
 
-    point_aff = list(curve25519.curve.affine_lift_x(mod(x, p)))[0]
-    result_aff = list(curve25519.curve.affine_lift_x(mod(res, p)))[0]
-    computed_aff = curve25519.curve.affine_multiply(point_aff, scalar)
-
-    scale = curve25519.curve.coordinate_model.formulas["scale"]
-    converted = scale(p, computed, **curve25519.curve.parameters)[0]
-    assert computed_aff.x == result_aff.x
-    assert converted.X == result.X
+        scale = curve25519.curve.coordinate_model.formulas["scale"]
+        converted = scale(p, computed, **curve25519.curve.parameters)[0]
+        assert converted.X == result.X
 
 
 @pytest.mark.parametrize(
@@ -229,35 +227,71 @@ def test_simple_ladder(secp128r1, add, dbl, scale):
 
 
 @pytest.mark.parametrize(
-    "num,complete",
+    "num",
     [
-        (15, True),
-        (15, False),
-        (2355498743, True),
-        (2355498743, False),
-        (325385790209017329644351321912443757746, True),
-        (325385790209017329644351321912443757746, False),
+        15,
+        2355498743,
+        325385790209017329644351321912443757746,
+        0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED - 1,
     ],
 )
-def test_ladder_differential(curve25519, num, complete):
+@pytest.mark.parametrize("complete", [True, False])
+@pytest.mark.parametrize("short_circuit", [True, False])
+def test_ladder_swap(curve25519, num, complete, short_circuit):
     ladder = LadderMultiplier(
         curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
         curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
         curve25519.curve.coordinate_model.formulas["scale"],
         complete=complete,
+        short_circuit=short_circuit,
+    )
+    swap = SwapLadderMultiplier(
+        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
+        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
+        curve25519.curve.coordinate_model.formulas["scale"],
+        complete=complete,
+        short_circuit=short_circuit,
+    )
+    ladder.init(curve25519, curve25519.generator)
+    res_ladder = ladder.multiply(num)
+    swap.init(curve25519, curve25519.generator)
+    res_swap = swap.multiply(num)
+    assert res_ladder == res_swap
+    assert curve25519.curve.neutral == swap.multiply(0)
+
+
+@pytest.mark.parametrize(
+    "num",
+    [
+        15,
+        2355498743,
+        325385790209017329644351321912443757746,
+        0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED - 1,
+    ],
+)
+@pytest.mark.parametrize("complete", [True, False])
+@pytest.mark.parametrize("short_circuit", [True, False])
+def test_ladder_differential(curve25519, num, complete, short_circuit):
+    ladder = LadderMultiplier(
+        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
+        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
+        curve25519.curve.coordinate_model.formulas["scale"],
+        complete=complete,
+        short_circuit=short_circuit,
     )
     differential = DifferentialLadderMultiplier(
         curve25519.curve.coordinate_model.formulas["dadd-1987-m"],
         curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
         curve25519.curve.coordinate_model.formulas["scale"],
         complete=complete,
+        short_circuit=short_circuit,
     )
     ladder.init(curve25519, curve25519.generator)
     res_ladder = ladder.multiply(num)
     differential.init(curve25519, curve25519.generator)
     res_differential = differential.multiply(num)
     assert res_ladder == res_differential
-    assert InfinityPoint(curve25519.curve.coordinate_model) == differential.multiply(0)
+    assert curve25519.curve.neutral == differential.multiply(0)
 
 
 @pytest.mark.parametrize(

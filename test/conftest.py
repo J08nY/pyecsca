@@ -10,7 +10,12 @@ def secp128r1() -> DomainParameters:
 
 @pytest.fixture(scope="session")
 def curve25519() -> DomainParameters:
-    return get_params("other", "Curve25519", "xz")
+    return get_params("other", "Curve25519", "xz", infty=False)
+
+
+@pytest.fixture(scope="session")
+def curve448() -> DomainParameters:
+    return get_params("other", "Curve448", "xz", infty=False)
 
 
 @pytest.fixture(scope="session")
