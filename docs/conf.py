@@ -261,5 +261,5 @@ plausible_script = "https://plausible.neuromancer.sk/js/script.js"
 plausible_enabled = (
     'GITHUB_ACTION' in os.environ
     and os.environ.get('GITHUB_REPOSITORY', '').lower() == 'j08ny/pyecsca'
-    and os.environ.get('GITHUB_REF') == 'refs/heads/main'
+    and os.environ.get('GITHUB_REF') == 'refs/heads/master'
     )
