@@ -121,6 +121,7 @@ Requirements
      - nbsphinx_
      - sphinx-paramlinks_
      - sphinx-design_
+     - sphinx-plausible_
 
 Codegen
 =======
@@ -191,6 +192,7 @@ inside the notebook repository.
 .. _nbsphinx: https://nbsphinx.readthedocs.io/
 .. _sphinx-paramlinks: https://pypi.org/project/sphinx-paramlinks/
 .. _sphinx-design: https://pypi.org/project/sphinx_design/
+.. _sphinx-plausible: https://pypi.org/project/sphinx-plausible/
 .. _Explicit-Formulas Database: https://www.hyperelliptic.org/EFD/index.html
 .. _crocs-muni/efd: https://github.com/crocs-muni/efd
 .. _ChipWhisperer: https://chipwhisperer.com

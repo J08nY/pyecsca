@@ -20,7 +20,7 @@ class LadderMultiplier(ScalarMultiplier):
     """
     Montgomery ladder multiplier, using a three input, two output ladder formula.
 
-    Optionally takes a doubling formula, and if `complete` is false, it requires one.
+    Optionally takes a doubling formula, and if both `complete` and `full` is false, it requires one.
 
     :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
                           of the point at infinity.

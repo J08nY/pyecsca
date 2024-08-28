@@ -48,7 +48,8 @@ extensions = [
     'sphinx.ext.linkcode',
     'sphinx_paramlinks',
     'sphinx_design',
-    'nbsphinx'
+    'nbsphinx',
+    'sphinx_plausible',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -253,3 +254,12 @@ def linkcode_resolve(domain, info):
         return "https://github.com/J08nY/pyecsca-codegen/tree/master/%s.py" % filename
     else:
         return "https://github.com/J08nY/pyecsca/tree/master/%s.py" % filename
+
+
+plausible_domain = "pyecsca.org"
+plausible_script = "https://plausible.neuromancer.sk/js/script.js"
+plausible_enabled = (
+    'GITHUB_ACTION' in os.environ
+    and os.environ.get('GITHUB_REPOSITORY', '').lower() == 'J08nY/pyecsca'
+    and os.environ.get('GITHUB_REF') == 'refs/heads/main'
+    )
