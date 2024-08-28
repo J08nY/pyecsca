@@ -23,11 +23,9 @@ from pyecsca.ec.mult import (
     BGMWMultiplier,
     CombMultiplier,
     WindowBoothMultiplier,
-    SwapLadderMultiplier,
 )
 from pyecsca.ec.mult.fixed import FullPrecompMultiplier
 from pyecsca.ec.point import InfinityPoint, Point
-from pyecsca.sca import MultipleContext
 
 
 def get_formulas(coords, *names):
@@ -235,57 +233,29 @@ def test_simple_ladder(secp128r1, add, dbl, scale):
         0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED - 1,
     ],
 )
-@pytest.mark.parametrize("complete", [True, False])
-@pytest.mark.parametrize("short_circuit", [True, False])
-def test_ladder_swap(curve25519, num, complete, short_circuit):
-    ladder = LadderMultiplier(
-        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
-        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
-        curve25519.curve.coordinate_model.formulas["scale"],
-        complete=complete,
-        short_circuit=short_circuit,
-    )
-    swap = SwapLadderMultiplier(
-        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
-        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
-        curve25519.curve.coordinate_model.formulas["scale"],
-        complete=complete,
-        short_circuit=short_circuit,
-    )
-    ladder.init(curve25519, curve25519.generator)
-    res_ladder = ladder.multiply(num)
-    swap.init(curve25519, curve25519.generator)
-    res_swap = swap.multiply(num)
-    assert res_ladder == res_swap
-    assert curve25519.curve.neutral == swap.multiply(0)
-
-
-@pytest.mark.parametrize(
-    "num",
-    [
-        15,
-        2355498743,
-        325385790209017329644351321912443757746,
-        0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED - 1,
-    ],
-)
-@pytest.mark.parametrize("complete", [True, False])
-@pytest.mark.parametrize("short_circuit", [True, False])
-def test_ladder_differential(curve25519, num, complete, short_circuit):
-    ladder = LadderMultiplier(
-        curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
-        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
-        curve25519.curve.coordinate_model.formulas["scale"],
-        complete=complete,
-        short_circuit=short_circuit,
-    )
-    differential = DifferentialLadderMultiplier(
-        curve25519.curve.coordinate_model.formulas["dadd-1987-m"],
-        curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
-        curve25519.curve.coordinate_model.formulas["scale"],
-        complete=complete,
-        short_circuit=short_circuit,
-    )
+@pytest.mark.parametrize("complete", [True, False], ids=["complete", ""])
+@pytest.mark.parametrize("short_circuit", [True, False], ids=["shorted", ""])
+@pytest.mark.parametrize("full", [True, False], ids=["full", ""])
+def test_ladder_differential(curve25519, num, complete, short_circuit, full):
+    try:
+        ladder = LadderMultiplier(
+            curve25519.curve.coordinate_model.formulas["ladd-1987-m"],
+            curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
+            curve25519.curve.coordinate_model.formulas["scale"],
+            complete=complete,
+            short_circuit=short_circuit,
+            full=full
+        )
+        differential = DifferentialLadderMultiplier(
+            curve25519.curve.coordinate_model.formulas["dadd-1987-m"],
+            curve25519.curve.coordinate_model.formulas["dbl-1987-m"],
+            curve25519.curve.coordinate_model.formulas["scale"],
+            complete=complete,
+            short_circuit=short_circuit,
+            full=full
+        )
+    except ValueError:
+        return
     ladder.init(curve25519, curve25519.generator)
     res_ladder = ladder.multiply(num)
     differential.init(curve25519, curve25519.generator)

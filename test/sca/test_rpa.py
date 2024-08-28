@@ -20,7 +20,6 @@ from pyecsca.ec.mult import (
     CombMultiplier,
     WindowBoothMultiplier,
     LadderMultiplier,
-    SwapLadderMultiplier,
     DifferentialLadderMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
@@ -215,11 +214,8 @@ def test_distinguish_ladders(curve25519):
 
     multipliers = [
         LadderMultiplier(ladd, None, None, True, False, False),
-        SwapLadderMultiplier(ladd, None, None, True, False, False),
         LadderMultiplier(ladd, dbl, None, False, False, False),
-        SwapLadderMultiplier(ladd, dbl, None, False, False, False),
         LadderMultiplier(ladd, None, None, False, False, True),
-        SwapLadderMultiplier(ladd, None, None, False, False, True),
         DifferentialLadderMultiplier(dadd, dbl, None, True, False, False),
         DifferentialLadderMultiplier(dadd, dbl, None, False, False, True),
         DifferentialLadderMultiplier(dadd, dbl, None, False, False, False),

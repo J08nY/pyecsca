@@ -19,7 +19,6 @@ from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     LTRMultiplier,
     LadderMultiplier,
-    SwapLadderMultiplier,
     DifferentialLadderMultiplier,
 )
 import test.data.ec
@@ -59,7 +58,7 @@ def test_ka(algo, mult, secp128r1, keypair_a, keypair_b):
     assert result_ab == result_ba
 
 
-def test_ka_secg():
+def test_ecdh_secg():
     with files(test.data.ec).joinpath("ecdh_tv.json").open("r") as f:
         secg_data = json.load(f)
     secp160r1 = get_params("secg", "secp160r1", "projective")
@@ -102,10 +101,9 @@ def test_ka_secg():
     "mult_args",
     [
         (LadderMultiplier, "ladd-1987-m", "dbl-1987-m", "scale"),
-        (SwapLadderMultiplier, "ladd-1987-m", "dbl-1987-m", "scale"),
         (DifferentialLadderMultiplier, "dadd-1987-m", "dbl-1987-m", "scale"),
     ],
-    ids=["ladd", "swap", "diff"]
+    ids=["ladd", "diff"]
 )
 @pytest.mark.parametrize("complete", [True, False], ids=["complete", ""])
 @pytest.mark.parametrize("short_circuit", [True, False], ids=["shorted", ""])
@@ -167,10 +165,9 @@ def test_x25519(
     "mult_args",
     [
         (LadderMultiplier, "ladd-1987-m", "dbl-1987-m", "scale"),
-        (SwapLadderMultiplier, "ladd-1987-m", "dbl-1987-m", "scale"),
         (DifferentialLadderMultiplier, "dadd-1987-m", "dbl-1987-m", "scale"),
     ],
-    ids=["ladd", "swap", "diff"]
+    ids=["ladd", "diff"]
 )
 @pytest.mark.parametrize("complete", [True, False], ids=["complete", ""])
 @pytest.mark.parametrize("short_circuit", [True, False], ids=["shorted", ""])

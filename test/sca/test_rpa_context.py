@@ -3,14 +3,19 @@ from typing import cast
 import pytest
 
 from pyecsca.ec.context import local
-from pyecsca.ec.formula import LadderFormula, DifferentialAdditionFormula, DoublingFormula, \
-    ScalingFormula
+from pyecsca.ec.formula import (
+    LadderFormula,
+    DifferentialAdditionFormula,
+    DoublingFormula,
+    ScalingFormula,
+)
+from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import (
     LTRMultiplier,
     BinaryNAFMultiplier,
     WindowNAFMultiplier,
     LadderMultiplier,
-    DifferentialLadderMultiplier
+    DifferentialLadderMultiplier,
 )
 from pyecsca.sca.re.rpa import MultipleContext
 
@@ -35,17 +40,19 @@ def scale(secp128r1):
     return secp128r1.curve.coordinate_model.formulas["z"]
 
 
-@pytest.mark.parametrize("name,scalar",
-                         [
-                             ("5", 5),
-                             ("10", 10),
-                             ("2355498743", 2355498743),
-                             (
-                                     "325385790209017329644351321912443757746",
-                                     325385790209017329644351321912443757746,
-                             ),
-                             ("13613624287328732", 13613624287328732),
-                         ])
+@pytest.mark.parametrize(
+    "name,scalar",
+    [
+        ("5", 5),
+        ("10", 10),
+        ("2355498743", 2355498743),
+        (
+            "325385790209017329644351321912443757746",
+            325385790209017329644351321912443757746,
+        ),
+        ("13613624287328732", 13613624287328732),
+    ],
+)
 def test_basic(secp128r1, add, dbl, scale, name, scalar):
     mult = LTRMultiplier(
         add,
@@ -77,9 +84,7 @@ def test_precomp(secp128r1, add, dbl, neg, scale):
 
 
 def test_window(secp128r1, add, dbl, neg):
-    mult = WindowNAFMultiplier(
-        add, dbl, neg, 3, precompute_negation=True
-    )
+    mult = WindowNAFMultiplier(add, dbl, neg, 3, precompute_negation=True)
     with local(MultipleContext()):
         mult.init(secp128r1, secp128r1.generator)
         mult.multiply(5)
@@ -92,12 +97,14 @@ def test_ladder(curve25519):
     dadd = cast(DifferentialAdditionFormula, coords.formulas["dadd-1987-m"])
     dbl = cast(DoublingFormula, coords.formulas["dbl-1987-m"])
     scale = cast(ScalingFormula, coords.formulas["scale"])
+
     ladd_mult = LadderMultiplier(ladd, dbl, scale)
     with local(MultipleContext()) as ctx:
         ladd_mult.init(curve25519, base)
         ladd_mult.multiply(1339278426732672313)
     muls = list(ctx.points.values())
     assert muls[-2] == 1339278426732672313
+
     dadd_mult = DifferentialLadderMultiplier(dadd, dbl, scale)
     with local(MultipleContext()) as ctx:
         dadd_mult.init(curve25519, base)
