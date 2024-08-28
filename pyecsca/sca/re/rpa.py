@@ -8,6 +8,7 @@ from typing import MutableMapping, Optional, Callable, List, Set, cast
 
 from sympy import FF, sympify, Poly, symbols
 
+from pyecsca.ec.error import NonInvertibleError
 from pyecsca.sca.re.base import RE
 from pyecsca.sca.re.tree import Tree, Map
 from pyecsca.ec.coordinates import AffineCoordinateModel
@@ -39,6 +40,8 @@ class MultipleContext(Context):
 
     base: Optional[Point]
     """The base point that all the multiples are counted from."""
+    neutral: Optional[Point]
+    """The neutral point used in the computation."""
     points: MutableMapping[Point, int]
     """The mapping of points to the multiples they represent (e.g., base -> 1)."""
     parents: MutableMapping[Point, List[Point]]
@@ -61,12 +64,14 @@ class MultipleContext(Context):
                 if self.base != action.point:
                     # If we are not building on top of it we have to forget stuff and set a new base and mapping.
                     self.base = action.point
-                    self.points = {self.base: 1}
+                    self.neutral = action.params.curve.neutral
+                    self.points = {self.base: 1, self.neutral: 0}
                     self.parents = {self.base: []}
                     self.formulas = {self.base: ""}
             else:
                 self.base = action.point
-                self.points = {self.base: 1}
+                self.neutral = action.params.curve.neutral
+                self.points = {self.base: 1, self.neutral: 0}
                 self.parents = {self.base: []}
                 self.formulas = {self.base: ""}
             self.inside = True
@@ -288,12 +293,21 @@ class RPA(RE):
                     )
                 )
                 multiply_multiples |= set(map(lambda v: -v, multiply_multiples))
+                # Use only the multiples from the correct part (init vs multiply)
                 used = set()
                 if use_init:
                     used |= init_multiples
                 if use_multiply:
                     used |= multiply_multiples
-                mults_to_multiples[mult] = used
+                # Filter out the multiples that are non-invertible because they are not usable for RPA.
+                usable = set()
+                for elem in used:
+                    try:
+                        elem.inverse()
+                        usable.add(elem)
+                    except NonInvertibleError:
+                        pass
+                mults_to_multiples[mult] = usable
 
             dmap = Map.from_sets(set(mults), mults_to_multiples)
             if tree is None:

@@ -1,4 +1,5 @@
 import pytest
+from math import isqrt
 
 from pyecsca.ec.context import local
 from pyecsca.ec.model import ShortWeierstrassModel
@@ -18,6 +19,9 @@ from pyecsca.ec.mult import (
     BGMWMultiplier,
     CombMultiplier,
     WindowBoothMultiplier,
+    LadderMultiplier,
+    SwapLadderMultiplier,
+    DifferentialLadderMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -61,8 +65,6 @@ def rpa_params(model, coords):
     b = mod(0x37113EA591B04527, p)
     gx = mod(0x80D2D78FDDB97597, p)
     gy = mod(0x5586D818B7910930, p)
-    # (0x4880bcf620852a54, 0) RPA point
-    # (0, 0x6bed3155c9ada064) RPA point
 
     infty = Point(coords, X=mod(0, p), Y=mod(1, p), Z=mod(0, p))
     g = Point(coords, X=gx, Y=gy, Z=mod(1, p))
@@ -83,22 +85,20 @@ def test_0y_point(rpa_params):
 
 
 @pytest.fixture()
-def distinguish_params(model, coords):
-    p = 0xcb5e1d94a6168511
-    a = mod(0xb166ca7d2dfbf69f, p)
-    b = mod(0x855bb40cb6937c4b, p)
-    gx = mod(0x253b2638bd13d6f4, p)
-    gy = mod(0x1e91a1a182287e71, p)
-    # (0x4880bcf620852a54, 0) RPA point
-    # (0, 0x6bed3155c9ada064) RPA point
+def distinguish_params_sw(model, coords):
+    p = 0xCB5E1D94A6168511
+    a = mod(0xB166CA7D2DFBF69F, p)
+    b = mod(0x855BB40CB6937C4B, p)
+    gx = mod(0x253B2638BD13D6F4, p)
+    gy = mod(0x1E91A1A182287E71, p)
 
     infty = Point(coords, X=mod(0, p), Y=mod(1, p), Z=mod(0, p))
     g = Point(coords, X=gx, Y=gy, Z=mod(1, p))
     curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
-    return DomainParameters(curve, g, 0xcb5e1d94601a3ac5, 1)
+    return DomainParameters(curve, g, 0xCB5E1D94601A3AC5, 1)
 
 
-def test_distinguish(distinguish_params, add, dbl, neg):
+def test_distinguish_basic(distinguish_params_sw, add, dbl, neg):
     multipliers = [
         LTRMultiplier(add, dbl, None, False, AccumulationOrder.PeqPR, True, True),
         LTRMultiplier(add, dbl, None, True, AccumulationOrder.PeqPR, True, True),
@@ -193,15 +193,51 @@ def test_distinguish(distinguish_params, add, dbl, neg):
 
         def simulated_oracle(scalar, affine_point):
             point = affine_point.to_model(
-                distinguish_params.curve.coordinate_model, distinguish_params.curve
+                distinguish_params_sw.curve.coordinate_model,
+                distinguish_params_sw.curve,
             )
             with local(MultipleContext()) as ctx:
-                real_mult.init(distinguish_params, point)
+                real_mult.init(distinguish_params_sw, point)
                 real_mult.multiply(scalar)
             return any(
                 map(lambda P: P.X == 0 or P.Y == 0, sum(ctx.parents.values(), []))
             )
 
-        result = rpa_distinguish(distinguish_params, multipliers, simulated_oracle)
+        result = rpa_distinguish(distinguish_params_sw, multipliers, simulated_oracle)
         assert real_mult in result
         assert 1 == len(result)
+
+
+def test_distinguish_ladders(curve25519):
+    ladd = curve25519.curve.coordinate_model.formulas["ladd-1987-m"]
+    dbl = curve25519.curve.coordinate_model.formulas["dbl-1987-m"]
+    dadd = curve25519.curve.coordinate_model.formulas["dadd-1987-m"]
+
+    multipliers = [
+        LadderMultiplier(ladd, None, None, True, False, False),
+        SwapLadderMultiplier(ladd, None, None, True, False, False),
+        LadderMultiplier(ladd, dbl, None, False, False, False),
+        SwapLadderMultiplier(ladd, dbl, None, False, False, False),
+        LadderMultiplier(ladd, None, None, False, False, True),
+        SwapLadderMultiplier(ladd, None, None, False, False, True),
+        DifferentialLadderMultiplier(dadd, dbl, None, True, False, False),
+        DifferentialLadderMultiplier(dadd, dbl, None, False, False, True),
+        DifferentialLadderMultiplier(dadd, dbl, None, False, False, False),
+    ]
+    for real_mult in multipliers:
+
+        def simulated_oracle(scalar, affine_point):
+            point = affine_point.to_model(
+                curve25519.curve.coordinate_model, curve25519.curve
+            )
+            with local(MultipleContext()) as ctx:
+                real_mult.init(curve25519, point)
+                real_mult.multiply(scalar)
+            return any(map(lambda P: P.X == 0, sum(ctx.parents.values(), [])))
+
+        result = rpa_distinguish(
+            curve25519, multipliers, simulated_oracle, bound=isqrt(curve25519.order)
+        )
+        assert real_mult in result
+        # These multipliers are not distinguishable by a binary RPA oracle.
+        # assert 1 == len(result)

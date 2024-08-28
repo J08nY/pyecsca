@@ -103,7 +103,7 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
+        with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             if self.recoding_direction is ProcessingDirection.LTR:
@@ -213,7 +213,7 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
+        with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             # General case (any m) and special case (m = 2^k) are handled together here
@@ -313,7 +313,7 @@ class WindowBoothMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
+        with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             scalar_booth = booth_window(

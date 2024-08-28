@@ -132,7 +132,7 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
+        with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             if self.direction is ProcessingDirection.LTR:

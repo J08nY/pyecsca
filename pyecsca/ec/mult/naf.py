@@ -112,7 +112,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
+        with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             scalar_naf = naf(scalar)
@@ -210,7 +210,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
             raise ValueError("ScalarMultiplier not initialized.")
-        with ScalarMultiplicationAction(self._point, scalar) as action:
+        with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             scalar_naf = wnaf(scalar, self.width)

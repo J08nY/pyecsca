@@ -127,10 +127,8 @@ class Mod:
     """
     An element x of ℤₙ.
 
-    .. note::
-        This class dispatches to one of :py:class:`RawMod`, :py:class:`GMPMod` or :py:class:`FlintMod`
-        based on what packages are installed and what implementation is configured (see
-        :py:mod:`pyecsca.misc.cfg`).
+    .. attention:
+        Do not instantiate this class, it will not work, instead use the :py:func:`mod` function.
 
     Has all the usual special methods that upcast integers automatically:
 
@@ -349,6 +347,11 @@ class Undefined(Mod):
 def mod(x: int, n: int) -> Mod:
     """
     Construct a :py:class:`Mod`.
+
+    .. note::
+        This function dispatches to one of :py:class:`RawMod`, :py:class:`GMPMod` or :py:class:`FlintMod`
+        based on what packages are installed and what implementation is configured (see
+        :py:mod:`pyecsca.misc.cfg`).
 
     :param x: The value.
     :param n: The modulus.

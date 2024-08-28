@@ -105,9 +105,11 @@ def test_ka_secg():
         (SwapLadderMultiplier, "ladd-1987-m", "dbl-1987-m", "scale"),
         (DifferentialLadderMultiplier, "dadd-1987-m", "dbl-1987-m", "scale"),
     ],
+    ids=["ladd", "swap", "diff"]
 )
-@pytest.mark.parametrize("complete", [True, False])
-@pytest.mark.parametrize("short_circuit", [True, False])
+@pytest.mark.parametrize("complete", [True, False], ids=["complete", ""])
+@pytest.mark.parametrize("short_circuit", [True, False], ids=["shorted", ""])
+@pytest.mark.parametrize("full", [True, False], ids=["full", ""])
 @pytest.mark.parametrize(
     "scalar_hex,coord_hex,result_hex",
     [
@@ -135,7 +137,7 @@ def test_ka_secg():
     ids=["RFC7748tv1", "RFC7748tv2", "RFC7748dh1", "RFC7748dh2"],
 )
 def test_x25519(
-    curve25519, mult_args, complete, short_circuit, scalar_hex, coord_hex, result_hex
+    curve25519, mult_args, complete, short_circuit, full, scalar_hex, coord_hex, result_hex
 ):
     mult_class = mult_args[0]
     mult_formulas = list(
@@ -143,9 +145,12 @@ def test_x25519(
             lambda name: curve25519.curve.coordinate_model.formulas[name], mult_args[1:]
         )
     )
-    multiplier = mult_class(
-        *mult_formulas, complete=complete, short_circuit=short_circuit
-    )
+    try:
+        multiplier = mult_class(
+            *mult_formulas, complete=complete, short_circuit=short_circuit, full=full
+        )
+    except ValueError:
+        return
 
     scalar = int.from_bytes(bytes.fromhex(scalar_hex), "little")
     coord = int.from_bytes(bytes.fromhex(coord_hex), "little")
@@ -165,9 +170,11 @@ def test_x25519(
         (SwapLadderMultiplier, "ladd-1987-m", "dbl-1987-m", "scale"),
         (DifferentialLadderMultiplier, "dadd-1987-m", "dbl-1987-m", "scale"),
     ],
+    ids=["ladd", "swap", "diff"]
 )
-@pytest.mark.parametrize("complete", [True, False])
-@pytest.mark.parametrize("short_circuit", [True, False])
+@pytest.mark.parametrize("complete", [True, False], ids=["complete", ""])
+@pytest.mark.parametrize("short_circuit", [True, False], ids=["shorted", ""])
+@pytest.mark.parametrize("full", [True, False], ids=["full", ""])
 @pytest.mark.parametrize(
     "scalar_hex,coord_hex,result_hex",
     [
@@ -195,15 +202,18 @@ def test_x25519(
     ids=["RFC7748tv1", "RFC7748tv2", "RFC7748dh1", "RFC7748dh2"],
 )
 def test_x448(
-    curve448, mult_args, complete, short_circuit, scalar_hex, coord_hex, result_hex
+    curve448, mult_args, complete, short_circuit, full, scalar_hex, coord_hex, result_hex
 ):
     mult_class = mult_args[0]
     mult_formulas = list(
         map(lambda name: curve448.curve.coordinate_model.formulas[name], mult_args[1:])
     )
-    multiplier = mult_class(
-        *mult_formulas, complete=complete, short_circuit=short_circuit
-    )
+    try:
+        multiplier = mult_class(
+            *mult_formulas, complete=complete, short_circuit=short_circuit, full=full
+        )
+    except ValueError:
+        return
 
     scalar = int.from_bytes(bytes.fromhex(scalar_hex), "little")
     coord = int.from_bytes(bytes.fromhex(coord_hex), "little")

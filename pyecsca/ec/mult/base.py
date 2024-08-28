@@ -34,15 +34,17 @@ class ScalarMultiplicationAction(ResultAction):
     """A scalar multiplication of a point on a curve by a scalar."""
 
     point: Point
+    params: DomainParameters
     scalar: int
 
-    def __init__(self, point: Point, scalar: int):
+    def __init__(self, point: Point, params: DomainParameters, scalar: int):
         super().__init__()
         self.point = point
+        self.params = params
         self.scalar = scalar
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.point}, {self.scalar})"
+        return f"{self.__class__.__name__}({self.point}, {self.params}, {self.scalar})"
 
 
 @public
