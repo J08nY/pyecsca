@@ -74,13 +74,13 @@ def test_precomp(secp128r1, add, dbl, neg, scale):
     with local(MultipleContext()) as ctx:
         bnaf.init(secp128r1, secp128r1.generator)
     muls = list(ctx.points.values())
-    assert muls == [1, -1]
+    assert muls == [1, 0, -1]
 
     wnaf = WindowNAFMultiplier(add, dbl, neg, 3, scale)
     with local(MultipleContext()) as ctx:
         wnaf.init(secp128r1, secp128r1.generator)
     muls = list(ctx.points.values())
-    assert muls == [1, 2, 3, 5]
+    assert muls == [1, 0, 2, 3, 5]
 
 
 def test_window(secp128r1, add, dbl, neg):
