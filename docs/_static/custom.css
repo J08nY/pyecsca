@@ -21,3 +21,8 @@ a:visited {
 dt:target, .highlight {
     background: #ffffff;
 }
+
+.bibtex-dropdown summary {
+	width: 107px;
+	font-weight: normal !important;
+}

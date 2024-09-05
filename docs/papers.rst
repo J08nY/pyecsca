@@ -29,6 +29,24 @@ Jan Jancar, Vojtech Suchanek, Petr Svenda, Vladimir Sedlacek, Lukasz Chmielewski
 
             :fas:`file-zipper;fa-fw` Artifact
 
+.. dropdown:: BibTeX
+    :color: secondary
+    :name: pyecsca-bibtex
+    :class-container: bibtex-dropdown
+
+    .. code-block:: Bibtex
+
+        @InProceedings{2024-ches-jancar,
+          title = {pyecsca: Reverse engineering black-box elliptic curve cryptography via side-channel analysis},
+          author = {Jan Jancar and Vojtech Suchanek and Petr Svenda and Vladimir Sedlacek and Lukasz Chmielewski},
+          booktitle = {IACR Transactions on Cryptographic Hardware and Embedded Systems},
+          publisher = {Ruhr-University of Bochum},
+          year = {2024},
+          doi = {10.46586/tches.v2024.i4.355-381},
+          url = {https://tches.iacr.org/index.php/TCHES/article/view/11796},
+          pages = {355–381},
+        }
+
 Abstract
 --------
 
