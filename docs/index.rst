@@ -126,3 +126,4 @@ Thanks alot to contributors: Tomas Jusko, Andrej Batora, Vojtech Suchanek and
 to ChipWhisperer/NewAE.
 
 Development was supported by the Masaryk University grant `MUNI/C/1707/2018 <https://www.muni.cz/en/research/projects/46834>`_.
+Development was supported by the AI-SecTools (VJ02010010) project.
