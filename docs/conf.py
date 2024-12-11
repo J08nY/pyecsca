@@ -159,7 +159,7 @@ latex_elements = {
 
     # Additional stuff for the LaTeX preamble.
     #
-    # 'preamble': '',
+    'preamble': r"""\usepackage{pmboxdraw}""",
 
     # Latex figure (float) alignment
     #
@@ -229,6 +229,8 @@ autodoc_default_options = {
 }
 autodoc_typehints = "signature"
 autodoc_typehints_format = "short"
+
+sd_fontawesome_latex = True
 
 autoclass_content = "both"
 
