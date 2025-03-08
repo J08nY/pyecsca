@@ -308,9 +308,14 @@ current: Optional[Context] = None
 
 
 class _ContextManager:
-    def __init__(self, new_context):
-        # TODO: Is this deepcopy a good idea?
-        self.new_context = deepcopy(new_context)
+    def __init__(self, new_context: Optional[Context] = None, copy: bool = True):
+        if copy:
+            if new_context is not None:
+                self.new_context = deepcopy(new_context)
+            else:
+                self.new_context = deepcopy(current)
+        else:
+            self.new_context = new_context if new_context is not None else current
 
     def __enter__(self) -> Optional[Context]:
         global current  # This is OK, skipcq: PYL-W0603
@@ -324,7 +329,7 @@ class _ContextManager:
 
 
 @public
-def local(ctx: Optional[Context] = None) -> ContextManager:
+def local(ctx: Optional[Context] = None, copy: bool = True) -> ContextManager:
     """
     Use a local context.
 
@@ -337,6 +342,7 @@ def local(ctx: Optional[Context] = None) -> ContextManager:
     True
 
     :param ctx: If none, current context is copied.
+    :param copy: Whether to copy the context.
     :return: A context manager.
     """
-    return _ContextManager(ctx)
+    return _ContextManager(ctx, copy)

@@ -89,6 +89,38 @@ def test_default_no_enter():
     with local(DefaultContext()) as default, pytest.raises(ValueError):
         default.exit_action(RandomModAction(7))
 
+def test_multiple_enter(mult):
+    default = DefaultContext()
+    with local(default) as ctx1:
+        mult.multiply(59)
+
+    with local(default) as ctx2:
+        mult.multiply(135)
+
+    assert len(default.actions) == 0
+    assert len(ctx1.actions) == len(ctx2.actions)
+
+def test_multiple_enter_chained(mult):
+    default = DefaultContext()
+    with local(default) as ctx1:
+        mult.multiply(59)
+
+    with local(ctx1) as ctx2:
+        mult.multiply(135)
+
+    assert len(default.actions) == 0
+    assert 2 * len(ctx1.actions) == len(ctx2.actions)
+
+def test_multiple_enter_no_copy(mult):
+    default = DefaultContext()
+    with local(default, copy=False) as ctx1:
+        mult.multiply(59)
+
+    with local(default, copy=False) as ctx2:
+        mult.multiply(135)
+
+    assert len(default.actions) == len(ctx1.actions)
+    assert len(ctx1.actions) == len(ctx2.actions)
 
 def test_path(mult, secp128r1):
     with local(PathContext([0, 1])) as ctx:

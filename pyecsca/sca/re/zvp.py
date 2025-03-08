@@ -590,6 +590,8 @@ def addition_chain(
     params: DomainParameters,
     mult_class: Type[ScalarMultiplier],
     mult_factory,
+    use_init: bool = False,
+    use_multiply: bool = True
 ) -> List[Tuple[str, Tuple[int, ...]]]:
     """
     Compute the addition chain for a given scalar and multiplier.
@@ -598,6 +600,8 @@ def addition_chain(
     :param params: The domain parameters to use.
     :param mult_class: The class of the scalar multiplier to use.
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
+    :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
+    :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
     """
@@ -618,17 +622,26 @@ def addition_chain(
         for subclass in formula.__subclasses__():
             if issubclass(subclass, FakeFormula):
                 formulas.append(subclass(params.curve.coordinate_model))
-    mult = mult_factory(*formulas)
-    mult.init(params, FakePoint(params.curve.coordinate_model))
 
-    with local(MultipleContext()) as mctx:
+    ctx = MultipleContext()
+    mult = mult_factory(*formulas)
+    if use_init:
+        with local(ctx, copy=False):
+            mult.init(params, FakePoint(params.curve.coordinate_model))
+    else:
+        mult.init(params, FakePoint(params.curve.coordinate_model))
+
+    if use_multiply:
+        with local(ctx, copy=False):
+            mult.multiply(scalar)
+    else:
         mult.multiply(scalar)
 
     chain = []
-    for point, parents in mctx.parents.items():
+    for point, parents in ctx.parents.items():
         if not parents:
             continue
-        formula_type = mctx.formulas[point]
-        ks = tuple(mctx.points[parent] for parent in parents)
+        formula_type = ctx.formulas[point]
+        ks = tuple(ctx.points[parent] for parent in parents)
         chain.append((formula_type, ks))
     return chain
