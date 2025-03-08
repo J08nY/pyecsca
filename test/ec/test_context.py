@@ -1,11 +1,6 @@
 import pytest
 
-from pyecsca.ec.context import (
-    local,
-    DefaultContext,
-    Node,
-    PathContext, Action
-)
+from pyecsca.ec.context import local, DefaultContext, Node, PathContext, Action
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import RandomModAction
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
@@ -51,10 +46,13 @@ def test_render():
     Node(other_a, parent=a)
 
     txt = tree.render()
-    assert txt == """Action()
+    assert (
+        txt
+        == """Action()
 └──Action()
    ├──Action()
    └──Action()"""
+    )
 
 
 @pytest.fixture()
@@ -89,6 +87,7 @@ def test_default_no_enter():
     with local(DefaultContext()) as default, pytest.raises(ValueError):
         default.exit_action(RandomModAction(7))
 
+
 def test_multiple_enter(mult):
     default = DefaultContext()
     with local(default) as ctx1:
@@ -99,6 +98,7 @@ def test_multiple_enter(mult):
 
     assert len(default.actions) == 0
     assert len(ctx1.actions) == len(ctx2.actions)
+
 
 def test_multiple_enter_chained(mult):
     default = DefaultContext()
@@ -111,6 +111,7 @@ def test_multiple_enter_chained(mult):
     assert len(default.actions) == 0
     assert 2 * len(ctx1.actions) == len(ctx2.actions)
 
+
 def test_multiple_enter_no_copy(mult):
     default = DefaultContext()
     with local(default, copy=False) as ctx1:
@@ -121,6 +122,7 @@ def test_multiple_enter_no_copy(mult):
 
     assert len(default.actions) == len(ctx1.actions)
     assert len(ctx1.actions) == len(ctx2.actions)
+
 
 def test_path(mult, secp128r1):
     with local(PathContext([0, 1])) as ctx:

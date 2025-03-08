@@ -1,6 +1,7 @@
 """
 Provides functionality inspired by the Refined-Power Analysis attack by Goubin [RPA]_.
 """
+
 from copy import copy, deepcopy
 
 from public import public
@@ -21,7 +22,8 @@ from pyecsca.ec.formula import (
     TriplingFormula,
     NegationFormula,
     DifferentialAdditionFormula,
-    LadderFormula, )
+    LadderFormula,
+)
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     ScalarMultiplicationAction,
@@ -390,7 +392,7 @@ def multiples_computed(
     mult_class: Type[ScalarMultiplier],
     mult_factory: Callable,
     use_init: bool = False,
-    use_multiply: bool = True
+    use_multiply: bool = True,
 ) -> set[int]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).
@@ -419,5 +421,3 @@ def multiples_computed(
         mult.multiply(scalar)
 
     return set(ctx.points.values()) - {0}
-
-

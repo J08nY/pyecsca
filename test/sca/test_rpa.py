@@ -28,7 +28,8 @@ from pyecsca.sca.re.rpa import (
     MultipleContext,
     rpa_point_0y,
     rpa_point_x0,
-    rpa_distinguish, multiples_computed,
+    rpa_distinguish,
+    multiples_computed,
 )
 
 
@@ -72,10 +73,13 @@ def rpa_params(model, coords):
 
 
 def test_multiples(rpa_params):
-    multiples = multiples_computed(17, rpa_params, LTRMultiplier, LTRMultiplier, True, True)
+    multiples = multiples_computed(
+        17, rpa_params, LTRMultiplier, LTRMultiplier, True, True
+    )
     assert 1 in multiples
     assert 17 in multiples
     assert 0 not in multiples
+
 
 def test_x0_point(rpa_params):
     res = rpa_point_x0(rpa_params)

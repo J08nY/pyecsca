@@ -10,6 +10,7 @@ multiplication actions has as its children an ordered list of the individual for
 A :py:class:`PathContext` works like a :py:class:`DefaultContext` that only traces an action on a particular path
 in the tree.
 """
+
 from abc import abstractmethod, ABC
 from copy import deepcopy
 from typing import List, Optional, ContextManager, Any, Sequence, Callable
@@ -249,7 +250,9 @@ class DefaultContext(Context):
             self.actions.append(Node(action))
         else:
             if self.current:
-                root = next(filter(lambda node: node.action == self.current[0], self.actions))
+                root = next(
+                    filter(lambda node: node.action == self.current[0], self.actions)
+                )
                 Node(action, parent=root.get_by_key(self.current[1:]))
             else:
                 self.actions.append(Node(action))
@@ -310,6 +313,7 @@ current: Optional[Context] = None
 class _ContextManager:
     old_context: Optional[Context]
     new_context: Optional[Context]
+
     def __init__(self, new_context: Optional[Context] = None, copy: bool = True):
         if copy:
             if new_context is not None:
