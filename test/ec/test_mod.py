@@ -176,10 +176,15 @@ def test_undefined():
                 "__hash__",
                 "__abstractmethods__",
                 "_abc_impl",
+                "__firstlineno__",
+                "__static_attributes__",
                 "__slots__",
                 "x",
                 "n"
         ):
+            continue
+        if not hasattr(meth, "__code__"):
+            print("No code for", k)
             continue
         args = [5 for _ in range(meth.__code__.co_argcount - 1)]
         if k == "__repr__":
