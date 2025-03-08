@@ -3,7 +3,7 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
-from typing import List, Set, Tuple, Dict, Type
+from typing import List, Set, Tuple, Dict, Type, Callable
 from public import public
 import warnings
 from astunparse import unparse
@@ -25,7 +25,7 @@ from pyecsca.ec.formula import (
 from pyecsca.ec.formula.fake import FakePoint, FakeFormula
 from pyecsca.ec.formula.unroll import unroll_formula
 from pyecsca.ec.mod import Mod, mod
-from pyecsca.ec.mult import ScalarMultiplier
+from pyecsca.ec.mult import ScalarMultiplier, fake_mult
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 
@@ -585,11 +585,12 @@ def solve_hard_dcp_cypari(
     return res
 
 
+@public
 def addition_chain(
     scalar: int,
     params: DomainParameters,
     mult_class: Type[ScalarMultiplier],
-    mult_factory,
+    mult_factory: Callable,
     use_init: bool = False,
     use_multiply: bool = True
 ) -> List[Tuple[str, Tuple[int, ...]]]:
@@ -605,26 +606,8 @@ def addition_chain(
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
     """
-    formula_classes: List[Type[Formula]] = list(
-        filter(
-            lambda klass: klass in mult_class.requires,
-            [
-                AdditionFormula,
-                DifferentialAdditionFormula,
-                DoublingFormula,
-                LadderFormula,
-                NegationFormula,
-            ],
-        )
-    )
-    formulas = []
-    for formula in formula_classes:
-        for subclass in formula.__subclasses__():
-            if issubclass(subclass, FakeFormula):
-                formulas.append(subclass(params.curve.coordinate_model))
-
+    mult = fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext()
-    mult = mult_factory(*formulas)
     if use_init:
         with local(ctx, copy=False):
             mult.init(params, FakePoint(params.curve.coordinate_model))

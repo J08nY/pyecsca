@@ -308,6 +308,8 @@ current: Optional[Context] = None
 
 
 class _ContextManager:
+    old_context: Optional[Context]
+    new_context: Optional[Context]
     def __init__(self, new_context: Optional[Context] = None, copy: bool = True):
         if copy:
             if new_context is not None:

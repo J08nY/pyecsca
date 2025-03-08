@@ -4,11 +4,13 @@ Provides functionality inspired by the Refined-Power Analysis attack by Goubin [
 from copy import copy, deepcopy
 
 from public import public
-from typing import MutableMapping, Optional, Callable, List, Set, cast
+from typing import MutableMapping, Optional, Callable, List, Set, cast, Type, Tuple
 
 from sympy import FF, sympify, Poly, symbols
 
 from pyecsca.ec.error import NonInvertibleError
+from pyecsca.ec.formula.fake import FakePoint
+from pyecsca.ec.mult.fake import fake_mult
 from pyecsca.sca.re.base import RE
 from pyecsca.sca.re.tree import Tree, Map
 from pyecsca.ec.coordinates import AffineCoordinateModel
@@ -19,8 +21,7 @@ from pyecsca.ec.formula import (
     TriplingFormula,
     NegationFormula,
     DifferentialAdditionFormula,
-    LadderFormula,
-)
+    LadderFormula, )
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     ScalarMultiplicationAction,
@@ -380,3 +381,43 @@ class RPA(RE):
             log([mult.__class__.__name__ for mult in mults])
             log()
         return mults
+
+
+@public
+def multiples_computed(
+    scalar: int,
+    params: DomainParameters,
+    mult_class: Type[ScalarMultiplier],
+    mult_factory: Callable,
+    use_init: bool = False,
+    use_multiply: bool = True
+) -> set[int]:
+    """
+    Compute the multiples computed for a given scalar and multiplier (quickly).
+
+    :param scalar: The scalar to compute for.
+    :param params: The domain parameters to use.
+    :param mult_class: The class of the scalar multiplier to use.
+    :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
+    :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
+    :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
+    :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
+    relationships to the input of the input points to the formula.
+    """
+    mult = fake_mult(mult_class, mult_factory, params)
+    ctx = MultipleContext()
+    if use_init:
+        with local(ctx, copy=False):
+            mult.init(params, FakePoint(params.curve.coordinate_model))
+    else:
+        mult.init(params, FakePoint(params.curve.coordinate_model))
+
+    if use_multiply:
+        with local(ctx, copy=False):
+            mult.multiply(scalar)
+    else:
+        mult.multiply(scalar)
+
+    return set(ctx.points.values()) - {0}
+
+

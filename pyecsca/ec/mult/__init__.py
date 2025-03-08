@@ -3,6 +3,7 @@
 from .base import *
 from .binary import *
 from .comb import *
+from .fake import *
 from .fixed import *
 from .ladder import *
 from .naf import *
