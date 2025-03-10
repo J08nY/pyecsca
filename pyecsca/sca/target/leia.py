@@ -29,7 +29,7 @@ class LEIATarget(ISO7816Target):  # pragma: no cover
     def send_apdu(self, apdu: CommandAPDU) -> ResponseAPDU:
         leia_apdu = create_APDU_from_bytes(bytes(apdu))
         resp = self.leia.send_APDU(leia_apdu)
-        return ResponseAPDU(resp.data, resp.sw1 << 8 | resp.sw2)
+        return ResponseAPDU(bytes(resp.data), resp.sw1 << 8 | resp.sw2)
 
     def connect(self, protocol: Optional[CardProtocol] = None):
         proto = T.AUTO
