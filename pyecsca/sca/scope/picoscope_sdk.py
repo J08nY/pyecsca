@@ -455,6 +455,7 @@ else:  # pragma: no cover
             "B": ps3000a.PS3000A_CHANNEL["PS3000A_CHANNEL_B"],
             "C": ps3000a.PS3000A_CHANNEL["PS3000A_CHANNEL_C"],
             "D": ps3000a.PS3000A_CHANNEL["PS3000A_CHANNEL_D"],
+            "AUX": ps3000a.PS3000A_CHANNEL["PS3000A_TRIGGER_AUX"]
         }
 
         RANGES = {
@@ -569,6 +570,7 @@ else:  # pragma: no cover
             "B": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_B"],
             "C": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_C"],
             "D": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_D"],
+            "AUX": ps4000.PS4000_CHANNEL["PS4000_TRIGGER_AUX"]
         }
 
         RANGES = {
@@ -633,6 +635,7 @@ else:  # pragma: no cover
             "B": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_B"],
             "C": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_C"],
             "D": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_D"],
+            "AUX": ps5000.PS5000_CHANNEL["PS5000_TRIGGER_AUX"]
         }
 
         RANGES = {
@@ -684,6 +687,7 @@ else:  # pragma: no cover
             "B": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_B"],
             "C": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_C"],
             "D": ps6000.PS6000_CHANNEL["PS6000_CHANNEL_D"],
+            "AUX": ps6000.PS6000_CHANNEL["PS6000_TRIGGER_AUX"],
         }
 
         RANGES = {
