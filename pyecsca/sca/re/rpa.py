@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from functools import lru_cache
 
 from public import public
-from typing import MutableMapping, Optional, Callable, List, Set, cast, Type, Literal
+from typing import MutableMapping, Optional, Callable, List, Set, cast, Type, Literal, Union
 
 from sympy import FF, sympify, Poly, symbols
 
@@ -399,7 +399,7 @@ def multiples_computed(
     mult_factory: Callable,
     use_init: bool = False,
     use_multiply: bool = True,
-    kind: Literal["all"] | Literal["input"] | Literal["necessary"] = "all",
+    kind: Union[Literal["all"], Literal["input"], Literal["necessary"]] = "all",
 ) -> set[int]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).
