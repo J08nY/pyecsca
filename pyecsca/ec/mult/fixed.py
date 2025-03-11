@@ -5,7 +5,7 @@ from typing import MutableMapping, Optional
 from public import public
 
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
-from pyecsca.ec.mult import (
+from pyecsca.ec.mult.base import (
     AccumulatorMultiplier,
     ScalarMultiplier,
     ProcessingDirection,

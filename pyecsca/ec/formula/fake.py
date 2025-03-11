@@ -87,7 +87,7 @@ class FakePoint(Point):
         super().__init__(model, **coords)
 
     def __str__(self):
-        return "FakePoint"
+        return f"FakePoint{id(self)}"
 
     def __repr__(self):
         return str(self)

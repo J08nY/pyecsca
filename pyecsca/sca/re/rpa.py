@@ -3,15 +3,15 @@ Provides functionality inspired by the Refined-Power Analysis attack by Goubin [
 """
 
 from copy import copy, deepcopy
+from functools import lru_cache
 
 from public import public
-from typing import MutableMapping, Optional, Callable, List, Set, cast, Type, Tuple
+from typing import MutableMapping, Optional, Callable, List, Set, cast, Type, Literal
 
 from sympy import FF, sympify, Poly, symbols
 
 from pyecsca.ec.error import NonInvertibleError
 from pyecsca.ec.formula.fake import FakePoint
-from pyecsca.ec.mult.fake import fake_mult
 from pyecsca.sca.re.base import RE
 from pyecsca.sca.re.tree import Tree, Map
 from pyecsca.ec.coordinates import AffineCoordinateModel
@@ -34,6 +34,7 @@ from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point
 from pyecsca.ec.context import Context, Action, local
+from pyecsca.ec.mult.fake import fake_mult
 from pyecsca.misc.utils import log, warn
 
 
@@ -385,6 +386,11 @@ class RPA(RE):
         return mults
 
 
+@lru_cache(maxsize=256, typed=True)
+def _cached_fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters) -> ScalarMultiplier:
+    return fake_mult(mult_class, mult_factory, params)
+
+
 @public
 def multiples_computed(
     scalar: int,
@@ -393,6 +399,7 @@ def multiples_computed(
     mult_factory: Callable,
     use_init: bool = False,
     use_multiply: bool = True,
+    kind: Literal["all"] | Literal["input"] | Literal["necessary"] = "all",
 ) -> set[int]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).
@@ -403,10 +410,11 @@ def multiples_computed(
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
     :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
+    :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary".
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
     """
-    mult = fake_mult(mult_class, mult_factory, params)
+    mult = _cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext()
     if use_init:
         with local(ctx, copy=False):
@@ -416,8 +424,26 @@ def multiples_computed(
 
     if use_multiply:
         with local(ctx, copy=False):
-            mult.multiply(scalar)
+            out = mult.multiply(scalar)
     else:
-        mult.multiply(scalar)
+        out = mult.multiply(scalar)
 
-    return set(ctx.points.values()) - {0}
+    if kind == "all":
+        res = set(ctx.points.values())
+    elif kind == "input":
+        res = set()
+        for point, multiple in ctx.points.items():
+            if point in ctx.parents:
+                for parent in ctx.parents[point]:
+                    res.add(ctx.points[parent])
+    elif kind == "necessary":
+        res = {ctx.points[out]}
+        queue = {out}
+        while queue:
+            point = queue.pop()
+            for parent in ctx.parents[point]:
+                res.add(ctx.points[parent])
+                queue.add(parent)
+    else:
+        raise ValueError(f"Invalid kind {kind}")
+    return res - {0}

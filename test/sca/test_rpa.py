@@ -81,6 +81,24 @@ def test_multiples(rpa_params):
     assert 0 not in multiples
 
 
+def test_multiples_kind(rpa_params):
+    multiples_all = multiples_computed(
+        17, rpa_params, RTLMultiplier, RTLMultiplier, True, True,
+        kind="all"
+    )
+    multiples_input = multiples_computed(
+        17, rpa_params, RTLMultiplier, RTLMultiplier, True, True,
+        kind="input"
+    )
+    multiples_necessary = multiples_computed(
+        17, rpa_params, RTLMultiplier, RTLMultiplier, True, True,
+        kind="necessary"
+    )
+    assert multiples_all != multiples_input
+    assert multiples_all != multiples_necessary
+    assert multiples_input != multiples_necessary
+
+
 def test_x0_point(rpa_params):
     res = rpa_point_x0(rpa_params)
     assert res is not None

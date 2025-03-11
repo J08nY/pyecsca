@@ -3,32 +3,28 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
+from functools import lru_cache
 from typing import List, Set, Tuple, Dict, Type, Callable
 from public import public
 import warnings
 from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
+
 from pyecsca.sca.re.rpa import MultipleContext
 from pyecsca.ec.context import local
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.model import CurveModel
 from pyecsca.ec.divpoly import mult_by_n
-from pyecsca.ec.formula import (
-    Formula,
-    AdditionFormula,
-    DoublingFormula,
-    DifferentialAdditionFormula,
-    LadderFormula,
-    NegationFormula,
-)
-from pyecsca.ec.formula.fake import FakePoint, FakeFormula
+from pyecsca.ec.formula import Formula
+from pyecsca.ec.formula.fake import FakePoint
 from pyecsca.ec.formula.unroll import unroll_formula
-from pyecsca.ec.mod import Mod, mod
-from pyecsca.ec.mult import ScalarMultiplier, fake_mult
+from pyecsca.ec.mod import mod
+from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 
+from pyecsca.ec.mult.fake import fake_mult
 
 has_pari = False
 try:
@@ -585,6 +581,11 @@ def solve_hard_dcp_cypari(
     return res
 
 
+@lru_cache(maxsize=256, typed=True)
+def _cached_fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters) -> ScalarMultiplier:
+    return fake_mult(mult_class, mult_factory, params)
+
+
 @public
 def addition_chain(
     scalar: int,
@@ -606,7 +607,7 @@ def addition_chain(
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
     """
-    mult = fake_mult(mult_class, mult_factory, params)
+    mult = _cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext()
     if use_init:
         with local(ctx, copy=False):
