@@ -20,9 +20,10 @@ class ScalarMultiplierCountermeasure(ABC):
     This class behaves like a scalar multiplier, in fact it wraps one
     and provides some scalar-splitting countermeasure.
     """
+
     mult: ScalarMultiplier
     params: Optional[DomainParameters]
-    point:  Optional[Point]
+    point: Optional[Point]
 
     def __init__(self, mult: ScalarMultiplier):
         self.mult = mult
@@ -45,11 +46,14 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
         self.rand_bits = rand_bits
 
     def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None:
+            raise ValueError("Not initialized.")
         self.mult.init(self.params, self.point)
         order = self.params.order
         mask = int(Mod.random(1 << self.rand_bits))
         masked_scalar = scalar + mask * order
         return self.mult.multiply(masked_scalar)
+
 
 @public
 class AdditiveSplitting(ScalarMultiplierCountermeasure):
@@ -60,6 +64,8 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
         self.add = add
 
     def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None:
+            raise ValueError("Not initialized.")
         self.mult.init(self.params, self.point)
 
         order = self.params.order
@@ -70,7 +76,9 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
         if self.add is None:
             return self.mult._add(R, S)  # noqa: This is OK.
         else:
-            return self.add(self.params.curve.prime, R, S, **self.params.curve.parameters)[0]
+            return self.add(
+                self.params.curve.prime, R, S, **self.params.curve.parameters
+            )[0]
 
 
 @public
@@ -82,6 +90,8 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
         self.rand_bits = rand_bits
 
     def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None:
+            raise ValueError("Not initialized.")
         self.mult.init(self.params, self.point)
         r = Mod.random(1 << self.rand_bits)
         R = self.mult.multiply(int(r))
@@ -89,6 +99,7 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
         self.mult.init(self.params, R)
         kr_inv = scalar * mod(int(r), self.params.order).inverse()
         return self.mult.multiply(int(kr_inv))
+
 
 @public
 class EuclideanSplitting(ScalarMultiplierCountermeasure):
@@ -99,6 +110,8 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         self.add = add
 
     def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None:
+            raise ValueError("Not initialized.")
         order = self.params.order
         half_bits = order.bit_length() // 2
         r = Mod.random(1 << half_bits)
@@ -115,4 +128,6 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         if self.add is None:
             return self.mult._add(S, T)  # noqa: This is OK.
         else:
-            return self.add(self.params.curve.prime, S, T, **self.params.curve.parameters)[0]
+            return self.add(
+                self.params.curve.prime, S, T, **self.params.curve.parameters
+            )[0]
