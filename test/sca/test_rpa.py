@@ -4,6 +4,7 @@ from math import isqrt
 import pytest
 
 from pyecsca.ec.context import local
+from pyecsca.ec.countermeasures import AdditiveSplitting
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.mod import mod
 from pyecsca.ec.model import ShortWeierstrassModel
@@ -126,6 +127,11 @@ def test_multiples_kind(rpa_params):
     assert multiples_all != multiples_necessary
     assert multiples_input != multiples_necessary
     assert multiples_precomp != multiples_necessary
+
+
+def test_multiples_additive(rpa_params):
+    mults = multiples_computed(1454656138887897564, rpa_params, LTRMultiplier, lambda *args, **kwargs: AdditiveSplitting(LTRMultiplier(*args, **kwargs)), True, True, kind="precomp+necessary")
+    assert mults is not None
 
 
 def test_x0_point(rpa_params):

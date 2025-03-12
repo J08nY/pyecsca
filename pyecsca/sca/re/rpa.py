@@ -54,7 +54,7 @@ class MultipleContext(Context):
     """The mapping of points to the formula types they are a result of."""
     precomp: MutableMapping[int, Point]
     """The mapping of precomputed multiples to the points they represent."""
-    inside: bool
+    inside: List[Action]
     """Whether we are inside a scalarmult/precomp action."""
     keep_base: bool
     """Whether to keep the base point when building upon it."""
@@ -65,12 +65,12 @@ class MultipleContext(Context):
         self.parents = {}
         self.formulas = {}
         self.precomp = {}
-        self.inside = False
+        self.inside = []
         self.keep_base = keep_base
 
     def enter_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
-            self.inside = True
+            self.inside.append(action)
             if self.base:
                 # If we already did some computation with this context try to see if we are building on top of it.
                 if self.base != action.point:
@@ -97,9 +97,9 @@ class MultipleContext(Context):
 
     def exit_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
-            self.inside = False
+            self.inside.remove(action)
             if isinstance(action, PrecomputationAction):
-                self.precomp = action.result
+                self.precomp.update(action.result)
         if isinstance(action, FormulaAction) and self.inside:
             action = cast(FormulaAction, action)
             if isinstance(action.formula, DoublingFormula):

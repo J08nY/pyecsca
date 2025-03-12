@@ -7,7 +7,7 @@ from enum import Enum
 from public import public
 from typing import Mapping, Tuple, Optional, ClassVar, Set, Type
 
-from pyecsca.ec.context import ResultAction, Action
+from pyecsca.ec.context import ResultAction
 from pyecsca.ec.formula import Formula
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point

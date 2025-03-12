@@ -26,3 +26,8 @@ dt:target, .highlight {
 	width: 107px;
 	font-weight: normal !important;
 }
+
+.frame mjx-math {
+    border: 1px solid #e0e0e0;
+    padding: 5px;
+}
