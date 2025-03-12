@@ -247,7 +247,7 @@ def test_addition_chain(secp128r1):
         78699,
         secp128r1,
         LTRMultiplier,
-        lambda add, dbl: LTRMultiplier(
+        lambda add, dbl, *args, **kwargs: LTRMultiplier(
             add, dbl, None, False, AccumulationOrder.PeqPR, True, True
         ),
     )
