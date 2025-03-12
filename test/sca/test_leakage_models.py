@@ -1,10 +1,11 @@
+import pytest
+
 from pyecsca.ec.context import local, DefaultContext
 from pyecsca.ec.formula import FormulaAction, OpResult
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.op import OpType
 from pyecsca.sca.attack.leakage_model import Identity, Bit, Slice, HammingWeight, HammingDistance, BitLength
-import pytest
 
 
 def test_identity():

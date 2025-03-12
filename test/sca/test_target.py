@@ -13,6 +13,7 @@ from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import get_params
 from pyecsca.ec.signature import SignatureResult, ECDSA_SHA1
+from pyecsca.sca.attack import HammingWeight
 from pyecsca.sca.target import (
     BinaryTarget,
     SimpleSerialTarget,
@@ -20,7 +21,6 @@ from pyecsca.sca.target import (
     has_pyscard,
     LeakageTarget,
 )
-from pyecsca.sca.attack import HammingWeight
 from pyecsca.sca.target.ectester import (
     KeyAgreementEnum,
     SignatureEnum,

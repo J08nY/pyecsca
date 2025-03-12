@@ -3,8 +3,7 @@ from typing import Sequence, List
 
 import pytest
 
-from pyecsca.ec.context import local, DefaultContext
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import (
     DoubleAndAddMultiplier,
     LTRMultiplier,

@@ -2,8 +2,9 @@ import random
 from collections import OrderedDict
 from copy import deepcopy
 
-from pyecsca.sca.re.tree import Tree, Map
 import pandas as pd
+
+from pyecsca.sca.re.tree import Tree, Map
 
 
 def test_map():

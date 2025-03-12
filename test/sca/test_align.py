@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 from importlib_resources import files, as_file
+
+import test.data.sca
 from pyecsca.sca import (
     align_correlation,
     align_peaks,
@@ -10,7 +12,6 @@ from pyecsca.sca import (
     Trace,
     InspectorTraceSet,
 )
-import test.data.sca
 
 
 def test_align():

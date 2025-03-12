@@ -1,5 +1,4 @@
 import pickle
-import pickletools
 from multiprocessing import get_context
 from multiprocessing.context import BaseContext
 

@@ -1,7 +1,10 @@
 import pytest
+from sympy import symbols, Poly, sympify, FF
 
+from pyecsca.ec.context import local, DefaultContext
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.formula.unroll import unroll_formula
+from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import LTRMultiplier, AccumulationOrder
 from pyecsca.ec.point import Point
 from pyecsca.sca.re.zvp import (
@@ -17,9 +20,6 @@ from pyecsca.sca.re.zvp import (
     solve_easy_dcp,
     solve_hard_dcp,
 )
-from pyecsca.ec.formula.unroll import unroll_formula
-from pyecsca.ec.context import local, DefaultContext
-from sympy import symbols, Poly, sympify, FF
 
 
 @pytest.fixture(params=["add-2007-bl", "add-2015-rcb", "dbl-2007-bl"])

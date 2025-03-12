@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import click
-
 from importlib_resources import files, as_file
-from test.utils import Profiler
+
 import test.data.sca
 from pyecsca.sca import (
     InspectorTraceSet,
@@ -13,6 +12,7 @@ from pyecsca.sca import (
     subtract,
     conditional_average,
 )
+from test.utils import Profiler
 
 
 @click.command()

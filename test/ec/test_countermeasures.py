@@ -1,12 +1,12 @@
 import pytest
 
-from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.countermeasures import (
     GroupScalarRandomization,
     AdditiveSplitting,
     MultiplicativeSplitting,
     EuclideanSplitting,
 )
+from pyecsca.ec.mult import LTRMultiplier
 
 
 @pytest.fixture(params=["add-1998-cmo-2", "add-2015-rcb"])

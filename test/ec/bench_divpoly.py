@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import sys
+from datetime import datetime
 
 import click
 
 from pyecsca.ec.divpoly import mult_by_n
 from pyecsca.ec.params import get_params
-from datetime import datetime
 
 
 @click.command()

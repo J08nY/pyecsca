@@ -1,12 +1,25 @@
+import multiprocessing as mp
 import pickle
 from operator import itemgetter
 from typing import Tuple
-import multiprocessing as mp
 
 import pytest
-from sympy import FF, symbols
 from importlib_resources import files, as_file
+from sympy import FF, symbols
+
 import pyecsca.ec
+from pyecsca.ec.error import UnsatisfiedAssumptionError
+from pyecsca.ec.formula import (
+    AdditionFormula,
+    DoublingFormula,
+    LadderFormula,
+    CodeFormula,
+)
+from pyecsca.ec.formula.efd import (
+    AdditionEFDFormula,
+    DoublingEFDFormula,
+    LadderEFDFormula,
+)
 from pyecsca.ec.formula.expand import expand_formula_set, expand_formula_set_parallel
 from pyecsca.ec.formula.fliparoo import generate_fliparood_formulas
 from pyecsca.ec.formula.graph import rename_ivs
@@ -22,23 +35,11 @@ from pyecsca.ec.formula.partitions import (
     generate_partitioned_formulas,
 )
 from pyecsca.ec.formula.switch_sign import generate_switched_formulas
-from pyecsca.ec.mod import SymbolicMod, Mod, mod
-from pyecsca.misc.cfg import TemporaryConfig
-from pyecsca.ec.error import UnsatisfiedAssumptionError
+from pyecsca.ec.mod import SymbolicMod, mod
+from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
 from pyecsca.ec.params import get_params, DomainParameters
 from pyecsca.ec.point import Point
-from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel, TwistedEdwardsModel
-from pyecsca.ec.formula.efd import (
-    AdditionEFDFormula,
-    DoublingEFDFormula,
-    LadderEFDFormula,
-)
-from pyecsca.ec.formula import (
-    AdditionFormula,
-    DoublingFormula,
-    LadderFormula,
-    CodeFormula,
-)
+from pyecsca.misc.cfg import TemporaryConfig
 
 
 @pytest.fixture()

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from argparse import Namespace, FileType, ArgumentParser
-from contextlib import contextmanager, nullcontext
-from itertools import product
-from pathlib import Path
-from copy import copy
-from csv import DictWriter
 import json
 import sys
+from argparse import Namespace, FileType, ArgumentParser
+from contextlib import contextmanager, nullcontext
+from copy import copy
+from csv import DictWriter
+from itertools import product
+from pathlib import Path
 from typing import (Any, Callable, Dict, List, Optional, TextIO,
                     Tuple, Union, cast)
 from warnings import warn

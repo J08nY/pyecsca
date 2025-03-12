@@ -3,7 +3,7 @@ from ast import parse
 import pytest
 
 from pyecsca.ec.formula import OpResult
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.op import CodeOp, OpType
 
 

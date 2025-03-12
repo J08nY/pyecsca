@@ -3,9 +3,14 @@ import warnings
 import pytest
 from sympy import FF, symbols
 
+from pyecsca.ec.error import (
+    NonInvertibleError,
+    NonResidueError,
+    NonInvertibleWarning,
+    NonResidueWarning,
+)
 from pyecsca.ec.mod import (
     mod,
-    Mod,
     gcd,
     extgcd,
     Undefined,
@@ -15,12 +20,6 @@ from pyecsca.ec.mod import (
     jacobi,
 )
 from pyecsca.ec.mod.gmp import has_gmp
-from pyecsca.ec.error import (
-    NonInvertibleError,
-    NonResidueError,
-    NonInvertibleWarning,
-    NonResidueWarning,
-)
 from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
 

@@ -1,9 +1,10 @@
+import json
 from copy import copy
 
 import pytest
-import json
 from importlib_resources import files
 
+import test.data.ec
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.key_agreement import (
     ECDH_NONE,
@@ -15,13 +16,12 @@ from pyecsca.ec.key_agreement import (
     X25519,
     X448,
 )
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import (
     LTRMultiplier,
     LadderMultiplier,
     DifferentialLadderMultiplier,
 )
-import test.data.ec
 from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point
 

@@ -1,6 +1,6 @@
-import numpy as np
 import holoviews as hv
 import matplotlib as mpl
+import numpy as np
 import pytest
 
 from pyecsca.sca.trace import Trace

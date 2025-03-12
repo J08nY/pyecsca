@@ -1,11 +1,12 @@
-import pytest
 import random
 
+import pytest
+
 from pyecsca.ec.mult import LTRMultiplier
-from pyecsca.sca.attack.DPA import DPA
 from pyecsca.sca.attack.CPA import CPA
-from pyecsca.sca.target import LeakageTarget
+from pyecsca.sca.attack.DPA import DPA
 from pyecsca.sca.attack.leakage_model import HammingWeight, NormalNoice
+from pyecsca.sca.target import LeakageTarget
 
 
 @pytest.fixture()

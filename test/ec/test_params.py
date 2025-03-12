@@ -1,19 +1,18 @@
 import pickle
 
+import pytest
 from importlib_resources import files, as_file
 
-import pytest
-
 import test.data.ec
-from pyecsca.ec.mod import Mod, mod
-from pyecsca.ec.point import Point, InfinityPoint
-from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.ec.coordinates import AffineCoordinateModel
+from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.error import UnsatisfiedAssumptionError
+from pyecsca.ec.mod import mod
+from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.params import get_params, load_params, load_category, get_category, DomainParameters, \
     load_params_ectester, load_params_ecgen
-from pyecsca.ec.model import ShortWeierstrassModel
-from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.point import Point, InfinityPoint
+from pyecsca.misc.cfg import TemporaryConfig
 
 
 def test_eq(secp128r1, curve25519):

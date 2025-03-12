@@ -1,11 +1,13 @@
 import pickle
 from contextlib import nullcontext as does_not_raise
+
+import pytest
+
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.params import get_params
 from pyecsca.ec.mod import mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
+from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point, InfinityPoint
-import pytest
 
 
 @pytest.fixture()

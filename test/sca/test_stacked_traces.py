@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
+import pytest
+
 from pyecsca.sca import (
     Trace,
     StackedTraces,
     TraceSet,
 )
-
 
 TRACE_COUNT = 2 ** 10
 TRACE_LEN = 2 ** 15

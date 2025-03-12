@@ -1,5 +1,5 @@
-from itertools import product
 from functools import reduce
+from itertools import product
 
 
 def cartesian(*items):

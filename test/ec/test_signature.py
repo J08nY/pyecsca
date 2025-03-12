@@ -2,9 +2,10 @@ import json
 
 import pytest
 from importlib_resources import files
+
 import test.data.ec
 from pyecsca.ec.coordinates import AffineCoordinateModel
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import LTRMultiplier
 from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point

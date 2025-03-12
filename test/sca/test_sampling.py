@@ -1,4 +1,5 @@
 import numpy as np
+
 from pyecsca.sca import (
     Trace,
     downsample_average,

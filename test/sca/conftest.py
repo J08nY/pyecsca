@@ -1,9 +1,8 @@
 from typing import Dict
 
+import matplotlib.pyplot as plt
 import pytest
 from importlib_resources import files, as_file
-
-import matplotlib.pyplot as plt
 
 from pyecsca.sca import Trace
 

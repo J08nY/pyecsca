@@ -2,9 +2,9 @@ import json
 
 import pytest
 from importlib_resources import files
+from sympy import FF
 
 import test.data.divpoly
-from sympy import FF
 from pyecsca.ec.divpoly import a_invariants, b_invariants, divpoly0, divpoly, mult_by_n
 
 

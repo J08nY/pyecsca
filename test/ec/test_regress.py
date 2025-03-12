@@ -9,8 +9,8 @@ from pyecsca.ec.error import UnsatisfiedAssumptionError
 from pyecsca.ec.formula import AdditionFormula, DoublingFormula, ScalingFormula
 from pyecsca.ec.mod import Mod, SymbolicMod, mod
 from pyecsca.ec.model import MontgomeryModel, EdwardsModel
-from pyecsca.ec.params import get_params
 from pyecsca.ec.mult import LTRMultiplier
+from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point, InfinityPoint
 
 

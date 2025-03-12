@@ -2,10 +2,9 @@ import os.path
 import shutil
 import tempfile
 
+import numpy as np
 import pytest
 from importlib_resources import files, as_file
-
-import numpy as np
 
 import test.data.sca
 from pyecsca.sca import (

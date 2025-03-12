@@ -1,7 +1,7 @@
+import numpy as np
 import pytest
 from numba import cuda
 
-import numpy as np
 from pyecsca.sca import StackedTraces, GPUTraceManager, CombinedTrace, CPUTraceManager
 
 TPB = 128

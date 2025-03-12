@@ -1,10 +1,11 @@
 from binascii import unhexlify
+
 import pytest
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
 from pyecsca.ec.error import UnsatisfiedAssumptionError
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
 from pyecsca.ec.model import MontgomeryModel
 from pyecsca.ec.point import Point, InfinityPoint
 

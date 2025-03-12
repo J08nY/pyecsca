@@ -33,5 +33,5 @@ def fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params
         for subclass in formula.__subclasses__():
             if issubclass(subclass, FakeFormula):
                 formulas.append(subclass(params.curve.coordinate_model))
-    mult = mult_factory(*formulas)
+    mult = mult_factory(*formulas, short_circuit=False)
     return mult

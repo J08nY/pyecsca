@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import click
 
-from pyecsca.ec.mod.gmp import has_gmp
+from pyecsca.ec.formula.unroll import unroll_formula
 from pyecsca.ec.mod.flint import has_flint
+from pyecsca.ec.mod.gmp import has_gmp
+from pyecsca.ec.params import get_params
 from pyecsca.misc.cfg import TemporaryConfig
 from pyecsca.sca.re.zvp import zvp_points, map_to_affine
-from pyecsca.ec.formula.unroll import unroll_formula
-from pyecsca.ec.params import get_params
 from test.utils import Profiler
 
 

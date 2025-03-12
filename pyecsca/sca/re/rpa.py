@@ -91,7 +91,7 @@ class MultipleContext(Context):
                 self.base = action.point
                 self.neutral = action.params.curve.neutral
                 self.points = {self.base: 1, self.neutral: 0}
-                self.parents = {self.base: []}
+                self.parents = {self.base: [], self.neutral: []}
                 self.formulas = {self.base: "", self.neutral: ""}
                 self.precomp = {}
 

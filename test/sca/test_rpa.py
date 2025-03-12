@@ -1,12 +1,12 @@
 from functools import partial
-
-import pytest
 from math import isqrt
 
+import pytest
+
 from pyecsca.ec.context import local
-from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.curve import EllipticCurve
-from pyecsca.ec.mod import Mod, mod
+from pyecsca.ec.mod import mod
+from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.mult import (
     LTRMultiplier,
     RTLMultiplier,
