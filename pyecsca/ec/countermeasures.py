@@ -31,6 +31,7 @@ class ScalarMultiplierCountermeasure(ABC):
     def init(self, params: DomainParameters, point: Point):
         self.params = params
         self.point = point
+        self.mult.init(self.params, self.point)
 
     @abstractmethod
     def multiply(self, scalar: int) -> Point:
@@ -48,7 +49,6 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None:
             raise ValueError("Not initialized.")
-        self.mult.init(self.params, self.point)
         order = self.params.order
         mask = int(Mod.random(1 << self.rand_bits))
         masked_scalar = scalar + mask * order
@@ -66,7 +66,6 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None:
             raise ValueError("Not initialized.")
-        self.mult.init(self.params, self.point)
 
         order = self.params.order
         r = Mod.random(order)
@@ -92,7 +91,6 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None:
             raise ValueError("Not initialized.")
-        self.mult.init(self.params, self.point)
         r = Mod.random(1 << self.rand_bits)
         R = self.mult.multiply(int(r))
 
@@ -112,19 +110,18 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None:
             raise ValueError("Not initialized.")
+
         order = self.params.order
         half_bits = order.bit_length() // 2
         r = Mod.random(1 << half_bits)
-        self.mult.init(self.params, self.point)
         R = self.mult.multiply(int(r))
 
         k1 = scalar % int(r)
         k2 = scalar // int(r)
+        T = self.mult.multiply(k1)
+
         self.mult.init(self.params, R)
         S = self.mult.multiply(k2)
-
-        self.mult.init(self.params, self.point)
-        T = self.mult.multiply(k1)
         if self.add is None:
             return self.mult._add(S, T)  # noqa: This is OK.
         else:

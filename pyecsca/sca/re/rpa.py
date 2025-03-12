@@ -52,37 +52,54 @@ class MultipleContext(Context):
     """The mapping of points to their parent they were computed from."""
     formulas: MutableMapping[Point, str]
     """The mapping of points to the formula types they are a result of."""
+    precomp: MutableMapping[int, Point]
+    """The mapping of precomputed multiples to the points they represent."""
     inside: bool
+    """Whether we are inside a scalarmult/precomp action."""
+    keep_base: bool
+    """Whether to keep the base point when building upon it."""
 
-    def __init__(self):
+    def __init__(self, keep_base: bool = False):
         self.base = None
         self.points = {}
         self.parents = {}
         self.formulas = {}
+        self.precomp = {}
         self.inside = False
+        self.keep_base = keep_base
 
     def enter_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
+            self.inside = True
             if self.base:
                 # If we already did some computation with this context try to see if we are building on top of it.
                 if self.base != action.point:
-                    # If we are not building on top of it we have to forget stuff and set a new base and mapping.
-                    self.base = action.point
-                    self.neutral = action.params.curve.neutral
-                    self.points = {self.base: 1, self.neutral: 0}
-                    self.parents = {self.base: [], self.neutral: []}
-                    self.formulas = {self.base: "", self.neutral: ""}
+                    # We are not doing the same point, but maybe we are doing a multiple of it.
+                    if action.point in self.points and self.keep_base:
+                        # We are doing a multiple of the base and were asked to keep it.
+                        pass
+                    else:
+                        # We are not building on top of it (or were asked to forget).
+                        # We have to forget stuff and set a new base and mapping.
+                        self.base = action.point
+                        self.neutral = action.params.curve.neutral
+                        self.points = {self.base: 1, self.neutral: 0}
+                        self.parents = {self.base: [], self.neutral: []}
+                        self.formulas = {self.base: "", self.neutral: ""}
+                        self.precomp = {}
             else:
                 self.base = action.point
                 self.neutral = action.params.curve.neutral
                 self.points = {self.base: 1, self.neutral: 0}
                 self.parents = {self.base: []}
                 self.formulas = {self.base: "", self.neutral: ""}
-            self.inside = True
+                self.precomp = {}
 
     def exit_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
             self.inside = False
+            if isinstance(action, PrecomputationAction):
+                self.precomp = action.result
         if isinstance(action, FormulaAction) and self.inside:
             action = cast(FormulaAction, action)
             if isinstance(action.formula, DoublingFormula):
@@ -399,7 +416,7 @@ def multiples_computed(
     mult_factory: Callable,
     use_init: bool = False,
     use_multiply: bool = True,
-    kind: Union[Literal["all"], Literal["input"], Literal["necessary"]] = "all",
+    kind: Union[Literal["all"], Literal["input"], Literal["necessary"], Literal["precomp+necessary"]] = "all",
 ) -> set[int]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).
@@ -410,12 +427,12 @@ def multiples_computed(
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
     :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
-    :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary".
+    :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary", or "precomp+necessary".
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
     """
     mult = _cached_fake_mult(mult_class, mult_factory, params)
-    ctx = MultipleContext()
+    ctx = MultipleContext(keep_base=True)
     if use_init:
         with local(ctx, copy=False):
             mult.init(params, FakePoint(params.curve.coordinate_model))
@@ -439,6 +456,14 @@ def multiples_computed(
     elif kind == "necessary":
         res = {ctx.points[out]}
         queue = {out}
+        while queue:
+            point = queue.pop()
+            for parent in ctx.parents[point]:
+                res.add(ctx.points[parent])
+                queue.add(parent)
+    elif kind == "precomp+necessary":
+        res = {ctx.points[out]}
+        queue = {out, *ctx.precomp.values()}
         while queue:
             point = queue.pop()
             for parent in ctx.parents[point]:

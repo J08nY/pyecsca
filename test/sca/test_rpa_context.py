@@ -9,7 +9,6 @@ from pyecsca.ec.formula import (
     DoublingFormula,
     ScalingFormula,
 )
-from pyecsca.ec.mod import Mod
 from pyecsca.ec.mult import (
     LTRMultiplier,
     BinaryNAFMultiplier,
@@ -85,9 +84,10 @@ def test_precomp(secp128r1, add, dbl, neg, scale):
 
 def test_window(secp128r1, add, dbl, neg):
     mult = WindowNAFMultiplier(add, dbl, neg, 3, precompute_negation=True)
-    with local(MultipleContext()):
+    with local(MultipleContext()) as ctx:
         mult.init(secp128r1, secp128r1.generator)
         mult.multiply(5)
+    assert ctx.precomp
 
 
 def test_ladder(curve25519):
@@ -111,3 +111,20 @@ def test_ladder(curve25519):
         dadd_mult.multiply(1339278426732672313)
     muls = list(ctx.points.values())
     assert muls[-2] == 1339278426732672313
+
+
+def test_keep_base(secp128r1, add, dbl):
+    mult = LTRMultiplier(
+        add,
+        dbl,
+        always=False,
+        complete=False,
+        short_circuit=True,
+    )
+
+    with local(MultipleContext(keep_base=True)) as ctx:
+        mult.init(secp128r1, secp128r1.generator)
+        r = mult.multiply(5)
+        mult.init(secp128r1, r)
+        mult.multiply(10)
+    assert 50 in ctx.points.values()

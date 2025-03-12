@@ -12,7 +12,7 @@ from pyecsca.ec.mult import (
     ProcessingDirection,
     AccumulationOrder,
     PrecomputationAction,
-    ScalarMultiplicationAction,
+    ScalarMultiplicationAction, PrecompMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
@@ -20,7 +20,7 @@ from pyecsca.ec.scalar import convert_base
 
 
 @public
-class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+class BGMWMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
     """
     Brickell, Gordon, McCurley and Wilson (BGMW) scalar multiplier,
     or rather, its one parametrization.
@@ -86,7 +86,7 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
-        with PrecomputationAction(params, point):
+        with PrecomputationAction(params, point) as action:
             super().init(params, point)
             d = ceil(params.order.bit_length() / self.width)
             self._points = {}
@@ -96,6 +96,7 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
                 if i != d - 1:
                     for _ in range(self.width):
                         current_point = self._dbl(current_point)
+            action.exit(self._points)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:
@@ -126,7 +127,7 @@ class BGMWMultiplier(AccumulatorMultiplier, ScalarMultiplier):
 
 
 @public
-class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
     """
     Comb multiplier.
 
@@ -179,7 +180,7 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
-        with PrecomputationAction(params, point):
+        with PrecomputationAction(params, point) as action:
             super().init(params, point)
             d = ceil(params.order.bit_length() / self.width)
             base_points = {}
@@ -198,6 +199,7 @@ class CombMultiplier(AccumulatorMultiplier, ScalarMultiplier):
                 self._points[j] = points[0]
                 for other in points[1:]:
                     self._points[j] = self._accumulate(self._points[j], other)
+            action.exit(self._points)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

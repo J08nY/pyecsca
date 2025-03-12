@@ -9,7 +9,7 @@ from pyecsca.ec.mult.base import (
     ProcessingDirection,
     AccumulationOrder,
     PrecomputationAction,
-    AccumulatorMultiplier,
+    AccumulatorMultiplier, PrecompMultiplier,
 )
 from pyecsca.ec.formula import (
     AdditionFormula,
@@ -23,7 +23,7 @@ from pyecsca.ec.scalar import naf, wnaf
 
 
 @public
-class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
     """
     Binary NAF (Non Adjacent Form) multiplier.
 
@@ -82,9 +82,10 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
-        with PrecomputationAction(params, point):
+        with PrecomputationAction(params, point) as action:
             super().init(params, point)
             self._point_neg = self._neg(point)
+            action.exit({-1: self._point_neg})
 
     def _ltr(self, scalar_naf: List[int]) -> Point:
         q = copy(self._params.curve.neutral)
@@ -126,7 +127,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
 
 
 @public
-class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
     """
     Window NAF (Non Adjacent Form) multiplier, left-to-right.
 
@@ -195,7 +196,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point):
-        with PrecomputationAction(params, point):
+        with PrecomputationAction(params, point) as action:
             super().init(params, point)
             self._points = {}
             self._points_neg = {}
@@ -206,6 +207,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, ScalarMultiplier):
                 if self.precompute_negation:
                     self._points_neg[2 * i + 1] = self._neg(current_point)
                 current_point = self._add(current_point, double_point)
+            action.exit({**self._points, **self._points_neg})
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

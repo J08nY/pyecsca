@@ -48,7 +48,7 @@ class ScalarMultiplicationAction(ResultAction):
 
 
 @public
-class PrecomputationAction(Action):
+class PrecomputationAction(ResultAction):
     """A precomputation of a point in scalar multiplication."""
 
     params: DomainParameters
@@ -236,6 +236,11 @@ class ScalarMultiplier(ABC):
         :return: The resulting multiple.
         """
         raise NotImplementedError
+
+
+@public
+class PrecompMultiplier(ScalarMultiplier, ABC):
+    pass
 
 
 @public

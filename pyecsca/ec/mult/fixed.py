@@ -11,14 +11,14 @@ from pyecsca.ec.mult.base import (
     ProcessingDirection,
     AccumulationOrder,
     PrecomputationAction,
-    ScalarMultiplicationAction,
+    ScalarMultiplicationAction, PrecompMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 
 
 @public
-class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
+class FullPrecompMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
     """
     See page 104 of [GECC]_:
 
@@ -91,7 +91,7 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order.name}, always={self.always}, complete={self.complete})"
 
     def init(self, params: DomainParameters, point: Point):
-        with PrecomputationAction(params, point):
+        with PrecomputationAction(params, point) as action:
             super().init(params, point)
             self._points = {}
             current_point = point
@@ -99,6 +99,7 @@ class FullPrecompMultiplier(AccumulatorMultiplier, ScalarMultiplier):
                 self._points[i] = current_point
                 if i != params.order.bit_length():
                     current_point = self._dbl(current_point)
+            action.exit(self._points)
 
     def _ltr(self, scalar: int) -> Point:
         if self.complete:
