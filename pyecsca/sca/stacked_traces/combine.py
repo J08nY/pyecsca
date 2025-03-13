@@ -680,4 +680,4 @@ class CPUTraceManager(BaseTraceManager):
         denom_samp = np.sqrt(n * sam_sq_sum - sam_sum**2)
         denom_int = np.sqrt(n * iv_sq_sum - iv_sum**2)
         denominator = denom_samp * denom_int
-        return CombinedTrace(numerator / denominator, self.traces.meta)
+        return CombinedTrace(numerator / denominator, self._traces.meta)
