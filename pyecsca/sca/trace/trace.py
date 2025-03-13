@@ -86,7 +86,8 @@ class Trace:
 
     def with_samples(self, samples: ndarray) -> "Trace":
         """
-        Construct a copy of this trace, with the same metadata, but samples replaced by `samples`.
+        Construct a copy of this trace, with the same metadata, but samples replaced by
+        :paramref:`samples`.
 
         :param samples: The samples of the new trace.
         :return: The new trace.
@@ -98,7 +99,7 @@ class Trace:
         Construct a copy of this trace, with the same samples retyped using `dtype`.
 
         :param dtype: The numpy dtype.
-        :return: The new trace
+        :return: The new trace.
         """
         return self.with_samples(np.array(self.samples.astype(dtype)))
 
@@ -128,6 +129,14 @@ class CombinedTrace(Trace):
         trace_set: Any = None,
         parents: Optional[Sequence[Trace]] = None,
     ):
+        """
+        Construct a new combined trace.
+
+        :param samples: The sample array of the trace.
+        :param meta: Metadata associated with the trace.
+        :param trace_set: A trace set the trace is contained in.
+        :param parents: The traces that were combined to create this trace.
+        """
         super().__init__(samples, meta, trace_set=trace_set)
         self.parents = None
         if parents is not None:
