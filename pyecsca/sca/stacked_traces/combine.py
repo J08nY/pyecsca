@@ -100,6 +100,7 @@ class BaseTraceManager(ABC):
         """
         raise NotImplementedError
 
+
 InputType = Union[npt.NDArray[np.number], npt.ArrayLike]
 
 
