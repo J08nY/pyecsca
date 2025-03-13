@@ -292,8 +292,8 @@ class EllipticCurve:
             coordinate_model,
             self.prime,
             self.neutral.to_model(coordinate_model, self),
-            self.parameters,
-        )  # type: ignore[arg-type]
+            self.parameters,  # type: ignore[arg-type]
+        )
 
     def to_affine(self) -> "EllipticCurve":
         """
@@ -307,8 +307,8 @@ class EllipticCurve:
             coord_model,
             self.prime,
             self.neutral.to_affine(),
-            self.parameters,
-        )  # type: ignore[arg-type]
+            self.parameters,  # type: ignore[arg-type]
+        )
 
     def decode_point(self, encoded: bytes) -> Point:
         """
