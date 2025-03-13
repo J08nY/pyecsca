@@ -1,6 +1,7 @@
 """
 Provides functions for computing division polynomials and the multiplication-by-n map on an elliptic curve.
 """
+
 from typing import Tuple, Dict, Set, Mapping, Optional
 from public import public
 import warnings
@@ -161,9 +162,7 @@ def divpoly0(curve: EllipticCurve, *ns: int) -> Mapping[int, Poly]:
         elif i in (1, 2):
             val = Kx(1)
         elif i == 3:
-            val = (
-                Kx(3) * x**4 + b2 * x**3 + Kx(3) * b4 * x**2 + Kx(3) * b6 * x + b8
-            )
+            val = Kx(3) * x**4 + b2 * x**3 + Kx(3) * b4 * x**2 + Kx(3) * b6 * x + b8
         elif i == 4:
             val = -mem[-2] + (Kx(6) * x**2 + b2 * x + b4) * mem[3]
         elif i % 2 == 0:
@@ -293,7 +292,9 @@ def mult_by_n(
         mx = mult_by_n_pari(curve, n)
     else:
         if use_pari:
-            warnings.warn("Falling-back to slow mult-by-n map computation due to missing [pari] (cypari2 and libpari) dependency.")
+            warnings.warn(
+                "Falling-back to slow mult-by-n map computation due to missing [pari] (cypari2 and libpari) dependency."
+            )
         mx = mult_by_n_own(curve, n)
 
     if x_only:

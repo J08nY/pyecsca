@@ -1,4 +1,5 @@
 """Provides a base traceset class."""
+
 from pathlib import Path
 from typing import List, Union, BinaryIO
 
@@ -45,7 +46,5 @@ class TraceSet:
         raise NotImplementedError
 
     def __repr__(self):
-        args = ", ".join(
-            [f"{key}={getattr(self, key)!r}" for key in self._keys]
-        )
+        args = ", ".join([f"{key}={getattr(self, key)!r}" for key in self._keys])
         return f"{self.__class__.__name__}({args})"

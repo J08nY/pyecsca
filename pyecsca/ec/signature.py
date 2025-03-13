@@ -1,4 +1,5 @@
 """Provides an implementation of ECDSA (Elliptic Curve Digital Signature Algorithm)."""
+
 import hashlib
 from typing import Optional, Any
 

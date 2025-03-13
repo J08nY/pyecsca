@@ -4,6 +4,7 @@ Provides a traceset implemented on top of the Hierarchical Data Format (HDF5).
 This traceset can be loaded "inplace" which means that it is not fully loaded into memory, and only parts of traces that
 are operated on are in memory. This is very useful for working with huge sets of traces that do not fit in memory.
 """
+
 import pickle
 import uuid
 from collections.abc import MutableMapping
@@ -98,7 +99,9 @@ class HDF5TraceSet(TraceSet):
         return HDF5TraceSet(*traces, **kws, _ordering=ordering)
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "HDF5TraceSet":
+    def inplace(
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
+    ) -> "HDF5TraceSet":
         if isinstance(input, (str, Path)):
             hdf5 = h5py.File(str(input), mode="a")
         elif isinstance(input, (RawIOBase, BufferedIOBase, BinaryIO)):

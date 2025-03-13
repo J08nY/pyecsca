@@ -1,4 +1,5 @@
 """Provides a coordinate model class."""
+
 from ast import parse, Module
 from importlib_resources.abc import Traversable
 from importlib_resources import as_file

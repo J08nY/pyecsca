@@ -6,7 +6,17 @@ from copy import copy, deepcopy
 from functools import lru_cache
 
 from public import public
-from typing import MutableMapping, Optional, Callable, List, Set, cast, Type, Literal, Union
+from typing import (
+    MutableMapping,
+    Optional,
+    Callable,
+    List,
+    Set,
+    cast,
+    Type,
+    Literal,
+    Union,
+)
 
 from sympy import FF, sympify, Poly, symbols
 
@@ -404,7 +414,9 @@ class RPA(RE):
 
 
 @lru_cache(maxsize=256, typed=True)
-def _cached_fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters) -> ScalarMultiplier:
+def _cached_fake_mult(
+    mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
+) -> ScalarMultiplier:
     return fake_mult(mult_class, mult_factory, params)
 
 
@@ -416,7 +428,12 @@ def multiples_computed(
     mult_factory: Callable,
     use_init: bool = False,
     use_multiply: bool = True,
-    kind: Union[Literal["all"], Literal["input"], Literal["necessary"], Literal["precomp+necessary"]] = "all",
+    kind: Union[
+        Literal["all"],
+        Literal["input"],
+        Literal["necessary"],
+        Literal["precomp+necessary"],
+    ] = "all",
 ) -> set[int]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).

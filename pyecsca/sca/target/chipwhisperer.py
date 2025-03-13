@@ -5,6 +5,7 @@ ChipWhisperer is a side-channel analysis tool and framework. A ChipWhisperer tar
 that uses the ChipWhisperer's SimpleSerial communication protocol and is communicated with
 using ChipWhisperer-Lite or Pro.
 """
+
 from time import sleep
 
 import chipwhisperer as cw
@@ -20,9 +21,7 @@ from pyecsca.sca.target.simpleserial import SimpleSerialTarget
 class ChipWhispererTarget(Flashable, SimpleSerialTarget):  # pragma: no cover
     """ChipWhisperer-based target, using the SimpleSerial-ish protocol and communicating using ChipWhisperer-Lite/Pro."""
 
-    def __init__(
-        self, target: SimpleSerial, scope: ScopeTypes, programmer, **kwargs
-    ):
+    def __init__(self, target: SimpleSerial, scope: ScopeTypes, programmer, **kwargs):
         super().__init__()
         self.target = target
         self.scope = scope

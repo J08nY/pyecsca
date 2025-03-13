@@ -1,4 +1,5 @@
 """Provides an abstract target class communicating using the `ChipWhisperer's <https://github.com/newaetech/chipwhisperer/>`_ SimpleSerial protocol."""
+
 from abc import ABC
 from time import time_ns, sleep
 from typing import Mapping, Union

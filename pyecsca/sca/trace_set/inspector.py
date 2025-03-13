@@ -1,4 +1,5 @@
 """Provides a traceset implementation based on Riscure's Inspector traceset format (``.trs``)."""
+
 import struct
 from enum import IntEnum
 from io import BytesIO, RawIOBase, BufferedIOBase, UnsupportedOperation
@@ -148,7 +149,9 @@ class InspectorTraceSet(TraceSet):
     _scaled: bool = False
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "InspectorTraceSet":
+    def read(
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
+    ) -> "InspectorTraceSet":
         """
         Read Inspector trace set from file path, bytes or file-like object.
 
@@ -213,7 +216,9 @@ class InspectorTraceSet(TraceSet):
         return result, tags
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "InspectorTraceSet":
+    def inplace(
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
+    ) -> "InspectorTraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):

@@ -1,4 +1,5 @@
 """Provides an oscilloscope class for the PicoScope branded oscilloscopes using the alternative `pico-python <https://github.com/colinoflynn/pico-python>`_ bindings."""
+
 from time import time_ns, sleep
 import numpy as np
 from typing import Optional, Tuple, Sequence, Union

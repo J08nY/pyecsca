@@ -1,4 +1,5 @@
 """Provides classes for working with ISO7816-4 APDUs and an abstract base class for an ISO7816-4 based target."""
+
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from enum import IntEnum
@@ -12,12 +13,14 @@ from pyecsca.sca.target.base import Target
 @public
 class CardConnectionException(Exception):
     """Card could not be connected."""
+
     pass
 
 
 @public
 class CardProtocol(IntEnum):
     """Card protocol to use/negotiate."""
+
     T0 = 0
     T1 = 1
 
@@ -59,35 +62,35 @@ class CommandAPDU:  # pragma: no cover
             if len(self.data) <= 255:
                 # Case 3s
                 return (
-                        bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)])
-                        + self.data
+                    bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)])
+                    + self.data
                 )
             else:
                 # Case 3e
                 return (
-                        bytes([self.cls, self.ins, self.p1, self.p2, 0])
-                        + len(self.data).to_bytes(2, "big")
-                        + self.data
+                    bytes([self.cls, self.ins, self.p1, self.p2, 0])
+                    + len(self.data).to_bytes(2, "big")
+                    + self.data
                 )
         else:
             if len(self.data) <= 255 and self.ne <= 256:
                 # Case 4s
                 return (
-                        bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)])
-                        + self.data
-                        + bytes([self.ne if self.ne != 256 else 0])
+                    bytes([self.cls, self.ins, self.p1, self.p2, len(self.data)])
+                    + self.data
+                    + bytes([self.ne if self.ne != 256 else 0])
                 )
             else:
                 # Case 4e
                 return (
-                        bytes([self.cls, self.ins, self.p1, self.p2, 0])
-                        + len(self.data).to_bytes(2, "big")
-                        + self.data
-                        + (
-                            self.ne.to_bytes(2, "big")
-                            if self.ne != 65536
-                            else bytes([0, 0])
-                        )
+                    bytes([self.cls, self.ins, self.p1, self.p2, 0])
+                    + len(self.data).to_bytes(2, "big")
+                    + self.data
+                    + (
+                        self.ne.to_bytes(2, "big")
+                        if self.ne != 65536
+                        else bytes([0, 0])
+                    )
                 )
 
 

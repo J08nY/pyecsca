@@ -1,4 +1,5 @@
 """Provides functions for combining traces sample-wise."""
+
 from typing import Callable, Tuple
 
 import numpy as np

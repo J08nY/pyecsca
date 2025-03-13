@@ -3,6 +3,7 @@ Provides a traceset implementation based on Python's pickle format.
 
 This implementation of the traceset is thus very generic.
 """
+
 import pickle
 from io import BufferedIOBase, RawIOBase
 from pathlib import Path
@@ -18,7 +19,9 @@ class PickleTraceSet(TraceSet):
     """Pickle-based traceset format."""
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "PickleTraceSet":
+    def read(
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
+    ) -> "PickleTraceSet":
         if isinstance(input, bytes):
             return pickle.loads(input)  # pickle is OK here, skipcq: BAN-B301
         elif isinstance(input, (str, Path)):
@@ -29,7 +32,9 @@ class PickleTraceSet(TraceSet):
         raise TypeError
 
     @classmethod
-    def inplace(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "PickleTraceSet":
+    def inplace(
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
+    ) -> "PickleTraceSet":
         raise NotImplementedError
 
     def write(self, output: Union[str, Path, BinaryIO]):
@@ -42,7 +47,5 @@ class PickleTraceSet(TraceSet):
             raise TypeError
 
     def __repr__(self):
-        args = ", ".join(
-            [f"{key}={getattr(self, key)!r}" for key in self._keys]
-        )
+        args = ", ".join([f"{key}={getattr(self, key)!r}" for key in self._keys])
         return f"PickleTraceSet(num_traces={len(self)}, {args})"

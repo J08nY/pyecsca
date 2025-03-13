@@ -121,9 +121,7 @@ class LeakageTarget(Target):
         if self.privkey is None:
             raise ValueError("Missing privkey")
         with local(DefaultContext()) as ctx:
-            ecdh = ECDH(
-                self.mult, self.params, other_pubkey, self.privkey, hash_algo
-            )
+            ecdh = ECDH(self.mult, self.params, other_pubkey, self.privkey, hash_algo)
             shared_secret = ecdh.perform()
         return shared_secret, self.get_trace(ctx)
 

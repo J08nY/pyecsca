@@ -60,6 +60,7 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k + r n]G
 
     """
+
     rand_bits: int
 
     def __init__(self, mult: ScalarMultiplier, rand_bits: int = 32):
@@ -73,7 +74,11 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
     def init(self, params: DomainParameters, point: Point):
         self.params = params
         self.point = point
-        self.mult.init(self.params, self.point, bits=params.full_order.bit_length() + self.rand_bits)
+        self.mult.init(
+            self.params,
+            self.point,
+            bits=params.full_order.bit_length() + self.rand_bits,
+        )
 
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None:
@@ -99,6 +104,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k - r]G + [r]G
 
     """
+
     add: Optional[AdditionFormula]
 
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None):
@@ -121,7 +127,9 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
             if self.add is None:
                 res = self.mult._add(R, S)  # noqa: This is OK.
             else:
-                res = self.add(self.params.curve.prime, R, S, **self.params.curve.parameters)[0]
+                res = self.add(
+                    self.params.curve.prime, R, S, **self.params.curve.parameters
+                )[0]
             return action.exit(res)
 
 
@@ -140,6 +148,7 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k r^{-1} \mod n]S
 
     """
+
     rand_bits: int
 
     def __init__(self, mult: ScalarMultiplier, rand_bits: int = 32):
@@ -180,6 +189,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k_1]G + [k_2]S
 
     """
+
     add: Optional[AdditionFormula]
 
     def __init__(self, mult: ScalarMultiplier, add: Optional[AdditionFormula] = None):
@@ -208,5 +218,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
             if self.add is None:
                 res = self.mult._add(S, T)  # noqa: This is OK.
             else:
-                res = self.add(self.params.curve.prime, S, T, **self.params.curve.parameters)[0]
+                res = self.add(
+                    self.params.curve.prime, S, T, **self.params.curve.parameters
+                )[0]
             return action.exit(res)

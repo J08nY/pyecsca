@@ -1,13 +1,21 @@
 from typing import List, Type, Callable
 
-from pyecsca.ec.formula import Formula, AdditionFormula, DifferentialAdditionFormula, DoublingFormula, LadderFormula, \
-    NegationFormula
+from pyecsca.ec.formula import (
+    Formula,
+    AdditionFormula,
+    DifferentialAdditionFormula,
+    DoublingFormula,
+    LadderFormula,
+    NegationFormula,
+)
 from pyecsca.ec.formula.fake import FakeFormula
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
 
 
-def fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters) -> ScalarMultiplier:
+def fake_mult(
+    mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
+) -> ScalarMultiplier:
     """
     Get a multiplier with `FakeFormula`s.
 

@@ -163,9 +163,11 @@ class GPUTraceManager(BaseTraceManager):  # pragma: no cover
                 self._chunk_size = chunk_size
             else:
                 self._chunk_size = self.chunk_size_from_ratio(
-                    chunk_memory_ratio
-                    if chunk_memory_ratio is not None
-                    else CHUNK_MEMORY_RATIO,
+                    (
+                        chunk_memory_ratio
+                        if chunk_memory_ratio is not None
+                        else CHUNK_MEMORY_RATIO
+                    ),
                     item_size=self._traces.samples.itemsize,
                     chunk_item_count=self._traces.samples.shape[0],
                 )
@@ -247,7 +249,10 @@ class GPUTraceManager(BaseTraceManager):  # pragma: no cover
         return self._traces.samples.shape
 
     def _gpu_combine1D(
-        self, func: CUDADispatcher, inputs: Optional[List[InputType]] = None, output_count: int = 1
+        self,
+        func: CUDADispatcher,
+        inputs: Optional[List[InputType]] = None,
+        output_count: int = 1,
     ) -> Union[CombinedTrace, List[CombinedTrace]]:
         inputs = [] if inputs is None else inputs
         results = self._combine_func(func, inputs, output_count)
@@ -431,7 +436,9 @@ def _gpu_average(  # pragma: no cover
 
 
 @cuda.jit(cache=True)
-def gpu_average(samples: npt.NDArray[np.number], result: npt.NDArray[np.number]):  # pragma: no cover
+def gpu_average(
+    samples: npt.NDArray[np.number], result: npt.NDArray[np.number]
+):  # pragma: no cover
     """
     Sample average of stacked traces, sample-wise.
 
@@ -484,7 +491,9 @@ def _gpu_variance(  # pragma: no cover
 
 
 @cuda.jit(cache=True)
-def gpu_std_dev(samples: npt.NDArray[np.number], result: npt.NDArray[np.number]):  # pragma: no cover
+def gpu_std_dev(
+    samples: npt.NDArray[np.number], result: npt.NDArray[np.number]
+):  # pragma: no cover
     """
     Sample standard deviation of stacked traces, sample-wise.
 
@@ -502,7 +511,9 @@ def gpu_std_dev(samples: npt.NDArray[np.number], result: npt.NDArray[np.number])
 
 
 @cuda.jit(cache=True)
-def gpu_variance(samples: npt.NDArray[np.number], result: npt.NDArray[np.number]):  # pragma: no cover
+def gpu_variance(
+    samples: npt.NDArray[np.number], result: npt.NDArray[np.number]
+):  # pragma: no cover
     """
     Sample variance of stacked traces, sample-wise.
 
@@ -540,7 +551,9 @@ def gpu_avg_var(  # pragma: no cover
 
 
 @cuda.jit(cache=True)
-def gpu_add(samples: npt.NDArray[np.number], result: npt.NDArray[np.number]):  # pragma: no cover
+def gpu_add(
+    samples: npt.NDArray[np.number], result: npt.NDArray[np.number]
+):  # pragma: no cover
     """
     Add samples of stacked traces, sample-wise.
 

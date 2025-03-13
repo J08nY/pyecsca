@@ -1,4 +1,5 @@
 """Provides functions for filtering traces using digital (low/high/band)-pass and bandstop filters."""
+
 from public import public
 from scipy.signal import butter, lfilter
 from typing import Union, Tuple

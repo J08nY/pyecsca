@@ -1,4 +1,5 @@
 """Provides tools for working with formulas as graphs."""
+
 import matplotlib.pyplot as plt
 import networkx as nx
 from ast import parse, Expression
@@ -283,7 +284,9 @@ class FormulaGraph:
     def networkx_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
         for i, node in enumerate(self.nodes):
-            graph.add_node(i, result=node.result, label=node.label, op=getattr(node, "op", None))
+            graph.add_node(
+                i, result=node.result, label=node.label, op=getattr(node, "op", None)
+            )
         for node in self.nodes:
             for out in node.outgoing_nodes:
                 graph.add_edge(self.node_index(node), self.node_index(out))

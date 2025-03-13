@@ -1,6 +1,7 @@
 """
 Provides leakage models to simulate leakage.
 """
+
 import abc
 import sys
 from typing import Literal, ClassVar
@@ -11,9 +12,12 @@ from public import public
 from pyecsca.sca.trace import Trace
 
 if sys.version_info[0] < 3 or sys.version_info[0] == 3 and sys.version_info[1] < 10:
+
     def hw(i):
         return bin(i).count("1")
+
 else:
+
     def hw(i):
         return i.bit_count()
 
@@ -43,13 +47,16 @@ class NormalNoice(Noise):
     def __call__(self, *args, **kwargs):
         arg = args[0]
         if isinstance(arg, Trace):
-            return Trace(arg.samples + self.rng.normal(self.mean, self.sdev, len(arg.samples)))
+            return Trace(
+                arg.samples + self.rng.normal(self.mean, self.sdev, len(arg.samples))
+            )
         return arg + self.rng.normal(self.mean, self.sdev)
 
 
 @public
 class LeakageModel(abc.ABC):
     """An abstract leakage model."""
+
     num_args: ClassVar[int]
 
     @abc.abstractmethod
@@ -61,6 +68,7 @@ class LeakageModel(abc.ABC):
 @public
 class Identity(LeakageModel):
     """Identity leakage model, leaks the thing itself."""
+
     num_args = 1
 
     def __call__(self, *args, **kwargs) -> int:
@@ -70,6 +78,7 @@ class Identity(LeakageModel):
 @public
 class Bit(LeakageModel):
     """Bit leakage model, leaks a selected bit."""
+
     num_args = 1
 
     def __init__(self, which: int):
@@ -85,6 +94,7 @@ class Bit(LeakageModel):
 @public
 class Slice(LeakageModel):
     """Slice leakage model, leaks a slice of bits."""
+
     num_args = 1
 
     def __init__(self, begin: int, end: int):
@@ -103,6 +113,7 @@ class Slice(LeakageModel):
 @public
 class HammingWeight(LeakageModel):
     """Hamming-weight leakage model, leaks the Hamming-weight of the thing."""
+
     num_args = 1
 
     def __call__(self, *args, **kwargs) -> int:
@@ -112,6 +123,7 @@ class HammingWeight(LeakageModel):
 @public
 class HammingDistance(LeakageModel):
     """Hamming-distance leakage model, leaks the Hamming-distance between the two things."""
+
     num_args = 2
 
     def __call__(self, *args, **kwargs) -> int:
@@ -121,6 +133,7 @@ class HammingDistance(LeakageModel):
 @public
 class BitLength(LeakageModel):
     """Bit-length leakage model, leaks the bit-length of the thing."""
+
     num_args = 1
 
     def __call__(self, *args, **kwargs) -> int:

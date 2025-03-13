@@ -1,4 +1,5 @@
 """Provides formulas wrapping the [EFD]_."""
+
 from copy import copy
 
 from public import public

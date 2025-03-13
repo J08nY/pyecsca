@@ -1,4 +1,5 @@
 """Provides curve model classes for the supported curve models."""
+
 from ast import parse, Expression, Module
 from typing import List, MutableMapping
 from importlib_resources import files, as_file

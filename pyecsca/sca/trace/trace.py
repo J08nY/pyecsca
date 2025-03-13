@@ -1,4 +1,5 @@
 """Provides the Trace class."""
+
 import weakref
 from typing import Any, Mapping, Sequence, Optional
 from copy import copy, deepcopy
@@ -108,9 +109,11 @@ class Trace:
 
     def __deepcopy__(self, memodict):
         return Trace(
-            deepcopy(self.samples, memo=memodict)
-            if isinstance(self.samples, np.ndarray)
-            else np.array(self.samples),
+            (
+                deepcopy(self.samples, memo=memodict)
+                if isinstance(self.samples, np.ndarray)
+                else np.array(self.samples)
+            ),
             deepcopy(self.meta, memo=memodict),
         )
 

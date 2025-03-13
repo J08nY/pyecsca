@@ -1,4 +1,5 @@
 """Provides a key generator for elliptic curve keypairs."""
+
 from typing import Tuple
 
 from public import public

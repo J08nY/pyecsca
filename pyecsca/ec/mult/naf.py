@@ -1,4 +1,5 @@
 """Provides scalar multipliers based on the Non Adjacent Form (NAF) recoding."""
+
 from copy import copy
 from typing import Optional, List, MutableMapping
 from public import public
@@ -9,7 +10,8 @@ from pyecsca.ec.mult.base import (
     ProcessingDirection,
     AccumulationOrder,
     PrecomputationAction,
-    AccumulatorMultiplier, PrecompMultiplier,
+    AccumulatorMultiplier,
+    PrecompMultiplier,
 )
 from pyecsca.ec.formula import (
     AdditionFormula,

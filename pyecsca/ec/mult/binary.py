@@ -1,4 +1,5 @@
 """Provides binary scalar multipliers (LTR and RTL), that process the scalar as-is, bit-by-bit."""
+
 from abc import ABC
 from copy import copy
 from typing import Optional

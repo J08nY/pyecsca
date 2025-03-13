@@ -1,4 +1,5 @@
 """Provides functions for aligning traces in a trace set to a reference trace within it."""
+
 import numpy as np
 from copy import deepcopy
 from fastdtw import fastdtw, dtw

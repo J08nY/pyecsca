@@ -1,4 +1,5 @@
 """Provides functions for transforming curves to different models."""
+
 from typing import Tuple, Generator
 
 from public import public

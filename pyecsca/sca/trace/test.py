@@ -1,4 +1,5 @@
 """Provides statistical tests usable on groups of traces sample-wise (Welch's and Student's t-test, ...)."""
+
 from typing import Sequence, Tuple
 
 import numpy as np
@@ -58,7 +59,7 @@ def welch_ttest(
     result = [CombinedTrace(tval)]
     if dof or p_value:
         top = (varn_0 + varn_1) ** 2
-        bot = (varn_0 ** 2 / (n0 - 1)) + (varn_1 ** 2 / (n1 - 1))
+        bot = (varn_0**2 / (n0 - 1)) + (varn_1**2 / (n1 - 1))
         df = top / bot
         del top
         del bot
@@ -88,9 +89,7 @@ def student_ttest(
 
 
 @public
-def ks_test(
-    first_set: Sequence[Trace], second_set: Sequence[Trace]
-) -> CombinedTrace:
+def ks_test(first_set: Sequence[Trace], second_set: Sequence[Trace]) -> CombinedTrace:
     """
     Perform the Kolmogorov-Smirnov two sample test on equality of distributions sample wise on two sets of traces :paramref:`~.ks_test.first_set` and :paramref:`~.ks_test.second_set`.
 

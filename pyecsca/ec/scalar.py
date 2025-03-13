@@ -1,4 +1,5 @@
 """Provides functions for computing various scalar representations (like NAF, or different bases)."""
+
 from typing import List
 from itertools import dropwhile
 from public import public

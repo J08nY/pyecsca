@@ -16,7 +16,9 @@ class ChipWhispererTraceSet(TraceSet):
     """ChipWhisperer trace set (native) format."""
 
     @classmethod
-    def read(cls, input: Union[str, Path, bytes, BinaryIO], **kwargs) -> "ChipWhispererTraceSet":
+    def read(
+        cls, input: Union[str, Path, bytes, BinaryIO], **kwargs
+    ) -> "ChipWhispererTraceSet":
         if isinstance(input, (str, Path)):
             traces, kws = ChipWhispererTraceSet.__read(input)
             return ChipWhispererTraceSet(*traces, **kws)

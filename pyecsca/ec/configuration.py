@@ -1,4 +1,5 @@
 """Provides a way to work with and enumerate implementation configurations."""
+
 import warnings
 from abc import ABC
 from dataclasses import dataclass

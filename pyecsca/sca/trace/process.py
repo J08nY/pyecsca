@@ -1,4 +1,5 @@
 """Provides functions for sample-wise processing of single traces."""
+
 from typing import Any
 
 import numpy as np
@@ -56,7 +57,10 @@ def rolling_mean(trace: Trace, window: int) -> Trace:
     :param window:
     :return:
     """
-    return trace.with_samples(convolve(trace.samples, np.ones(window, dtype=trace.samples.dtype), "valid") / window)
+    return trace.with_samples(
+        convolve(trace.samples, np.ones(window, dtype=trace.samples.dtype), "valid")
+        / window
+    )
 
 
 @public
@@ -130,4 +134,4 @@ def transform(trace: Trace, min_value: Any = 0, max_value: Any = 1) -> Trace:
     t_max = np.max(trace.samples)
     t_range = t_max - t_min
     d = max_value - min_value
-    return trace.with_samples(((trace.samples - t_min) * (d/t_range)) + min_value)
+    return trace.with_samples(((trace.samples - t_min) * (d / t_range)) + min_value)

@@ -3,6 +3,7 @@ Provides functions for runtime configuration of the toolkit.
 
 This includes how errors are handled, or which :py:class:`~pyecsca.ec.mod.Mod` implementation is used.
 """
+
 from copy import deepcopy
 from contextvars import ContextVar, Token
 from typing import Optional
@@ -119,7 +120,9 @@ class ECConfig:
     @mod_implementation.setter
     def mod_implementation(self, value: str):
         if value not in ("python", "gmp", "flint", "symbolic"):
-            raise ValueError("Bad Mod implementaiton, can be one of 'python', 'gmp', 'flint' or 'symbolic'.")
+            raise ValueError(
+                "Bad Mod implementaiton, can be one of 'python', 'gmp', 'flint' or 'symbolic'."
+            )
         self._mod_implementation = value
 
 

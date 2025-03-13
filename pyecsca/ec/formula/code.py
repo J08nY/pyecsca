@@ -1,4 +1,5 @@
 """Provides a concrete class of a formula that has a constructor and some code."""
+
 from typing import List, Any
 from ast import Expression
 from astunparse import unparse

@@ -1,4 +1,5 @@
 """Provides an elliptic curve class."""
+
 from ast import Module
 from astunparse import unparse
 from copy import copy
@@ -68,21 +69,21 @@ class EllipticCurve:
     """The neutral point on the curve."""
 
     def __init__(
-            self,
-            model: CurveModel,
-            coordinate_model: CoordinateModel,
-            prime: int,
-            neutral: Point,
-            parameters: MutableMapping[str, Union[Mod, int]],
+        self,
+        model: CurveModel,
+        coordinate_model: CoordinateModel,
+        prime: int,
+        neutral: Point,
+        parameters: MutableMapping[str, Union[Mod, int]],
     ):
         if coordinate_model not in model.coordinates.values() and not isinstance(
-                coordinate_model, AffineCoordinateModel
+            coordinate_model, AffineCoordinateModel
         ):
             raise ValueError
         if (
-                set(model.parameter_names)
-                .union(coordinate_model.parameters)
-                .symmetric_difference(parameters.keys())
+            set(model.parameter_names)
+            .union(coordinate_model.parameters)
+            .symmetric_difference(parameters.keys())
         ):
             raise ValueError
         self.model = model
@@ -130,7 +131,7 @@ class EllipticCurve:
                 if k.from_sympy(expr) != 0:
                     raise_unsatisified_assumption(
                         getconfig().ec.unsatisfied_coordinate_assumption_action,
-                        f"Coordinate model {self.coordinate_model} has an unsatisifed assumption on the {param} parameter (0 = {expr})."
+                        f"Coordinate model {self.coordinate_model} has an unsatisifed assumption on the {param} parameter (0 = {expr}).",
                     )
 
     def _execute_base_formulas(self, formulas: List[Module], *points: Point) -> Point:
@@ -146,7 +147,9 @@ class EllipticCurve:
         }
         locls.update(self.parameters)
         for line in formulas:
-            exec(compile(line, "", mode="exec"), None, locls)  # exec is OK here, skipcq: PYL-W0122
+            exec(
+                compile(line, "", mode="exec"), None, locls
+            )  # exec is OK here, skipcq: PYL-W0122
         if not isinstance(locls["x"], Mod):
             locls["x"] = mod(locls["x"], self.prime)
         if not isinstance(locls["y"], Mod):
@@ -233,7 +236,9 @@ class EllipticCurve:
             return None
         locls = {**self.parameters}
         for line in self.model.base_neutral:
-            exec(compile(line, "", mode="exec"), None, locls)  # exec is OK here, skipcq: PYL-W0122
+            exec(
+                compile(line, "", mode="exec"), None, locls
+            )  # exec is OK here, skipcq: PYL-W0122
         if not isinstance(locls["x"], Mod):
             locls["x"] = mod(locls["x"], self.prime)
         if not isinstance(locls["y"], Mod):
@@ -269,7 +274,9 @@ class EllipticCurve:
             loc = {**self.parameters, **point.coords}
         else:
             loc = {**self.parameters, **point.to_affine().coords}
-        return eval(compile(self.model.equation, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
+        return eval(
+            compile(self.model.equation, "", mode="eval"), loc
+        )  # eval is OK here, skipcq: PYL-W0123
 
     def to_coords(self, coordinate_model: CoordinateModel) -> "EllipticCurve":
         """
@@ -280,8 +287,13 @@ class EllipticCurve:
         """
         if not isinstance(self.coordinate_model, AffineCoordinateModel):
             raise ValueError
-        return EllipticCurve(self.model, coordinate_model, self.prime, self.neutral.to_model(coordinate_model, self),
-                             self.parameters)  # type: ignore[arg-type]
+        return EllipticCurve(
+            self.model,
+            coordinate_model,
+            self.prime,
+            self.neutral.to_model(coordinate_model, self),
+            self.parameters,
+        )  # type: ignore[arg-type]
 
     def to_affine(self) -> "EllipticCurve":
         """
@@ -290,8 +302,13 @@ class EllipticCurve:
         :return: The transformed elliptic curve.
         """
         coord_model = AffineCoordinateModel(self.model)
-        return EllipticCurve(self.model, coord_model, self.prime, self.neutral.to_affine(),
-                             self.parameters)  # type: ignore[arg-type]
+        return EllipticCurve(
+            self.model,
+            coord_model,
+            self.prime,
+            self.neutral.to_affine(),
+            self.parameters,
+        )  # type: ignore[arg-type]
 
     def decode_point(self, encoded: bytes) -> Point:
         """
@@ -325,7 +342,9 @@ class EllipticCurve:
                     raise ValueError("Encoded point has bad length")
                 x = mod(int.from_bytes(data, "big"), self.prime)
                 loc = {**self.parameters, "x": x}
-                rhs = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
+                rhs = eval(
+                    compile(self.model.ysquared, "", mode="eval"), loc
+                )  # eval is OK here, skipcq: PYL-W0123
                 if not rhs.is_residue():
                     raise ValueError("Point not on curve")
                 sqrt = rhs.sqrt()
@@ -350,19 +369,25 @@ class EllipticCurve:
         :return: Lifted (affine) points, if any.
         """
         loc = {**self.parameters, "x": x}
-        ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
+        ysquared = eval(
+            compile(self.model.ysquared, "", mode="eval"), loc
+        )  # eval is OK here, skipcq: PYL-W0123
         if not ysquared.is_residue():
             return set()
         y = ysquared.sqrt()
-        return {Point(AffineCoordinateModel(self.model), x=x, y=y),
-                Point(AffineCoordinateModel(self.model), x=x, y=-y)}
+        return {
+            Point(AffineCoordinateModel(self.model), x=x, y=y),
+            Point(AffineCoordinateModel(self.model), x=x, y=-y),
+        }
 
     def affine_random(self) -> Point:
         """Generate a random affine point on the curve."""
         while True:
             x = Mod.random(self.prime)
             loc = {**self.parameters, "x": x}
-            ysquared = eval(compile(self.model.ysquared, "", mode="eval"), loc)  # eval is OK here, skipcq: PYL-W0123
+            ysquared = eval(
+                compile(self.model.ysquared, "", mode="eval"), loc
+            )  # eval is OK here, skipcq: PYL-W0123
             if ysquared.is_residue():
                 y = ysquared.sqrt()
                 b = Mod.random(2)
@@ -374,14 +399,22 @@ class EllipticCurve:
         if not isinstance(other, EllipticCurve):
             return False
         return (
-                self.model == other.model
-                and self.coordinate_model == other.coordinate_model
-                and self.prime == other.prime
-                and self.parameters == other.parameters
+            self.model == other.model
+            and self.coordinate_model == other.coordinate_model
+            and self.prime == other.prime
+            and self.parameters == other.parameters
         )
 
     def __hash__(self):
-        return hash((self.model, self.coordinate_model, self.prime, tuple(self.parameters.keys()), tuple(self.parameters.values())))
+        return hash(
+            (
+                self.model,
+                self.coordinate_model,
+                self.prime,
+                tuple(self.parameters.keys()),
+                tuple(self.parameters.values()),
+            )
+        )
 
     def __str__(self):
         return "EllipticCurve"

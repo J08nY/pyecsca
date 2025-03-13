@@ -1,4 +1,5 @@
 """Provides sliding window and fixed window scalar multipliers (including m-ary, for non power-of-2 m)."""
+
 from copy import copy
 from typing import Optional, MutableMapping
 from public import public
@@ -10,7 +11,8 @@ from pyecsca.ec.mult.base import (
     ScalarMultiplicationAction,
     PrecomputationAction,
     ProcessingDirection,
-    AccumulatorMultiplier, PrecompMultiplier,
+    AccumulatorMultiplier,
+    PrecompMultiplier,
 )
 from pyecsca.ec.formula import (
     AdditionFormula,
@@ -28,7 +30,9 @@ from pyecsca.ec.scalar import (
 
 
 @public
-class SlidingWindowMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
+class SlidingWindowMultiplier(
+    AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier
+):
     """
     Sliding window scalar multiplier.
 
@@ -122,7 +126,9 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMu
 
 
 @public
-class FixedWindowLTRMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier):
+class FixedWindowLTRMultiplier(
+    AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier
+):
     """
     Like LTRMultiplier, but m-ary, not binary.
 
@@ -322,9 +328,7 @@ class WindowBoothMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
         with ScalarMultiplicationAction(self._point, self._params, scalar) as action:
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
-            scalar_booth = booth_window(
-                scalar, self.width, self._bits
-            )
+            scalar_booth = booth_window(scalar, self.width, self._bits)
             q = copy(self._params.curve.neutral)
             for val in scalar_booth:
                 for _ in range(self.width):

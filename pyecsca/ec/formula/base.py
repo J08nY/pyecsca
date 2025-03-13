@@ -1,4 +1,5 @@
 """Provides an abstract base class of a formula."""
+
 from abc import ABC
 from ast import Expression
 from functools import cached_property

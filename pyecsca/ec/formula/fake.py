@@ -1,4 +1,5 @@
 """Provides "fake" formulas."""
+
 from abc import ABC
 from typing import Any, Tuple
 

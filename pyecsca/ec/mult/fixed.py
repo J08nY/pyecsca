@@ -1,4 +1,5 @@
 """Provides fixed-base scalar multipliers that do a lot of pre-computation (but not combs)."""
+
 from copy import copy
 from typing import MutableMapping, Optional
 
@@ -11,7 +12,8 @@ from pyecsca.ec.mult.base import (
     ProcessingDirection,
     AccumulationOrder,
     PrecomputationAction,
-    ScalarMultiplicationAction, PrecompMultiplier,
+    ScalarMultiplicationAction,
+    PrecompMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point

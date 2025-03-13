@@ -1,4 +1,5 @@
 """Provides an oscilloscope class using the ChipWhisperer-Lite scope."""
+
 from typing import Optional, Tuple, Sequence, Set
 
 import numpy as np

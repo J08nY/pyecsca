@@ -1,4 +1,5 @@
 """Provides Comb-like scalar multipliers, such as BGMW or Lim-Lee."""
+
 from copy import copy
 from math import ceil
 from typing import MutableMapping, Optional
@@ -12,7 +13,8 @@ from pyecsca.ec.mult import (
     ProcessingDirection,
     AccumulationOrder,
     PrecomputationAction,
-    ScalarMultiplicationAction, PrecompMultiplier,
+    ScalarMultiplicationAction,
+    PrecompMultiplier,
 )
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point

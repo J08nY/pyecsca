@@ -1,4 +1,5 @@
 """Provides a way to Fliparoo formulas."""
+
 from ast import parse
 from typing import Iterator, List, Type, Optional
 from public import public
@@ -173,7 +174,6 @@ def largest_fliparoo(
 
 
 class SignedNode:
-
     """
     Represents a summand in an expression X1-X2+X3+X4-X5...
     Used for creating +/- Fliparoos

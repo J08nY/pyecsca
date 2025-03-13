@@ -3,6 +3,7 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 
 Implements ZVP point construction from [FFD]_.
 """
+
 from functools import lru_cache
 from typing import List, Set, Tuple, Dict, Type, Callable
 from public import public
@@ -518,7 +519,9 @@ def solve_hard_dcp(xonly_polynomial: Poly, curve: EllipticCurve, k: int) -> Set[
     if has_pari:
         roots = solve_hard_dcp_cypari(xonly_polynomial, curve, k)
     else:
-        warnings.warn("Falling-back to slow hard-DCP computation due to missing [pari] (cypari2 and libpari) dependency.")
+        warnings.warn(
+            "Falling-back to slow hard-DCP computation due to missing [pari] (cypari2 and libpari) dependency."
+        )
         # Substitute in the mult-by-k map
         dlog = subs_dlog(xonly_polynomial, k, curve)
         # Put in concrete curve parameters
@@ -582,7 +585,9 @@ def solve_hard_dcp_cypari(
 
 
 @lru_cache(maxsize=256, typed=True)
-def _cached_fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters) -> ScalarMultiplier:
+def _cached_fake_mult(
+    mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
+) -> ScalarMultiplier:
     return fake_mult(mult_class, mult_factory, params)
 
 
@@ -593,7 +598,7 @@ def addition_chain(
     mult_class: Type[ScalarMultiplier],
     mult_factory: Callable,
     use_init: bool = False,
-    use_multiply: bool = True
+    use_multiply: bool = True,
 ) -> List[Tuple[str, Tuple[int, ...]]]:
     """
     Compute the addition chain for a given scalar and multiplier.

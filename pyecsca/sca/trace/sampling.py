@@ -1,4 +1,5 @@
 """Provides downsampling functions for traces."""
+
 from typing import cast
 
 import numpy as np

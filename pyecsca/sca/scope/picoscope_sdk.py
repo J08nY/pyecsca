@@ -1,4 +1,5 @@
 """Provides an oscilloscope class for PicoScope branded oscilloscopes using the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_."""
+
 import ctypes
 from math import log2, floor
 from time import time_ns, sleep
@@ -36,10 +37,10 @@ from pyecsca.sca.trace import Trace
 
 
 def adc2volt(
-        adc: Union[np.ndarray, ctypes.c_int16],
-        volt_range: float,
-        adc_minmax: int,
-        dtype=np.float32,
+    adc: Union[np.ndarray, ctypes.c_int16],
+    volt_range: float,
+    adc_minmax: int,
+    dtype=np.float32,
 ) -> Union[np.ndarray, float]:  # pragma: no cover
     """
     Convert raw adc values to volts.
@@ -58,7 +59,7 @@ def adc2volt(
 
 
 def volt2adc(
-        volt: Union[np.ndarray, float], volt_range: float, adc_minmax: int, dtype=np.float32
+    volt: Union[np.ndarray, float], volt_range: float, adc_minmax: int, dtype=np.float32
 ) -> Union[np.ndarray, ctypes.c_int16]:  # pragma: no cover
     """
     Convert volt values to raw adc values.
@@ -117,28 +118,39 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         size = ctypes.c_int16()
         assert_pico_ok(
             self._dispatch_call(
-                "GetUnitInfo", self.handle, info, ctypes.c_int16(6), ctypes.byref(size), ctypes.c_uint(3)
+                "GetUnitInfo",
+                self.handle,
+                info,
+                ctypes.c_int16(6),
+                ctypes.byref(size),
+                ctypes.c_uint(3),
             )
         )
         self._variant = "".join(chr(i) for i in info[: size.value - 1])  # type: ignore
         return self._variant
 
     def setup_frequency(
-            self, frequency: int, pretrig: int, posttrig: int
+        self, frequency: int, pretrig: int, posttrig: int
     ) -> Tuple[int, int]:
         return self.set_frequency(frequency, pretrig, posttrig)
 
     def set_channel(
-            self, channel: str, enabled: bool, coupling: str, range: float, offset: float
+        self, channel: str, enabled: bool, coupling: str, range: float, offset: float
     ):
         if offset != 0.0:
             raise ValueError("Nonzero offset not supported.")
         if channel not in self.CHANNELS:
-            raise ValueError(f"Channel {channel} not in available channels: {self.CHANNELS.keys()}")
+            raise ValueError(
+                f"Channel {channel} not in available channels: {self.CHANNELS.keys()}"
+            )
         if coupling not in self.COUPLING:
-            raise ValueError(f"Coupling {coupling} not in available couplings: {self.COUPLING.keys()}")
+            raise ValueError(
+                f"Coupling {coupling} not in available couplings: {self.COUPLING.keys()}"
+            )
         if range not in self.RANGES:
-            raise ValueError(f"Range {range} not in available ranges: {self.RANGES.keys()}")
+            raise ValueError(
+                f"Range {range} not in available ranges: {self.RANGES.keys()}"
+            )
         assert_pico_ok(
             self._dispatch_call(
                 "SetChannel",
@@ -152,20 +164,20 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         self.ranges[channel] = range
 
     def setup_channel(
-            self, channel: str, coupling: str, range: float, offset: float, enable: bool
+        self, channel: str, coupling: str, range: float, offset: float, enable: bool
     ):
         self.set_channel(channel, enable, coupling, range, offset)
 
     def _set_freq(
-            self,
-            frequency: int,
-            pretrig: int,
-            posttrig: int,
-            period_bound: float,
-            timebase_bound: int,
-            low_freq: int,
-            high_freq: int,
-            high_subtract: int,
+        self,
+        frequency: int,
+        pretrig: int,
+        posttrig: int,
+        period_bound: float,
+        timebase_bound: int,
+        low_freq: int,
+        high_freq: int,
+        high_subtract: int,
     ) -> Tuple[int, int]:
         samples = pretrig + posttrig
         period = 1 / frequency
@@ -174,7 +186,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             actual_frequency = high_freq // (tb - high_subtract)
         else:
             tb = min(floor(log2(low_freq) - log2(frequency)), timebase_bound)
-            actual_frequency = low_freq // 2 ** tb
+            actual_frequency = low_freq // 2**tb
         max_samples = ctypes.c_int32()
         interval_nanoseconds = ctypes.c_int32()
         assert_pico_ok(
@@ -186,7 +198,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
                 ctypes.byref(interval_nanoseconds),
                 0,
                 ctypes.byref(max_samples),
-                0
+                0,
             )
         )
         if max_samples.value < samples:
@@ -201,29 +213,29 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         return actual_frequency, samples
 
     def set_frequency(
-            self, frequency: int, pretrig: int, posttrig: int
+        self, frequency: int, pretrig: int, posttrig: int
     ) -> Tuple[int, int]:
         raise NotImplementedError
 
     def setup_trigger(
-            self,
-            channel: str,
-            threshold: float,
-            direction: str,
-            delay: int,
-            timeout: int,
-            enable: bool,
+        self,
+        channel: str,
+        threshold: float,
+        direction: str,
+        delay: int,
+        timeout: int,
+        enable: bool,
     ):
         self.set_trigger(direction, enable, threshold, channel, delay, timeout)
 
     def set_trigger(
-            self,
-            type: str,
-            enabled: bool,
-            value: float,
-            channel: str,
-            delay: int,
-            timeout: int,
+        self,
+        type: str,
+        enabled: bool,
+        value: float,
+        channel: str,
+        delay: int,
+        timeout: int,
     ):
         assert_pico_ok(
             self._dispatch_call(
@@ -304,7 +316,7 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         return True
 
     def retrieve(
-            self, channel: str, type: SampleType, dtype=np.float32
+        self, channel: str, type: SampleType, dtype=np.float32
     ) -> Optional[Trace]:
         if self.samples is None:
             raise ValueError
@@ -365,7 +377,6 @@ if isinstance(ps3000, CannotFindPicoSDKError):
             super().__init__(variant)
             raise ps3000
 
-
 else:  # pragma: no cover
 
     @public
@@ -404,7 +415,9 @@ else:  # pragma: no cover
         COUPLING = {"AC": ps3000.PICO_COUPLING["AC"], "DC": ps3000.PICO_COUPLING["DC"]}
 
         def open(self) -> None:
-            assert_pico_ok(self._dispatch_call("_open_unit"))  # , ctypes.byref(self.handle)
+            assert_pico_ok(
+                self._dispatch_call("_open_unit")
+            )  # , ctypes.byref(self.handle)
 
         def stop(self):
             assert_pico_ok(self._dispatch_call("_stop"))
@@ -427,9 +440,10 @@ else:  # pragma: no cover
             return self._variant
 
         def set_frequency(
-                self, frequency: int, pretrig: int, posttrig: int
+            self, frequency: int, pretrig: int, posttrig: int
         ):  # TODO: fix
             raise NotImplementedError
+
 
 if isinstance(ps3000a, CannotFindPicoSDKError):
 
@@ -440,7 +454,6 @@ if isinstance(ps3000a, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps3000a
-
 
 else:  # pragma: no cover
 
@@ -455,7 +468,7 @@ else:  # pragma: no cover
             "B": ps3000a.PS3000A_CHANNEL["PS3000A_CHANNEL_B"],
             "C": ps3000a.PS3000A_CHANNEL["PS3000A_CHANNEL_C"],
             "D": ps3000a.PS3000A_CHANNEL["PS3000A_CHANNEL_D"],
-            "AUX": ps3000a.PS3000A_CHANNEL["PS3000A_TRIGGER_AUX"]
+            "AUX": ps3000a.PS3000A_CHANNEL["PS3000A_TRIGGER_AUX"],
         }
 
         RANGES = {
@@ -470,31 +483,40 @@ else:  # pragma: no cover
             5.00: ps3000a.PS3000A_RANGE["PS3000A_5V"],
             10.0: ps3000a.PS3000A_RANGE["PS3000A_10V"],
             20.0: ps3000a.PS3000A_RANGE["PS3000A_20V"],
-            50.0: ps3000a.PS3000A_RANGE["PS3000A_50V"]
+            50.0: ps3000a.PS3000A_RANGE["PS3000A_50V"],
         }
 
         MAX_ADC_VALUE = 32767
         MIN_ADC_VALUE = -32767
 
-        COUPLING = {"AC": ps3000a.PICO_COUPLING["AC"], "DC": ps3000a.PICO_COUPLING["DC"]}
+        COUPLING = {
+            "AC": ps3000a.PICO_COUPLING["AC"],
+            "DC": ps3000a.PICO_COUPLING["DC"],
+        }
 
         def open(self) -> None:
             assert_pico_ok(ps3000a.ps3000aOpenUnit(ctypes.byref(self.handle), None))
 
         def set_channel(
-                self,
-                channel: str,
-                enabled: bool,
-                coupling: str,
-                range: float,
-                offset: float,
+            self,
+            channel: str,
+            enabled: bool,
+            coupling: str,
+            range: float,
+            offset: float,
         ):
             if channel not in self.CHANNELS:
-                raise ValueError(f"Channel {channel} not in available channels: {self.CHANNELS.keys()}")
+                raise ValueError(
+                    f"Channel {channel} not in available channels: {self.CHANNELS.keys()}"
+                )
             if coupling not in self.COUPLING:
-                raise ValueError(f"Coupling {coupling} not in available couplings: {self.COUPLING.keys()}")
+                raise ValueError(
+                    f"Coupling {coupling} not in available couplings: {self.COUPLING.keys()}"
+                )
             if range not in self.RANGES:
-                raise ValueError(f"Range {range} not in available ranges: {self.RANGES.keys()}")
+                raise ValueError(
+                    f"Range {range} not in available ranges: {self.RANGES.keys()}"
+                )
             assert_pico_ok(
                 ps3000a.ps3000aSetChannel(
                     self.handle,
@@ -502,7 +524,7 @@ else:  # pragma: no cover
                     enabled,
                     self.COUPLING[coupling],
                     self.RANGES[range],
-                    offset
+                    offset,
                 )
             )
             self.ranges[channel] = range
@@ -521,15 +543,19 @@ else:  # pragma: no cover
                         ctypes.byref(buffer),
                         self.samples,
                         0,
-                        ps3000a.PS3000A_RATIO_MODE["PS3000A_RATIO_MODE_NONE"]
+                        ps3000a.PS3000A_RATIO_MODE["PS3000A_RATIO_MODE_NONE"],
                     )
                 )
                 self.buffers[channel] = buffer
             else:
                 assert_pico_ok(
                     ps3000a.ps3000aSetDataBuffer(
-                        self.handle, self.CHANNELS[channel], None, self.samples, 0,
-                        ps3000a.PS3000A_RATIO_MODE["PS3000A_RATIO_MODE_NONE"]
+                        self.handle,
+                        self.CHANNELS[channel],
+                        None,
+                        self.samples,
+                        0,
+                        ps3000a.PS3000A_RATIO_MODE["PS3000A_RATIO_MODE_NONE"],
                     )
                 )
                 del self.buffers[channel]
@@ -539,12 +565,19 @@ else:  # pragma: no cover
             if variant in ("3000A", "3000B"):
                 # This only holds for the 2-channel versions
                 # 4-channel versions have the settings from branch "D".
-                return self._set_freq(frequency, pretrig, posttrig, 8e-9, 2, 500_000_000, 62_500_000, 2)
+                return self._set_freq(
+                    frequency, pretrig, posttrig, 8e-9, 2, 500_000_000, 62_500_000, 2
+                )
             elif variant == "3000":
-                return self._set_freq(frequency, pretrig, posttrig, 4e-9, 1, 500_000_000, 125_000_000, 1)
+                return self._set_freq(
+                    frequency, pretrig, posttrig, 4e-9, 1, 500_000_000, 125_000_000, 1
+                )
             elif variant.endswith("D"):
-                return self._set_freq(frequency, pretrig, posttrig, 4e-9, 2, 1_000_000_000, 125_000_000, 2)
+                return self._set_freq(
+                    frequency, pretrig, posttrig, 4e-9, 2, 1_000_000_000, 125_000_000, 2
+                )
             # TODO: Needs more per-device settings to be generic.
+
 
 if isinstance(ps4000, CannotFindPicoSDKError):
 
@@ -555,7 +588,6 @@ if isinstance(ps4000, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps4000
-
 
 else:  # pragma: no cover
 
@@ -570,7 +602,7 @@ else:  # pragma: no cover
             "B": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_B"],
             "C": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_C"],
             "D": ps4000.PS4000_CHANNEL["PS4000_CHANNEL_D"],
-            "AUX": ps4000.PS4000_CHANNEL["PS4000_TRIGGER_AUX"]
+            "AUX": ps4000.PS4000_CHANNEL["PS4000_TRIGGER_AUX"],
         }
 
         RANGES = {
@@ -611,6 +643,7 @@ else:  # pragma: no cover
             else:
                 raise ValueError(f"Unknown variant: {variant}")
 
+
 if isinstance(ps5000, CannotFindPicoSDKError):
 
     @public
@@ -620,7 +653,6 @@ if isinstance(ps5000, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps5000
-
 
 else:  # pragma: no cover
 
@@ -635,7 +667,7 @@ else:  # pragma: no cover
             "B": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_B"],
             "C": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_C"],
             "D": ps5000.PS5000_CHANNEL["PS5000_CHANNEL_D"],
-            "AUX": ps5000.PS5000_CHANNEL["PS5000_TRIGGER_AUX"]
+            "AUX": ps5000.PS5000_CHANNEL["PS5000_TRIGGER_AUX"],
         }
 
         RANGES = {
@@ -663,6 +695,7 @@ else:  # pragma: no cover
                 frequency, pretrig, posttrig, 4e-9, 2, 1_000_000_000, 125_000_000, 2
             )
 
+
 if isinstance(ps6000, CannotFindPicoSDKError):
 
     @public
@@ -672,7 +705,6 @@ if isinstance(ps6000, CannotFindPicoSDKError):
         def __init__(self, variant: Optional[str] = None):
             super().__init__(variant)
             raise ps6000
-
 
 else:  # pragma: no cover
 
@@ -718,19 +750,25 @@ else:  # pragma: no cover
             assert_pico_ok(ps6000.ps6000OpenUnit(ctypes.byref(self.handle), None))
 
         def set_channel(
-                self,
-                channel: str,
-                enabled: bool,
-                coupling: str,
-                range: float,
-                offset: float,
+            self,
+            channel: str,
+            enabled: bool,
+            coupling: str,
+            range: float,
+            offset: float,
         ):
             if channel not in self.CHANNELS:
-                raise ValueError(f"Channel {channel} not in available channels: {self.CHANNELS.keys()}")
+                raise ValueError(
+                    f"Channel {channel} not in available channels: {self.CHANNELS.keys()}"
+                )
             if coupling not in self.COUPLING:
-                raise ValueError(f"Coupling {coupling} not in available couplings: {self.COUPLING.keys()}")
+                raise ValueError(
+                    f"Coupling {coupling} not in available couplings: {self.COUPLING.keys()}"
+                )
             if range not in self.RANGES:
-                raise ValueError(f"Range {range} not in available ranges: {self.RANGES.keys()}")
+                raise ValueError(
+                    f"Range {range} not in available ranges: {self.RANGES.keys()}"
+                )
             assert_pico_ok(
                 ps6000.ps6000SetChannel(
                     self.handle,

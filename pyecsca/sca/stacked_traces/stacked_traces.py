@@ -16,16 +16,17 @@ class StackedTraces:
 
     # TODO: Split metadata into common and per-trace
     def __init__(
-            self, samples: np.ndarray,
-            meta: Mapping[str, Any] | None = None) -> None:
+        self, samples: np.ndarray, meta: Mapping[str, Any] | None = None
+    ) -> None:
         if meta is None:
             meta = {}
         self.meta = meta
         self.samples = samples
 
     @classmethod
-    def fromarray(cls, traces: Sequence[np.ndarray],
-                  meta: Mapping[str, Any] | None = None) -> 'StackedTraces':
+    def fromarray(
+        cls, traces: Sequence[np.ndarray], meta: Mapping[str, Any] | None = None
+    ) -> "StackedTraces":
         if meta is None:
             meta = {}
         ts = list(traces)
@@ -36,7 +37,7 @@ class StackedTraces:
         return cls(stacked, meta)
 
     @classmethod
-    def fromtraceset(cls, traceset: TraceSet) -> 'StackedTraces':
+    def fromtraceset(cls, traceset: TraceSet) -> "StackedTraces":
         traces = [t.samples for t in traceset]
         return cls.fromarray(traces)
 

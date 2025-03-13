@@ -1,4 +1,5 @@
 """Provides a smartcard target communicating via PC/SC (Personal Computer/Smart Card)."""
+
 from typing import Union, Optional
 
 from public import public
@@ -7,8 +8,14 @@ from smartcard.System import readers
 from smartcard.pcsc.PCSCCardConnection import PCSCCardConnection
 from smartcard.pcsc.PCSCReader import PCSCReader
 
-from pyecsca.sca.target.ISO7816 import ISO7816Target, CommandAPDU, ResponseAPDU, ISO7816, CardProtocol, \
-    CardConnectionException
+from pyecsca.sca.target.ISO7816 import (
+    ISO7816Target,
+    CommandAPDU,
+    ResponseAPDU,
+    ISO7816,
+    CardProtocol,
+    CardConnectionException,
+)
 
 
 @public

@@ -1,4 +1,5 @@
 """Provides functions for editing traces as if they were tapes you can trim, reverse, etc."""
+
 import numpy as np
 from public import public
 from typing import Union, Tuple, Any, Optional
