@@ -94,7 +94,7 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
         if self.complete:
             q = self._point
             r = copy(self._params.curve.neutral)
-            top = self._params.order.bit_length() - 1
+            top = self._bits - 1
         else:
             q = copy(self._point)
             r = copy(self._point)
@@ -112,7 +112,7 @@ class DoubleAndAddMultiplier(AccumulatorMultiplier, ScalarMultiplier, ABC):
         q = self._point
         r = copy(self._params.curve.neutral)
         if self.complete:
-            top = self._params.order.bit_length()
+            top = self._bits
         else:
             top = scalar.bit_length()
         for _ in range(top):

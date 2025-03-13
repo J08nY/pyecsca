@@ -90,9 +90,9 @@ class SlidingWindowMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMu
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, recoding_direction={self.recoding_direction.name}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
+            super().init(params, point, bits)
             self._points = {}
             current_point = point
             double_point = self._dbl(point)
@@ -186,9 +186,9 @@ class FixedWindowLTRMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarM
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, m={self.m}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
+            super().init(params, point, bits)
             double_point = self._dbl(point)
             self._points = {1: point, 2: double_point}
             current_point = double_point
@@ -298,9 +298,9 @@ class WindowBoothMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as actions:
-            super().init(params, point)
+            super().init(params, point, bits)
             double_point = self._dbl(point)
             self._points = {1: point, 2: double_point}
             if self.precompute_negation:
@@ -323,7 +323,7 @@ class WindowBoothMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             scalar_booth = booth_window(
-                scalar, self.width, self._params.order.bit_length()
+                scalar, self.width, self._bits
             )
             q = copy(self._params.curve.neutral)
             for val in scalar_booth:

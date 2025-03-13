@@ -70,6 +70,11 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
         super().__init__(mult)
         self.rand_bits = rand_bits
 
+    def init(self, params: DomainParameters, point: Point):
+        self.params = params
+        self.point = point
+        self.mult.init(self.params, self.point, bits=params.full_order.bit_length() + self.rand_bits)
+
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None:
             raise ValueError("Not initialized.")
@@ -189,8 +194,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         if self.params is None or self.point is None:
             raise ValueError("Not initialized.")
         with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
-            order = self.params.order
-            half_bits = order.bit_length() // 2
+            half_bits = self.params.order.bit_length() // 2
             r = Mod.random(1 << half_bits)
             R = self.mult.multiply(int(r))
 

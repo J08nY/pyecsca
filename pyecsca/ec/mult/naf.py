@@ -81,9 +81,9 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
+            super().init(params, point, bits)
             self._point_neg = self._neg(point)
             action.exit({-1: self._point_neg})
 
@@ -195,9 +195,9 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
+            super().init(params, point, bits)
             self._points = {}
             self._points_neg = {}
             current_point = point

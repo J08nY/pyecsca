@@ -9,7 +9,7 @@ from pyecsca.ec.params import DomainParameters
 
 def fake_mult(mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters) -> ScalarMultiplier:
     """
-    Get a multiplier with FakeFormulas.
+    Get a multiplier with `FakeFormula`s.
 
     :param mult_class: The class of the scalar multiplier to use.
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.

@@ -12,6 +12,7 @@ from pyecsca.ec.formula import (
     LadderFormula,
     DifferentialAdditionFormula,
 )
+from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 
 
@@ -87,7 +88,7 @@ class LadderMultiplier(ScalarMultiplier):
             if self.complete:
                 p0 = copy(self._params.curve.neutral)
                 p1 = self._point
-                top = self._params.full_order.bit_length() - 1
+                top = self._bits - 1
             elif self.full:
                 p0 = copy(self._params.curve.neutral)
                 p1 = self._point
@@ -154,7 +155,7 @@ class SimpleLadderMultiplier(ScalarMultiplier):
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             if self.complete:
-                top = self._params.full_order.bit_length() - 1
+                top = self._bits - 1
             else:
                 top = scalar.bit_length() - 1
             p0 = copy(self._params.curve.neutral)
@@ -232,7 +233,7 @@ class DifferentialLadderMultiplier(ScalarMultiplier):
             if self.complete:
                 p0 = copy(self._params.curve.neutral)
                 p1 = copy(q)
-                top = self._params.full_order.bit_length() - 1
+                top = self._bits - 1
             elif self.full:
                 p0 = copy(self._params.curve.neutral)
                 p1 = copy(q)

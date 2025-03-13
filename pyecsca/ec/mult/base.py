@@ -87,6 +87,7 @@ class ScalarMultiplier(ABC):
     """All formulas the multiplier was initialized with."""
     _params: DomainParameters
     _point: Point
+    _bits: int
     _initialized: bool = False
 
     def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
@@ -202,7 +203,7 @@ class ScalarMultiplier(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         """
         Initialize the scalar multiplier with :paramref:`~.init.params` and a :paramref:`~.init.point`.
 
@@ -211,6 +212,8 @@ class ScalarMultiplier(ABC):
 
         :param params: The domain parameters to initialize the multiplier with.
         :param point: The point to initialize the multiplier with.
+        :param bits: The number of bits to use in the scalar multiplication (i.e. no scalar will be larger than 2^bits).
+                     The default is the bit length of the full order of the curve (including cofactor).
         """
         coord_model = set(self.formulas.values()).pop().coordinate_model
         if (
@@ -222,6 +225,7 @@ class ScalarMultiplier(ABC):
             )
         self._params = params
         self._point = point
+        self._bits = bits if bits is not None else params.full_order.bit_length()
         self._initialized = True
 
     @abstractmethod

@@ -361,7 +361,7 @@ def dbl(secp128r1, request):
 
 
 @pytest.mark.parametrize(
-    "num", [10, 2355498743, 325385790209017329644351321912443757746]
+    "num", [10, 2355498743, 3253857902090173296443513219124437746]
 )
 def test_basic_multipliers(secp128r1, num, add, dbl):
     neg = secp128r1.curve.coordinate_model.formulas["neg"]
@@ -451,7 +451,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         for combination in product(*precomp_options.values())
     ]
     bgmw_options = {
-        "width": (3, 5),
+        "width": (2, 3, 5),
         "direction": tuple(ProcessingDirection),
         "accumulation_order": tuple(AccumulationOrder),
     }
@@ -461,7 +461,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         )
         for combination in product(*bgmw_options.values())
     ]
-    comb_options = {"width": (2, 3, 5), "accumulation_order": tuple(AccumulationOrder)}
+    comb_options = {"width": (2, 3, 4, 5), "accumulation_order": tuple(AccumulationOrder)}
     combs = [
         CombMultiplier(
             add, dbl, scl=scale, **dict(zip(comb_options.keys(), combination))

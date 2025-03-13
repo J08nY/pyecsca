@@ -85,10 +85,10 @@ class BGMWMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
-            d = ceil(params.order.bit_length() / self.width)
+            super().init(params, point, bits)
+            d = ceil(self._bits / self.width)
             self._points = {}
             current_point = point
             for i in range(d):
@@ -179,10 +179,10 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
-            d = ceil(params.order.bit_length() / self.width)
+            super().init(params, point, bits)
+            d = ceil(self._bits / self.width)
             base_points = {}
             current_point = point
             for i in range(self.width):
@@ -208,7 +208,7 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             q = copy(self._params.curve.neutral)
-            d = ceil(self._params.order.bit_length() / self.width)
+            d = ceil(self._bits / self.width)
             recoded = convert_base(scalar, 2**d)
             if len(recoded) != self.width:
                 recoded.extend([0] * (self.width - len(recoded)))

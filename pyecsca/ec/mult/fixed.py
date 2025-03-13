@@ -90,20 +90,20 @@ class FullPrecompMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, accumulation_order={self.accumulation_order.name}, always={self.always}, complete={self.complete})"
 
-    def init(self, params: DomainParameters, point: Point):
+    def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
-            super().init(params, point)
+            super().init(params, point, bits)
             self._points = {}
             current_point = point
-            for i in range(params.order.bit_length() + 1):
+            for i in range(self._bits + 1):
                 self._points[i] = current_point
-                if i != params.order.bit_length():
+                if i != self._bits:
                     current_point = self._dbl(current_point)
             action.exit(self._points)
 
     def _ltr(self, scalar: int) -> Point:
         if self.complete:
-            top = self._params.order.bit_length() - 1
+            top = self._bits - 1
         else:
             top = scalar.bit_length() - 1
         r = copy(self._params.curve.neutral)
@@ -118,7 +118,7 @@ class FullPrecompMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
     def _rtl(self, scalar: int) -> Point:
         r = copy(self._params.curve.neutral)
         if self.complete:
-            top = self._params.order.bit_length()
+            top = self._bits
         else:
             top = scalar.bit_length()
         for i in range(top):
