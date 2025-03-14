@@ -523,9 +523,9 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
     CLA_ECTESTER = 0xB0
     AID_PREFIX = bytes([0x45, 0x43, 0x54, 0x65, 0x73, 0x74, 0x65, 0x72])
     AID_CURRENT_VERSION = bytes([0x30, 0x33, 0x33])  # Version v0.3.3
-    AID_SUFFIX_221 = bytes([0x62])
-    AID_SUFFIX_222 = bytes([0x78])
-    AID_SUFFIX_304 = bytes([0x94])
+    AID_SUFFIX_221 = bytes([0x20, 0x32, 0x32, 0x31])
+    AID_SUFFIX_222 = bytes([0x20, 0x32, 0x32, 0x32])
+    AID_SUFFIX_305 = bytes([0x20, 0x33, 0x30, 0x35])
 
     chunking: bool
 
@@ -574,7 +574,7 @@ class ECTesterTarget(ISO7816Target, ABC):  # pragma: no cover
         version_bytes = bytearray(latest_version)
         for _ in range(count_back):
             for aid_suffix in (
-                self.AID_SUFFIX_304,
+                self.AID_SUFFIX_305,
                 self.AID_SUFFIX_222,
                 self.AID_SUFFIX_221,
             ):
