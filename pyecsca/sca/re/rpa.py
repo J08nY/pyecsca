@@ -32,7 +32,7 @@ from pyecsca.ec.formula import (
     TriplingFormula,
     NegationFormula,
     DifferentialAdditionFormula,
-    LadderFormula,
+    LadderFormula, ScalingFormula,
 )
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
@@ -151,6 +151,12 @@ class MultipleContext(Context):
                 self.points[dbl] = 2 * self.points[one]
                 self.parents[dbl] = [one]
                 self.formulas[dbl] = action.formula.shortname
+            elif isinstance(action.formula, ScalingFormula):
+                inp = action.input_points[0]
+                out = action.output_points[0]
+                self.points[out] = self.points[inp]
+                self.parents[out] = [inp]
+                self.formulas[out] = action.formula.shortname
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.base!r}, multiples={self.points.values()!r})"
@@ -426,7 +432,7 @@ def multiples_computed(
     params: DomainParameters,
     mult_class: Type[ScalarMultiplier],
     mult_factory: Callable,
-    use_init: bool = False,
+    use_init: bool = True,
     use_multiply: bool = True,
     kind: Union[
         Literal["all"],
@@ -448,6 +454,9 @@ def multiples_computed(
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
     """
+    if kind != "all" and not use_init:
+        raise ValueError("Cannot use kind other than 'all' with use_init=False.")
+
     mult = _cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext(keep_base=True)
     if use_init:
