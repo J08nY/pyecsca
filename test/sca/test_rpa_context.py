@@ -103,14 +103,16 @@ def test_ladder(curve25519):
         ladd_mult.init(curve25519, base)
         ladd_mult.multiply(1339278426732672313)
     muls = list(ctx.points.values())
-    assert muls[-2] == 1339278426732672313
+    assert muls[-1] == 1339278426732672313
+    assert muls[-3] == 1339278426732672313
 
     dadd_mult = DifferentialLadderMultiplier(dadd, dbl, scale)
     with local(MultipleContext()) as ctx:
         dadd_mult.init(curve25519, base)
         dadd_mult.multiply(1339278426732672313)
     muls = list(ctx.points.values())
-    assert muls[-2] == 1339278426732672313
+    assert muls[-1] == 1339278426732672313
+    assert muls[-3] == 1339278426732672313
 
 
 def test_keep_base(secp128r1, add, dbl):
