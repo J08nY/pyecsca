@@ -15,6 +15,7 @@ from pyecsca.ec.mod.base import Mod
 has_flint = False
 try:
     import flint
+    from flint.utils.flint_exceptions import DomainError
 
     _major, _minor, *_ = flint.__version__.split(".")
     if (int(_major), int(_minor)) >= (0, 5):
@@ -105,7 +106,7 @@ if has_flint:
             try:
                 res = flint.fmpz(int(self.x)).sqrtmod(mod)
                 return FlintMod(self._ctx(res), self._ctx, ensure=False)
-            except ValueError:
+            except (ValueError, DomainError):
                 raise_non_residue()
 
             if mod % 4 == 3:
