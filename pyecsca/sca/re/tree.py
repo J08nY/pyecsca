@@ -121,6 +121,38 @@ class Map:
     def from_sets(
         cls, cfgs: Set[Any], mapping: Mapping[Any, Set[Any]], deduplicate: bool = False
     ):
+        """
+        Build a distinguishing map with binary outputs from a set of configs and a mapping.
+
+        Given configs {a, b, c} and a mapping of {a: {1}, b: {1, 2}, c: {2}}, this will
+        build a distinguishing map with the following structure:
+
+        ::
+
+                                  domain
+                                  ======
+                                 ┌───┬───┐
+                                 │ 1 │ 2 │
+                                 └───┴───┘
+                                   :   :
+                                   :   :
+                                   :   :
+                                   :   :
+             cfg_map     mapping ┌───┬───┐   codomain
+             =======     ======= │ 0 │ 1 │   ========
+            ┌────┬───┐       ┌───┼───┼───┤
+            │ a  │  0│:::::::│  0│ T │ F │   {T, F}
+            ├────┼───┤       ├───┼───┼───┤
+            │ b  │  1│:::::::│  1│ T │ T │
+            ├────┼───┤       ├───┼───┼───┤
+            │ c  │  2│:::::::│  2│ F │ T │
+            └────┴───┘       └───┴───┴───┘
+
+        :param cfgs: The set of configs.
+        :param mapping: The mapping from configs to a subset of inputs for which the oracle returns True.
+        :param deduplicate: Whether to deduplicate the rows of the map.
+        :return: The distinguishing map.
+        """
         if deduplicate:
             hash2cfg: Dict[int, Set[Any]] = {}
             hash2val: Dict[int, Set[Any]] = {}
@@ -157,6 +189,38 @@ class Map:
 
     @classmethod
     def from_io_maps(cls, cfgs: Set[Any], mapping: Mapping[Any, Mapping[Any, Any]]):
+        """
+        Build a distinguishing map with arbitrary outputs from a set of configs and a mapping
+        that gives the oracle responses for each config and input.
+
+        Given configs {a, b, c} and a mapping of {a: {x: 1, y: 2}, b: {x: 2, y: 1}, c: {x: 1}},
+        this will build a distinguishing map with the following structure:
+
+        ::
+
+                                  domain
+                                  ======
+                                 ┌───┬───┐
+                                 │ x │ y │
+                                 └───┴───┘
+                                   :   :
+                                   :   :
+                                   :   :
+                                   :   :
+             cfg_map     mapping ┌───┬───┐   codomain
+             =======     ======= │ 0 │ 1 │   ========
+            ┌────┬───┐       ┌───┼───┼───┤
+            │ a  │  0│:::::::│  0│ 1 │ 2 │   {1, 2}
+            ├────┼───┤       ├───┼───┼───┤
+            │ b  │  1│:::::::│  1│ 2 │ 1 │
+            ├────┼───┤       ├───┼───┼───┤
+            │ c  │  2│:::::::│  2│ 1 │ - │
+            └────┴───┘       └───┴───┴───┘
+
+        :param cfgs: The set of configs.
+        :param mapping: The mapping from configs to a mapping from inputs to outputs.
+        :return: The distinguishing map.
+        """
         cfgs_l = list(cfgs)
         cfg_map = pd.DataFrame(list(range(len(cfgs_l))), index=cfgs_l, columns=["vals"])
         inputs: Set[Any] = set()
@@ -177,6 +241,7 @@ class Map:
 
     @property
     def cfgs(self) -> Set[Any]:
+        """The set of configs in this distinguishing map."""
         return set(self.cfg_map.index)
 
     def __getitem__(self, item):
@@ -205,7 +270,11 @@ class Map:
         self.cfg_map = new_cfg_map
 
     def merge(self, other: "Map"):
-        """Merge in another distinguishing map operating on different configs."""
+        """
+        Merge in another distinguishing map operating on different configs.
+
+        :param other: The other distinguishing map.
+        """
         # Domains should be equal (but only as sets, we can reorder)
         if set(self.domain) != set(other.domain):
             raise ValueError("Cannot merge dmaps with different domains.")
@@ -224,6 +293,11 @@ class Map:
         self.codomain.update(other.codomain)
 
     def describe(self) -> str:
+        """
+        Describe some important properties of the distinguishing map.
+
+        :return: A string with the description.
+        """
         return "\n".join(
             (
                 f"Total configs: {len(self.cfg_map)}, ({self.cfg_map.memory_usage(index=True).sum():_} bytes)",
@@ -314,7 +388,11 @@ class Tree:
         return all(len(leaf.cfgs) == 1 for leaf in self.leaves)
 
     def render(self) -> str:
-        """Render the tree."""
+        """
+        Render the tree.
+
+        :return: A string with the tree.
+        """
         style = AbstractStyle("\u2502  ", "\u251c\u2500\u2500", "\u2514\u2500\u2500")
 
         def _str(n: Node):
@@ -327,11 +405,19 @@ class Tree:
         return RenderTree(self.root, style=style).by_attr(_str)
 
     def render_basic(self) -> str:
-        """Render the tree in a basic form, with number of configs as nodes."""
+        """
+        Render the tree in a basic form, with number of configs as nodes.
+
+        :return: A string with the tree.
+        """
         return RenderTree(self.root).by_attr(lambda node: str(len(node.cfgs)))
 
     def describe(self) -> str:
-        """Describe some important properties of the tree."""
+        """
+        Describe some important properties of the tree.
+
+        :return: A string with the description.
+        """
         lsize = log2(self.size)
         leaf_sizes = [len(leaf.cfgs) for leaf in self.leaves]
         leaf_depths = [leaf.depth for leaf in self.leaves]
@@ -389,7 +475,11 @@ class Tree:
         )
 
     def expand(self, dmap: Map) -> "Tree":
-        """Expand a tree with a new distinguishing map."""
+        """
+        Expand a tree with a new distinguishing map.
+
+        :param dmap: The distinguishing map to expand the tree with.
+        """
         tree = Tree(deepcopy(self.root), *self.maps, dmap)
         for leaf in tree.leaves:
             expanded = _build_tree(
@@ -404,7 +494,13 @@ class Tree:
 
     @classmethod
     def build(cls, cfgs: Set[Any], *maps: Map) -> "Tree":
-        """Build a tree."""
+        """
+        Build a tree.
+
+        :param cfgs: The set of configs to build the tree for.
+        :param maps: The distinguishing maps to use.
+        :return: The tree.
+        """
         return cls(_build_tree(cfgs, dict(enumerate(maps))), *maps)
 
 
