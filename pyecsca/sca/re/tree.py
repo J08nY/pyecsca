@@ -45,7 +45,7 @@ Here we grow the trees.
 
 from math import ceil, log2
 from copy import deepcopy
-from typing import Mapping, Any, Set, List, Tuple, Optional, Dict
+from typing import Mapping, Any, Set, List, Tuple, Optional, Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -548,7 +548,7 @@ class Tree:
         return tree
 
     @classmethod
-    def build(cls, cfgs: Set[Any], *maps: Map, split: str | SplitCriterion = "largest") -> "Tree":
+    def build(cls, cfgs: Set[Any], *maps: Map, split: Union[str, SplitCriterion] = "largest") -> "Tree":
         """
         Build a tree.
 
@@ -565,7 +565,7 @@ def _build_tree(
     maps: Mapping[int, Map],
     response: Optional[Any] = None,
     depth: int = 0,
-    split: str | SplitCriterion = "largest",
+    split: Union[str, SplitCriterion] = "largest",
 ) -> Node:
     pad = " " * depth
     # If there is only one remaining cfg, we do not need to continue and just return (base case 1).

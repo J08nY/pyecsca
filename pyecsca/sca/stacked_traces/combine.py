@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 
 from numba import cuda
@@ -227,9 +225,9 @@ class GPUTraceManager(BaseTraceManager):  # pragma: no cover
     @staticmethod
     def chunk_size_from_ratio(
         chunk_memory_ratio: float,
-        element_size: int | None = None,
-        item_size: int | None = None,
-        chunk_item_count: int | None = None,
+        element_size: Optional[int] = None,
+        item_size: Optional[int] = None,
+        chunk_item_count: Optional[int] = None,
     ) -> int:
         if (element_size is None) == (item_size is None and chunk_item_count is None):
             raise ValueError(

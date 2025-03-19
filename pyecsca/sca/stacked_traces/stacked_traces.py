@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import numpy as np
 from public import public
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence, Optional
 
 from pyecsca.sca.trace_set.base import TraceSet
 
@@ -16,7 +14,7 @@ class StackedTraces:
 
     # TODO: Split metadata into common and per-trace
     def __init__(
-        self, samples: np.ndarray, meta: Mapping[str, Any] | None = None
+        self, samples: np.ndarray, meta: Optional[Mapping[str, Any]] = None
     ) -> None:
         if meta is None:
             meta = {}
@@ -25,7 +23,7 @@ class StackedTraces:
 
     @classmethod
     def fromarray(
-        cls, traces: Sequence[np.ndarray], meta: Mapping[str, Any] | None = None
+        cls, traces: Sequence[np.ndarray], meta: Optional[Mapping[str, Any]] = None
     ) -> "StackedTraces":
         if meta is None:
             meta = {}
