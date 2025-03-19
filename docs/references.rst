@@ -12,6 +12,7 @@
 .. [ZVP] Zero-value point attacks on elliptic curve cryptosystem, https://doi.org/10.1007/10958513_17
 .. [EPA] Exceptional procedure attack on elliptic curve cryptosystems, https://doi.org/10.1007/3-540-36288-6_17
 .. [FFD] A formula for disaster: a unified approach to elliptic curve special-point-based attacks, https://eprint.iacr.org/2021/1595.pdf
+.. [BT11] Remote Timing Attacks Are Still Practical, https://eprint.iacr.org/2011/232.pdf
 .. [MT1991] Mazur, B., & Tate, J. (1991). The `p`-adic sigma function. Duke Mathematical Journal, 62 (3), 663-688.
 .. [CO2002] Jean-Sébastien Coron. Resistance against Differential Power Analysis for Elliptic Curve Cryptosystems, https://link.springer.com/chapter/10.1007/3-540-48059-5_25
 .. [DJB02] D.J. Bernstein: Pippenger's Exponentiation Algorithm, https://cr.yp.to/papers/pippenger.pdf

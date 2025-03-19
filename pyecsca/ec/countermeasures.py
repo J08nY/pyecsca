@@ -42,6 +42,9 @@ class ScalarMultiplierCountermeasure(ABC):
         .. note::
             The countermeasure may compute multiple scalar multiplications internally.
             Thus, it may call the init method of the scalar multiplier multiple times.
+
+        :param scalar: The scalar to multiply with.
+        :return: The result of the multiplication.
         """
         raise NotImplementedError
 
@@ -222,3 +225,42 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
                     self.params.curve.prime, S, T, **self.params.curve.parameters
                 )[0]
             return action.exit(res)
+
+
+@public
+class BrumleyTuveri(ScalarMultiplierCountermeasure):
+    r"""
+    A countermeasure that fixes the bit-length of the scalar by adding some multiple
+    of the order to it.
+
+    Originally proposed in [BT11]_.
+
+    .. math::
+        :class: frame
+
+        &\hat{k}= \begin{cases}
+            k + 2n \quad \text{if } \lceil \log_2(k+n) \rceil = \lceil \log_2 n \rceil\\
+            k + n \quad \text{otherwise}.
+        \end{cases}\\
+        &\textbf{return}\ [\hat{k}]G
+
+    """
+
+    def init(self, params: DomainParameters, point: Point):
+        self.params = params
+        self.point = point
+        self.mult.init(
+            self.params,
+            self.point,
+            bits=params.full_order.bit_length() + 1,
+        )
+
+    def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None:
+            raise ValueError("Not initialized.")
+        with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
+            n = self.params.full_order
+            scalar += n
+            if scalar.bit_length() <= n.bit_length():
+                scalar += n
+            return action.exit(self.mult.multiply(scalar))

@@ -7,7 +7,7 @@ from pyecsca.ec.countermeasures import (
     GroupScalarRandomization,
     AdditiveSplitting,
     MultiplicativeSplitting,
-    EuclideanSplitting,
+    EuclideanSplitting, BrumleyTuveri,
 )
 from pyecsca.ec.mult import *
 
@@ -218,4 +218,23 @@ def test_euclidean_splitting(mults, secp128r1, num):
         esplit = EuclideanSplitting(mult)
         esplit.init(secp128r1, secp128r1.generator)
         masked = esplit.multiply(num)
+        assert raw.equals(masked)
+
+
+@pytest.mark.parametrize(
+    "num",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+    ],
+)
+def test_brumley_tuveri(mults, secp128r1, num):
+    mult = copy(mults[0])
+    mult.init(secp128r1, secp128r1.generator)
+    raw = mult.multiply(num)
+
+    for mult in mults:
+        bt = BrumleyTuveri(mult)
+        bt.init(secp128r1, secp128r1.generator)
+        masked = bt.multiply(num)
         assert raw.equals(masked)
