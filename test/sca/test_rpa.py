@@ -246,10 +246,10 @@ def test_distinguish_basic(distinguish_params_sw, add, dbl, neg):
         BGMWMultiplier(
             add, dbl, 5, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
-        CombMultiplier(add, dbl, 2, None, AccumulationOrder.PeqPR, True),
-        CombMultiplier(add, dbl, 3, None, AccumulationOrder.PeqPR, True),
-        CombMultiplier(add, dbl, 4, None, AccumulationOrder.PeqPR, True),
-        CombMultiplier(add, dbl, 5, None, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 2, None, False, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 3, None, False, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 4, None, False, AccumulationOrder.PeqPR, True),
+        CombMultiplier(add, dbl, 5, None, False, AccumulationOrder.PeqPR, True),
     ]
     for real_mult in multipliers:
 
