@@ -26,7 +26,7 @@ class FakeFormula(Formula, ABC):
     No matter what the input point is, it just returns the right amount of FakePoints.
 
     Useful for computing with the scalar multipliers without having concrete formulas
-    and points (for example to get the addition chain via the MultipleContext).
+    and points (for example to get the addition chain via the :py:class:`~.MultipleContext`).
     """
 
     def __init__(self, coordinate_model):

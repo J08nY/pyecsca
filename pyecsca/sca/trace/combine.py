@@ -11,7 +11,7 @@ from pyecsca.sca.trace.trace import Trace, CombinedTrace
 @public
 def average(*traces: Trace) -> CombinedTrace:
     """
-    Average :paramref:`~.average.traces`, sample-wise.
+    Average :paramref:`~.combine.average.traces`, sample-wise.
 
     :param traces:
     :return:
@@ -34,7 +34,7 @@ def conditional_average(
     *traces: Trace, condition: Callable[[Trace], bool]
 ) -> CombinedTrace:
     """
-    Average :paramref:`~.conditional_average.traces` for which the :paramref:`~.conditional_average.condition` is ``True``, sample-wise.
+    Average :paramref:`~.combine.conditional_average.traces` for which the :paramref:`~.combine.conditional_average.condition` is ``True``, sample-wise.
 
     :param traces:
     :param condition:
@@ -46,7 +46,7 @@ def conditional_average(
 @public
 def standard_deviation(*traces: Trace) -> CombinedTrace:
     """
-    Compute the sample standard-deviation of the :paramref:`~.standard_deviation.traces`, sample-wise.
+    Compute the sample standard-deviation of the :paramref:`~.combine.standard_deviation.traces`, sample-wise.
 
     :param traces:
     :return:
@@ -73,7 +73,7 @@ def standard_deviation(*traces: Trace) -> CombinedTrace:
 @public
 def variance(*traces: Trace) -> CombinedTrace:
     """
-    Compute the sample variance of the :paramref:`~.variance.traces`, sample-wise.
+    Compute the sample variance of the :paramref:`~.combine.variance.traces`, sample-wise.
 
     :param traces:
     :return:
@@ -100,7 +100,7 @@ def variance(*traces: Trace) -> CombinedTrace:
 @public
 def average_and_variance(*traces) -> Tuple[CombinedTrace, CombinedTrace]:
     """
-    Compute the average and sample variance of the :paramref:`~.average_and_variance.traces`, sample-wise.
+    Compute the average and sample variance of the :paramref:`~.combine.average_and_variance.traces`, sample-wise.
 
     :param traces:
     :return:
@@ -129,7 +129,7 @@ def average_and_variance(*traces) -> Tuple[CombinedTrace, CombinedTrace]:
 @public
 def add(*traces: Trace) -> CombinedTrace:
     """
-    Add :paramref:`~.add.traces`, sample-wise.
+    Add :paramref:`~.combine.add.traces`, sample-wise.
 
     :param traces:
     :return:
@@ -148,7 +148,7 @@ def add(*traces: Trace) -> CombinedTrace:
 @public
 def subtract(one: Trace, other: Trace) -> CombinedTrace:
     """
-    Subtract :paramref:`~.subtract.other` from :paramref:`~.subtract.one`, sample-wise.
+    Subtract :paramref:`~.combine.subtract.other` from :paramref:`~.combine.subtract.one`, sample-wise.
 
     :param one:
     :param other:

@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../notebook/'))
 # -- Project information -----------------------------------------------------
 
 project = 'pyecsca'
-copyright = '2018-2024, Jan Jancar'
+copyright = '2018-2025, Jan Jancar'
 author = 'Jan Jancar'
 
 sys.path.append(os.path.abspath('..'))
@@ -222,7 +222,7 @@ todo_include_todos = True
 autodoc_default_options = {
     "members": True,
     "undoc-members": True,
-    "inherited-members": True,
+    "inherited-members": "object, int, float, str, list, dict, set",
     "show-inheritance": True,
     "member-order": "bysource",
     # "special-members": "__init__"
