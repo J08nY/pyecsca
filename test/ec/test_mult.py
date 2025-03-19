@@ -461,7 +461,11 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         )
         for combination in product(*bgmw_options.values())
     ]
-    comb_options = {"width": (2, 3, 4, 5), "accumulation_order": tuple(AccumulationOrder)}
+    comb_options = {
+        "width": (2, 3, 4, 5),
+        "accumulation_order": tuple(AccumulationOrder),
+        "always": (True, False),
+    }
     combs = [
         CombMultiplier(
             add, dbl, scl=scale, **dict(zip(comb_options.keys(), combination))

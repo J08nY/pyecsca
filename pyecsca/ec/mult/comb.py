@@ -1,5 +1,6 @@
 """Provides Comb-like scalar multipliers, such as BGMW or Lim-Lee."""
 
+import random
 from copy import copy
 from math import ceil
 from typing import MutableMapping, Optional
@@ -136,6 +137,7 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
     Algorithm 3.44 from [GECC]_
 
     :param width: Window width (number of comb teeth).
+    :param always: Whether the double and add always method is used.
     :param accumulation_order: The order of accumulation of points.
     """
 
@@ -143,6 +145,8 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
     optionals = {ScalingFormula}
     width: int
     """Window width."""
+    always: bool
+    """Whether to always accumulate."""
     _points: MutableMapping[int, Point]
 
     def __init__(
@@ -151,6 +155,7 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
         dbl: DoublingFormula,
         width: int,
         scl: Optional[ScalingFormula] = None,
+        always: bool = False,
         accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
         short_circuit: bool = True,
     ):
@@ -162,10 +167,11 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
             scl=scl,
         )
         self.width = width
+        self.always = always
 
     def __hash__(self):
         return hash(
-            (CombMultiplier, super().__hash__(), self.width, self.accumulation_order)
+            (CombMultiplier, super().__hash__(), self.width, self.accumulation_order, self.always)
         )
 
     def __eq__(self, other):
@@ -176,10 +182,11 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
             and self.short_circuit == other.short_circuit
             and self.width == other.width
             and self.accumulation_order == other.accumulation_order
+            and self.always == other.always
         )
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, accumulation_order={self.accumulation_order.name}, always={self.always})"
 
     def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
@@ -223,7 +230,13 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
                     word |= bit << j
                 if word:
                     q = self._accumulate(q, self._points[word])
-                # TODO always
+                elif self.always:
+                    j = random.randrange(0, 2 ** self.width)
+                    # dummy
+                    if j == 0:
+                        self._accumulate(q, self._point)
+                    else:
+                        self._accumulate(q, self._points[j])
 
             if "scl" in self.formulas:
                 q = self._scl(q)

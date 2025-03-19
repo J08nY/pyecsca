@@ -361,12 +361,20 @@ class SplitCriterion:
     """
 
     def __call__(self, split: pd.Series) -> float:
+        """
+        Compute the score of a split.
+
+        :param split: The split to score.
+        :return: The score, can be any (consistent) scale.
+        """
         raise NotImplementedError
 
     def is_better(self, score: float, current_best: float) -> bool:
+        """Whether the score is better than the current best."""
         raise NotImplementedError
 
     def is_optimal(self, score: float, n_cfgs: int, n_codomain: int) -> bool:
+        """Whether the score is optimal and no further splits need to be examined."""
         raise NotImplementedError
 
 
