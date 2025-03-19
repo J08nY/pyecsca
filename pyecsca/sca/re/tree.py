@@ -355,6 +355,61 @@ class Node(NodeMixin):
 
 
 @public
+class SplitCriterion:
+    """
+    A splitting criterion to be used in tree building.
+    """
+
+    def __call__(self, split: pd.Series) -> float:
+        raise NotImplementedError
+
+    def is_better(self, score: float, current_best: float) -> bool:
+        raise NotImplementedError
+
+    def is_optimal(self, score: float, n_cfgs: int, n_codomain: int) -> bool:
+        raise NotImplementedError
+
+
+class Degree(SplitCriterion):
+    def __call__(self, split: pd.Series) -> float:
+        # We want to maximize the number of groups.
+        # The score is optimal if it is equal to min(n_cfgs, len(dmap.codomain)).
+        return len(split)
+
+    def is_better(self, score: float, current_best: float) -> bool:
+        return score > current_best
+
+    def is_optimal(self, score: float, n_cfgs: int, n_codomain: int) -> bool:
+        return score == min(n_cfgs, n_codomain)
+
+
+class SizeOfLargest(SplitCriterion):
+    def __call__(self, split: pd.Series) -> float:
+        # We want to minimize size of largest group.
+        # The score is optimal if it is equal to ceil(n_cfgs / len(dmap.codomain)).
+        return max(split)
+
+    def is_better(self, score: float, current_best: float) -> bool:
+        return score < current_best
+
+    def is_optimal(self, score: float, n_cfgs: int, n_codomain: int) -> bool:
+        return score == ceil(n_cfgs / n_codomain)
+
+
+class AverageSize(SplitCriterion):
+    def __call__(self, split: pd.Series) -> float:
+        # We want to minimize the average size of the groups.
+        # The score is optimal if it is equal to ceil(n_cfgs / len(dmap.codomain)).
+        return sum(split**2) / sum(split)
+
+    def is_better(self, score: float, current_best: float) -> bool:
+        return score < current_best
+
+    def is_optimal(self, score: float, n_cfgs: int, n_codomain: int) -> bool:
+        return score == ceil(n_cfgs / n_codomain)
+
+
+@public
 class Tree:
     """A distinguishing tree."""
 
@@ -493,27 +548,16 @@ class Tree:
         return tree
 
     @classmethod
-    def build(cls, cfgs: Set[Any], *maps: Map) -> "Tree":
+    def build(cls, cfgs: Set[Any], *maps: Map, split: str | SplitCriterion = "largest") -> "Tree":
         """
         Build a tree.
 
         :param cfgs: The set of configs to build the tree for.
         :param maps: The distinguishing maps to use.
+        :param split: The split criterion to use. Can be one of "degree", "largest", "average".
         :return: The tree.
         """
-        return cls(_build_tree(cfgs, dict(enumerate(maps))), *maps)
-
-
-def _degree(split: pd.Series) -> float:
-    return len(split)
-
-
-def _size_of_largest(split: pd.Series) -> float:
-    return max(split)
-
-
-def _average_size(split: pd.Series) -> float:
-    return sum(split**2) / sum(split)
+        return cls(_build_tree(cfgs, dict(enumerate(maps)), split=split), *maps)
 
 
 def _build_tree(
@@ -521,6 +565,7 @@ def _build_tree(
     maps: Mapping[int, Map],
     response: Optional[Any] = None,
     depth: int = 0,
+    split: str | SplitCriterion = "largest",
 ) -> Node:
     pad = " " * depth
     # If there is only one remaining cfg, we do not need to continue and just return (base case 1).
@@ -533,6 +578,19 @@ def _build_tree(
         log(pad + "Trivial.")
         return Node(cfgset, response=response)
 
+    # Choose the split criterion
+    criterion: SplitCriterion
+    if split == "degree":
+        criterion = Degree()
+    elif split == "largest":
+        criterion = SizeOfLargest()
+    elif split == "average":
+        criterion = AverageSize()
+    elif isinstance(split, SplitCriterion):
+        criterion = split
+    else:
+        raise ValueError(f"Unknown split criterion: {split}")
+
     # Go over the maps and figure out which one splits the best.
     best_i = None
     best_dmap = None
@@ -544,17 +602,16 @@ def _build_tree(
         # Note we should look at the restriction of the map to the current "cfgs" and split those
         restricted = dmap.mapping.loc[dmap.cfg_map.loc[list(cfgs), "vals"]]
         for j, column in restricted.items():
-            split = column.value_counts(dropna=False)
-            # TODO: Try the other scores.
-            score = _size_of_largest(split)
-            if best_score is None or score < best_score:
+            counts = column.value_counts(dropna=False)
+            score = criterion(counts)
+            if best_score is None or criterion.is_better(score, best_score):
                 best_i = i
                 best_column = j
                 best_dmap = dmap
                 best_score = score
                 best_restricted = restricted
             # Early abort if optimal score is hit.
-            if score == ceil(n_cfgs / len(dmap.codomain)):
+            if criterion.is_optimal(score, n_cfgs, len(dmap.codomain)):
                 break
     # We found nothing distinguishing the configs, so return them all (base case 2).
     if best_column is None or best_dmap is None:

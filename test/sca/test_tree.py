@@ -3,6 +3,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 import pandas as pd
+import pytest
 
 from pyecsca.sca.re.tree import Tree, Map
 
@@ -81,7 +82,8 @@ def test_map_with_callable(secp128r1):
     assert dmap[cfgs[0], 1]
 
 
-def test_build_tree():
+@pytest.mark.parametrize("split", ["degree", "largest", "average"])
+def test_build_tree(split):
     cfgs = ["a", "b", "c"]
     cfg_map = pd.DataFrame([0, 1, 2], index=cfgs, columns=["vals"])
     inputs1 = [1, 2, 3, 4]
@@ -93,7 +95,7 @@ def test_build_tree():
     codomain2 = {0, 1, 2, 3}
     mapping2 = pd.DataFrame([(1, 0, 0), (2, 0, 0), (3, 0, 0)])
     dmap2 = Map(mapping2, cfg_map, inputs2, codomain2)
-    tree = Tree.build(set(cfgs), dmap1, dmap2)
+    tree = Tree.build(set(cfgs), dmap1, dmap2, split=split)
     tree.render()
     tree.render_basic()
     tree.describe()
