@@ -262,6 +262,9 @@ class Mod:
     def __str__(self):
         return str(self.x)
 
+    def __format__(self, format_spec):
+        return format(int(self), format_spec)
+
 
 @public
 class Undefined(Mod):

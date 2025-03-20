@@ -20,6 +20,7 @@ from pyecsca.ec.mod import (
     jacobi,
 )
 from pyecsca.ec.mod.gmp import has_gmp
+from pyecsca.ec.mod.flint import has_flint
 from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
 
@@ -149,6 +150,7 @@ def test_other():
     b = mod(3, 7)
     assert int(-a) == 2
     assert str(a) == "5"
+    assert f"{a:02x}" == "05"
     assert 6 - a == mod(1, 7)
     assert a != b
     assert a / b == mod(4, 7)
@@ -199,7 +201,7 @@ def test_undefined():
 
 
 def test_implementation():
-    if not has_gmp:
+    if not has_gmp or has_flint:
         pytest.skip("Only makes sense if more Mod implementations are available.")
     with TemporaryConfig() as cfg:
         cfg.ec.mod_implementation = "python"
