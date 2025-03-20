@@ -59,7 +59,7 @@ def standard_deviation(*traces: Trace) -> CombinedTrace:
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         s = np.add(s, t.samples[:min_samples])
-    s = (1 / len(traces)) * s
+    s *= 1 / len(traces)
     ts = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         d = np.subtract(t.samples[:min_samples], s)
@@ -86,7 +86,7 @@ def variance(*traces: Trace) -> CombinedTrace:
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         s = np.add(s, t.samples[:min_samples])
-    s = (1 / len(traces)) * s
+    s *= (1 / len(traces))
     ts = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         d = np.subtract(t.samples[:min_samples], s)
@@ -98,7 +98,7 @@ def variance(*traces: Trace) -> CombinedTrace:
 
 
 @public
-def average_and_variance(*traces) -> Tuple[CombinedTrace, CombinedTrace]:
+def average_and_variance(*traces: Trace) -> Tuple[CombinedTrace, CombinedTrace]:
     """
     Compute the average and sample variance of the :paramref:`~.combine.average_and_variance.traces`, sample-wise.
 
@@ -116,7 +116,7 @@ def average_and_variance(*traces) -> Tuple[CombinedTrace, CombinedTrace]:
     s = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         s = np.add(s, t.samples[:min_samples])
-    s = (1 / len(traces)) * s
+    s *= (1 / len(traces))
     ts = np.zeros(min_samples, dtype=np.float64)
     for t in traces:
         d = np.subtract(t.samples[:min_samples], s)
