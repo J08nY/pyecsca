@@ -33,6 +33,8 @@ class BGMWMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
     :param width: Window width.
     :param direction: Whether it is LTR or RTL.
     :param accumulation_order: The order of accumulation of points.
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula}
@@ -139,6 +141,8 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
     :param width: Window width (number of comb teeth).
     :param always: Whether the double and add always method is used.
     :param accumulation_order: The order of accumulation of points.
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                      of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula}

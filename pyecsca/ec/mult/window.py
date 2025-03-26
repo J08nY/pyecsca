@@ -39,6 +39,8 @@ class SlidingWindowMultiplier(
     :param width: The width of the sliding-window recoding.
     :param recoding_direction: The direction for the sliding-window recoding.
     :param accumulation_order: The order of accumulation of points.
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula}
@@ -140,6 +142,8 @@ class FixedWindowLTRMultiplier(
 
     :param m: The arity of the multiplier.
     :param accumulation_order: The order of accumulation of points.
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                      of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula}

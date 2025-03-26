@@ -168,10 +168,10 @@ def test_distinguish_basic(distinguish_params_sw, add, dbl, neg):
         RTLMultiplier(add, dbl, None, True, AccumulationOrder.PeqPR, False),
         SimpleLadderMultiplier(add, dbl, None, True, True),
         BinaryNAFMultiplier(
-            add, dbl, neg, None, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
+            add, dbl, neg, None, False, ProcessingDirection.LTR, AccumulationOrder.PeqPR, True
         ),
         BinaryNAFMultiplier(
-            add, dbl, neg, None, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True
+            add, dbl, neg, None, False, ProcessingDirection.RTL, AccumulationOrder.PeqPR, True
         ),
         WindowNAFMultiplier(
             add, dbl, neg, 3, None, AccumulationOrder.PeqPR, True, True

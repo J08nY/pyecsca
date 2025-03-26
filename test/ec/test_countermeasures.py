@@ -42,6 +42,7 @@ def mults(secp128r1, add, dbl):
         for combination in product(*rtl_options.values())
     ]
     bnaf_options = {
+        "always": (True, False),
         "direction": tuple(ProcessingDirection),
         "accumulation_order": tuple(AccumulationOrder),
     }

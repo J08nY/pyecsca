@@ -32,6 +32,8 @@ class FullPrecompMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
     :param direction: Whether it is LTR or RTL.
     :param accumulation_order: The order of accumulation of points.
     :param complete: Whether it starts processing at full order-bit-length.
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula}

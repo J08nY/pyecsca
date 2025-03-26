@@ -29,15 +29,19 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     """
     Binary NAF (Non Adjacent Form) multiplier.
 
-    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
-                          of the point at infinity.
+    :param always: Whether the addition is always performed.
     :param direction: Whether it is LTR or RTL.
     :param accumulation_order: The order of accumulation of points.
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                      of the point at infinity.
     """
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
     optionals = {ScalingFormula}
+    always: bool
+    """Whether the double and add always method is used."""
     direction: ProcessingDirection
+    """Whether it is LTR or RTL."""
     _point_neg: Point
 
     def __init__(
@@ -46,6 +50,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         dbl: DoublingFormula,
         neg: NegationFormula,
         scl: Optional[ScalingFormula] = None,
+        always: bool = False,
         direction: ProcessingDirection = ProcessingDirection.LTR,
         accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
         short_circuit: bool = True,
@@ -58,6 +63,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             neg=neg,
             scl=scl,
         )
+        self.always = always
         self.direction = direction
 
     def __hash__(self):
@@ -65,6 +71,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             (
                 BinaryNAFMultiplier,
                 super().__hash__(),
+                self.always,
                 self.direction,
                 self.accumulation_order,
             )
@@ -75,13 +82,14 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             return False
         return (
             self.formulas == other.formulas
+            and self.always == other.always
             and self.short_circuit == other.short_circuit
             and self.direction == other.direction
             and self.accumulation_order == other.accumulation_order
         )
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name}, always={self.always})"
 
     def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
@@ -95,9 +103,13 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             q = self._dbl(q)
             if val == 1:
                 q = self._accumulate(q, self._point)
-            if val == -1:
+                if self.always:
+                    self._accumulate(q, self._point_neg)
+            elif val == -1:
                 # TODO: Whether this negation is precomputed can be a parameter
                 q = self._accumulate(q, self._point_neg)
+                if self.always:
+                    self._accumulate(q, self._point)
         return q
 
     def _rtl(self, scalar_naf: List[int]) -> Point:
@@ -106,9 +118,14 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         for val in reversed(scalar_naf):
             if val == 1:
                 r = self._accumulate(r, q)
-            if val == -1:
+                if self.always:
+                    neg = self._neg(q)
+                    self._accumulate(r, neg)
+            elif val == -1:
                 neg = self._neg(q)
                 r = self._accumulate(r, neg)
+                if self.always:
+                    self._accumulate(r, q)
             q = self._dbl(q)
         return r
 

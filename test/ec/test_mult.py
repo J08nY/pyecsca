@@ -382,6 +382,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         for combination in product(*rtl_options.values())
     ]
     bnaf_options = {
+        "always": (True, False),
         "direction": tuple(ProcessingDirection),
         "accumulation_order": tuple(AccumulationOrder),
     }
