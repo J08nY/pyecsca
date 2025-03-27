@@ -53,7 +53,8 @@
     "numba",
     "networkx",
     "importlib-resources",
-    "anytree"
+    "anytree",
+    "loky"
   ]
 
 [project.urls]

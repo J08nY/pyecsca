@@ -7,7 +7,7 @@ from typing import List, Any, Generator
 
 from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
-from concurrent.futures import ProcessPoolExecutor, as_completed, Future
+from loky import ProcessPoolExecutor, as_completed, Future
 
 
 def pexec(s):
