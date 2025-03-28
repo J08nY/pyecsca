@@ -84,6 +84,15 @@ def test_multiples(rpa_params):
     assert 0 not in multiples
 
 
+def test_multiples_bnaf(rpa_params):
+    mult_partial = partial(BinaryNAFMultiplier, always=True, direction=ProcessingDirection.LTR)
+    multiples = multiples_computed(
+        199, rpa_params, BinaryNAFMultiplier, mult_partial, True, True,
+        kind="all"
+    )
+    assert 23 in multiples
+
+
 def test_multiples_kind(rpa_params):
     multiples_all = multiples_computed(
         17, rpa_params, RTLMultiplier, RTLMultiplier, True, True,

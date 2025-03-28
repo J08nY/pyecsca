@@ -101,31 +101,33 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         q = copy(self._params.curve.neutral)
         for val in scalar_naf:
             q = self._dbl(q)
+            orig = q
             if val == 1:
                 q = self._accumulate(q, self._point)
                 if self.always:
-                    self._accumulate(q, self._point_neg)
+                    self._accumulate(orig, self._point_neg)
             elif val == -1:
                 # TODO: Whether this negation is precomputed can be a parameter
                 q = self._accumulate(q, self._point_neg)
                 if self.always:
-                    self._accumulate(q, self._point)
+                    self._accumulate(orig, self._point)
         return q
 
     def _rtl(self, scalar_naf: List[int]) -> Point:
         q = self._point
         r = copy(self._params.curve.neutral)
         for val in reversed(scalar_naf):
+            orig = r
             if val == 1:
                 r = self._accumulate(r, q)
                 if self.always:
                     neg = self._neg(q)
-                    self._accumulate(r, neg)
+                    self._accumulate(orig, neg)
             elif val == -1:
                 neg = self._neg(q)
                 r = self._accumulate(r, neg)
                 if self.always:
-                    self._accumulate(r, q)
+                    self._accumulate(orig, q)
             q = self._dbl(q)
         return r
 
