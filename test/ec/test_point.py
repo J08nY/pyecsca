@@ -165,7 +165,7 @@ def test_homog():
     model = ShortWeierstrassModel()
     for coords_name, coords in model.coordinates.items():
         try:
-            params = get_params("secg", "secp128r1", coords_name, infty=True)
+            params = get_params("secg", "secp128r1", coords_name, infty=False)
         except UnsatisfiedAssumptionError:
             continue
         infty = params.curve.neutral
