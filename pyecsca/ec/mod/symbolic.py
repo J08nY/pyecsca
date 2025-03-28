@@ -49,16 +49,22 @@ class SymbolicMod(Mod):
     def __neg__(self) -> "SymbolicMod":
         return self.__class__(-self.x, self.n)
 
-    def bit_length(self):
+    def bit_length(self) -> int:
         raise NotImplementedError
 
     def inverse(self) -> "SymbolicMod":
         return self.__class__(self.x ** (-1), self.n)
 
+    def is_residue(self) -> bool:
+        raise NotImplementedError
+
     def sqrt(self) -> "SymbolicMod":
         raise NotImplementedError
 
-    def is_residue(self):
+    def is_cubic_residue(self) -> bool:
+        raise NotImplementedError
+
+    def cube_root(self) -> "SymbolicMod":
         raise NotImplementedError
 
     def __invert__(self) -> "SymbolicMod":

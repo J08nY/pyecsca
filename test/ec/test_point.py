@@ -8,6 +8,7 @@ from pyecsca.ec.mod import mod
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.params import get_params
 from pyecsca.ec.point import Point, InfinityPoint
+from pyecsca.ec.error import UnsatisfiedAssumptionError
 
 
 @pytest.fixture()
@@ -129,15 +130,23 @@ def test_equals(secp128r1, secp128r1_coords):
     assert pt.equals_affine(other)
     assert not pt.equals_scaled(third)
 
+    assert pt.equals_homog(pt)
+    assert pt.equals_homog(other)
+    assert other.equals_homog(pt)
+    assert not pt.equals_homog(third)
+    assert not third.equals_homog(pt)
+
     infty_one = InfinityPoint(secp128r1_coords)
     infty_other = InfinityPoint(secp128r1_coords)
     assert infty_one.equals(infty_other)
     assert infty_one.equals_affine(infty_other)
     assert infty_one.equals_scaled(infty_other)
+    assert infty_one.equals_homog(infty_other)
     assert infty_one == infty_other
     assert not pt.equals(infty_one)
     assert not pt.equals_affine(infty_one)
     assert not pt.equals_scaled(infty_one)
+    assert not pt.equals_homog(infty_one)
 
     mont = MontgomeryModel()
     different = Point(
@@ -150,6 +159,33 @@ def test_equals(secp128r1, secp128r1_coords):
     )
     assert not pt.equals(different)
     assert pt != different
+
+
+def test_homog():
+    model = ShortWeierstrassModel()
+    for coords_name, coords in model.coordinates.items():
+        try:
+            params = get_params("secg", "secp128r1", coords_name, infty=True)
+        except UnsatisfiedAssumptionError:
+            continue
+        infty = params.curve.neutral
+        rand_aff = params.curve.affine_random()
+        one1 = rand_aff.to_model(coords, params.curve)
+        one2 = rand_aff.to_model(coords, params.curve, randomized=True)
+        one3 = rand_aff.to_model(coords, params.curve, randomized=True)
+        assert one1.equals_homog(one2)
+        assert one1.equals_homog(one3)
+        assert one2.equals_homog(one3)
+        assert not one1.equals_homog(infty)
+        assert infty.equals_homog(infty)
+        while True:
+            other_aff = params.curve.affine_random()
+            if other_aff != rand_aff:
+                break
+        other = other_aff.to_model(coords, params.curve)
+        assert not one1.equals_homog(other)
+        assert not one2.equals_homog(other)
+        assert not one3.equals_homog(other)
 
 
 def test_bytes(secp128r1, secp128r1_coords):

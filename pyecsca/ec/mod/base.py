@@ -3,7 +3,7 @@ import secrets
 from functools import lru_cache, wraps
 
 from public import public
-from typing import Tuple, Any, Dict, Type
+from typing import Tuple, Any, Dict, Type, Set
 
 from pyecsca.ec.context import ResultAction
 from pyecsca.misc.cfg import getconfig
@@ -62,6 +62,44 @@ def jacobi(x: int, n: int) -> int:
             r = -r
         x %= n
     return r if n == 1 else 0
+
+
+@public
+def square_roots(x: "Mod") -> Set["Mod"]:
+    """
+
+    :param x:
+    :return:
+    """
+    if not x.is_residue():
+        return set()
+    sqrt = x.sqrt()
+    return {sqrt, -sqrt}
+
+
+@public
+def cube_roots(x: "Mod") -> Set["Mod"]:
+    """
+
+    :param x:
+    :return:
+    """
+    if not x.is_cubic_residue():
+        return set()
+    cube_root = x.cube_root()
+    if (x.n - 1) % 3 != 0:
+        # gcd(3, p - 1) = 1
+        return {cube_root}
+    else:
+        # gcd(3, p - 1) = 3
+        m = (x.n - 1) // 3
+        # Find 3rd root of unity
+        while True:
+            z = x.__class__(random.randrange(2, x.n - 1), x.n)
+            r = z ** m
+            if r != 1:
+                break
+        return {cube_root, cube_root * r, cube_root * (r ** 2)}
 
 
 @public
@@ -212,6 +250,20 @@ class Mod:
         Compute the modular square root of this element (only implemented for prime modulus).
 
         Uses the `Tonelli-Shanks <https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm>`_ algorithm.
+        """
+        raise NotImplementedError
+
+    def is_cubic_residue(self) -> bool:
+        """
+        Whether this element is a cubic residue (only implemented for prime modulus).
+        """
+        raise NotImplementedError
+
+    def cube_root(self) -> "Mod":
+        """
+        Compute the cube root of this element (only implemented for prime modulus).
+
+        Uses the Adleman-Manders-Miller algorithm (which is adapted Tonelli-Shanks).
         """
         raise NotImplementedError
 

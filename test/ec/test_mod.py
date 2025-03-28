@@ -17,7 +17,7 @@ from pyecsca.ec.mod import (
     miller_rabin,
     RawMod,
     SymbolicMod,
-    jacobi,
+    jacobi, cube_roots,
 )
 from pyecsca.ec.mod.gmp import has_gmp
 from pyecsca.ec.mod.flint import has_flint
@@ -114,6 +114,42 @@ def test_sqrt():
     assert mod(0x591E0DB18CF1BD81A11B2985A821EB3, q).sqrt() in \
            (0x113B41A1A2B73F636E73BE3F9A3716E, 0x64990E4CF7BA44B779CC7DCC8AE8A3F)
     getconfig().ec.non_residue_action = "error"
+
+
+def test_is_cubic_residue():
+    # p is 2 mod 3 so all are residues
+    p = 11
+    for i in range(11):
+        assert mod(i, p).is_cubic_residue()
+    p = 13
+    assert not mod(4, p).is_cubic_residue()
+    assert mod(5, p).is_cubic_residue()
+    assert not mod(6, p).is_cubic_residue()
+    assert not mod(7, p).is_cubic_residue()
+
+
+def test_cube_root():
+    p = 11
+    for i in range(11):
+        assert len(cube_roots(mod(i, p))) == 1
+    assert mod(2, p).cube_root() == 7
+    assert mod(3, p).cube_root() == 9
+    assert mod(4, p).cube_root() == 5
+    assert mod(5, p).cube_root() == 3
+    assert mod(6, p).cube_root() == 8
+    assert mod(7, p).cube_root() == 6
+
+    p = 13
+    assert mod(1, p).cube_root() == 1
+    assert mod(0, p).cube_root() == 0
+    assert mod(5, p).cube_root() == 8
+    assert mod(8, p).cube_root() == 5
+    assert mod(12, p).cube_root() == 12
+
+    assert cube_roots(mod(0, p)) == {mod(0, p)}
+    assert cube_roots(mod(1, p)) == {mod(1, p), mod(3, p), mod(9, p)}
+    assert cube_roots(mod(5, p)) == {mod(8, p), mod(11, p), mod(7, p)}
+    assert cube_roots(mod(8, p)) == {mod(5, p), mod(2, p), mod(6, p)}
 
 
 def test_eq():

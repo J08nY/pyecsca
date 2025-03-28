@@ -1,13 +1,15 @@
 """Provides a :py:class:`.Point` class and a special :py:class:`.InfinityPoint` class for the point at infinity."""
 
 from copy import copy
-from typing import Mapping, TYPE_CHECKING
+from operator import itemgetter
+from typing import Mapping, Set, TYPE_CHECKING
 
 from public import public
 
 from pyecsca.ec.context import ResultAction
 from pyecsca.ec.coordinates import AffineCoordinateModel, CoordinateModel
-from pyecsca.ec.mod import Mod, Undefined, mod
+from pyecsca.ec.mod import Mod, Undefined, mod, square_roots, cube_roots
+from pyecsca.ec.error import NonResidueError
 from pyecsca.ec.op import CodeOp
 
 
@@ -141,11 +143,13 @@ class Point:
             if randomized:
                 lmbd = Mod.random(curve.prime)
                 for var, value in result.items():
-                    result[var] = value * (lmbd ** coordinate_model.homogweights[var])
+                    weight = coordinate_model.homogweights[var]
+                    lpow = lmbd ** weight
+                    result[var] = value * lpow
             return action.exit(Point(coordinate_model, **result))
 
     def equals_affine(self, other: "Point") -> bool:
-        """Test whether this point is equal to :paramref:`~.equals_affine.other` irrespective of the coordinate model (in the affine sense)."""
+        """Test whether this point is equal to :paramref:`~.equals_affine.other` in the affine sense."""
         if not isinstance(other, Point) or isinstance(other, InfinityPoint):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
@@ -158,7 +162,7 @@ class Point:
 
         The "z" scaling formula maps the projective class to a single representative.
 
-        :param other: The point to compare
+        :param other: The point to compare.
         :raises ValueError: If the "z" formula is not available for the coordinate system.
         :return: Whether the points are equal.
         """
@@ -173,6 +177,60 @@ class Point:
             return self_mapped == other_mapped
         else:
             raise ValueError("No scaling formula available.")
+
+    def equals_homog(self, other: "Point") -> bool:
+        """
+        Test whether this point is equal to :paramref:`~.equals_homog.other` in the coordinate system.
+
+        :param other: The point to compare.
+        :return: Whether the points are equal.
+        """
+        if not isinstance(other, Point) or isinstance(other, InfinityPoint):
+            return False
+        if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
+            return False
+        weights = sorted(self.coordinate_model.homogweights.items(), key=itemgetter(1))
+        lambdas: Set[Mod] = set()
+        for var, weight in weights:
+            var1 = self.coords[var]
+            var2 = other.coords[var]
+            if var1 == 0 and var2 == 0:
+                continue
+            if var1 == 0 or var2 == 0:
+                return False
+            val = var2 / var1
+            if not lambdas:
+                if weight == 1:
+                    lambdas.add(val)
+                elif weight == 2:
+                    if not val.is_residue():
+                        return False
+                    lambdas.update(square_roots(val))
+                elif weight == 3:
+                    if not val.is_cubic_residue():
+                        return False
+                    lambdas.update(cube_roots(val))
+                elif weight == 4:
+                    if not val.is_residue():
+                        return False
+                    first = val.sqrt()
+                    try:
+                        lambdas.update(square_roots(first))
+                    except NonResidueError:
+                        pass
+                    try:
+                        lambdas.update(square_roots(-first))
+                    except NonResidueError:
+                        pass
+                else:
+                    raise NotImplementedError(
+                        f"Equality checking does not support {weight} weight."
+                    )
+            else:
+                lambdas = set(filter(lambda candidate: candidate ** weight == val, lambdas))
+                if not lambdas:
+                    return False
+        return True
 
     def equals(self, other: "Point") -> bool:
         """Test whether this point is equal to `other` irrespective of the coordinate model (in the affine sense)."""
@@ -238,6 +296,9 @@ class InfinityPoint(Point):
         return self == other
 
     def equals_scaled(self, other: "Point") -> bool:
+        return self == other
+
+    def equals_homog(self, other: "Point") -> bool:
         return self == other
 
     def equals(self, other: "Point") -> bool:

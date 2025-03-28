@@ -77,6 +77,64 @@ class RawMod(Mod):
             r *= b
         return r
 
+    def is_cubic_residue(self):
+        if not miller_rabin(self.n):
+            raise NotImplementedError
+        if self.x in (0, 1):
+            return True
+        if self.n % 3 == 2:
+            return True
+        pm1 = self.n - 1
+        r = self ** (pm1 // 3)
+        return r == 1
+
+    def cube_root(self) -> "RawMod":
+        if not miller_rabin(self.n):
+            raise NotImplementedError
+        if self.x == 0:
+            return RawMod(0, self.n)
+        if self.x == 1:
+            return RawMod(1, self.n)
+        if not self.is_cubic_residue():
+            raise_non_residue()
+        if self.n % 3 == 2:
+            inv3 = RawMod(3, self.n - 1).inverse()
+            return self ** int(inv3)
+        q = self.n - 1
+        s = 0
+        while q % 3 == 0:
+            q //= 3
+            s += 1
+        t = q
+        if t % 3 == 1:
+            k = (t - 1) // 3
+        else:
+            k = (t + 1) // 3
+
+        b = 2
+        while RawMod(b, self.n).is_cubic_residue():
+            b += 1
+
+        c = RawMod(b, self.n) ** t
+        r = self ** t
+        h = RawMod(1, self.n)
+        cp = c ** (3 ** (s - 1))
+        c = c.inverse()
+        for i in range(1, s):
+            d = r ** (3 ** (s - i - 1))
+            if d == cp:
+                h *= c
+                r *= c ** 3
+            elif d != 1:
+                h *= c ** 2
+                r *= c ** 6
+            c = c ** 3
+        x: RawMod = (self ** k) * h
+        if t % 3 == 1:
+            return x.inverse()
+        else:
+            return x
+
     def __bytes__(self):
         return self.x.to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")
 
