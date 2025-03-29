@@ -105,6 +105,18 @@ def main(profiler, mod, operations, directory):
         ):
             for _ in range(operations):
                 Mod.random(n)
+        click.echo(f"Profiling {operations} {n.bit_length()}-bit cubic residue checks...")
+        with Profiler(
+            profiler, directory, f"mod_256b_iscubicresidue_{operations}_{mod}", operations
+        ):
+            for _ in range(operations):
+                a.is_cubic_residue()
+        click.echo(f"Profiling {operations} {n.bit_length()}-bit cubic roots...")
+        with Profiler(
+                profiler, directory, f"mod_256b_cuberoot_{operations}_{mod}", operations
+        ):
+            for _ in range(operations):
+                b.cube_root()
 
 
 if __name__ == "__main__":
