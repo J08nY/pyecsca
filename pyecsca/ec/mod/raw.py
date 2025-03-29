@@ -47,7 +47,7 @@ class RawMod(Mod):
             return RawMod(0, self.n)
         if not self.is_residue():
             raise_non_residue()
-        return square_root_inner(self, int, RawMod)
+        return square_root_inner(self, int, lambda x: RawMod(x, self.n))
 
     def is_cubic_residue(self):
         if not miller_rabin(self.n):
@@ -69,7 +69,7 @@ class RawMod(Mod):
             return RawMod(1, self.n)
         if not self.is_cubic_residue():
             raise_non_residue()
-        return cube_root_inner(self, int, RawMod)
+        return cube_root_inner(self, int, lambda x: RawMod(x, self.n))
 
     def __bytes__(self):
         return self.x.to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")

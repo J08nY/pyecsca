@@ -117,11 +117,11 @@ def square_root_inner(x: M, intwrap, mod_class) -> M:
         s += 1
 
     z = intwrap(2)
-    while mod_class(z, x.n).is_residue():
+    while mod_class(z).is_residue():
         z += 1
 
     m = s
-    c = mod_class(z, x.n) ** q
+    c = mod_class(z) ** q
     t = x ** q
     r_exp = (q + 1) // 2
     r = x ** r_exp
@@ -131,8 +131,8 @@ def square_root_inner(x: M, intwrap, mod_class) -> M:
         while not (t ** (2 ** i)) == 1:
             i += 1
         two_exp = m - (i + 1)
-        b = c ** int(mod_class(2, x.n) ** two_exp)
-        m = int(mod_class(i, x.n))
+        b = c ** int(mod_class(intwrap(2)) ** two_exp)
+        m = int(mod_class(intwrap(i)))
         c = b ** 2
         t *= c
         r *= b
@@ -141,7 +141,7 @@ def square_root_inner(x: M, intwrap, mod_class) -> M:
 
 def cube_root_inner(x: M, intwrap, mod_class) -> M:
     if x.n % 3 == 2:
-        inv3 = mod_class(intwrap(3), x.n - 1).inverse()
+        inv3 = x.__class__(intwrap(3), x.n - 1).inverse()
         return x ** int(inv3)  # type: ignore
     q = x.n - 1
     s = 0
@@ -155,12 +155,12 @@ def cube_root_inner(x: M, intwrap, mod_class) -> M:
         k = (t + 1) // 3
 
     b = intwrap(2)
-    while mod_class(b, x.n).is_cubic_residue():
+    while mod_class(b).is_cubic_residue():
         b += 1
 
-    c = mod_class(b, x.n) ** t
+    c = mod_class(b) ** t
     r = x ** t
-    h = mod_class(intwrap(1), x.n)
+    h = mod_class(intwrap(1))
     cp = c ** (3 ** (s - 1))
     c = c.inverse()
     for i in range(1, s):

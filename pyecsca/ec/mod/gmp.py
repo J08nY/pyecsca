@@ -88,7 +88,7 @@ if has_gmp:
                 return GMPMod(gmpy2.mpz(0), self.n, ensure=False)
             if not self.is_residue():
                 raise_non_residue()
-            return square_root_inner(self, gmpy2.mpz, partial(GMPMod, ensure=False))
+            return square_root_inner(self, gmpy2.mpz, lambda x: GMPMod(x, self.n, ensure=False))
 
         def is_cubic_residue(self) -> bool:
             if not _gmpy_is_prime(self.n):
@@ -110,7 +110,7 @@ if has_gmp:
                 return GMPMod(gmpy2.mpz(1), self.n,  ensure=False)
             if not self.is_cubic_residue():
                 raise_non_residue()
-            return cube_root_inner(self, gmpy2.mpz, partial(GMPMod, ensure=False))
+            return cube_root_inner(self, gmpy2.mpz, lambda x: GMPMod(x, self.n, ensure=False))
 
         @_check
         def __add__(self, other) -> "GMPMod":
