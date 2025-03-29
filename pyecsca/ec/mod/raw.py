@@ -4,7 +4,7 @@ from pyecsca.ec.error import (
     raise_non_residue,
 )
 
-from pyecsca.ec.mod.base import Mod, extgcd, miller_rabin, jacobi
+from pyecsca.ec.mod.base import Mod, extgcd, miller_rabin, jacobi, cube_root_inner, square_root_inner
 
 
 @public
@@ -47,35 +47,7 @@ class RawMod(Mod):
             return RawMod(0, self.n)
         if not self.is_residue():
             raise_non_residue()
-        if self.n % 4 == 3:
-            return self ** int((self.n + 1) // 4)
-        q = self.n - 1
-        s = 0
-        while q % 2 == 0:
-            q //= 2
-            s += 1
-
-        z = 2
-        while RawMod(z, self.n).is_residue():
-            z += 1
-
-        m = s
-        c = RawMod(z, self.n) ** q
-        t = self**q
-        r_exp = (q + 1) // 2
-        r = self**r_exp
-
-        while t != 1:
-            i = 1
-            while not (t ** (2**i)) == 1:
-                i += 1
-            two_exp = m - (i + 1)
-            b = c ** int(RawMod(2, self.n) ** two_exp)
-            m = int(RawMod(i, self.n))
-            c = b**2
-            t *= c
-            r *= b
-        return r
+        return square_root_inner(self, int, RawMod)
 
     def is_cubic_residue(self):
         if not miller_rabin(self.n):
@@ -97,43 +69,7 @@ class RawMod(Mod):
             return RawMod(1, self.n)
         if not self.is_cubic_residue():
             raise_non_residue()
-        if self.n % 3 == 2:
-            inv3 = RawMod(3, self.n - 1).inverse()
-            return self ** int(inv3)
-        q = self.n - 1
-        s = 0
-        while q % 3 == 0:
-            q //= 3
-            s += 1
-        t = q
-        if t % 3 == 1:
-            k = (t - 1) // 3
-        else:
-            k = (t + 1) // 3
-
-        b = 2
-        while RawMod(b, self.n).is_cubic_residue():
-            b += 1
-
-        c = RawMod(b, self.n) ** t
-        r = self ** t
-        h = RawMod(1, self.n)
-        cp = c ** (3 ** (s - 1))
-        c = c.inverse()
-        for i in range(1, s):
-            d = r ** (3 ** (s - i - 1))
-            if d == cp:
-                h *= c
-                r *= c ** 3
-            elif d != 1:
-                h *= c ** 2
-                r *= c ** 6
-            c = c ** 3
-        x: RawMod = (self ** k) * h
-        if t % 3 == 1:
-            return x.inverse()
-        else:
-            return x
+        return cube_root_inner(self, int, RawMod)
 
     def __bytes__(self):
         return self.x.to_bytes((self.n.bit_length() + 7) // 8, byteorder="big")

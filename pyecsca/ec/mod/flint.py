@@ -1,5 +1,5 @@
 import warnings
-from functools import lru_cache, wraps
+from functools import lru_cache, wraps, partial
 from typing import Union
 
 from public import public
@@ -10,7 +10,7 @@ from pyecsca.ec.error import (
     NonResidueError,
     NonResidueWarning,
 )
-from pyecsca.ec.mod.base import Mod
+from pyecsca.ec.mod.base import Mod, cube_root_inner, square_root_inner
 
 has_flint = False
 try:
@@ -109,35 +109,33 @@ if has_flint:
             except (ValueError, DomainError):
                 raise_non_residue()
 
-            if mod % 4 == 3:
-                return self ** int((mod + 1) // 4)
-            q = mod - 1
-            s = 0
-            while q % 2 == 0:
-                q //= 2
-                s += 1
+            if self.x == 0:
+                return FlintMod(self._ctx(0), self._ctx, ensure=False)
+            if not self.is_residue():
+                raise_non_residue()
+            return square_root_inner(self, self._ctx, lambda x: FlintMod(x, self._ctx, ensure=False))
 
-            z = self._ctx(2)
-            while FlintMod(z, self._ctx, ensure=False).is_residue():
-                z += 1
+        def is_cubic_residue(self) -> bool:
+            if not _fmpz_is_prime(self.n):
+                raise NotImplementedError
+            if self.x in (0, 1):
+                return True
+            if self.n % 3 == 2:
+                return True
+            pm1 = self.n - 1
+            r = self ** (pm1 // 3)
+            return r == 1
 
-            m = s
-            c = FlintMod(z, self._ctx, ensure=False) ** int(q)
-            t = self ** int(q)
-            r_exp = (q + 1) // 2
-            r = self ** int(r_exp)
-
-            while t != 1:
-                i = 1
-                while not (t ** (2**i)) == 1:
-                    i += 1
-                two_exp = m - (i + 1)
-                b = c ** int(FlintMod(self._ctx(2), self._ctx, ensure=False) ** two_exp)
-                m = int(FlintMod(self._ctx(i), self._ctx, ensure=False))
-                c = b**2
-                t *= c
-                r *= b
-            return r
+        def cube_root(self) -> "FlintMod":
+            if not _fmpz_is_prime(self.n):
+                raise NotImplementedError
+            if self.x == 0:
+                return FlintMod(self._ctx(0), self._ctx, ensure=False)
+            if self.x == 1:
+                return FlintMod(self._ctx(1), self._ctx, ensure=False)
+            if not self.is_cubic_residue():
+                raise_non_residue()
+            return cube_root_inner(self, self._ctx, lambda x: FlintMod(x, self._ctx, ensure=False))
 
         @_flint_check
         def __add__(self, other) -> "FlintMod":

@@ -3,10 +3,13 @@ import secrets
 from functools import lru_cache, wraps
 
 from public import public
-from typing import Tuple, Any, Dict, Type, Set
+from typing import Tuple, Any, Dict, Type, Set, TypeVar
 
 from pyecsca.ec.context import ResultAction
 from pyecsca.misc.cfg import getconfig
+
+
+M = TypeVar("M", bound="Mod")
 
 
 @public
@@ -65,8 +68,9 @@ def jacobi(x: int, n: int) -> int:
 
 
 @public
-def square_roots(x: "Mod") -> Set["Mod"]:
+def square_roots(x: M) -> Set[M]:
     """
+    Compute all square roots of x.
 
     :param x:
     :return:
@@ -74,12 +78,13 @@ def square_roots(x: "Mod") -> Set["Mod"]:
     if not x.is_residue():
         return set()
     sqrt = x.sqrt()
-    return {sqrt, -sqrt}
+    return {sqrt, -sqrt}  # type: ignore
 
 
 @public
-def cube_roots(x: "Mod") -> Set["Mod"]:
+def cube_roots(x: M) -> Set[M]:
     """
+    Compute all cube roots of x.
 
     :param x:
     :return:
@@ -89,7 +94,7 @@ def cube_roots(x: "Mod") -> Set["Mod"]:
     cube_root = x.cube_root()
     if (x.n - 1) % 3 != 0:
         # gcd(3, p - 1) = 1
-        return {cube_root}
+        return {cube_root}  # type: ignore
     else:
         # gcd(3, p - 1) = 3
         m = (x.n - 1) // 3
@@ -99,7 +104,79 @@ def cube_roots(x: "Mod") -> Set["Mod"]:
             r = z ** m
             if r != 1:
                 break
-        return {cube_root, cube_root * r, cube_root * (r ** 2)}
+        return {cube_root, cube_root * r, cube_root * (r ** 2)}  # type: ignore
+
+
+def square_root_inner(x: M, intwrap, mod_class) -> M:
+    if x.n % 4 == 3:
+        return x ** int((x.n + 1) // 4)  # type: ignore
+    q = x.n - 1
+    s = 0
+    while q % 2 == 0:
+        q //= 2
+        s += 1
+
+    z = intwrap(2)
+    while mod_class(z, x.n).is_residue():
+        z += 1
+
+    m = s
+    c = mod_class(z, x.n) ** q
+    t = x ** q
+    r_exp = (q + 1) // 2
+    r = x ** r_exp
+
+    while t != 1:
+        i = 1
+        while not (t ** (2 ** i)) == 1:
+            i += 1
+        two_exp = m - (i + 1)
+        b = c ** int(mod_class(2, x.n) ** two_exp)
+        m = int(mod_class(i, x.n))
+        c = b ** 2
+        t *= c
+        r *= b
+    return r
+
+
+def cube_root_inner(x: M, intwrap, mod_class) -> M:
+    if x.n % 3 == 2:
+        inv3 = mod_class(intwrap(3), x.n - 1).inverse()
+        return x ** int(inv3)  # type: ignore
+    q = x.n - 1
+    s = 0
+    while q % 3 == 0:
+        q //= 3
+        s += 1
+    t = q
+    if t % 3 == 1:
+        k = (t - 1) // 3
+    else:
+        k = (t + 1) // 3
+
+    b = intwrap(2)
+    while mod_class(b, x.n).is_cubic_residue():
+        b += 1
+
+    c = mod_class(b, x.n) ** t
+    r = x ** t
+    h = mod_class(intwrap(1), x.n)
+    cp = c ** (3 ** (s - 1))
+    c = c.inverse()
+    for i in range(1, s):
+        d = r ** (3 ** (s - i - 1))
+        if d == cp:
+            h *= c
+            r *= c ** 3
+        elif d != 1:
+            h *= c ** 2
+            r *= c ** 6
+        c = c ** 3
+    x = (x ** k) * h
+    if t % 3 == 1:
+        return x.inverse()  # type: ignore
+    else:
+        return x
 
 
 @public

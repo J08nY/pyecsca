@@ -1,9 +1,9 @@
-from functools import lru_cache, wraps
+from functools import lru_cache, wraps, partial
 from typing import Union
 
 from public import public
 
-from pyecsca.ec.mod.base import Mod
+from pyecsca.ec.mod.base import Mod, cube_root_inner, square_root_inner
 from pyecsca.ec.error import (
     raise_non_invertible,
     raise_non_residue,
@@ -88,35 +88,29 @@ if has_gmp:
                 return GMPMod(gmpy2.mpz(0), self.n, ensure=False)
             if not self.is_residue():
                 raise_non_residue()
-            if self.n % 4 == 3:
-                return self ** int((self.n + 1) // 4)
-            q = self.n - 1
-            s = 0
-            while q % 2 == 0:
-                q //= 2
-                s += 1
+            return square_root_inner(self, gmpy2.mpz, partial(GMPMod, ensure=False))
 
-            z = gmpy2.mpz(2)
-            while GMPMod(z, self.n, ensure=False).is_residue():
-                z += 1
+        def is_cubic_residue(self) -> bool:
+            if not _gmpy_is_prime(self.n):
+                raise NotImplementedError
+            if self.x in (0, 1):
+                return True
+            if self.n % 3 == 2:
+                return True
+            pm1 = self.n - 1
+            r = self ** (pm1 // 3)
+            return r == 1
 
-            m = s
-            c = GMPMod(z, self.n, ensure=False) ** int(q)
-            t = self ** int(q)
-            r_exp = (q + 1) // 2
-            r = self ** int(r_exp)
-
-            while t != 1:
-                i = 1
-                while not (t ** (2**i)) == 1:
-                    i += 1
-                two_exp = m - (i + 1)
-                b = c ** int(GMPMod(gmpy2.mpz(2), self.n, ensure=False) ** two_exp)
-                m = int(GMPMod(gmpy2.mpz(i), self.n, ensure=False))
-                c = b**2
-                t *= c
-                r *= b
-            return r
+        def cube_root(self) -> "GMPMod":
+            if not _gmpy_is_prime(self.n):
+                raise NotImplementedError
+            if self.x == 0:
+                return GMPMod(gmpy2.mpz(0), self.n, ensure=False)
+            if self.x == 1:
+                return GMPMod(gmpy2.mpz(1), self.n,  ensure=False)
+            if not self.is_cubic_residue():
+                raise_non_residue()
+            return cube_root_inner(self, gmpy2.mpz, partial(GMPMod, ensure=False))
 
         @_check
         def __add__(self, other) -> "GMPMod":
