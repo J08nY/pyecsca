@@ -111,8 +111,6 @@ if has_flint:
 
             if self.x == 0:
                 return FlintMod(self._ctx(0), self._ctx, ensure=False)
-            if not self.is_residue():
-                raise_non_residue()
             return square_root_inner(self, self._ctx, lambda x: FlintMod(x, self._ctx, ensure=False))
 
         def is_cubic_residue(self) -> bool:
