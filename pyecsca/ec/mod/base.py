@@ -141,7 +141,7 @@ def square_root_inner(x: M, intwrap, mod_class) -> M:
 
 def cube_root_inner(x: M, intwrap, mod_class) -> M:
     if x.n % 3 == 2:
-        inv3 = x.__class__(intwrap(3), x.n - 1).inverse()
+        inv3 = x.__class__(3, x.n - 1).inverse()
         return x ** int(inv3)  # type: ignore
     q = x.n - 1
     s = 0
