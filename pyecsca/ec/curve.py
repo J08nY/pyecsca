@@ -258,7 +258,9 @@ class EllipticCurve:
         :return: Whether it is the neutral point.
         """
         # Neutral is either InfinityPoint or Point in either affine or some other coord system.
-        if isinstance(point.coordinate_model, AffineCoordinateModel):
+        if isinstance(point, InfinityPoint):
+            return point.coordinate_model == self.coordinate_model
+        elif isinstance(point.coordinate_model, AffineCoordinateModel):
             return self.neutral_is_affine and self.affine_neutral == point
         else:
             return self.neutral.equals_homog(point)
