@@ -50,7 +50,7 @@ if has_flint:
         return method
 
     @public
-    class FlintMod(Mod):
+    class FlintMod(Mod["FlintMod"]):
         """An element x of ℤₙ. Implemented by flint."""
 
         x: flint.fmpz_mod

@@ -8,7 +8,7 @@ from pyecsca.ec.mod.base import Mod, extgcd, miller_rabin, jacobi, cube_root_inn
 
 
 @public
-class RawMod(Mod):
+class RawMod(Mod["RawMod"]):
     """An element x of ℤₙ (implemented using Python integers)."""
 
     x: int

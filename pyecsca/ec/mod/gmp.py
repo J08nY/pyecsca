@@ -37,7 +37,7 @@ if has_gmp:
         return gmpy2.is_prime(x)
 
     @public
-    class GMPMod(Mod):
+    class GMPMod(Mod["GMPMod"]):
         """An element x of ℤₙ. Implemented by GMP."""
 
         x: gmpy2.mpz
