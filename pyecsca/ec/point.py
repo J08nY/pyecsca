@@ -169,7 +169,9 @@ class Point:
         if not isinstance(other, Point) or isinstance(other, InfinityPoint):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
-            return False
+            raise ValueError("Can only compare points with the same curve model.")
+        if self.coordinate_model != other.coordinate_model:
+            raise ValueError("Can only compare points with the same coordinate model.")
         if "z" in self.coordinate_model.formulas:
             formula = self.coordinate_model.formulas["z"]
             self_mapped = formula(self.field, self)
@@ -188,7 +190,9 @@ class Point:
         if not isinstance(other, Point) or isinstance(other, InfinityPoint):
             return False
         if self.coordinate_model.curve_model != other.coordinate_model.curve_model:
-            return False
+            raise ValueError("Can only compare points with the same curve model.")
+        if self.coordinate_model != other.coordinate_model:
+            raise ValueError("Can only compare points with the same coordinate model.")
         weights = sorted(self.coordinate_model.homogweights.items(), key=itemgetter(1))
         lambdas: Set[Mod] = set()
         for var, weight in weights:
