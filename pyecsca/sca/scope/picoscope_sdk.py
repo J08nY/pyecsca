@@ -183,28 +183,45 @@ class PicoScopeSdk(Scope):  # pragma: no cover
         period = 1 / frequency
         if low_freq == 0 or period > period_bound:
             tb = floor(high_freq / frequency + high_subtract)
+            tb = max(tb, high_subtract + 1)
             actual_frequency = high_freq // (tb - high_subtract)
         else:
             tb = min(floor(log2(low_freq) - log2(frequency)), timebase_bound)
             actual_frequency = low_freq // 2**tb
         max_samples = ctypes.c_int32()
-        interval_nanoseconds = ctypes.c_int32()
-        assert_pico_ok(
-            self._dispatch_call(
-                "GetTimebase",
-                self.handle,
-                tb,
-                samples,
-                ctypes.byref(interval_nanoseconds),
-                0,
-                ctypes.byref(max_samples),
-                0,
+        if tb <= timebase_bound:
+            interval_nanoseconds = ctypes.c_float()
+            assert_pico_ok(
+                self._dispatch_call(
+                    "GetTimebase2",
+                    self.handle,
+                    tb,
+                    samples,
+                    ctypes.byref(interval_nanoseconds),
+                    0,
+                    ctypes.byref(max_samples),
+                    0,
+                )
             )
-        )
+        else:
+            interval_nanoseconds = ctypes.c_int32()
+            assert_pico_ok(
+                self._dispatch_call(
+                    "GetTimebase",
+                    self.handle,
+                    tb,
+                    samples,
+                    ctypes.byref(interval_nanoseconds),
+                    0,
+                    ctypes.byref(max_samples),
+                    0,
+                )
+            )
         if max_samples.value < samples:
             pretrig = max_samples.value * (pretrig // samples)
             posttrig = max_samples.value - pretrig
             samples = max_samples.value
+        # TODO: actual_frequency and "1e9 / interval_nanoseconds.value" should be close
         self.frequency = actual_frequency
         self.samples = samples
         self.pretrig = pretrig
