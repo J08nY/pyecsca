@@ -1,5 +1,6 @@
 """Provides an oscilloscope class for PicoScope branded oscilloscopes using the official `picosdk-python-wrappers <https://github.com/picotech/picosdk-python-wrappers>`_."""
 
+import warnings
 import ctypes
 from math import log2, floor
 from time import time_ns, sleep
@@ -189,39 +190,47 @@ class PicoScopeSdk(Scope):  # pragma: no cover
             tb = min(floor(log2(low_freq) - log2(frequency)), timebase_bound)
             actual_frequency = low_freq // 2**tb
         max_samples = ctypes.c_int32()
+        interval = 0.0
         if tb <= timebase_bound:
-            interval_nanoseconds = ctypes.c_float()
+            interval_nano_float = ctypes.c_float()
             assert_pico_ok(
                 self._dispatch_call(
                     "GetTimebase2",
                     self.handle,
                     tb,
                     samples,
-                    ctypes.byref(interval_nanoseconds),
+                    ctypes.byref(interval_nano_float),
                     0,
                     ctypes.byref(max_samples),
                     0,
                 )
             )
+            interval = interval_nano_float.value
         else:
-            interval_nanoseconds = ctypes.c_int32()
+            interval_nano_int = ctypes.c_int32()
             assert_pico_ok(
                 self._dispatch_call(
                     "GetTimebase",
                     self.handle,
                     tb,
                     samples,
-                    ctypes.byref(interval_nanoseconds),
+                    ctypes.byref(interval_nano_int),
                     0,
                     ctypes.byref(max_samples),
                     0,
                 )
             )
+            interval = interval_nano_int.value
         if max_samples.value < samples:
             pretrig = max_samples.value * (pretrig // samples)
             posttrig = max_samples.value - pretrig
             samples = max_samples.value
-        # TODO: actual_frequency and "1e9 / interval_nanoseconds.value" should be close
+        interval_diff = actual_frequency / (1e9 / interval)
+        if interval_diff > 1.1 or interval_diff < 0.9:
+            warnings.warn("Reported frequency differs from computed.")
+        freq_diff = actual_frequency / frequency
+        if freq_diff > 1.1 or freq_diff < 0.9:
+            warnings.warn("Requested frequency (significantly) differs from provided.")
         self.frequency = actual_frequency
         self.samples = samples
         self.pretrig = pretrig
