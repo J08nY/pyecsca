@@ -1,7 +1,7 @@
 from typing import cast
 
 import pytest
-from sympy import symbols
+from sympy import symbols, FF, Poly
 
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
@@ -132,3 +132,18 @@ def test_issue_53():
     coords = secp128r1.curve.coordinate_model
     formula = coords.formulas["dbl-1998-hnm"]
     formula(secp128r1.curve.prime, secp128r1.generator, **secp128r1.curve.parameters)
+
+
+def test_issue_71():
+    ax = symbols("α")
+    field = FF(340282366762482138434845932244680310783)
+    rhs = Poly(
+        ax**3
+        + field(55811479606114091134440010920619299102) * ax
+        + field(126188322377389722996253562430093625949),
+        ax,
+        domain=field,
+    )
+    rhs.ground_roots()
+    # raises TypeError:
+    # flint/types/fmpz_mod_poly.pyx:321: TypeError
