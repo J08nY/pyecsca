@@ -2,6 +2,7 @@
 
 from abc import ABC
 from typing import Any, Tuple
+from functools import cache
 
 from public import public
 
@@ -26,7 +27,7 @@ class FakeFormula(Formula, ABC):
     No matter what the input point is, it just returns the right amount of FakePoints.
 
     Useful for computing with the scalar multipliers without having concrete formulas
-    and points (for example to get the addition chain via the :py:class:`~.MultipleContext`).
+    and points (for example, to get the addition chain via the :py:class:`~.MultipleContext`).
     """
 
     def __init__(self, coordinate_model):
@@ -36,12 +37,10 @@ class FakeFormula(Formula, ABC):
 
     def __call__(self, field: int, *points: Any, **params: Mod) -> Tuple[Any, ...]:
         with FormulaAction(self, *points, **params) as action:
-            result = []
             for i in range(self.num_outputs):
                 res = FakePoint(self.coordinate_model)
                 action.output_points.append(res)
-                result.append(res)
-            return action.exit(tuple(result))
+            return action.exit(tuple(action.output_points))
 
 
 @public
@@ -79,13 +78,20 @@ class FakeLadderFormula(FakeFormula, LadderFormula):
     name = "fake"
 
 
+@cache
+def _fake_coords(model):
+    """Return a dictionary of fake coordinates for the given model."""
+    return {key: Undefined() for key in model.variables}
+
+
 @public
 class FakePoint(Point):
     """Just a fake point."""
 
-    def __init__(self, model):
-        coords = {key: Undefined() for key in model.variables}
-        super().__init__(model, **coords)
+    def __init__(self, model):  # noqa: We initialize everything here
+        self.coords = _fake_coords(model)
+        self.coordinate_model = model
+        self.field = 0
 
     def __str__(self):
         return f"FakePoint{id(self)}"

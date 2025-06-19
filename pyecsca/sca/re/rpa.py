@@ -112,37 +112,38 @@ class MultipleContext(Context):
                 self.precomp.update(action.result)
         if isinstance(action, FormulaAction) and self.inside:
             action = cast(FormulaAction, action)
-            if isinstance(action.formula, DoublingFormula):
+            shortname = action.formula.shortname
+            if shortname == "dbl":
                 inp = action.input_points[0]
                 out = action.output_points[0]
                 self.points[out] = 2 * self.points[inp]
                 self.parents[out] = [inp]
                 self.formulas[out] = action.formula.shortname
-            elif isinstance(action.formula, TriplingFormula):
+            elif shortname == "tpl":
                 inp = action.input_points[0]
                 out = action.output_points[0]
                 self.points[out] = 3 * self.points[inp]
                 self.parents[out] = [inp]
                 self.formulas[out] = action.formula.shortname
-            elif isinstance(action.formula, AdditionFormula):
+            elif shortname == "add":
                 one, other = action.input_points
                 out = action.output_points[0]
                 self.points[out] = self.points[one] + self.points[other]
                 self.parents[out] = [one, other]
                 self.formulas[out] = action.formula.shortname
-            elif isinstance(action.formula, NegationFormula):
+            elif shortname == "neg":
                 inp = action.input_points[0]
                 out = action.output_points[0]
                 self.points[out] = -self.points[inp]
                 self.parents[out] = [inp]
                 self.formulas[out] = action.formula.shortname
-            elif isinstance(action.formula, DifferentialAdditionFormula):
+            elif shortname == "dadd":
                 _, one, other = action.input_points
                 out = action.output_points[0]
                 self.points[out] = self.points[one] + self.points[other]
                 self.parents[out] = [one, other]
                 self.formulas[out] = action.formula.shortname
-            elif isinstance(action.formula, LadderFormula):
+            elif shortname == "ladd":
                 _, one, other = action.input_points
                 dbl, add = action.output_points
                 self.points[add] = self.points[one] + self.points[other]
@@ -151,7 +152,7 @@ class MultipleContext(Context):
                 self.points[dbl] = 2 * self.points[one]
                 self.parents[dbl] = [one]
                 self.formulas[dbl] = action.formula.shortname
-            elif isinstance(action.formula, ScalingFormula):
+            elif shortname == "scl":
                 inp = action.input_points[0]
                 out = action.output_points[0]
                 self.points[out] = self.points[inp]
