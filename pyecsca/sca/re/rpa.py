@@ -81,6 +81,8 @@ class MultipleContext(Context):
     def enter_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
             self.inside.append(action)
+            print("Entering action:", action)
+            print("base", self.base)
             if self.base:
                 # If we already did some computation with this context try to see if we are building on top of it.
                 if self.base != action.point:
@@ -104,6 +106,7 @@ class MultipleContext(Context):
                 self.parents = {self.base: [], self.neutral: []}
                 self.formulas = {self.base: "", self.neutral: ""}
                 self.precomp = {}
+            print("after", self.base)
 
     def exit_action(self, action: Action) -> None:
         if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
@@ -113,6 +116,8 @@ class MultipleContext(Context):
         if isinstance(action, FormulaAction) and self.inside:
             action = cast(FormulaAction, action)
             shortname = action.formula.shortname
+            print(action.input_points, action.output_points)
+            print(self.points)
             if shortname == "dbl":
                 inp = action.input_points[0]
                 out = action.output_points[0]
@@ -424,7 +429,10 @@ class RPA(RE):
 def _cached_fake_mult(
     mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
 ) -> ScalarMultiplier:
-    return fake_mult(mult_class, mult_factory, params)
+    fm = fake_mult(mult_class, mult_factory, params)
+    if fm.short_circuit:
+        raise ValueError("The multiplier must not short-circuit.")
+    return fm
 
 
 @public
@@ -454,6 +462,10 @@ def multiples_computed(
     :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary", or "precomp+necessary".
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
+
+    .. note::
+        The scalar multiplier must not short-circuit.
+        If `kind` is not "all", `use_init` must be `True`.
     """
     if kind != "all" and not use_init:
         raise ValueError("Cannot use kind other than 'all' with use_init=False.")

@@ -82,6 +82,16 @@ def test_multiples(rpa_params):
     assert multiples == {1, 2, 4, 8, 16, 17}
 
 
+def test_multiples_no_init(rpa_params):
+    multiples = multiples_computed(
+        78699, rpa_params, LTRMultiplier,
+        lambda add, dbl, *args, **kwargs: LTRMultiplier(
+            add, dbl, None, False, AccumulationOrder.PeqPR, True, False
+        ), False, True
+    )
+    assert multiples
+
+
 def test_multiples_bnaf(rpa_params):
     mult_partial = partial(BinaryNAFMultiplier, always=True, direction=ProcessingDirection.LTR)
     multiples = multiples_computed(

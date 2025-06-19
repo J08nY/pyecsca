@@ -248,11 +248,12 @@ def test_addition_chain(secp128r1):
         secp128r1,
         LTRMultiplier,
         lambda add, dbl, *args, **kwargs: LTRMultiplier(
-            add, dbl, None, False, AccumulationOrder.PeqPR, True, True
+            add, dbl, None, False, AccumulationOrder.PeqPR, True, False
         ),
     )
     assert res is not None
-    assert len(res) == 25
+    # Plenty of operations on infty point, due to complete=True and no short_circuit
+    assert len(res) == 138
 
 
 @pytest.mark.parametrize("k", [7, 25, 31])

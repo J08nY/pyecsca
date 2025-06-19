@@ -588,7 +588,10 @@ def solve_hard_dcp_cypari(
 def _cached_fake_mult(
     mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
 ) -> ScalarMultiplier:
-    return fake_mult(mult_class, mult_factory, params)
+    fm = fake_mult(mult_class, mult_factory, params)
+    if fm.short_circuit:
+        raise ValueError("The multiplier must not short-circuit.")
+    return fm
 
 
 @public
@@ -611,9 +614,12 @@ def addition_chain(
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
     :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
     relationships to the input of the input points to the formula.
+
+    .. note::
+        The scalar multiplier must not short-circuit.
     """
     mult = _cached_fake_mult(mult_class, mult_factory, params)
-    ctx = MultipleContext()
+    ctx = MultipleContext(keep_base=True)
     if use_init:
         with local(ctx, copy=False):
             mult.init(params, FakePoint(params.curve.coordinate_model))
