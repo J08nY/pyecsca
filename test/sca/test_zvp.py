@@ -179,7 +179,7 @@ def test_zvp(secp128r1, formula):
                 )
             with local(DefaultContext()) as ctx:
                 formula(secp128r1.curve.prime, *inputs, **secp128r1.curve.parameters)
-            action = next(iter(ctx.actions.keys()))
+            action = ctx.actions[0].action
             results = list(map(lambda o: int(o.value), action.op_results))
             assert 0 in results
 
