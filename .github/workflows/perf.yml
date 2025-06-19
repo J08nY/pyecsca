@@ -62,8 +62,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: perf-results-${{ matrix.mod }}-${{ matrix.python-version }}
+          include-hidden-files: true
           path:
-            .perf
+            .perf/
   merge:
     runs-on: ubuntu-latest
     needs: perf
