@@ -25,7 +25,7 @@ from test.utils import Profiler
     default="flint" if has_flint else "gmp" if has_gmp else "python",
     envvar="MOD",
 )
-@click.option("-o", "--operations", type=click.INT, default=1)
+@click.option("-o", "--operations", type=click.INT, default=100)
 @click.option(
     "-d",
     "--directory",
