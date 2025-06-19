@@ -79,9 +79,7 @@ def test_multiples(rpa_params):
     multiples = multiples_computed(
         17, rpa_params, LTRMultiplier, LTRMultiplier, True, True
     )
-    assert 1 in multiples
-    assert 17 in multiples
-    assert 0 not in multiples
+    assert multiples == {1, 2, 4, 8, 16, 17}
 
 
 def test_multiples_bnaf(rpa_params):
@@ -91,6 +89,7 @@ def test_multiples_bnaf(rpa_params):
         kind="all"
     )
     assert 23 in multiples
+    assert 199 in multiples
 
 
 def test_multiples_kind(rpa_params):

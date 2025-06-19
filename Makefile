@@ -1,4 +1,4 @@
-PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine test.sca.perf_zvp
+PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.perf_combine test.sca.perf_zvp test.sca.perf_rpa
 
 all: help
 
