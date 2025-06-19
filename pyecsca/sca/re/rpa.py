@@ -425,7 +425,7 @@ def _cached_fake_mult(
     mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
 ) -> ScalarMultiplier:
     fm = fake_mult(mult_class, mult_factory, params)
-    if fm.short_circuit:
+    if getattr(fm, "short_circuit", False):
         raise ValueError("The multiplier must not short-circuit.")
     return fm
 
