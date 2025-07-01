@@ -28,6 +28,7 @@
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research"
   ]
@@ -72,8 +73,8 @@
   "gmp" = ["gmpy2"]
   "flint" = ["python-flint>=0.5.0"]
   "pari" = ["cysignals", "cypari2"]
-  "dev" = ["mypy", "flake8", "interrogate", "pyinstrument", "black", "types-setuptools", "pydocstyle"]
-  "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock", "nbmake"]
+  "dev" = ["mypy", "flake8", "interrogate", "black", "types-setuptools", "pydocstyle"]
+  "test" = ["pytest>=7.0.0", "coverage", "pytest-cov", "pytest-sugar", "pytest-mock", "nbmake", "pyinstrument"]
   "doc" = ["sphinx", "sphinx-autodoc-typehints", "nbsphinx", "sphinx-paramlinks", "sphinx_design", "sphinx-plausible", "alabaster>=0.7.16"]
 
 [tool.setuptools.packages.find]
