@@ -11,3 +11,4 @@ pyecsca.egg-info
 /Pipfile.lock
 __pycache__/
 /venv
+/.venv
