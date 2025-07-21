@@ -144,7 +144,7 @@ class Point:
                 lmbd = Mod.random(curve.prime)
                 for var, value in result.items():
                     weight = coordinate_model.homogweights[var]
-                    lpow = lmbd ** weight
+                    lpow = lmbd**weight
                     result[var] = value * lpow
             return action.exit(Point(coordinate_model, **result))
 
@@ -231,7 +231,9 @@ class Point:
                         f"Equality checking does not support {weight} weight."
                     )
             else:
-                lambdas = set(filter(lambda candidate: candidate ** weight == val, lambdas))
+                lambdas = set(
+                    filter(lambda candidate: candidate**weight == val, lambdas)
+                )
                 if not lambdas:
                     return False
         return True
