@@ -4,7 +4,6 @@ Provides functionality inspired by the Zero-value point attack [ZVP]_.
 Implements ZVP point construction from [FFD]_.
 """
 
-from functools import lru_cache
 from typing import List, Set, Tuple, Dict, Type, Callable
 from public import public
 import warnings
@@ -12,6 +11,7 @@ from astunparse import unparse
 
 from sympy import FF, Poly, Monomial, Symbol, Expr, sympify, symbols, div
 
+from pyecsca.ec.mult.fake import cached_fake_mult
 from pyecsca.sca.re.rpa import MultipleContext
 from pyecsca.ec.context import local
 from pyecsca.ec.curve import EllipticCurve
@@ -24,8 +24,6 @@ from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
-
-from pyecsca.ec.mult.fake import fake_mult
 
 has_pari = False
 try:
@@ -584,16 +582,6 @@ def solve_hard_dcp_cypari(
     return res
 
 
-@lru_cache(maxsize=256, typed=True)
-def _cached_fake_mult(
-    mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
-) -> ScalarMultiplier:
-    fm = fake_mult(mult_class, mult_factory, params)
-    if getattr(fm, "short_circuit", False):
-        raise ValueError("The multiplier must not short-circuit.")
-    return fm
-
-
 @public
 def addition_chain(
     scalar: int,
@@ -618,7 +606,7 @@ def addition_chain(
     .. note::
         The scalar multiplier must not short-circuit.
     """
-    mult = _cached_fake_mult(mult_class, mult_factory, params)
+    mult = cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext(keep_base=True)
     if use_init:
         with local(ctx, copy=False):

@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Type, Callable
 from copy import deepcopy
 
@@ -9,8 +10,14 @@ from pyecsca.ec.formula import (
     NegationFormula,
     ScalingFormula,
 )
-from pyecsca.ec.formula.fake import FakeAdditionFormula, FakeDifferentialAdditionFormula, \
-    FakeDoublingFormula, FakeLadderFormula, FakeNegationFormula, FakeScalingFormula
+from pyecsca.ec.formula.fake import (
+    FakeAdditionFormula,
+    FakeDifferentialAdditionFormula,
+    FakeDoublingFormula,
+    FakeLadderFormula,
+    FakeNegationFormula,
+    FakeScalingFormula,
+)
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
 
@@ -60,3 +67,13 @@ def turn_fake(mult: ScalarMultiplier) -> ScalarMultiplier:
                 formulas[key] = fake(formula.coordinate_model)
     copy.formulas = formulas
     return copy
+
+
+@lru_cache(maxsize=256, typed=True)
+def cached_fake_mult(
+    mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
+) -> ScalarMultiplier:
+    fm = fake_mult(mult_class, mult_factory, params)
+    if getattr(fm, "short_circuit", False):
+        raise ValueError("The multiplier must not short-circuit.")
+    return fm

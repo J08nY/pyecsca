@@ -3,7 +3,6 @@ Provides functionality inspired by the Refined-Power Analysis attack by Goubin [
 """
 
 from copy import copy, deepcopy
-from functools import lru_cache
 
 from public import public
 from typing import (
@@ -32,7 +31,8 @@ from pyecsca.ec.formula import (
     TriplingFormula,
     NegationFormula,
     DifferentialAdditionFormula,
-    LadderFormula, ScalingFormula,
+    LadderFormula,
+    ScalingFormula,
 )
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
@@ -44,7 +44,7 @@ from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point
 from pyecsca.ec.context import Context, Action, local
-from pyecsca.ec.mult.fake import fake_mult
+from pyecsca.ec.mult.fake import cached_fake_mult
 from pyecsca.misc.utils import log, warn
 
 
@@ -420,16 +420,6 @@ class RPA(RE):
         return mults
 
 
-@lru_cache(maxsize=256, typed=True)
-def _cached_fake_mult(
-    mult_class: Type[ScalarMultiplier], mult_factory: Callable, params: DomainParameters
-) -> ScalarMultiplier:
-    fm = fake_mult(mult_class, mult_factory, params)
-    if getattr(fm, "short_circuit", False):
-        raise ValueError("The multiplier must not short-circuit.")
-    return fm
-
-
 @public
 def multiples_computed(
     scalar: int,
@@ -465,7 +455,7 @@ def multiples_computed(
     if kind != "all" and not use_init:
         raise ValueError("Cannot use kind other than 'all' with use_init=False.")
 
-    mult = _cached_fake_mult(mult_class, mult_factory, params)
+    mult = cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext(keep_base=True)
     if use_init:
         with local(ctx, copy=False):
