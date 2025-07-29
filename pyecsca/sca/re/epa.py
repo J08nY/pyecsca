@@ -2,34 +2,26 @@
 Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 """
 
-from typing import Callable, Literal, Type, Union
+from typing import Callable, Literal, Union
 
 from public import public
 
-from pyecsca.ec.context import local
-from pyecsca.ec.formula.fake import FakePoint
-from pyecsca.ec.mult import ScalarMultiplier
-from pyecsca.ec.mult.fake import cached_fake_mult
-from pyecsca.ec.params import DomainParameters
+from pyecsca.ec.point import Point
 from pyecsca.sca.re.rpa import MultipleContext
 
 
 @public
 def errors_out(
-    scalar: int,
-    params: DomainParameters,
-    mult_class: Type[ScalarMultiplier],
-    mult_factory: Callable,
+    ctx: MultipleContext,
+    out: Point,
     check_funcs: dict[str, Callable],
     check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
 ) -> bool:
     """
 
-    :param scalar:
-    :param params:
-    :param mult_class:
-    :param mult_factory:
+    :param ctx: The context containing the points and formulas.
+    :param out: The output point to check.
     :param check_funcs:
     :param check_condition:
     :param precomp_to_affine:
@@ -38,14 +30,6 @@ def errors_out(
     .. note::
         The scalar multiplier must not short-circuit.
     """
-    mult = cached_fake_mult(mult_class, mult_factory, params)
-    ctx = MultipleContext(keep_base=True)
-    with local(ctx, copy=False):
-        mult.init(params, FakePoint(params.curve.coordinate_model))
-
-    with local(ctx, copy=False):
-        out = mult.multiply(scalar)
-
     affine_points = {out, *ctx.precomp.values()} if precomp_to_affine else {out}
     if check_condition == "all":
         points = set(ctx.points.keys())

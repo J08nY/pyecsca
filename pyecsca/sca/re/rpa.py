@@ -15,6 +15,7 @@ from typing import (
     Type,
     Literal,
     Union,
+    Tuple,
 )
 
 from sympy import FF, sympify, Poly, symbols
@@ -421,20 +422,14 @@ class RPA(RE):
 
 
 @public
-def multiples_computed(
+def multiple_graph(
     scalar: int,
     params: DomainParameters,
     mult_class: Type[ScalarMultiplier],
     mult_factory: Callable,
     use_init: bool = True,
     use_multiply: bool = True,
-    kind: Union[
-        Literal["all"],
-        Literal["input"],
-        Literal["necessary"],
-        Literal["precomp+necessary"],
-    ] = "all",
-) -> set[int]:
+) -> Tuple[MultipleContext, Point]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).
 
@@ -444,17 +439,8 @@ def multiples_computed(
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
     :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
-    :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary", or "precomp+necessary".
-    :return: A list of tuples, where the first element is the formula shortname (e.g. "add") and the second is a tuple of the dlog
-    relationships to the input of the input points to the formula.
-
-    .. note::
-        The scalar multiplier must not short-circuit.
-        If `kind` is not "all", `use_init` must be `True`.
+    :return: The context with the computed multiples and the resulting point.
     """
-    if kind != "all" and not use_init:
-        raise ValueError("Cannot use kind other than 'all' with use_init=False.")
-
     mult = cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext(keep_base=True)
     if use_init:
@@ -468,7 +454,27 @@ def multiples_computed(
             out = mult.multiply(scalar)
     else:
         out = mult.multiply(scalar)
+    return ctx, out
 
+
+@public
+def multiples_from_graph(
+    ctx: MultipleContext,
+    out: Point,
+    kind: Union[
+        Literal["all"],
+        Literal["input"],
+        Literal["necessary"],
+        Literal["precomp+necessary"],
+    ] = "all",
+):
+    """
+
+    :param ctx:
+    :param out:
+    :param kind:
+    :return: A set of multiples computed for the scalar.
+    """
     if kind == "all":
         res = set(ctx.points.values())
     elif kind == "input":
@@ -496,3 +502,44 @@ def multiples_computed(
     else:
         raise ValueError(f"Invalid kind {kind}")
     return res - {0}
+
+
+@public
+def multiples_computed(
+    scalar: int,
+    params: DomainParameters,
+    mult_class: Type[ScalarMultiplier],
+    mult_factory: Callable,
+    use_init: bool = True,
+    use_multiply: bool = True,
+    kind: Union[
+        Literal["all"],
+        Literal["input"],
+        Literal["necessary"],
+        Literal["precomp+necessary"],
+    ] = "all",
+) -> set[int]:
+    """
+    Compute the multiples computed for a given scalar and multiplier (quickly).
+
+    :param scalar: The scalar to compute for.
+    :param params: The domain parameters to use.
+    :param mult_class: The class of the scalar multiplier to use.
+    :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
+    :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
+    :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
+    :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary", or "precomp+necessary".
+    :return: A set of multiples computed for the scalar.
+
+    .. note::
+        The scalar multiplier must not short-circuit.
+        If `kind` is not "all", `use_init` must be `True`.
+    """
+    if kind != "all" and not use_init:
+        raise ValueError("Cannot use kind other than 'all' with use_init=False.")
+
+    ctx, out = multiple_graph(
+        scalar, params, mult_class, mult_factory, use_init, use_multiply
+    )
+
+    return multiples_from_graph(ctx, out, kind) if ctx else set()
