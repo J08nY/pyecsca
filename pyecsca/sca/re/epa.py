@@ -2,7 +2,7 @@
 Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 """
 
-from typing import Type, Callable, Literal
+from typing import Callable, Literal, Type, Union
 
 from public import public
 
@@ -21,7 +21,7 @@ def errors_out(
     mult_class: Type[ScalarMultiplier],
     mult_factory: Callable,
     check_funcs: dict[str, Callable],
-    check_condition: Literal["all"] | Literal["necessary"],
+    check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
 ) -> bool:
     """
