@@ -89,9 +89,15 @@ class FakePoint(Point):
     """Just a fake point."""
 
     def __init__(self, model):  # noqa: We initialize everything here
-        self.coords = _fake_coords(model)
         self.coordinate_model = model
-        self.field = 0
+
+    @property
+    def field(self):
+        return 0
+
+    @property
+    def coords(self):
+        return _fake_coords(self.coordinate_model)
 
     def __str__(self):
         return f"FakePoint{id(self)}"
@@ -110,3 +116,9 @@ class FakePoint(Point):
 
     def __deepcopy__(self, memo):
         return self
+
+    def __getstate__(self):
+        return {"model": self.coordinate_model}
+
+    def __setstate__(self, state):
+        self.coordinate_model = state["model"]
