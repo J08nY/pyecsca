@@ -102,7 +102,7 @@ class CodeOp:
         self.operator = self.__to_op(op, self.left, self.right)
         self.parameters = frozenset(params)
         self.variables = frozenset(variables)
-        self.constants = frozenset(constants)
+        self.constants = frozenset(constants)  # noqa: known issue
         self.compiled = compile(self.code, "", mode="exec")
 
     def __to_name(self, node):
