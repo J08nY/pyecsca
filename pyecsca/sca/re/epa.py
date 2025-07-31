@@ -53,6 +53,9 @@ def graph_to_check_inputs(
     # Now handle the regular checks
     for point in points:
         formula = ctx.formulas[point]
+        if not formula:
+            # Skip input point or infty point (they magically appear and do not have an origin formula)
+            continue
         inputs = tuple(map(lambda pt: ctx.points[pt], ctx.parents[point]))
         check_list = formula_checks.setdefault(formula, [])
         check_list.append(inputs)
