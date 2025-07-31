@@ -84,5 +84,7 @@ class TaskExecutor(ProcessPoolExecutor):
         for future in as_completed(self.futures):
             i = self.futures.index(future)
             yield self.keys[i], future
+            del self.keys[i]
+            del self.futures[i]
         self.futures = []
         self.keys = []
