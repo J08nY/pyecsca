@@ -95,9 +95,19 @@ class FakePoint(Point):
     def field(self):
         return 0
 
+    @field.setter
+    def field(self, value):
+        """Setter for field, does nothing."""
+        pass
+
     @property
     def coords(self):
         return _fake_coords(self.coordinate_model)
+
+    @coords.setter
+    def coords(self, value):
+        """Setter for coordinates, does nothing."""
+        pass
 
     def __str__(self):
         return f"FakePoint{id(self)}"
