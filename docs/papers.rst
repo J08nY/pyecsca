@@ -75,3 +75,74 @@ private and public inputs. We evaluate them on two simulation levels and study t
 effect of noise on their performance. Our methods are able to 1) reverse-engineer
 the scalar multiplication algorithm completely and 2) infer significant information
 about the coordinate system and addition formulas used in a target implementation
+
+
+
+ECTester: Reverse-engineering side-channel countermeasures of ECC implementations
+=================================================================================
+
+Vojtech Suchanek, Jan Jancar, Jan Kvapil, Petr Svenda, Lukasz Chmielewski
+
+`CHES 2025, Kuala Lumpur, Malaysia <https://ches.iacr.org/2025/>`_
+
+.. grid::
+    :margin: 2 0 0 2
+    :padding: 2 0 0 2
+
+    .. grid-item::
+        :columns: auto
+
+        .. button-link:: _static/ectester_ches25.pdf
+            :color: secondary
+
+            :fas:`file-alt;fa-fw` Preprint
+
+    .. grid-item::
+        :columns: auto
+
+        .. button-link:: https://github.com/crocs-muni/ECTester
+            :color: secondary
+
+            :fas:`file-zipper;fa-fw` Artifact
+
+.. dropdown:: BibTeX
+    :color: secondary
+    :name: pyecsca-bibtex
+    :class-container: bibtex-dropdown
+
+    .. code-block:: Bibtex
+
+        @InProceedings{2025-ches-jancar,
+          title = {ECTester: Reverse-engineering side-channel countermeasures of ECC implementations},
+          author = {Vojtech Suchanek and Jan Jancar and Jan Kvapil and Petr Svenda and Lukasz Chmielewski},
+          booktitle = {IACR Transactions on Cryptographic Hardware and Embedded Systems},
+          publisher = {Ruhr-University of Bochum},
+          year = {2025}
+        }
+
+Abstract
+--------
+
+Developers implementing elliptic curve cryptography (ECC) face a wide
+range of implementation choices created by decades of research into elliptic curves.
+The literature on elliptic curves offers a plethora of curve models, scalar multipliers,
+and addition formulas, but this comes with the price of enabling attacks to also
+use the rich structure of these techniques. Navigating through this area is not
+an easy task and developers often obscure their choices, especially in black-box
+hardware implementations. Since side-channel attackers rely on the knowledge of the
+implementation details, reverse engineering becomes a crucial part of attacks.
+
+This work presents **ECTester** – a tool for testing black-box ECC implementations.
+Through various test suites, ECTester observes the behavior of the target implementation
+against known attacks but also non-standard inputs and elliptic curve parameters.
+We analyze popular ECC libraries and smartcards and show that some libraries and
+most smartcards do not check the order of the input points and improperly handle
+the infinity point. Based on these observations, we design new techniques for
+reverse-engineering scalar randomization countermeasures that are able to distinguish
+between group scalar randomization, additive, multiplicative or Euclidean splitting.
+Our techniques do not require side-channel measurements; they only require the
+ability to set custom domain parameters, and are able to extract not only the size but
+also the exact value of the random mask used. Using the techniques, we successfully
+reverse-engineered the countermeasures on 13 cryptographic smartcards from 5 major
+manufacturers – all but one we tested on. Finally, we discuss what mitigations can
+be applied to prevent such reverse engineering, and whether it is possible at all.
