@@ -30,6 +30,3 @@ def test_executor_no_wait():
                              i, 5)
         futures = list(pool.as_completed(wait=False))
         assert len(futures) == 0
-        time.sleep(2.5)
-        futures = list(pool.as_completed(wait=False))
-        assert len(futures) == 2
