@@ -29,11 +29,14 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     """
     Binary NAF (Non Adjacent Form) multiplier.
 
+    [GECC]_ Algorithm 3.31.
+
     :param always: Whether the addition is always performed.
     :param direction: Whether it is LTR or RTL.
     :param accumulation_order: The order of accumulation of points.
     :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
                       of the point at infinity.
+    :param complete: Whether it starts processing at full order-bit-length.
     """
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
@@ -42,6 +45,8 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     """Whether the double and add always method is used."""
     direction: ProcessingDirection
     """Whether it is LTR or RTL."""
+    complete: bool
+    """Whether it starts processing at full order-bit-length."""
     _point_neg: Point
 
     def __init__(
@@ -53,6 +58,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         always: bool = False,
         direction: ProcessingDirection = ProcessingDirection.LTR,
         accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
+        complete: bool = True,
         short_circuit: bool = True,
     ):
         super().__init__(
@@ -65,6 +71,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         )
         self.always = always
         self.direction = direction
+        self.complete = complete
 
     def __hash__(self):
         return hash(
@@ -74,6 +81,7 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
                 self.always,
                 self.direction,
                 self.accumulation_order,
+                self.complete,
             )
         )
 
@@ -86,10 +94,11 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             and self.short_circuit == other.short_circuit
             and self.direction == other.direction
             and self.accumulation_order == other.accumulation_order
+            and self.complete == other.complete
         )
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name}, always={self.always})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, direction={self.direction.name}, accumulation_order={self.accumulation_order.name}, always={self.always}, complete={self.complete})"
 
     def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
@@ -98,7 +107,22 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             action.exit({-1: self._point_neg})
 
     def _ltr(self, scalar_naf: List[int]) -> Point:
-        q = copy(self._params.curve.neutral)
+        if self.complete:
+            q = copy(self._params.curve.neutral)
+            while (
+                len(scalar_naf) < self._bits + 1
+            ):  # Pad with zeros, naf(k) can have up to one more entry han bit-length of k ([GECC]_ Theorem 3.29)
+                scalar_naf.insert(0, 0)
+        else:
+            while scalar_naf[0] == 0:
+                scalar_naf.pop(0)
+            val = scalar_naf.pop(0)
+            if val == 1:
+                q = copy(self._point)
+            elif val == -1:
+                q = copy(self._point_neg)
+            else:
+                raise ValueError("Should not happen.")
         for val in scalar_naf:
             q = self._dbl(q)
             orig = q
@@ -116,6 +140,14 @@ class BinaryNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     def _rtl(self, scalar_naf: List[int]) -> Point:
         q = self._point
         r = copy(self._params.curve.neutral)
+        if self.complete:
+            while (
+                len(scalar_naf) < self._bits + 1
+            ):  # Pad with zeros, naf(k) can have up to one more entry than bit-length of k ([GECC]_ Theorem 3.29)
+                scalar_naf.insert(0, 0)
+        else:
+            # Nothing to do here. We could skip the zeros and assign r to the first non-zero value.
+            pass
         for val in reversed(scalar_naf):
             orig = r
             if val == 1:
@@ -152,12 +184,17 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     """
     Window NAF (Non Adjacent Form) multiplier, left-to-right.
 
+    [GECC]_ Algorithm 3.36.
+
+    A right-to-left variant does not make much sense.
+
     :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
                           of the point at infinity.
     :param width: The width of the window.
     :param accumulation_order: The order of accumulation of points.
     :param precompute_negation: Whether to precompute the negation of the precomputed points as well.
                                 It is computed on the fly otherwise.
+    :param complete: Whether it starts processing at full order-bit-length.
     """
 
     requires = {AdditionFormula, DoublingFormula, NegationFormula}
@@ -168,6 +205,8 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
     """Whether to precompute the negation of the precomputed points as well."""
     width: int
     """The width of the window."""
+    complete: bool
+    """Whether it starts processing at full order-bit-length."""
 
     def __init__(
         self,
@@ -178,6 +217,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         scl: Optional[ScalingFormula] = None,
         accumulation_order: AccumulationOrder = AccumulationOrder.PeqPR,
         precompute_negation: bool = False,
+        complete: bool = True,
         short_circuit: bool = True,
     ):
         super().__init__(
@@ -190,6 +230,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
         )
         self.width = width
         self.precompute_negation = precompute_negation
+        self.complete = complete
 
     def __hash__(self):
         return hash(
@@ -199,6 +240,7 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
                 self.width,
                 self.precompute_negation,
                 self.accumulation_order,
+                self.complete,
             )
         )
 
@@ -211,10 +253,11 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             and self.width == other.width
             and self.precompute_negation == other.precompute_negation
             and self.accumulation_order == other.accumulation_order
+            and self.complete == other.complete
         )
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name}, complete={self.complete})"
 
     def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         with PrecomputationAction(params, point) as action:
@@ -237,7 +280,17 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
             if scalar == 0:
                 return action.exit(copy(self._params.curve.neutral))
             scalar_naf = wnaf(scalar, self.width)
-            q = copy(self._params.curve.neutral)
+            if self.complete:
+                q = copy(self._params.curve.neutral)
+                while (
+                    len(scalar_naf) < self._bits + 1
+                ):  # Pad with zeros, wnaf(k) can have up to one more entry han bit-length of k ([GECC]_ Theorem 3.33)
+                    scalar_naf.insert(0, 0)
+            else:
+                while scalar_naf[0] == 0:
+                    scalar_naf.pop(0)
+                val = scalar_naf.pop(0)
+                q = copy(self._points[val])
             for val in scalar_naf:
                 q = self._dbl(q)
                 if val > 0:

@@ -385,6 +385,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         "always": (True, False),
         "direction": tuple(ProcessingDirection),
         "accumulation_order": tuple(AccumulationOrder),
+        "complete": (True, False),
     }
     bnafs = [
         BinaryNAFMultiplier(
@@ -396,6 +397,7 @@ def test_basic_multipliers(secp128r1, num, add, dbl):
         "precompute_negation": (True, False),
         "width": (3, 5),
         "accumulation_order": tuple(AccumulationOrder),
+        "complete": (True, False),
     }
     wnafs = [
         WindowNAFMultiplier(

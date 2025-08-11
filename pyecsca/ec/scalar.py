@@ -128,6 +128,13 @@ def naf(k: int) -> List[int]:
     """
     Compute the NAF (Non-Adjacent Form) of the scalar `k`.
 
+    Properties ([GECC]_ 3.29):
+     a) k has a unique NAF denoted NAF(k).
+     b) NAF(k) has the fewest non-zero digits of any signed digit representation of k.
+     c) The length of NAF(k) is at most one more than the bit-length of k.
+     d) If the length of NAF(k) is l, then $2^l / 3 < k < 2^(l+1) / 3$.
+     e) The average density of non-zero digits among all NAFs of length l is approximately 1/3.
+
     :param k: The scalar.
     :return: The NAF.
     """
