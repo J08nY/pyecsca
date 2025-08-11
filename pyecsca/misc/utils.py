@@ -79,12 +79,18 @@ class TaskExecutor(ProcessPoolExecutor):
         """A list of tasks that were submitted to this executor."""
         return list(zip(self.keys, self.futures))
 
-    def as_completed(self) -> Generator[tuple[Any, Future], Any, None]:
-        """Like `concurrent.futures.as_completed`, but yields a pair of key and future."""
-        for future in as_completed(self.futures):
-            i = self.futures.index(future)
-            yield self.keys[i], future
-            del self.keys[i]
-            del self.futures[i]
-        self.futures = []
-        self.keys = []
+    def as_completed(self, wait: bool = True) -> Generator[tuple[Any, Future], Any, None]:
+        """
+        Like `concurrent.futures.as_completed`, but yields a pair of key and future.
+
+        If `wait` is True, it will block until all futures are done.
+        If `wait` is False, it will return immediately with futures that are already done.
+        """
+        try:
+            for future in as_completed(self.futures, timeout=None if wait else 0):
+                i = self.futures.index(future)
+                yield self.keys[i], future
+                del self.keys[i]
+                del self.futures[i]
+        except TimeoutError:
+            pass
