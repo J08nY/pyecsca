@@ -7,6 +7,7 @@ from typing import List, Any, Generator
 
 from pyecsca.misc.cfg import getconfig, TemporaryConfig
 
+from concurrent.futures import TimeoutError
 from loky import ProcessPoolExecutor, as_completed, Future
 
 
