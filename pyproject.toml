@@ -95,13 +95,13 @@
   ]
   addopts = ["--doctest-modules"]
   filterwarnings = [
-    "ignore:(?s).*pkg_resources is deprecated as an API:DeprecationWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
+    "ignore:(?s).*pkg_resources is deprecated as an API:UserWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
     "ignore:Deprecated call to `pkg_resources.declare_namespace", # sphinxcontrib
     "ignore:(?s).*Pyarrow will become a required dependency of pandas:DeprecationWarning", # pandas pyarrow (pandas<3.0),
+    "ignore:(?s).*builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning", # ???
   ]
 
 [tool.mypy]
-  plugins = "numpy.typing.mypy_plugin"
 
 [tool.interrogate]
   exclude = ["pyecsca/ec/formula/fliparoo.py", "pyecsca/ec/formula/graph.py", "pyecsca/ec/formula/partitions.py", "pyecsca/ec/formula/switch_sign.py", "pyecsca/ec/std/.github/"]
