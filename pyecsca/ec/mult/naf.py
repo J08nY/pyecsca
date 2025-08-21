@@ -271,7 +271,10 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
                 if self.precompute_negation:
                     self._points_neg[2 * i + 1] = self._neg(current_point)
                 current_point = self._add(current_point, double_point)
-            action.exit({**self._points, **self._points_neg})
+            result = {**self._points}
+            if self.precompute_negation:
+                result.update({-k: v for k, v in self._points_neg.items()})
+            action.exit(result)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

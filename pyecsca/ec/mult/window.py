@@ -309,7 +309,7 @@ class WindowBoothMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
         return f"{self.__class__.__name__}({', '.join(map(str, self.formulas.values()))}, short_circuit={self.short_circuit}, width={self.width}, precompute_negation={self.precompute_negation}, accumulation_order={self.accumulation_order.name})"
 
     def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
-        with PrecomputationAction(params, point) as actions:
+        with PrecomputationAction(params, point) as action:
             super().init(params, point, bits)
             double_point = self._dbl(point)
             self._points = {1: point, 2: double_point}
@@ -321,10 +321,10 @@ class WindowBoothMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMult
                 self._points[i] = current_point
                 if self.precompute_negation:
                     self._points_neg[i] = self._neg(current_point)
+            result = {**self._points}
             if self.precompute_negation:
-                actions.exit({**self._points, **self._points_neg})
-            else:
-                actions.exit(self._points)
+                result.update({-k: v for k, v in self._points_neg.items()})
+            action.exit(result)
 
     def multiply(self, scalar: int) -> Point:
         if not self._initialized:

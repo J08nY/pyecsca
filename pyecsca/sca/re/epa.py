@@ -12,10 +12,13 @@ from pyecsca.sca.re.rpa import MultipleContext
 
 @public
 def graph_to_check_inputs(
-    ctx: MultipleContext,
+    precomp_ctx: MultipleContext,
+    full_ctx: MultipleContext,
     out: Point,
     check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
+    use_init: bool = True,
+    use_multiply: bool = True,
 ) -> dict[str, list[tuple[int, ...]]]:
     """
     Compute the inputs for the checks based on the context and output point. This function traverses the graph of points
@@ -27,36 +30,65 @@ def graph_to_check_inputs(
     :param out: The output point of the computation.
     :param check_condition: Whether to check all points or only those necessary for the output point.
     :param precomp_to_affine: Whether to include the precomputed points in the to-affine checks.
+    :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
+    :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
     :return: A dictionary mapping formula names to lists of tuples of input multiples.
 
     .. note::
         The scalar multiplier must not short-circuit.
     """
-    affine_points = {out, *ctx.precomp.values()} if precomp_to_affine else {out}
-    if check_condition == "all":
-        points = set(ctx.points.keys())
-    elif check_condition == "necessary":
-        points = set(affine_points)
-        queue = set(affine_points)
+    if not use_init and not use_multiply:
+        raise ValueError("At least one of use_init or use_multiply must be True.")
+
+    affine_points: set[Point] = set()
+    if use_init and use_multiply:
+        affine_points = (
+            {out, *precomp_ctx.precomp.values()} if precomp_to_affine else {out}
+        )
+    elif use_init:
+        affine_points = {*precomp_ctx.precomp.values()} if precomp_to_affine else set()
+    elif use_multiply:
+        affine_points = {out}
+
+    def _necessary(ctx, for_what):
+        res = {out}
+        queue = {*for_what}
         while queue:
             point = queue.pop()
             for parent in ctx.parents[point]:
-                points.add(parent)
+                res.add(parent)
                 queue.add(parent)
+        return res
+
+    points: set[Point] = set()
+    if check_condition == "all":
+        if use_init and use_multiply:
+            points = set(full_ctx.points.keys())
+        elif use_init:
+            points = set(precomp_ctx.points.keys())
+        elif use_multiply:
+            points = set(full_ctx.points.keys()) - set(precomp_ctx.points.keys())
+    elif check_condition == "necessary":
+        if use_init and use_multiply:
+            points = _necessary(full_ctx, affine_points)
+        elif use_init:
+            points = _necessary(full_ctx, affine_points) & set(precomp_ctx.points.keys())
+        elif use_multiply:
+            points = _necessary(full_ctx, affine_points) - set(precomp_ctx.points.keys())
     else:
         raise ValueError("check_condition must be 'all' or 'necessary'")
     # Special case the "to affine" transform and checks
     formula_checks: dict[str, list[tuple[int, ...]]] = {
-        "affine": [(ctx.points[point],) for point in affine_points]
+        "affine": [(full_ctx.points[point],) for point in affine_points]
     }
     # This actually passes the multiple itself to the check, not the inputs(parents)
     # Now handle the regular checks
     for point in points:
-        formula = ctx.formulas[point]
+        formula = full_ctx.formulas[point]
         if not formula:
             # Skip input point or infty point (they magically appear and do not have an origin formula)
             continue
-        inputs = tuple(map(lambda pt: ctx.points[pt], ctx.parents[point]))
+        inputs = tuple(map(lambda pt: full_ctx.points[pt], full_ctx.parents[point]))
         check_list = formula_checks.setdefault(formula, [])
         check_list.append(inputs)
     return formula_checks
@@ -92,11 +124,14 @@ def evaluate_checks(
 
 @public
 def errors_out(
-    ctx: MultipleContext,
+    precomp_ctx: MultipleContext,
+    full_ctx: MultipleContext,
     out: Point,
     check_funcs: dict[str, Callable],
     check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
+    use_init: bool = True,
+    use_multiply: bool = True,
 ) -> bool:
     """
     Check whether the computation errors out based on the provided context, output point, and check functions.
@@ -110,10 +145,12 @@ def errors_out(
         of the base point and `q` is the base point order.
     :param check_condition: Whether to check all points or only those necessary for the output point.
     :param precomp_to_affine: Whether to include the precomputed points in the to-affine checks.
+    :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
+    :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
     :return: Whether any of the checks returned True -> whether the computation errors out.
 
     .. note::
         The scalar multiplier must not short-circuit.
     """
-    formula_checks = graph_to_check_inputs(ctx, out, check_condition, precomp_to_affine)
+    formula_checks = graph_to_check_inputs(precomp_ctx, full_ctx, out, check_condition, precomp_to_affine, use_init, use_multiply)
     return evaluate_checks(check_funcs, formula_checks)

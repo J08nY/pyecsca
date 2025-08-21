@@ -83,13 +83,18 @@ def test_multiples(rpa_params):
 
 
 def test_multiples_no_init(rpa_params):
-    multiples = multiples_computed(
-        78699, rpa_params, LTRMultiplier,
-        lambda add, dbl, *args, **kwargs: LTRMultiplier(
-            add, dbl, None, False, AccumulationOrder.PeqPR, True, False
-        ), False, True
-    )
-    assert multiples
+    wnaf = partial(WindowNAFMultiplier, width=4)
+
+    multiples = multiples_computed(78699, rpa_params, WindowNAFMultiplier, wnaf, False, True)
+    assert multiples & {1, 2, 3, 5, 7, 9} == set()
+    assert 78699 in multiples
+
+
+def test_multiples_no_multiply(rpa_params):
+    wnaf = partial(WindowNAFMultiplier, width=4)
+
+    multiples = multiples_computed(78699, rpa_params, WindowNAFMultiplier, wnaf, True, False)
+    assert multiples == {1, 2, 3, 5, 7, 9}
 
 
 def test_multiples_bnaf(rpa_params):
