@@ -486,7 +486,7 @@ def multiples_from_graph(
         return res
 
     def _necessary(ctx, for_what):
-        res = {ctx.points[out]}
+        res = {ctx.points[pt] for pt in for_what}
         queue = {*for_what}
         while queue:
             point = queue.pop()

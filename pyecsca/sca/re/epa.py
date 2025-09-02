@@ -19,7 +19,7 @@ def graph_to_check_inputs(
     precomp_to_affine: bool,
     use_init: bool = True,
     use_multiply: bool = True,
-) -> dict[str, list[tuple[int, ...]]]:
+) -> dict[str, set[tuple[int, ...]]]:
     """
     Compute the inputs for the checks based on the context and output point. This function traverses the graph of points
     and collects the inputs for each formula type, in the form of tuples of input multiples. It also adds a special
@@ -32,7 +32,7 @@ def graph_to_check_inputs(
     :param precomp_to_affine: Whether to include the precomputed points in the to-affine checks.
     :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
-    :return: A dictionary mapping formula names to lists of tuples of input multiples.
+    :return: A dictionary mapping formula names to sets of tuples of input multiples.
 
     .. note::
         The scalar multiplier must not short-circuit.
@@ -78,8 +78,8 @@ def graph_to_check_inputs(
     else:
         raise ValueError("check_condition must be 'all' or 'necessary'")
     # Special case the "to affine" transform and checks
-    formula_checks: dict[str, list[tuple[int, ...]]] = {
-        "affine": [(full_ctx.points[point],) for point in affine_points]
+    formula_checks: dict[str, set[tuple[int, ...]]] = {
+        "affine": {(full_ctx.points[point],) for point in affine_points}
     }
     # This actually passes the multiple itself to the check, not the inputs(parents)
     # Now handle the regular checks
@@ -89,24 +89,24 @@ def graph_to_check_inputs(
             # Skip input point or infty point (they magically appear and do not have an origin formula)
             continue
         inputs = tuple(map(lambda pt: full_ctx.points[pt], full_ctx.parents[point]))
-        check_list = formula_checks.setdefault(formula, [])
-        check_list.append(inputs)
+        check_list = formula_checks.setdefault(formula, set())
+        check_list.add(inputs)
     return formula_checks
 
 
 @public
 def evaluate_checks(
-    check_funcs: dict[str, Callable], check_inputs: dict[str, list[tuple[int, ...]]]
+    check_funcs: dict[str, Callable[[int, int], bool]], check_inputs: dict[str, set[tuple[int, ...]]]
 ) -> bool:
     """
     Evaluate the checks for each formula type based on the provided functions and inputs.
 
     :param check_funcs: The functions to apply for each formula type. There are two callable types:
-        - `check(k, l, q)`, that gets applied to binary formulas (like `add`), where `k` and `l` are the input multiples
+        - `check(k, l)`, that gets applied to binary formulas (like `add`), where `k` and `l` are the input multiples
         of the base point and `q` is the base point order.
-        - `check(k, q)`, that gets applied to unary formulas (like conversion to affine `affine`), where `k` is the input multiple
+        - `check(k)`, that gets applied to unary formulas (like conversion to affine `affine`), where `k` is the input multiple
         of the base point and `q` is the base point order.
-    :param check_inputs: A dictionary mapping formula names to lists of tuples of input multiples. The output of
+    :param check_inputs: A dictionary mapping formula names to sets of tuples of input multiples. The output of
         :func:`graph_to_check_inputs`.
     :return: Whether any of the checks returned True -> whether the computation errors out.
 
@@ -127,7 +127,7 @@ def errors_out(
     precomp_ctx: MultipleContext,
     full_ctx: MultipleContext,
     out: Point,
-    check_funcs: dict[str, Callable],
+    check_funcs: dict[str, Callable[[int, int], bool]],
     check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
     use_init: bool = True,
@@ -139,9 +139,9 @@ def errors_out(
     :param ctx: The context containing the points and formulas.
     :param out: The output point of the computation.
     :param check_funcs: The functions to apply for each formula type. There are two callable types:
-        - `check(k, l, q)`, that gets applied to binary formulas (like `add`), where `k` and `l` are the input multiples
+        - `check(k, l)`, that gets applied to binary formulas (like `add`), where `k` and `l` are the input multiples
         of the base point and `q` is the base point order.
-        - `check(k, q)`, that gets applied to unary formulas (like conversion to affine `affine`), where `k` is the input multiple
+        - `check(k)`, that gets applied to unary formulas (like conversion to affine `affine`), where `k` is the input multiple
         of the base point and `q` is the base point order.
     :param check_condition: Whether to check all points or only those necessary for the output point.
     :param precomp_to_affine: Whether to include the precomputed points in the to-affine checks.
