@@ -21,9 +21,9 @@ try:
     if (int(_major), int(_minor)) >= (0, 5):
         has_flint = True
     else:
-        flint = None
+        flint = None  # type: ignore
 except ImportError:
-    flint = None
+    flint = None  # type: ignore
 
 
 if has_flint:
@@ -32,7 +32,7 @@ if has_flint:
     def _fmpz_ctx(n: Union[int, flint.fmpz_mod_ctx]) -> flint.fmpz_mod_ctx:
         if type(n) is flint.fmpz_mod_ctx:
             return n
-        return flint.fmpz_mod_ctx(n)
+        return flint.fmpz_mod_ctx(n)  # type: ignore
 
     @lru_cache
     def _fmpz_is_prime(x: flint.fmpz) -> bool:
@@ -67,8 +67,8 @@ if has_flint:
                 self._ctx = _fmpz_ctx(n)
                 self.x = self._ctx(x)
             else:
-                self._ctx = n
-                self.x = x
+                self._ctx = n  # type: ignore
+                self.x = x  # type: ignore
 
         @property
         def n(self) -> flint.fmpz:

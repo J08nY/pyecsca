@@ -350,7 +350,8 @@ def test_independent_check_inputs(secp128r1, mult):
                     assert (
                         check_inputs == last_check_inputs
                     ), f"Failed for {check_condition}, precomp_to_affine={precomp_to_affine}, scalar={scalar}, mult={mult_class.__name__}"
-                last_check_inputs = check_inputs
+                else:
+                    last_check_inputs = check_inputs
 
 
 @pytest.mark.parametrize("check_condition,precomp_to_affine,multiples_kind", [
