@@ -24,6 +24,14 @@ Jan Jancar, Vojtech Suchanek, Petr Svenda, Vladimir Sedlacek, Lukasz Chmielewski
     .. grid-item::
         :columns: auto
 
+        .. button-link:: _static/pyecsca_ches24_slides.pdf
+            :color: secondary
+
+            :fas:`file-alt;fa-fw` Slides
+
+    .. grid-item::
+        :columns: auto
+
         .. button-link:: https://github.com/J08nY/pyecsca-artifact
             :color: secondary
 
