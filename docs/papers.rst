@@ -108,6 +108,14 @@ Vojtech Suchanek, Jan Jancar, Jan Kvapil, Petr Svenda, Lukasz Chmielewski
     .. grid-item::
         :columns: auto
 
+        .. button-link:: _static/ectester_ches25_slides.pdf
+            :color: secondary
+
+            :fas:`file-alt;fa-fw` Slides
+
+    .. grid-item::
+        :columns: auto
+
         .. button-link:: https://github.com/crocs-muni/ECTester
             :color: secondary
 
