@@ -6,6 +6,9 @@
 
 For more info, see the [![docs](https://img.shields.io/badge/docs-pyecsca.org-black.svg)](https://pyecsca.org/).
 
+> [!NOTE]
+> The artifact for the CHES 2024 paper "*pyecsca: Reverse engineering black-box elliptic curve cryptography via side-channel analysis*" is in a different repository: [pyecsca-artifact](https://github.com/J08nY/pyecsca-artifact).
+
 ## Functionality
 
 **pyecsca** aims to fill a gap in SCA tooling for Elliptic Curve Cryptography, it focuses on
