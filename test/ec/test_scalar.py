@@ -17,7 +17,14 @@ def test_convert():
 
 def test_sliding_window():
     assert sliding_window_ltr(181, 3) == [5, 0, 0, 5, 0, 1]
+    assert sliding_window_ltr(0, 3) == []
+    assert sliding_window_ltr(1234, 2) == [1, 0, 0, 0, 3, 0, 1, 0, 0, 1, 0]
+    assert sliding_window_ltr(0b10101010, 4) == [5, 0, 0, 0, 5, 0]
+
     assert sliding_window_rtl(181, 3) == [1, 0, 0, 3, 0, 0, 0, 5]
+    assert sliding_window_rtl(0, 3) == []
+    assert sliding_window_rtl(1234, 2) == [1, 0, 0, 0, 3, 0, 1, 0, 0, 1, 0]
+    assert sliding_window_rtl(0b10101010, 4) == [5, 0, 0, 0, 5, 0]
 
 
 def test_nafs():
