@@ -235,7 +235,7 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
                 if word:
                     q = self._accumulate(q, self._points[word])
                 elif self.always:
-                    j = random.randrange(0, 2 ** self.width)
+                    j = i % (2 ** self.width)
                     # dummy
                     if j == 0:
                         self._accumulate(q, self._point)
