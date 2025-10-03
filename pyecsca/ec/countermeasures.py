@@ -148,7 +148,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
             order = self.params.order
             r = Mod.random(order)
             s = scalar - r
-            bits = max(self.bits, order.bit_length()) + 1
+            bits = max(self.bits, order.bit_length())
             self.mult.init(self.params, self.point, bits)
             R = self.mult.multiply(int(r))
             S = self.mult.multiply(int(s))
