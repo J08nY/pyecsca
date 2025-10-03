@@ -7,7 +7,8 @@ from pyecsca.ec.countermeasures import (
     GroupScalarRandomization,
     AdditiveSplitting,
     MultiplicativeSplitting,
-    EuclideanSplitting, BrumleyTuveri,
+    EuclideanSplitting,
+    BrumleyTuveri,
 )
 from pyecsca.ec.mult import *
 
@@ -122,7 +123,10 @@ def mults(secp128r1, add, dbl):
         )
         for combination in product(*bgmw_options.values())
     ]
-    comb_options = {"width": (2, 3, 4, 5), "accumulation_order": tuple(AccumulationOrder)}
+    comb_options = {
+        "width": (2, 3, 4, 5),
+        "accumulation_order": tuple(AccumulationOrder),
+    }
     combs = [
         CombMultiplier(
             add, dbl, scl=scale, **dict(zip(comb_options.keys(), combination))
@@ -131,18 +135,18 @@ def mults(secp128r1, add, dbl):
     ]
 
     return (
-            ltrs
-            + rtls
-            + bnafs
-            + wnafs
-            + booths
-            + [CoronMultiplier(add, dbl, scale)]
-            + ladders
-            + fixeds
-            + slides
-            + precomps
-            + bgmws
-            + combs
+        ltrs
+        + rtls
+        + bnafs
+        + wnafs
+        + booths
+        + [CoronMultiplier(add, dbl, scale)]
+        + ladders
+        + fixeds
+        + slides
+        + precomps
+        + bgmws
+        + combs
     )
 
 
@@ -239,3 +243,48 @@ def test_brumley_tuveri(mults, secp128r1, num):
         bt.init(secp128r1, secp128r1.generator)
         masked = bt.multiply(num)
         assert raw.equals(masked)
+
+
+@pytest.mark.parametrize("scalar", [
+    3253857902090173296443513219124437746,
+    1234567893141592653589793238464338327,
+    86728612699079982903603364383639280149,
+    60032993417060801067503559426926851620
+])
+@pytest.mark.parametrize(
+    "one,two",
+    product(
+        (
+            GroupScalarRandomization,
+            AdditiveSplitting,
+            MultiplicativeSplitting,
+            EuclideanSplitting,
+            BrumleyTuveri,
+        ),
+        repeat=2,
+    ),
+)
+def test_combination(scalar, one, two, secp128r1):
+    if one == two:
+        pytest.skip("Skip identical combinations.")
+    mult = LTRMultiplier(
+        secp128r1.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp128r1.curve.coordinate_model.formulas["dbl-2015-rcb"]
+    )
+    mult.init(secp128r1, secp128r1.generator)
+    raw = mult.multiply(scalar)
+
+    add = mult.formulas["add"]
+
+    if one in (AdditiveSplitting, EuclideanSplitting):
+        layer_one = one(mult, add)
+    else:
+        layer_one = one(mult)
+
+    if two in (AdditiveSplitting, EuclideanSplitting):
+        combo = two(layer_one, add)
+    else:
+        combo = two(layer_one)
+    combo.init(secp128r1, secp128r1.generator)
+    masked = combo.multiply(scalar)
+    assert raw.equals(masked)
