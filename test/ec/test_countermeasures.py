@@ -281,12 +281,12 @@ def test_combination(scalar, one, two, secp128r1):
     add = mult.formulas["add"]
 
     if one in (AdditiveSplitting, EuclideanSplitting):
-        layer_one = one(mult, add)
+        layer_one = one(mult, add=add)
     else:
         layer_one = one(mult)
 
     if two in (AdditiveSplitting, EuclideanSplitting):
-        combo = two(layer_one, add)
+        combo = two(layer_one, add=add)
     else:
         combo = two(layer_one)
     combo.init(secp128r1, secp128r1.generator)
