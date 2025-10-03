@@ -10,6 +10,7 @@ from pyecsca.ec.countermeasures import (
     EuclideanSplitting,
     BrumleyTuveri,
 )
+from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import *
 
 
@@ -245,12 +246,15 @@ def test_brumley_tuveri(mults, secp128r1, num):
         assert raw.equals(masked)
 
 
-@pytest.mark.parametrize("scalar", [
-    3253857902090173296443513219124437746,
-    1234567893141592653589793238464338327,
-    86728612699079982903603364383639280149,
-    60032993417060801067503559426926851620
-])
+@pytest.mark.parametrize(
+    "scalar",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+        86728612699079982903603364383639280149,
+        60032993417060801067503559426926851620,
+    ],
+)
 @pytest.mark.parametrize(
     "one,two",
     product(
@@ -269,7 +273,7 @@ def test_combination(scalar, one, two, secp128r1):
         pytest.skip("Skip identical combinations.")
     mult = LTRMultiplier(
         secp128r1.curve.coordinate_model.formulas["add-2015-rcb"],
-        secp128r1.curve.coordinate_model.formulas["dbl-2015-rcb"]
+        secp128r1.curve.coordinate_model.formulas["dbl-2015-rcb"],
     )
     mult.init(secp128r1, secp128r1.generator)
     raw = mult.multiply(scalar)
@@ -287,4 +291,40 @@ def test_combination(scalar, one, two, secp128r1):
         combo = two(layer_one)
     combo.init(secp128r1, secp128r1.generator)
     masked = combo.multiply(scalar)
+    assert raw.equals(masked)
+
+
+@pytest.mark.parametrize(
+    "scalar",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+        86728612699079982903603364383639280149,
+        60032993417060801067503559426926851620,
+    ],
+)
+@pytest.mark.parametrize(
+    "ctr",
+    (
+        GroupScalarRandomization,
+        AdditiveSplitting,
+        EuclideanSplitting,
+        MultiplicativeSplitting,
+        BrumleyTuveri,
+    ),
+)
+def test_rng(scalar, ctr, secp128r1):
+    mult = LTRMultiplier(
+        secp128r1.curve.coordinate_model.formulas["add-2015-rcb"],
+        secp128r1.curve.coordinate_model.formulas["dbl-2015-rcb"],
+    )
+    mult.init(secp128r1, secp128r1.generator)
+    raw = mult.multiply(scalar)
+
+    def rng(n):
+        return mod(123456789, n)
+
+    m = ctr(mult, rng)
+    m.init(secp128r1, secp128r1.generator)
+    masked = m.multiply(scalar)
     assert raw.equals(masked)

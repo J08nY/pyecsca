@@ -1,7 +1,7 @@
 """Provides several countermeasures against side-channel attacks."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Callable
 
 from public import public
 
@@ -30,8 +30,13 @@ class ScalarMultiplierCountermeasure(ABC):
     bits: Optional[int]
     """The bit-length to use, if any."""
 
-    def __init__(self, mult: "ScalarMultiplier | ScalarMultiplierCountermeasure"):
+    def __init__(
+        self,
+        mult: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
+    ):
         self.mult = mult
+        self.rng = rng
 
     def init(self, params: DomainParameters, point: Point, bits: Optional[int] = None):
         """Initialize the countermeasure with the parameters and the point."""
@@ -76,13 +81,14 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
     def __init__(
         self,
         mult: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
         rand_bits: int = 32,
     ):
         """
         :param mult: The multiplier to use.
         :param rand_bits: How many random bits to sample.
         """
-        super().__init__(mult)
+        super().__init__(mult, rng)
         self.rand_bits = rand_bits
 
     def multiply(self, scalar: int) -> Point:
@@ -90,7 +96,7 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
             raise ValueError("Not initialized.")
         with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
             order = self.params.order
-            mask = int(Mod.random(1 << self.rand_bits))
+            mask = int(self.rng(1 << self.rand_bits))
             masked_scalar = scalar + mask * order
             bits = max(self.bits, self.rand_bits + order.bit_length()) + 1
             self.mult.init(
@@ -121,13 +127,14 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
     def __init__(
         self,
         mult: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
         add: Optional[AdditionFormula] = None,
     ):
         """
         :param mult: The multiplier to use.
         :param add: Addition formula to use, if None, the formula from the multiplier is used.
         """
-        super().__init__(mult)
+        super().__init__(mult, rng)
         self.add = add
 
     def _add(self, R: Point, S: Point) -> Point:  # noqa
@@ -146,7 +153,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
             raise ValueError("Not initialized.")
         with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
             order = self.params.order
-            r = Mod.random(order)
+            r = self.rng(order)
             s = scalar - r
             bits = max(self.bits, order.bit_length())
             self.mult.init(self.params, self.point, bits)
@@ -177,20 +184,21 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
     def __init__(
         self,
         mult: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
         rand_bits: int = 32,
     ):
         """
         :param mult: The multiplier to use.
         :param rand_bits: How many random bits to sample.
         """
-        super().__init__(mult)
+        super().__init__(mult, rng)
         self.rand_bits = rand_bits
 
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None or self.bits is None:
             raise ValueError("Not initialized.")
         with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
-            r = Mod.random(1 << self.rand_bits)
+            r = self.rng(1 << self.rand_bits)
             self.mult.init(self.params, self.point, self.rand_bits)
             R = self.mult.multiply(int(r))
 
@@ -225,13 +233,14 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
     def __init__(
         self,
         mult: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
         add: Optional[AdditionFormula] = None,
     ):
         """
         :param mult: The multiplier to use.
         :param add: Addition formula to use, if None, the formula from the multiplier is used.
         """
-        super().__init__(mult)
+        super().__init__(mult, rng)
         self.add = add
 
     def _add(self, R: Point, S: Point) -> Point:  # noqa
@@ -250,7 +259,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
             raise ValueError("Not initialized.")
         with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
             half_bits = self.bits // 2
-            r = Mod.random(1 << half_bits)
+            r = self.rng(1 << half_bits)
             self.mult.init(self.params, self.point, half_bits)
             R = self.mult.multiply(int(r))  # r bounded by half_bits
 
@@ -259,7 +268,9 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
             T = self.mult.multiply(k1)  # k1 bounded by half_bits
 
             self.mult.init(self.params, R, self.bits)
-            S = self.mult.multiply(k2)  # k2 (in worst case) bounded by bits, but in practice closer to half_bits
+            S = self.mult.multiply(
+                k2
+            )  # k2 (in worst case) bounded by bits, but in practice closer to half_bits
 
             res = self._add(S, T)
             return action.exit(res)
