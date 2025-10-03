@@ -12,7 +12,6 @@ from pyecsca.ec.formula import (
     LadderFormula,
     DifferentialAdditionFormula,
 )
-from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.point import Point
 
 
