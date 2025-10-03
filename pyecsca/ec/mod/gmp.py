@@ -1,4 +1,4 @@
-from functools import lru_cache, wraps, partial
+from functools import lru_cache, wraps
 from typing import Union
 
 from public import public

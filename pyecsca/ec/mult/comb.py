@@ -1,6 +1,4 @@
 """Provides Comb-like scalar multipliers, such as BGMW or Lim-Lee."""
-
-import random
 from copy import copy
 from math import ceil
 from typing import MutableMapping, Optional
