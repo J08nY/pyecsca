@@ -76,12 +76,7 @@ class ScalarMultiplierCountermeasure(ABC):
         :param mult: The scalar multiplier to use.
         :return: An instance of the countermeasure.
         """
-        th = get_type_hints(cls.__init__)
-        num = 0
-        for name, arg_type in th.items():
-            if name.startswith("mult"):
-                num += 1
-        mults = [mult] * num
+        mults = [mult] * cls.nmults
         return cls(*mults, **kwargs)
 
     def _apply_formula(self, shortname: str, *points: Point) -> Point:
