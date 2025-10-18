@@ -183,7 +183,7 @@ def test_additive_splitting(mults, secp128r1, num):
     raw = mult.multiply(num)
 
     for mult in mults:
-        asplit = AdditiveSplitting(mult)
+        asplit = AdditiveSplitting(mult, mult)
         asplit.init(secp128r1, secp128r1.generator)
         masked = asplit.multiply(num)
         assert raw.equals(masked)
@@ -202,7 +202,7 @@ def test_multiplicative_splitting(mults, secp128r1, num):
     raw = mult.multiply(num)
 
     for mult in mults:
-        msplit = MultiplicativeSplitting(mult)
+        msplit = MultiplicativeSplitting(mult, mult)
         msplit.init(secp128r1, secp128r1.generator)
         masked = msplit.multiply(num)
         assert raw.equals(masked)
@@ -221,7 +221,7 @@ def test_euclidean_splitting(mults, secp128r1, num):
     raw = mult.multiply(num)
 
     for mult in mults:
-        esplit = EuclideanSplitting(mult)
+        esplit = EuclideanSplitting(mult, mult, mult)
         esplit.init(secp128r1, secp128r1.generator)
         masked = esplit.multiply(num)
         assert raw.equals(masked)
@@ -274,6 +274,7 @@ def test_combination(scalar, one, two, secp128r1):
     mult = LTRMultiplier(
         secp128r1.curve.coordinate_model.formulas["add-2015-rcb"],
         secp128r1.curve.coordinate_model.formulas["dbl-2015-rcb"],
+        scl=secp128r1.curve.coordinate_model.formulas["z"],
     )
     mult.init(secp128r1, secp128r1.generator)
     raw = mult.multiply(scalar)
@@ -281,17 +282,22 @@ def test_combination(scalar, one, two, secp128r1):
     add = mult.formulas["add"]
 
     if one in (AdditiveSplitting, EuclideanSplitting):
-        layer_one = one(mult, add=add)
+        layer_one = one.from_single(mult, add=add)
     else:
-        layer_one = one(mult)
+        layer_one = one.from_single(mult)
 
     if two in (AdditiveSplitting, EuclideanSplitting):
-        combo = two(layer_one, add=add)
+        kws = {"add": add}
     else:
-        combo = two(layer_one)
-    combo.init(secp128r1, secp128r1.generator)
-    masked = combo.multiply(scalar)
-    assert raw.equals(masked)
+        kws = {}
+
+    for i in range(2**two.nmults):
+        bits = format(i, f"0{two.nmults}b")
+        args = [layer_one if bit == "1" else mult for bit in bits]
+        combo = two(*args, **kws)
+        combo.init(secp128r1, secp128r1.generator)
+        masked = combo.multiply(scalar)
+        assert raw.equals(masked)
 
 
 @pytest.mark.parametrize(
@@ -324,7 +330,7 @@ def test_rng(scalar, ctr, secp128r1):
     def rng(n):
         return mod(123456789, n)
 
-    m = ctr(mult, rng)
+    m = ctr.from_single(mult, rng=rng)
     m.init(secp128r1, secp128r1.generator)
     masked = m.multiply(scalar)
     assert raw.equals(masked)
