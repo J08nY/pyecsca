@@ -153,7 +153,7 @@ def test_multiples_kind(rpa_params):
 
 
 def test_multiples_additive(rpa_params):
-    mults = multiples_computed(1454656138887897564, rpa_params, LTRMultiplier, lambda *args, **kwargs: AdditiveSplitting(LTRMultiplier(*args, **kwargs)), True, True, kind="precomp+necessary")
+    mults = multiples_computed(1454656138887897564, rpa_params, LTRMultiplier, lambda *args, **kwargs: AdditiveSplitting.from_single(LTRMultiplier(*args, **kwargs)), True, True, kind="precomp+necessary")
     assert mults is not None
 
 

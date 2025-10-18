@@ -5,7 +5,7 @@ from typing import Optional, Callable, get_type_hints, ClassVar
 
 from public import public
 
-from pyecsca.ec.formula import AdditionFormula
+from pyecsca.ec.formula import AdditionFormula, NegationFormula
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import ScalarMultiplier, ScalarMultiplicationAction
 from pyecsca.ec.params import DomainParameters
@@ -84,6 +84,26 @@ class ScalarMultiplierCountermeasure(ABC):
         mults = [mult] * num
         return cls(*mults, **kwargs)
 
+    def _apply_formula(self, shortname: str, *points: Point) -> Point:
+        if formula := getattr(self, shortname, None):
+            return formula(
+                self.params.curve.prime,
+                *points,
+                **self.params.curve.parameters,  # type: ignore
+            )[0]
+        else:
+            for mult in self.mults:
+                if mult_formula := getattr(mult, f"_{shortname}", None):
+                    return mult_formula(*points)  # type: ignore
+            else:
+                raise ValueError(f"No formula '{shortname}' available.")
+
+    def _add(self, R: Point, S: Point) -> Point:  # noqa
+        return self._apply_formula("add", R, S)
+
+    def _neg(self, P: Point) -> Point:
+        return self._apply_formula("neg", P)
+
 
 @public
 class GroupScalarRandomization(ScalarMultiplierCountermeasure):
@@ -99,6 +119,7 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k + r n]G
 
     """
+
     nmults = 1
     rand_bits: int
 
@@ -110,6 +131,7 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
     ):
         """
         :param mult: The multiplier to use.
+        :param rng: The random number generator to use.
         :param rand_bits: How many random bits to sample.
         """
         super().__init__(mult, rng=rng)
@@ -145,6 +167,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k - r]G + [r]G
 
     """
+
     nmults = 2
     add: Optional[AdditionFormula]
 
@@ -156,25 +179,13 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
         add: Optional[AdditionFormula] = None,
     ):
         """
-        :param mult: The multiplier to use.
+        :param mult1: The multiplier to use.
+        :param mult2: The multiplier to use.
+        :param rng: The random number generator to use.
         :param add: Addition formula to use, if None, the formula from the multiplier is used.
         """
         super().__init__(mult1, mult2, rng=rng)
         self.add = add
-
-    def _add(self, R: Point, S: Point) -> Point:  # noqa
-        if self.add is None:
-            for mult in self.mults:
-                try:
-                    return mult._add(R, S)  # type: ignore
-                except AttributeError:
-                    pass
-            else:
-                raise ValueError("No addition formula available.")
-        else:
-            return self.add(
-                self.params.curve.prime, R, S, **self.params.curve.parameters  # type: ignore
-            )[0]
 
     def multiply(self, scalar: int) -> Point:
         if self.params is None or self.point is None or self.bits is None:
@@ -211,6 +222,7 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k r^{-1} \mod n]S
 
     """
+
     nmults = 2
     rand_bits: int
 
@@ -222,7 +234,9 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
         rand_bits: int = 32,
     ):
         """
-        :param mult: The multiplier to use.
+        :param mult1: The multiplier to use.
+        :param mult2: The multiplier to use.
+        :param rng: The random number generator to use.
         :param rand_bits: How many random bits to sample.
         """
         super().__init__(mult1, mult2, rng=rng)
@@ -261,6 +275,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [k_1]G + [k_2]S
 
     """
+
     nmults = 3
     add: Optional[AdditionFormula]
 
@@ -273,7 +288,10 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         add: Optional[AdditionFormula] = None,
     ):
         """
-        :param mult: The multiplier to use.
+        :param mult1: The multiplier to use.
+        :param mult2: The multiplier to use.
+        :param mult3: The multiplier to use.
+        :param rng: The random number generator to use.
         :param add: Addition formula to use, if None, the formula from the multiplier is used.
         """
         super().__init__(mult1, mult2, mult3, rng=rng)
@@ -335,6 +353,7 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
         &\textbf{return}\ [\hat{k}]G
 
     """
+
     nmults = 1
 
     def __init__(
@@ -344,6 +363,7 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
     ):
         """
         :param mult: The multiplier to use.
+        :param rng: The random number generator to use.
         """
         super().__init__(mult, rng=rng)
 
@@ -361,3 +381,47 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
             if scalar.bit_length() <= n.bit_length():
                 scalar += n
             return action.exit(self.mults[0].multiply(scalar))
+
+
+class PointBlinding(ScalarMultiplierCountermeasure):
+    """Point blinding countermeasure."""
+
+    nmults = 2
+    add: Optional[AdditionFormula]
+    neg: Optional[NegationFormula]
+
+    def __init__(
+        self,
+        mult1: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        mult2: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
+        add: Optional[AdditionFormula] = None,
+        neg: Optional[NegationFormula] = None,
+    ):
+        """
+
+        :param mult1: The multiplier to use.
+        :param mult2: The multiplier to use.
+        :param rng: The random number generator to use.
+        :param add: Addition formula to use, if None, the formula from the multiplier is used.
+        :param neg: Negation formula to use, if None, the formula from the multiplier is used.
+        """
+        super().__init__(mult1, mult2, rng=rng)
+        self.add = add
+        self.neg = neg
+
+    def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None or self.bits is None:
+            raise ValueError("Not initialized.")
+        with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
+            R = self.params.curve.affine_random().to_model(
+                self.params.curve.coordinate_model, self.params.curve
+            )
+            self.mults[0].init(self.params, R, self.bits)
+            S = self.mults[0].multiply(int(scalar))
+
+            T = self._add(self.point, R)
+            self.mults[1].init(self.params, T, self.bits)
+            Q = self.mults[1].multiply(int(scalar))
+
+            return action.exit(self._add(Q, self._neg(S)))

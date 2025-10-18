@@ -9,6 +9,7 @@ from pyecsca.ec.countermeasures import (
     MultiplicativeSplitting,
     EuclideanSplitting,
     BrumleyTuveri,
+    PointBlinding,
 )
 from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import *
@@ -247,6 +248,27 @@ def test_brumley_tuveri(mults, secp128r1, num):
 
 
 @pytest.mark.parametrize(
+    "num",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+    ],
+)
+def test_point_blinding(mults, secp128r1, num):
+    mult = copy(mults[0])
+    mult.init(secp128r1, secp128r1.generator)
+    raw = mult.multiply(num)
+
+    neg = secp128r1.curve.coordinate_model.formulas["neg"]
+
+    for mult in mults:
+        pb = PointBlinding(mult, mult, neg=neg)
+        pb.init(secp128r1, secp128r1.generator)
+        masked = pb.multiply(num)
+        assert raw.equals(masked)
+
+
+@pytest.mark.parametrize(
     "scalar",
     [
         3253857902090173296443513219124437746,
@@ -264,6 +286,7 @@ def test_brumley_tuveri(mults, secp128r1, num):
             MultiplicativeSplitting,
             EuclideanSplitting,
             BrumleyTuveri,
+            PointBlinding,
         ),
         repeat=2,
     ),
@@ -279,15 +302,20 @@ def test_combination(scalar, one, two, secp128r1):
     mult.init(secp128r1, secp128r1.generator)
     raw = mult.multiply(scalar)
 
-    add = mult.formulas["add"]
+    add = secp128r1.curve.coordinate_model.formulas["add-2015-rcb"]
+    neg = secp128r1.curve.coordinate_model.formulas["neg"]
 
     if one in (AdditiveSplitting, EuclideanSplitting):
         layer_one = one.from_single(mult, add=add)
+    elif one == PointBlinding:
+        layer_one = one.from_single(mult, neg=neg)
     else:
         layer_one = one.from_single(mult)
 
     if two in (AdditiveSplitting, EuclideanSplitting):
         kws = {"add": add}
+    elif two == PointBlinding:
+        kws = {"neg": neg}
     else:
         kws = {}
 
