@@ -81,6 +81,8 @@ class ScalarMultiplierCountermeasure(ABC):
 
     def _apply_formula(self, shortname: str, *points: Point) -> Point:
         if formula := getattr(self, shortname, None):
+            if self.params is None:
+                raise ValueError("Not initialized.")
             return formula(
                 self.params.curve.prime,
                 *points,
