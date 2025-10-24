@@ -203,8 +203,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
             self.mults[0].init(self.params, self.point, bits)
             R = self.mults[0].multiply(int(r))
 
-            if self.mults[0] != self.mults[1]:
-                self.mults[1].init(self.params, self.point, bits)
+            self.mults[1].init(self.params, self.point, bits)
             S = self.mults[1].multiply(int(s))
 
             res = self._add(R, S)
@@ -326,8 +325,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
             self.mults[0].init(self.params, self.point, half_bits)
             R = self.mults[0].multiply(int(r))  # r bounded by half_bits
 
-            if self.mults[0] != self.mults[1]:
-                self.mults[1].init(self.params, self.point, half_bits)
+            self.mults[1].init(self.params, self.point, half_bits)
             k1 = scalar % int(r)
             k2 = scalar // int(r)
             T = self.mults[1].multiply(k1)  # k1 bounded by half_bits
