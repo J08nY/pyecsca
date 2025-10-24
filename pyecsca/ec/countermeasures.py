@@ -1,7 +1,7 @@
 """Provides several countermeasures against side-channel attacks."""
 
 from abc import ABC, abstractmethod
-from typing import Optional, Callable, get_type_hints, ClassVar
+from typing import Optional, Callable, get_type_hints, ClassVar, Set, Type
 
 from public import public
 
@@ -25,6 +25,8 @@ class ScalarMultiplierCountermeasure(ABC):
     """The underlying scalar multipliers (or another countermeasure)."""
     nmults: ClassVar[int]
     """The number of scalar multipliers required."""
+    requires: ClassVar[Set[Type]]  # Type[Formula] but mypy has a false positive
+    """The formulas required by the countermeasure."""
     params: Optional[DomainParameters]
     """The domain parameters, if any."""
     point: Optional[Point]
@@ -91,7 +93,10 @@ class ScalarMultiplierCountermeasure(ABC):
         else:
             for mult in self.mults:
                 if mult_formula := getattr(mult, f"_{shortname}", None):
-                    return mult_formula(*points)  # type: ignore
+                    try:
+                        return mult_formula(*points)  # type: ignore
+                    except ValueError:
+                        pass
             else:
                 raise ValueError(f"No formula '{shortname}' available.")
 
@@ -118,6 +123,7 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
     """
 
     nmults = 1
+    requires = set()
     rand_bits: int
 
     def __init__(
@@ -166,6 +172,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
     """
 
     nmults = 2
+    requires = {AdditionFormula}
     add: Optional[AdditionFormula]
 
     def __init__(
@@ -221,6 +228,7 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
     """
 
     nmults = 2
+    requires = set()
     rand_bits: int
 
     def __init__(
@@ -274,6 +282,7 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
     """
 
     nmults = 3
+    requires = {AdditionFormula}
     add: Optional[AdditionFormula]
 
     def __init__(
@@ -352,6 +361,7 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
     """
 
     nmults = 1
+    requires = set()
 
     def __init__(
         self,
@@ -385,6 +395,7 @@ class PointBlinding(ScalarMultiplierCountermeasure):
     """Point blinding countermeasure."""
 
     nmults = 2
+    requires = {AdditionFormula, NegationFormula}
     add: Optional[AdditionFormula]
     neg: Optional[NegationFormula]
 
