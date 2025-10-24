@@ -1,5 +1,4 @@
 from itertools import product
-from copy import copy
 
 import pytest
 
@@ -13,6 +12,7 @@ from pyecsca.ec.countermeasures import (
 )
 from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import *
+from pyecsca.sca.re.rpa import multiple_graph
 
 
 @pytest.fixture(params=["add-1998-cmo-2", "add-2015-rcb"])
@@ -326,6 +326,66 @@ def test_combination(scalar, one, two, secp128r1):
         combo.init(secp128r1, secp128r1.generator)
         masked = combo.multiply(scalar)
         assert raw.equals(masked)
+
+
+@pytest.mark.parametrize(
+    "scalar",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+        86728612699079982903603364383639280149,
+        60032993417060801067503559426926851620,
+    ],
+)
+@pytest.mark.parametrize(
+    "one,two",
+    product(
+        (
+            GroupScalarRandomization,
+            AdditiveSplitting,
+            MultiplicativeSplitting,
+            EuclideanSplitting,
+            BrumleyTuveri,
+            PointBlinding,
+        ),
+        repeat=2,
+    ),
+)
+def test_combination_multiples(scalar, one, two, secp128r1):
+    if one == two:
+        pytest.skip("Skip identical combinations.")
+    if one == PointBlinding or two == PointBlinding:
+        pytest.xfail("PointBlinding will never work with multiple graphs.")
+
+    for i in range(2**two.nmults):
+        bits = format(i, f"0{two.nmults}b")
+
+        def partial(*args, **kwargs):
+            mult = LTRMultiplier(*args, **kwargs)
+
+            add = FakeAdditionFormula(secp128r1.curve.coordinate_model)
+            neg = FakeNegationFormula(secp128r1.curve.coordinate_model)
+
+            if one in (AdditiveSplitting, EuclideanSplitting):
+                layer_one = one.from_single(mult, add=add)
+            elif one == PointBlinding:
+                layer_one = one.from_single(mult, neg=neg)
+            else:
+                layer_one = one.from_single(mult)
+
+            if two in (AdditiveSplitting, EuclideanSplitting):
+                kws = {"add": add}
+            elif two == PointBlinding:
+                kws = {"neg": neg}
+            else:
+                kws = {}
+
+            args = [layer_one if bit == "1" else mult for bit in bits]
+            combo = two(*args, **kws)
+            return combo
+
+        res = multiple_graph(scalar, secp128r1, LTRMultiplier, partial)
+        assert res is not None
 
 
 @pytest.mark.parametrize(
