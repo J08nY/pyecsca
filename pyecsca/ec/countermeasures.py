@@ -380,6 +380,7 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
             return action.exit(self.mults[0].multiply(scalar))
 
 
+@public
 class PointBlinding(ScalarMultiplierCountermeasure):
     """Point blinding countermeasure."""
 
