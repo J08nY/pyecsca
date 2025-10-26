@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import click
 
+from pyecsca.ec.mod import Mod
 from pyecsca.ec.mod.flint import has_flint
 from pyecsca.ec.mod.gmp import has_gmp
 from pyecsca.ec.params import get_params
@@ -26,7 +27,7 @@ from test.utils import Profiler
     default="flint" if has_flint else "gmp" if has_gmp else "python",
     envvar="MOD",
 )
-@click.option("-o", "--operations", type=click.INT, default=1000)
+@click.option("-o", "--operations", type=click.INT, default=100)
 @click.option(
     "-d",
     "--directory",
@@ -39,29 +40,44 @@ def main(profiler, mod, operations, directory):
         cfg.ec.mod_implementation = mod
         p128 = get_params("secg", "secp128r1", "projective")
 
-        scalar = 123456789123456789123456789123456789
+        scalars = [int(Mod.random(p128.order)) for _ in range(operations)]
+        ops = [
+            multiple_graph(scalar, p128, LTRMultiplier, LTRMultiplier)
+            for scalar in scalars
+        ]
+
         click.echo(
-            f"Profiling {operations} {p128.curve.prime.bit_length()}-bit (k = {scalar}) multiples_computed computations..."
+            f"Profiling {operations} {p128.curve.prime.bit_length()}-bit graph_to_check_inputs + evaluate_checks computations..."
         )
         with Profiler(profiler, directory, f"epa_p128_ltr_{operations}_{mod}"):
-            precomp_ctx, full_ctx, out = multiple_graph(
-                scalar, p128, LTRMultiplier, LTRMultiplier
-            )
-            for _ in range(operations):
+            for precomp_ctx, full_ctx, out in ops:
                 check_inputs = graph_to_check_inputs(
                     precomp_ctx,
                     full_ctx,
                     out,
-                    check_condition="necessary",
+                    check_condition="all",
                     precomp_to_affine=True,
                     use_init=True,
                     use_multiply=True,
+                    check_formulas={"add"},
                 )
-                for _ in range(32):
+                c = 0
+                for j in range(3220):
+                    i = 0
+
+                    def check_add(x, y):
+                        nonlocal i, c
+                        i += 1
+                        c += 1
+                        return (i % (30 * (j+1))) == 0
+
+                    def check_affine(x):
+                        return False
+
                     evaluate_checks(
                         check_funcs={
-                            "add": lambda x, y: False,
-                            "affine": lambda x: False,
+                            "add": check_add,
+                            "affine": check_affine,
                         },
                         check_inputs=check_inputs,
                     )

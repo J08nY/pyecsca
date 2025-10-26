@@ -1,7 +1,7 @@
 """
 Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 """
-
+from operator import itemgetter
 from typing import Callable, Literal, Union
 
 from public import public
@@ -19,6 +19,7 @@ def graph_to_check_inputs(
     precomp_to_affine: bool,
     use_init: bool = True,
     use_multiply: bool = True,
+    check_formulas: set[str] | None = None,
 ) -> dict[str, set[tuple[int, ...]]]:
     """
     Compute the inputs for the checks based on the context and output point. This function traverses the graph of points
@@ -32,6 +33,7 @@ def graph_to_check_inputs(
     :param precomp_to_affine: Whether to include the precomputed points in the to-affine checks.
     :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).
+    :param check_formulas: If provided, only formulas in this set will be considered for checks.
     :return: A dictionary mapping formula names to sets of tuples of input multiples.
 
     .. note::
@@ -83,12 +85,16 @@ def graph_to_check_inputs(
     }
     # This actually passes the multiple itself to the check, not the inputs(parents)
     # Now handle the regular checks
+
+    def get_point(pt):
+        return full_ctx.points[pt]
+
     for point in points:
         formula = full_ctx.formulas[point]
-        if not formula:
+        if not formula or (check_formulas is not None and formula not in check_formulas):
             # Skip input point or infty point (they magically appear and do not have an origin formula)
             continue
-        inputs = tuple(map(lambda pt: full_ctx.points[pt], full_ctx.parents[point]))
+        inputs = tuple(map(get_point, full_ctx.parents[point]))
         check_list = formula_checks.setdefault(formula, set())
         check_list.add(inputs)
     return formula_checks
@@ -127,7 +133,7 @@ def errors_out(
     precomp_ctx: MultipleContext,
     full_ctx: MultipleContext,
     out: Point,
-    check_funcs: dict[str, Callable[[int, int], bool]],
+    check_funcs: dict[str, Callable[[int, int], bool] | Callable[[int], bool]],
     check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
     use_init: bool = True,
