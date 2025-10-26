@@ -118,7 +118,7 @@ class GroupScalarRandomization(ScalarMultiplierCountermeasure):
         :class: frame
 
         &r \xleftarrow{\$} \{0, 1, \ldots, 2^{\text{rand_bits}}\} \\
-        &\textbf{return}\ [k + r n]G
+        &\textbf{return}\ [k + r n]P
 
     """
 
@@ -167,7 +167,7 @@ class AdditiveSplitting(ScalarMultiplierCountermeasure):
         :class: frame
 
         &r \xleftarrow{\$} \{0, 1, \ldots, n\} \\
-        &\textbf{return}\ [k - r]G + [r]G
+        &\textbf{return}\ [k - r]P + [r]P
 
     """
 
@@ -221,7 +221,7 @@ class MultiplicativeSplitting(ScalarMultiplierCountermeasure):
         :class: frame
 
         &r \xleftarrow{\$} \{0, 1, \ldots, 2^{\text{rand_bits}}\} \\
-        &S = [r]G \\
+        &S = [r]P \\
         &\textbf{return}\ [k r^{-1} \mod n]S
 
     """
@@ -273,10 +273,10 @@ class EuclideanSplitting(ScalarMultiplierCountermeasure):
         :class: frame
 
         &r \xleftarrow{\$} \{0, 1, \ldots, 2^{\log_2{(n)}/2}\} \\
-        &S = [r]G \\
+        &S = [r]P \\
         &k_1 = k \mod r \\
         &k_2 = \lfloor \frac{k}{r} \rfloor \\
-        &\textbf{return}\ [k_1]G + [k_2]S
+        &\textbf{return}\ [k_1]P + [k_2]S
 
     """
 
@@ -354,7 +354,7 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
             k + 2n \quad \text{if } \lceil \log_2(k+n) \rceil = \lceil \log_2 n \rceil\\
             k + n \quad \text{otherwise}.
         \end{cases}\\
-        &\textbf{return}\ [\hat{k}]G
+        &\textbf{return}\ [\hat{k}]P
 
     """
 
@@ -390,7 +390,19 @@ class BrumleyTuveri(ScalarMultiplierCountermeasure):
 
 @public
 class PointBlinding(ScalarMultiplierCountermeasure):
-    """Point blinding countermeasure."""
+    r"""
+    Point blinding countermeasure.
+
+    .. math::
+        :class: frame
+
+        &R \xleftarrow{\$} E_{\mathbb{F}_p} \\
+        &S = [k]R \\
+        &T = P + S \\
+        &Q = [k]T \\
+        &\textbf{return}\ Q - S
+
+    """
 
     nmults = 2
     requires = {AdditionFormula, NegationFormula}
@@ -430,5 +442,70 @@ class PointBlinding(ScalarMultiplierCountermeasure):
             T = self._add(self.point, R)
             self.mults[1].init(self.params, T, self.bits)
             Q = self.mults[1].multiply(int(scalar))
+
+            return action.exit(self._add(Q, self._neg(S)))
+
+
+@public
+class MultPointBlinding(ScalarMultiplierCountermeasure):
+    r"""
+    Point blinding countermeasure.
+
+    .. math::
+        :class: frame
+
+        &r \xleftarrow{\$} \{0, 1, \ldots, 2^{\text{rand_bits}}\} \\
+        $R = [r]G$ \\
+        &S = [k]R \\
+        &T = P + S \\
+        &Q = [k]T \\
+        &\textbf{return}\ Q - S
+
+    """
+
+    nmults = 3
+    requires = {AdditionFormula, NegationFormula}
+    rand_bits: int
+    add: Optional[AdditionFormula]
+    neg: Optional[NegationFormula]
+
+    def __init__(
+        self,
+        mult1: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        mult2: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        mult3: "ScalarMultiplier | ScalarMultiplierCountermeasure",
+        rng: Callable[[int], Mod] = Mod.random,
+        rand_bits: int = 32,
+        add: Optional[AdditionFormula] = None,
+        neg: Optional[NegationFormula] = None,
+    ):
+        """
+
+        :param mult1: The multiplier to use.
+        :param mult2: The multiplier to use.
+        :param mult3: The multiplier to use.
+        :param rng: The random number generator to use.
+        :param add: Addition formula to use, if None, the formula from the multiplier is used.
+        :param neg: Negation formula to use, if None, the formula from the multiplier is used.
+        """
+        super().__init__(mult1, mult2, mult3, rng=rng)
+        self.rand_bits = rand_bits
+        self.add = add
+        self.neg = neg
+
+    def multiply(self, scalar: int) -> Point:
+        if self.params is None or self.point is None or self.bits is None:
+            raise ValueError("Not initialized.")
+        with ScalarMultiplicationAction(self.point, self.params, scalar) as action:
+            r = self.rng(1 << self.rand_bits)
+            self.mults[0].init(self.params, self.params.generator, self.rand_bits)
+            R = self.mults[0].multiply(int(r))
+
+            self.mults[1].init(self.params, R, self.bits)
+            S = self.mults[1].multiply(int(scalar))
+
+            T = self._add(self.point, R)
+            self.mults[2].init(self.params, T, self.bits)
+            Q = self.mults[2].multiply(int(scalar))
 
             return action.exit(self._add(Q, self._neg(S)))

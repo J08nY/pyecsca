@@ -10,6 +10,7 @@ from pyecsca.ec.countermeasures import (
     EuclideanSplitting,
     BrumleyTuveri,
     PointBlinding,
+    MultPointBlinding,
 )
 from pyecsca.ec.mod import mod
 from pyecsca.ec.mult import *
@@ -270,6 +271,27 @@ def test_point_blinding(mults, secp128r1, num):
 
 
 @pytest.mark.parametrize(
+    "num",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+    ],
+)
+def test_mult_point_blinding(mults, secp128r1, num):
+    mult = copy(mults[0])
+    mult.init(secp128r1, secp128r1.generator)
+    raw = mult.multiply(num)
+
+    neg = secp128r1.curve.coordinate_model.formulas["neg"]
+
+    for mult in mults:
+        pb = MultPointBlinding(mult, mult, mult, neg=neg)
+        pb.init(secp128r1, secp128r1.generator)
+        masked = pb.multiply(num)
+        assert raw.equals(masked)
+
+
+@pytest.mark.parametrize(
     "scalar",
     [
         3253857902090173296443513219124437746,
@@ -288,6 +310,7 @@ def test_point_blinding(mults, secp128r1, num):
             EuclideanSplitting,
             BrumleyTuveri,
             PointBlinding,
+            MultPointBlinding
         ),
         repeat=2,
     ),
@@ -308,14 +331,14 @@ def test_combination(scalar, one, two, secp128r1):
 
     if one in (AdditiveSplitting, EuclideanSplitting):
         layer_one = one.from_single(mult, add=add)
-    elif one == PointBlinding:
+    elif one in (PointBlinding, MultPointBlinding):
         layer_one = one.from_single(mult, neg=neg)
     else:
         layer_one = one.from_single(mult)
 
     if two in (AdditiveSplitting, EuclideanSplitting):
         kws = {"add": add}
-    elif two == PointBlinding:
+    elif two in (PointBlinding, MultPointBlinding):
         kws = {"neg": neg}
     else:
         kws = {}
@@ -348,6 +371,7 @@ def test_combination(scalar, one, two, secp128r1):
             EuclideanSplitting,
             BrumleyTuveri,
             PointBlinding,
+            MultPointBlinding
         ),
         repeat=2,
     ),
@@ -369,14 +393,14 @@ def test_combination_multiples(scalar, one, two, secp128r1):
 
             if one in (AdditiveSplitting, EuclideanSplitting):
                 layer_one = one.from_single(mult, add=add)
-            elif one == PointBlinding:
+            elif one in (PointBlinding, MultPointBlinding):
                 layer_one = one.from_single(mult, neg=neg)
             else:
                 layer_one = one.from_single(mult)
 
             if two in (AdditiveSplitting, EuclideanSplitting):
                 kws = {"add": add}
-            elif two == PointBlinding:
+            elif two in (PointBlinding, MultPointBlinding):
                 kws = {"neg": neg}
             else:
                 kws = {}
@@ -385,8 +409,13 @@ def test_combination_multiples(scalar, one, two, secp128r1):
             combo = two(*args, **kws)
             return combo
 
-        res = multiple_graph(scalar, secp128r1, LTRMultiplier, partial)
-        assert res is not None
+        if one == MultPointBlinding or two == MultPointBlinding:
+            dlog = 1
+        else:
+            dlog = None
+        precomp_ctx, full_ctx, out = multiple_graph(scalar, secp128r1, LTRMultiplier, partial, dlog=dlog)
+        assert out is not None
+        assert mod(full_ctx.points[out], secp128r1.order) == mod(scalar, secp128r1.order)
 
 
 @pytest.mark.parametrize(

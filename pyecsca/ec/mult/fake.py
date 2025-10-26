@@ -17,6 +17,7 @@ from pyecsca.ec.formula.fake import (
     FakeLadderFormula,
     FakeNegationFormula,
     FakeScalingFormula,
+    FakePoint,
 )
 from pyecsca.ec.mult import ScalarMultiplier
 from pyecsca.ec.params import DomainParameters
@@ -49,6 +50,18 @@ def fake_mult(
             formulas.append(fake_formula(params.curve.coordinate_model))
     mult = mult_factory(*formulas, short_circuit=False)
     return mult
+
+
+def fake_params(params: DomainParameters) -> DomainParameters:
+    """
+    Turn the domain parameters into fake domain parameters.
+
+    :param params: The domain parameters to turn into fake domain parameters.
+    :return: The fake domain parameters.
+    """
+    copy = deepcopy(params)
+    copy.generator = FakePoint(params.curve.coordinate_model)
+    return copy
 
 
 def turn_fake(mult: ScalarMultiplier) -> ScalarMultiplier:

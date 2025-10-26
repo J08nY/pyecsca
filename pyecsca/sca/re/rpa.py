@@ -38,7 +38,7 @@ from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point
 from pyecsca.ec.context import Context, Action, local
-from pyecsca.ec.mult.fake import cached_fake_mult
+from pyecsca.ec.mult.fake import cached_fake_mult, fake_params
 from pyecsca.misc.utils import log, warn
 
 
@@ -420,6 +420,7 @@ def multiple_graph(
     params: DomainParameters,
     mult_class: Type[ScalarMultiplier],
     mult_factory: Callable,
+    dlog: Optional[int] = None,
 ) -> Tuple[MultipleContext, MultipleContext, Point]:
     """
     Compute the multiples computed for a given scalar and multiplier (quickly).
@@ -428,12 +429,28 @@ def multiple_graph(
     :param params: The domain parameters to use.
     :param mult_class: The class of the scalar multiplier to use.
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
+    :param dlog: Make an assumption that the symbolic input point is the `dlog` multiple of the base point.
+                 This is necessary if the multiplier does computation with the base point.
     :return: The context with the computed multiples and the resulting point.
     """
+    params = fake_params(params)
     mult = cached_fake_mult(mult_class, mult_factory, params)
     ctx = MultipleContext(keep_base=True)
     with local(ctx, copy=False) as precomp_ctx:
-        mult.init(params, FakePoint(params.curve.coordinate_model))
+        point = FakePoint(params.curve.coordinate_model)
+        if dlog:
+            ctx.base = params.generator
+            ctx.neutral = params.curve.neutral
+            ctx.points[ctx.base] = 1
+            ctx.points[point] = dlog
+            ctx.points[ctx.neutral] = 0
+            ctx.formulas[ctx.base] = ""
+            ctx.formulas[point] = ""
+            ctx.formulas[ctx.neutral] = ""
+            ctx.parents[ctx.base] = []
+            ctx.parents[point] = []
+            ctx.parents[ctx.neutral] = []
+        mult.init(params, point)
 
     with local(ctx, copy=True) as full_ctx:
         out = mult.multiply(scalar)
