@@ -1,7 +1,7 @@
 """
 Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 """
-from typing import Callable, Literal, Union
+from typing import Callable, Literal, Union, Optional
 
 from public import public
 
@@ -18,7 +18,7 @@ def graph_to_check_inputs(
     precomp_to_affine: bool,
     use_init: bool = True,
     use_multiply: bool = True,
-    check_formulas: set[str] | None = None,
+    check_formulas: Optional[set[str]] = None,
 ) -> dict[str, set[tuple[int, ...]]]:
     """
     Compute the inputs for the checks based on the context and output point. This function traverses the graph of points
@@ -101,7 +101,7 @@ def graph_to_check_inputs(
 
 @public
 def evaluate_checks(
-    check_funcs: dict[str, Callable[[int, int], bool]], check_inputs: dict[str, set[tuple[int, ...]]]
+    check_funcs: dict[str, Union[Callable[[int, int], bool], Callable[[int], bool]]], check_inputs: dict[str, set[tuple[int, ...]]]
 ) -> bool:
     """
     Evaluate the checks for each formula type based on the provided functions and inputs.
@@ -132,7 +132,7 @@ def errors_out(
     precomp_ctx: MultipleContext,
     full_ctx: MultipleContext,
     out: Point,
-    check_funcs: dict[str, Callable[[int, int], bool] | Callable[[int], bool]],
+    check_funcs: dict[str, Union[Callable[[int, int], bool], Callable[[int], bool]]],
     check_condition: Union[Literal["all"], Literal["necessary"]],
     precomp_to_affine: bool,
     use_init: bool = True,
