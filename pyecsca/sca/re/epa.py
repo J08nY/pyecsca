@@ -1,7 +1,6 @@
 """
 Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 """
-from operator import itemgetter
 from typing import Callable, Literal, Union
 
 from public import public

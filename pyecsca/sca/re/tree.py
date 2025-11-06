@@ -573,6 +573,8 @@ def _build_tree(
     maps: Mapping[int, Map],
     response: Optional[Any] = None,
     depth: int = 0,
+    index: Optional[int] = None,
+    breadth: Optional[int] = None,
     split: Union[str, SplitCriterion] = "largest",
 ) -> Node:
     pad = " " * depth
@@ -580,7 +582,8 @@ def _build_tree(
     # Note that n_cfgs will never be 0 here, as the base case 2 returns if the cfgs cannot
     # be split into two sets (one would be empty).
     n_cfgs = len(cfgs)
-    log(pad + f"Splitting {n_cfgs}.")
+    ident = f"[{index}/{breadth}] " if index is not None and breadth is not None else ""
+    log(pad + f"{ident}Splitting {n_cfgs}.")
     cfgset = set(cfgs)
     if n_cfgs == 1:
         log(pad + "Trivial.")
@@ -640,14 +643,14 @@ def _build_tree(
     result = Node(cfgset, dmap_index, best_distinguishing_element, response=response)
 
     # Go over the distinct group
-    for output, group in groups:
+    for i, (output, group) in enumerate(groups):
         # Lookup the cfgs in the group
         group_cfgs = set(
             best_dmap.cfg_map.index[best_dmap.cfg_map["vals"].isin(group.index)]
         )
         log(pad + f"Split {len(group_cfgs)} via dmap {best_i}.")
         # And build the tree recursively
-        child = _build_tree(group_cfgs, maps, response=output, depth=depth + 1)
+        child = _build_tree(group_cfgs, maps, response=output, depth=depth + 1, index=i, breadth=groups.ngroups, split=split)
         child.parent = result
 
     return result
