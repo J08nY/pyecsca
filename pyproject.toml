@@ -55,7 +55,8 @@
     "networkx",
     "importlib-resources",
     "anytree",
-    "loky"
+    "loky",
+    "tqdm"
   ]
 
 [project.urls]

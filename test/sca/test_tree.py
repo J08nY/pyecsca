@@ -95,7 +95,7 @@ def test_build_tree(split):
     codomain2 = {0, 1, 2, 3}
     mapping2 = pd.DataFrame([(1, 0, 0), (2, 0, 0), (3, 0, 0)])
     dmap2 = Map(mapping2, cfg_map, inputs2, codomain2)
-    tree = Tree.build(set(cfgs), dmap1, dmap2, split=split)
+    tree = Tree.build(set(cfgs), dmap1, dmap2, split=split, progress=True)
     tree.render()
     tree.render_basic()
     tree.describe()
