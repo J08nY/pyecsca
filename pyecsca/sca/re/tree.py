@@ -667,7 +667,7 @@ def _build_tree(
         )
         log(pad + f"Split {len(group_cfgs)} via dmap {best_i}.")
         # And build the tree recursively
-        child = _build_tree(group_cfgs, maps, response=output, depth=depth + 1, index=i, breadth=groups.ngroups, split=split)
+        child = _build_tree(group_cfgs, maps, response=output, depth=depth + 1, index=i, breadth=groups.ngroups, split=split, leaf_callback=leaf_callback)
         child.parent = result
 
     return result
