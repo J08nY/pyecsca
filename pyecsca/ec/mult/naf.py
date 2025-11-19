@@ -270,7 +270,8 @@ class WindowNAFMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultip
                 self._points[2 * i + 1] = current_point
                 if self.precompute_negation:
                     self._points_neg[2 * i + 1] = self._neg(current_point)
-                current_point = self._add(current_point, double_point)
+                if i != 2 ** (self.width - 2) - 1:
+                    current_point = self._add(current_point, double_point)
             result = {**self._points}
             if self.precompute_negation:
                 result.update({-k: v for k, v in self._points_neg.items()})

@@ -104,7 +104,8 @@ class SlidingWindowMultiplier(
             double_point = self._dbl(point)
             for i in range(0, 2 ** (self.width - 1)):
                 self._points[2 * i + 1] = current_point
-                current_point = self._add(current_point, double_point)
+                if i != 2 ** (self.width - 1) - 1:
+                    current_point = self._add(current_point, double_point)
             action.exit(self._points)
 
     def multiply(self, scalar: int) -> Point:
@@ -232,7 +233,8 @@ class FixedWindowLTRMultiplier(
             converted = convert_base(scalar, self.m)
             q = copy(self._params.curve.neutral)
             for digit in reversed(converted):
-                q = self._mult_m(q)
+                if q != self._params.curve.neutral:
+                    q = self._mult_m(q)
                 if digit != 0:
                     q = self._accumulate(q, self._points[digit])
             if "scl" in self.formulas:
