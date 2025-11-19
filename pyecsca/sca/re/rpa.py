@@ -18,6 +18,8 @@ from typing import (
     Tuple,
 )
 
+import networkx as nx
+
 from sympy import FF, sympify, Poly, symbols
 
 from pyecsca.ec.error import NonInvertibleError
@@ -58,6 +60,8 @@ class MultipleContext(Context):
     """The mapping of points to the formula types they are a result of."""
     precomp: MutableMapping[int, Point]
     """The mapping of precomputed multiples to the points they represent."""
+    result: Optional[Point]
+    """The resulting point of the computation."""
     inside: List[Action]
     """Whether we are inside a scalarmult/precomp action."""
     keep_base: bool
@@ -75,6 +79,7 @@ class MultipleContext(Context):
         self.formulas = {}
         self.precomp = {}
         self.inside = []
+        self.result = None
         self.keep_base = keep_base
         self._track_precomp = track_precomp
         self._track_scalarmult = track_scalarmult
@@ -129,6 +134,8 @@ class MultipleContext(Context):
             self.inside.remove(action)
             if isinstance(action, PrecomputationAction):
                 self.precomp.update(action.result)
+            if isinstance(action, ScalarMultiplicationAction):
+                self.result = action.result
         if isinstance(action, FormulaAction) and self.inside:
             action = cast(FormulaAction, action)
             shortname = action.formula.shortname
@@ -180,6 +187,35 @@ class MultipleContext(Context):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.base!r}, multiples={self.points.values()!r})"
+
+    def to_networkx(self) -> nx.DiGraph:
+        """
+        Convert the context to a NetworkX graph.
+
+        The nodes represent points, with attributes:
+            - multiple: The multiple of the base point.
+            - formula: The formula used to compute the point.
+            - precomp: Whether the point was the result of precomputation.
+            - result: Whether the point is the final result of the computation.
+
+        The edges represent the computation steps, with attribute:
+            - formula: The formula used to compute the child point from the parent point.
+
+        :return: A NetworkX DiGraph representing the computation.
+        """
+        graph = nx.DiGraph()
+        for point, multiple in self.points.items():
+            graph.add_node(
+                point,
+                multiple=multiple,
+                formula=self.formulas[point],
+                precomp=point in self.precomp.values(),
+                result=point == self.result,
+            )
+        for point, parents in self.parents.items():
+            for parent in parents:
+                graph.add_edge(parent, point, formula=self.formulas[point])
+        return graph
 
 
 @public
@@ -456,7 +492,8 @@ def multiple_graph(
     :param mult_factory: A callable that takes the formulas and instantiates the multiplier.
     :param dlog: Make an assumption that the symbolic input point is the `dlog` multiple of the base point.
                  This is necessary if the multiplier does computation with the base point.
-    :return: The context with the computed multiples and the resulting point.
+    :return: The context with the computed multiples during precomputation, the context with the computed multiples
+             during the full computation, and the resulting point.
     """
     params = fake_params(params)
     mult = cached_fake_mult(mult_class, mult_factory, params)
@@ -497,10 +534,11 @@ def multiples_from_graph(
     use_multiply: bool = True,
 ):
     """
+    Compute the multiples computed for a given scalar and multiplier from the multiple graph.
 
-    :param precomp_ctx:
-    :param full_ctx:
-    :param out:
+    :param precomp_ctx: The context containing the points and formulas (precomputation phase).
+    :param full_ctx: The context containing the points and formulas (full computation).
+    :param out: The output point of the computation.
     :param kind: The kind of multiples to return. Can be one of "all", "input", "necessary", or "precomp+necessary".
     :param use_init: Whether to consider the point multiples that happen in scalarmult initialization.
     :param use_multiply: Whether to consider the point multiples that happen in scalarmult multiply (after initialization).

@@ -1,7 +1,12 @@
 """
 Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 """
+
 from typing import Callable, Literal, Union, Optional
+
+import matplotlib.pyplot as plt
+import networkx as nx
+
 
 from public import public
 
@@ -74,9 +79,13 @@ def graph_to_check_inputs(
         if use_init and use_multiply:
             points = _necessary(full_ctx, affine_points)
         elif use_init:
-            points = _necessary(full_ctx, affine_points) & set(precomp_ctx.points.keys())
+            points = _necessary(full_ctx, affine_points) & set(
+                precomp_ctx.points.keys()
+            )
         elif use_multiply:
-            points = _necessary(full_ctx, affine_points) - set(precomp_ctx.points.keys())
+            points = _necessary(full_ctx, affine_points) - set(
+                precomp_ctx.points.keys()
+            )
     else:
         raise ValueError("check_condition must be 'all' or 'necessary'")
     # Special case the "to affine" transform and checks
@@ -91,7 +100,9 @@ def graph_to_check_inputs(
 
     for point in points:
         formula = full_ctx.formulas[point]
-        if not formula or (check_formulas is not None and formula not in check_formulas):
+        if not formula or (
+            check_formulas is not None and formula not in check_formulas
+        ):
             # Skip input point or infty point (they magically appear and do not have an origin formula)
             continue
         inputs = tuple(map(get_point, full_ctx.parents[point]))
@@ -101,8 +112,77 @@ def graph_to_check_inputs(
 
 
 @public
+def graph_plot(
+    precomp_ctx: MultipleContext,
+    full_ctx: MultipleContext,
+    out: Point,
+) -> plt.Figure:
+    """
+    Plot the computation graph, highlighting necessary points and precomputed points.
+
+    :param precomp_ctx: The context containing the points and formulas (precomputation phase).
+    :param full_ctx: The context containing the points and formulas (full computation).
+    :param out: The output point of the computation.
+    :return: The matplotlib figure object representing the graph.
+    """
+    graph = full_ctx.to_networkx()
+
+    for layer, nodes in enumerate(nx.topological_generations(graph)):
+        for node in nodes:
+            graph.nodes[node]["layer"] = layer
+    for node in graph.nodes():
+        graph.nodes[node]["necessary"] = False
+    queue = {out}
+    while queue:
+        node = queue.pop()
+        graph.nodes[node]["necessary"] = True
+        for n in graph.predecessors(node):
+            queue.add(n)
+    fig, ax = plt.subplots(figsize=(60, 10))
+    pos = nx.multipartite_layout(graph, subset_key="layer")
+    for point, p in pos.items():
+        p[0] *= 0.15
+        if not graph.nodes[point]["necessary"]:
+            p[1] += 0.01
+        if point in precomp_ctx.points.keys():
+            if graph.nodes[point]["precomp"]:
+                p[1] -= 0.01
+
+    colors = []
+    for point in graph.nodes():
+        if graph.nodes[point]["necessary"]:
+            color = "#202080"
+        else:
+            color = "#802020"
+        if point in precomp_ctx.points.keys():
+            color = "#208020"
+            if graph.nodes[point]["precomp"]:
+                color = "#30a0a0"
+        colors.append(color)
+
+    nx.draw_networkx_nodes(
+        graph, pos, ax=ax, node_color=colors, node_size=500, margins=[0.1, 0.1]
+    )
+    nx.draw_networkx_edges(graph, pos, ax=ax, connectionstyle="arc3,rad=0.05")
+    nx.draw_networkx_edge_labels(
+        graph,
+        pos,
+        ax=ax,
+        edge_labels={(u, v): graph.edges[u, v]["formula"] for u, v in graph.edges()},
+    )
+    for p in pos.values():
+        p[1] += 0.003
+    nx.draw_networkx_labels(
+        graph, pos, ax=ax, labels={n: graph.nodes[n]["multiple"] for n in graph.nodes()}
+    )
+    fig.tight_layout()
+    return fig
+
+
+@public
 def evaluate_checks(
-    check_funcs: dict[str, Union[Callable[[int, int], bool], Callable[[int], bool]]], check_inputs: dict[str, set[tuple[int, ...]]]
+    check_funcs: dict[str, Union[Callable[[int, int], bool], Callable[[int], bool]]],
+    check_inputs: dict[str, set[tuple[int, ...]]],
 ) -> bool:
     """
     Evaluate the checks for each formula type based on the provided functions and inputs.
@@ -159,5 +239,13 @@ def errors_out(
     .. note::
         The scalar multiplier must not short-circuit.
     """
-    formula_checks = graph_to_check_inputs(precomp_ctx, full_ctx, out, check_condition, precomp_to_affine, use_init, use_multiply)
+    formula_checks = graph_to_check_inputs(
+        precomp_ctx,
+        full_ctx,
+        out,
+        check_condition,
+        precomp_to_affine,
+        use_init,
+        use_multiply,
+    )
     return evaluate_checks(check_funcs, formula_checks)

@@ -4,9 +4,13 @@ from functools import partial
 import pytest
 
 from pyecsca.ec.coordinates import EFDCoordinateModel
+from pyecsca.ec.curve import EllipticCurve
+from pyecsca.ec.mod import mod
+from pyecsca.ec.model import ShortWeierstrassModel
+from pyecsca.ec.params import Point, InfinityPoint
 from pyecsca.ec.mult import *
 from pyecsca.sca.re.rpa import multiple_graph, multiples_from_graph
-from pyecsca.sca.re.epa import errors_out, graph_to_check_inputs
+from pyecsca.sca.re.epa import errors_out, graph_to_check_inputs, graph_plot
 
 
 def test_errors_out(secp128r1):
@@ -139,7 +143,7 @@ def test_errors_out_precomp(secp128r1):
         use_multiply=False,
     )
     assert set(affine_multiples) == set(precomp_ctx.precomp.keys())
-    assert set(add_multiples) == {(1, 2), (3, 2)}
+    assert set(add_multiples) == {(1, 2)}
 
     # Here we check all, during both precomp and final multiply.
     affine_multiples = []
@@ -161,7 +165,7 @@ def test_errors_out_precomp(secp128r1):
     }
     # The add multiples should be the same as before, plus any inputs to add that happened
     # during the final multiply, there is only one, rest are doubles.
-    assert set(add_multiples) == {(1, 2), (3, 2), (16, -1)}
+    assert set(add_multiples) == {(1, 2), (16, -1)}
 
     # Now check just the multiply with all.
     affine_multiples = []
@@ -320,6 +324,34 @@ def mult(secp128r1, request):
     return mult_class, partial(mult_class, **mult_kwargs)
 
 
+@pytest.fixture()
+def toy_params():
+    model = ShortWeierstrassModel()
+    coords = model.coordinates["projective"]
+    p = 0xCB5E1D94A6168511
+    a = mod(0xB166CA7D2DFBF69F, p)
+    b = mod(0x855BB40CB6937C4B, p)
+    gx = mod(0x253B2638BD13D6F4, p)
+    gy = mod(0x1E91A1A182287E71, p)
+
+    infty = InfinityPoint(coords)
+    g = Point(coords, X=gx, Y=gy, Z=mod(1, p))
+    curve = EllipticCurve(model, coords, p, infty, dict(a=a, b=b))
+    return DomainParameters(curve, g, 0xCB5E1D94601A3AC5, 1)
+
+
+def test_plot(toy_params, mult, plot_path):
+    mult_class, mult_factory = mult
+    precomp_ctx, full_ctx, out = multiple_graph(
+        scalar=15546875464546546545644687 % toy_params.order,
+        params=toy_params,
+        mult_class=mult_class,
+        mult_factory=mult_factory,
+    )
+    fig = graph_plot(precomp_ctx, full_ctx, out)
+    fig.savefig(str(plot_path()) + ".png")
+
+
 def test_independent_check_inputs(secp128r1, mult):
     """
     Check that the set of check inputs is constant if (use_init = True, use_multiply = False) for all scalars
@@ -354,13 +386,22 @@ def test_independent_check_inputs(secp128r1, mult):
                     last_check_inputs = check_inputs
 
 
-@pytest.mark.parametrize("check_condition,precomp_to_affine,multiples_kind", [
-    ("all", True, "all"),
-    ("all", False, "all"),
-    ("necessary", True, "precomp+necessary"),
-    ("necessary", False, "necessary"),
-])
-def test_consistency_multiples(secp128r1, mult, check_condition, precomp_to_affine, multiples_kind):
+@pytest.mark.parametrize(
+    "check_condition,precomp_to_affine,multiples_kind",
+    [
+        ("all", True, "all"),
+        ("all", False, "all"),
+        ("necessary", True, "precomp+necessary"),
+        ("necessary", False, "necessary"),
+    ],
+)
+def test_consistency_multiples(
+    secp128r1,
+    mult,
+    check_condition,
+    precomp_to_affine,
+    multiples_kind,
+):
     """
     Test consistency between the graph_to_check_inputs and multiples_computed functions for the same error model
     """
@@ -379,21 +420,19 @@ def test_consistency_multiples(secp128r1, mult, check_condition, precomp_to_affi
             out,
             check_condition=check_condition,
             precomp_to_affine=precomp_to_affine,
-            use_init=True,
-            use_multiply=True,
         )
         # Now map the check inputs to the set of multiples they cover
         multiples_from_check_inputs = set()
-        for k, in check_inputs.get("neg", []):
+        for (k,) in check_inputs.get("neg", []):
             multiples_from_check_inputs.add(k)
             multiples_from_check_inputs.add(-k)
-        for k, in check_inputs.get("affine", []):
+        for (k,) in check_inputs.get("affine", []):
             multiples_from_check_inputs.add(k)
         for k, l in check_inputs.get("add", []):
             multiples_from_check_inputs.add(k)
             multiples_from_check_inputs.add(l)
             multiples_from_check_inputs.add(k + l)
-        for k, in check_inputs.get("dbl", []):
+        for (k,) in check_inputs.get("dbl", []):
             multiples_from_check_inputs.add(k)
             multiples_from_check_inputs.add(2 * k)
         # Multiples computed removes the zero
@@ -401,9 +440,6 @@ def test_consistency_multiples(secp128r1, mult, check_condition, precomp_to_affi
 
         # Now compute the multiples via the other function to compare.
         multiples = multiples_from_graph(
-            precomp_ctx,
-            full_ctx,
-            out,
-            kind=multiples_kind
+            precomp_ctx, full_ctx, out, kind=multiples_kind
         )
         assert multiples_from_check_inputs == multiples
