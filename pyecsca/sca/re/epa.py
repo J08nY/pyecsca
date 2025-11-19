@@ -26,7 +26,8 @@ def graph_to_check_inputs(
     "affine" formula that checks the multiples of the points that need to be converted to affine coordinates. Which
     points this "affine" formula checks depends on the `precomp_to_affine` parameter.
 
-    :param ctx: The context containing the points and formulas.
+    :param precomp_ctx: The context containing the points and formulas (precomputation phase).
+    :param full_ctx: The context containing the points and formulas (full computation).
     :param out: The output point of the computation.
     :param check_condition: Whether to check all points or only those necessary for the output point.
     :param precomp_to_affine: Whether to include the precomputed points in the to-affine checks.
@@ -141,7 +142,8 @@ def errors_out(
     """
     Check whether the computation errors out based on the provided context, output point, and check functions.
 
-    :param ctx: The context containing the points and formulas.
+    :param precomp_ctx: The context containing the points and formulas (precomputation phase).
+    :param full_ctx: The context containing the points and formulas (full computation).
     :param out: The output point of the computation.
     :param check_funcs: The functions to apply for each formula type. There are two callable types:
         - `check(k, l)`, that gets applied to binary formulas (like `add`), where `k` and `l` are the input multiples
