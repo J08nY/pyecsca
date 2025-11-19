@@ -198,7 +198,7 @@ class CombMultiplier(AccumulatorMultiplier, PrecompMultiplier, ScalarMultiplier)
             current_point = point
             for i in range(self.width):
                 base_points[i] = current_point
-                if i != d - 1:
+                if i != self.width - 1:
                     for _ in range(d):
                         current_point = self._dbl(current_point)
             self._points = {}
