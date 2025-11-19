@@ -1,6 +1,13 @@
 import pytest
 
-from pyecsca.ec.context import local, DefaultContext, Node, PathContext, Action
+from pyecsca.ec.context import (
+    local,
+    DefaultContext,
+    Node,
+    PathContext,
+    Action,
+    compound,
+)
 from pyecsca.ec.key_generation import KeyGeneration
 from pyecsca.ec.mod import RandomModAction
 from pyecsca.ec.mult import LTRMultiplier, ScalarMultiplicationAction
@@ -122,6 +129,14 @@ def test_multiple_enter_no_copy(mult):
 
     assert len(default.actions) == len(ctx1.actions)
     assert len(ctx1.actions) == len(ctx2.actions)
+
+
+def test_compound(mult):
+    one = DefaultContext()
+    other = DefaultContext()
+    with local(compound(one, other)):
+        mult.multiply(59)
+    assert len(one.actions) == len(other.actions)
 
 
 def test_path(mult, secp128r1):

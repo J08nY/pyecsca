@@ -352,3 +352,24 @@ def local(ctx: Optional[Context] = None, copy: bool = True) -> ContextManager:
     :return: A context manager.
     """
     return _ContextManager(ctx, copy)
+
+
+@public
+def compound(*contexts: Context) -> Context:
+    """
+    Create a context that compounds multiple contexts.
+
+    :param contexts: The contexts to compound.
+    :return: The compounded context.
+    """
+
+    class CompoundContext(Context):
+        def enter_action(self, action: Action) -> None:
+            for ctx in contexts:
+                ctx.enter_action(action)
+
+        def exit_action(self, action: Action) -> None:
+            for ctx in contexts:
+                ctx.exit_action(action)
+
+    return CompoundContext()

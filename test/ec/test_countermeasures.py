@@ -1,5 +1,6 @@
 from itertools import product
 from copy import copy
+from typing import cast
 
 import pytest
 
@@ -12,25 +13,43 @@ from pyecsca.ec.countermeasures import (
     PointBlinding,
     MultPointBlinding,
 )
+from pyecsca.ec.formula import AdditionFormula, DoublingFormula, NegationFormula, ScalingFormula
 from pyecsca.ec.mod import mod
-from pyecsca.ec.mult import *
+from pyecsca.ec.mult import (
+    LTRMultiplier,
+    RTLMultiplier,
+    BinaryNAFMultiplier,
+    WindowNAFMultiplier,
+    WindowBoothMultiplier,
+    SimpleLadderMultiplier,
+    FixedWindowLTRMultiplier,
+    SlidingWindowMultiplier,
+    FullPrecompMultiplier,
+    BGMWMultiplier,
+    CombMultiplier,
+    CoronMultiplier,
+    AccumulationOrder,
+    ProcessingDirection,
+    FakeAdditionFormula,
+    FakeNegationFormula,
+)
 from pyecsca.sca.re.rpa import multiple_graph
 
 
 @pytest.fixture(params=["add-1998-cmo-2", "add-2015-rcb"])
 def add(secp128r1, request):
-    return secp128r1.curve.coordinate_model.formulas[request.param]
+    return cast(AdditionFormula, secp128r1.curve.coordinate_model.formulas[request.param])
 
 
 @pytest.fixture(params=["dbl-1998-cmo-2", "dbl-2015-rcb"])
 def dbl(secp128r1, request):
-    return secp128r1.curve.coordinate_model.formulas[request.param]
+    return cast(DoublingFormula, secp128r1.curve.coordinate_model.formulas[request.param])
 
 
 @pytest.fixture()
 def mults(secp128r1, add, dbl):
-    neg = secp128r1.curve.coordinate_model.formulas["neg"]
-    scale = secp128r1.curve.coordinate_model.formulas["z"]
+    neg = cast(NegationFormula, secp128r1.curve.coordinate_model.formulas["neg"])
+    scale = cast(ScalingFormula, secp128r1.curve.coordinate_model.formulas["z"])
 
     ltr_options = {
         "always": (True, False),
@@ -310,7 +329,7 @@ def test_mult_point_blinding(mults, secp128r1, num):
             EuclideanSplitting,
             BrumleyTuveri,
             PointBlinding,
-            MultPointBlinding
+            MultPointBlinding,
         ),
         repeat=2,
     ),
@@ -371,7 +390,7 @@ def test_combination(scalar, one, two, secp128r1):
             EuclideanSplitting,
             BrumleyTuveri,
             PointBlinding,
-            MultPointBlinding
+            MultPointBlinding,
         ),
         repeat=2,
     ),
@@ -385,7 +404,7 @@ def test_combination_multiples(scalar, one, two, secp128r1):
     for i in range(2**two.nmults):
         bits = format(i, f"0{two.nmults}b")
 
-        def partial(*args, **kwargs):
+        def mult_partial(*args, **kwargs):
             mult = LTRMultiplier(*args, **kwargs)
 
             add = FakeAdditionFormula(secp128r1.curve.coordinate_model)
@@ -413,9 +432,138 @@ def test_combination_multiples(scalar, one, two, secp128r1):
             dlog = 1
         else:
             dlog = None
-        precomp_ctx, full_ctx, out = multiple_graph(scalar, secp128r1, LTRMultiplier, partial, dlog=dlog)
+        precomp_ctx, full_ctx, out = multiple_graph(
+            scalar, secp128r1, LTRMultiplier, mult_partial, dlog=dlog
+        )
         assert out is not None
-        assert mod(full_ctx.points[out], secp128r1.order) == mod(scalar, secp128r1.order)
+        assert mod(full_ctx.points[out], secp128r1.order) == mod(
+            scalar, secp128r1.order
+        )
+
+
+@pytest.mark.parametrize(
+    "scalar",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+        86728612699079982903603364383639280149,
+        60032993417060801067503559426926851620,
+    ],
+)
+@pytest.mark.parametrize(
+    "ctr",
+    (
+        GroupScalarRandomization,
+        AdditiveSplitting,
+        MultiplicativeSplitting,
+        EuclideanSplitting,
+        BrumleyTuveri,
+        PointBlinding,
+        MultPointBlinding,
+    ),
+)
+@pytest.mark.parametrize(
+    "mult_ident",
+    (
+        (BinaryNAFMultiplier, {}),
+        (WindowNAFMultiplier, {"width": 5}),
+        (WindowBoothMultiplier, {"width": 5}),
+        (SlidingWindowMultiplier, {"width": 2}),
+    ),
+    ids=lambda ident: ident[0].__name__
+    + ",".join(f"{k}={v}" for k, v in ident[1].items()),
+)
+def test_precomp_multiples(scalar, ctr, mult_ident, secp128r1):
+    if ctr == PointBlinding:
+        pytest.xfail("PointBlinding will never work with multiple graphs.")
+    mult_cls, mult_kws = mult_ident
+
+    def mult_partial(*args, **kwargs):
+        mult = mult_cls(*args, **kwargs, **mult_kws)
+        return (
+            ctr.from_single(mult)
+            if ctr is not MultPointBlinding
+            else ctr.from_single(
+                mult,
+                neg=FakeNegationFormula(secp128r1.curve.coordinate_model),
+            )
+        )
+
+    if ctr == MultPointBlinding:
+        dlog = 1
+    else:
+        dlog = None
+
+    precomp_ctx, full_ctx, out = multiple_graph(
+        scalar, secp128r1, mult_cls, mult_partial, dlog=dlog
+    )
+    # These multipliers have precomputation, so they should have points in precomp_ctx
+    assert precomp_ctx.points
+    assert precomp_ctx.precomp
+    for pt in precomp_ctx.points:
+        assert pt in full_ctx.points
+
+
+@pytest.mark.parametrize(
+    "scalar",
+    [
+        3253857902090173296443513219124437746,
+        1234567893141592653589793238464338327,
+        86728612699079982903603364383639280149,
+        60032993417060801067503559426926851620,
+    ],
+)
+@pytest.mark.parametrize(
+    "ctr",
+    (
+        GroupScalarRandomization,
+        AdditiveSplitting,
+        MultiplicativeSplitting,
+        EuclideanSplitting,
+        BrumleyTuveri,
+        PointBlinding,
+        MultPointBlinding,
+    ),
+)
+def test_cached_multiples_init(scalar, ctr, secp128r1, mocker):
+    if ctr == PointBlinding:
+        pytest.xfail("PointBlinding will never work with multiple graphs.")
+    init = mocker.patch(
+        "pyecsca.ec.mult.binary.LTRMultiplier.init",
+        side_effect=LTRMultiplier.init,
+        autospec=True,
+    )
+
+    called_partial = 0
+
+    def mult_partial(*args, **kwargs):
+        nonlocal called_partial
+        called_partial += 1
+
+        mults = []
+        for _ in range(ctr.nmults):
+            mult = LTRMultiplier(*args, **kwargs)
+            # print(f"Created mult {id(mult)}")
+            mults.append(mult)
+
+        return (
+            ctr(*mults)
+            if ctr is not MultPointBlinding
+            else ctr(*mults, neg=FakeNegationFormula(secp128r1.curve.coordinate_model))
+        )
+
+    if ctr == MultPointBlinding:
+        dlog = 1
+    else:
+        dlog = None
+    multiple_graph(scalar, secp128r1, LTRMultiplier, mult_partial, dlog=dlog)
+    # print(f"Partial calls {called_partial}")
+    assert called_partial == 1
+    # print(f"Init calls {init.call_count}")
+    assert init.call_count == ctr.nmults
+    for c in init.call_args_list:
+        # print(f"Init mult {id(c.args[0])}")
+        pass
 
 
 @pytest.mark.parametrize(

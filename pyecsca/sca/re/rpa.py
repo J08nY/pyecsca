@@ -27,7 +27,7 @@ from pyecsca.sca.re.tree import Tree, Map
 from pyecsca.ec.coordinates import AffineCoordinateModel
 from pyecsca.ec.formula import (
     FormulaAction,
-    )
+)
 from pyecsca.ec.mod import Mod, mod
 from pyecsca.ec.mult import (
     ScalarMultiplicationAction,
@@ -37,7 +37,7 @@ from pyecsca.ec.mult import (
 from pyecsca.ec.params import DomainParameters
 from pyecsca.ec.model import ShortWeierstrassModel, MontgomeryModel
 from pyecsca.ec.point import Point
-from pyecsca.ec.context import Context, Action, local
+from pyecsca.ec.context import Context, Action, local, compound
 from pyecsca.ec.mult.fake import cached_fake_mult, fake_params
 from pyecsca.misc.utils import log, warn
 
@@ -63,7 +63,12 @@ class MultipleContext(Context):
     keep_base: bool
     """Whether to keep the base point when building upon it."""
 
-    def __init__(self, keep_base: bool = False):
+    def __init__(
+        self,
+        keep_base: bool = False,
+        track_precomp: bool = True,
+        track_scalarmult: bool = True,
+    ):
         self.base = None
         self.points = {}
         self.parents = {}
@@ -71,9 +76,29 @@ class MultipleContext(Context):
         self.precomp = {}
         self.inside = []
         self.keep_base = keep_base
+        self._track_precomp = track_precomp
+        self._track_scalarmult = track_scalarmult
+
+    @property
+    def track_precomp(self) -> bool:
+        """Whether to track PrecomputationAction actions."""
+        return self._track_precomp
+
+    @track_precomp.setter
+    def track_precomp(self, value: bool) -> None:
+        self._track_precomp = value
+
+    @property
+    def track_scalarmult(self) -> bool:
+        """Whether to track ScalarMultiplicationAction actions."""
+        return self._track_scalarmult
+
+    @track_scalarmult.setter
+    def track_scalarmult(self, value: bool) -> None:
+        self._track_scalarmult = value
 
     def enter_action(self, action: Action) -> None:
-        if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
+        if (self._track_precomp and isinstance(action, PrecomputationAction)) or (self._track_scalarmult and isinstance(action, ScalarMultiplicationAction)):
             self.inside.append(action)
             if self.base:
                 # If we already did some computation with this context try to see if we are building on top of it.
@@ -100,7 +125,7 @@ class MultipleContext(Context):
                 self.precomp = {}
 
     def exit_action(self, action: Action) -> None:
-        if isinstance(action, (ScalarMultiplicationAction, PrecomputationAction)):
+        if (self._track_precomp and isinstance(action, PrecomputationAction)) or (self._track_scalarmult and isinstance(action, ScalarMultiplicationAction)):
             self.inside.remove(action)
             if isinstance(action, PrecomputationAction):
                 self.precomp.update(action.result)
@@ -435,24 +460,24 @@ def multiple_graph(
     """
     params = fake_params(params)
     mult = cached_fake_mult(mult_class, mult_factory, params)
-    ctx = MultipleContext(keep_base=True)
-    with local(ctx, copy=False) as precomp_ctx:
+    precomp_ctx = MultipleContext(keep_base=True, track_scalarmult=False, track_precomp=True)
+    full_ctx = MultipleContext(keep_base=True, track_scalarmult=True, track_precomp=True)
+    with local(compound(precomp_ctx, full_ctx), copy=False):
         point = FakePoint(params.curve.coordinate_model)
-        if dlog:
-            ctx.base = params.generator
-            ctx.neutral = params.curve.neutral
-            ctx.points[ctx.base] = 1
-            ctx.points[point] = dlog
-            ctx.points[ctx.neutral] = 0
-            ctx.formulas[ctx.base] = ""
-            ctx.formulas[point] = ""
-            ctx.formulas[ctx.neutral] = ""
-            ctx.parents[ctx.base] = []
-            ctx.parents[point] = []
-            ctx.parents[ctx.neutral] = []
+        if dlog is not None:
+            for ctx in (precomp_ctx, full_ctx):
+                ctx.base = params.generator
+                ctx.neutral = params.curve.neutral
+                ctx.points[ctx.base] = 1
+                ctx.points[point] = dlog
+                ctx.points[ctx.neutral] = 0
+                ctx.formulas[ctx.base] = ""
+                ctx.formulas[point] = ""
+                ctx.formulas[ctx.neutral] = ""
+                ctx.parents[ctx.base] = []
+                ctx.parents[point] = []
+                ctx.parents[ctx.neutral] = []
         mult.init(params, point)
-
-    with local(ctx, copy=True) as full_ctx:
         out = mult.multiply(scalar)
     return precomp_ctx, full_ctx, out
 
@@ -569,7 +594,9 @@ def multiples_computed(
     .. note::
         The scalar multiplier must not short-circuit.
     """
-    precomp_ctx, full_ctx, out = multiple_graph(scalar, params, mult_class, mult_factory)
+    precomp_ctx, full_ctx, out = multiple_graph(
+        scalar, params, mult_class, mult_factory
+    )
 
     return (
         multiples_from_graph(precomp_ctx, full_ctx, out, kind, use_init, use_multiply)
