@@ -120,6 +120,14 @@ def graph_plot(
     """
     Plot the computation graph, highlighting necessary points and precomputed points.
 
+    Legend:
+    - Circles: Necessary points in the computation.
+    - Triangles: Unnecessary points in the computation.
+    - Blue: Points computed during the full computation phase.
+    - Red: Unnecessary points computed during the full computation phase (dummies).
+    - Green: Points computed during the precomputation phase.
+    - Cyan: Precomputed points (stored by the multiplier).
+
     :param precomp_ctx: The context containing the points and formulas (precomputation phase).
     :param full_ctx: The context containing the points and formulas (full computation).
     :param out: The output point of the computation.
@@ -148,20 +156,42 @@ def graph_plot(
             if graph.nodes[point]["precomp"]:
                 p[1] -= 0.01
 
-    colors = []
+    colors = {}
+    necessary = []
+    unnecessary = []
     for point in graph.nodes():
         if graph.nodes[point]["necessary"]:
             color = "#202080"
+            necessary.append(point)
         else:
             color = "#802020"
+            unnecessary.append(point)
+
         if point in precomp_ctx.points.keys():
             color = "#208020"
             if graph.nodes[point]["precomp"]:
                 color = "#30a0a0"
-        colors.append(color)
+        colors[point] = color
 
     nx.draw_networkx_nodes(
-        graph, pos, ax=ax, node_color=colors, node_size=500, margins=[0.1, 0.1]
+        graph,
+        pos,
+        nodelist=necessary,
+        ax=ax,
+        node_color=[colors[pt] for pt in necessary],
+        node_shape="o",
+        node_size=500,
+        margins=[0.1, 0.1],
+    )
+    nx.draw_networkx_nodes(
+        graph,
+        pos,
+        nodelist=unnecessary,
+        ax=ax,
+        node_color=[colors[pt] for pt in unnecessary],
+        node_shape="^",
+        node_size=500,
+        margins=[0.1, 0.1],
     )
     nx.draw_networkx_edges(graph, pos, ax=ax, connectionstyle="arc3,rad=0.05")
     nx.draw_networkx_edge_labels(
