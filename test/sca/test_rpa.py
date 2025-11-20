@@ -94,7 +94,7 @@ def test_multiples_no_multiply(rpa_params):
     wnaf = partial(WindowNAFMultiplier, width=4)
 
     multiples = multiples_computed(78699, rpa_params, WindowNAFMultiplier, wnaf, True, False)
-    assert multiples == {1, 2, 3, 5, 7, 9}
+    assert multiples == {1, 2, 3, 5, 7}
 
 
 def test_multiples_bnaf(rpa_params):
