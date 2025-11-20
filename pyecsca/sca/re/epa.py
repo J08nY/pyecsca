@@ -4,7 +4,6 @@ Provides functionality inspired by the Exceptional Procedure Attack [EPA]_.
 
 from typing import Callable, Literal, Union, Optional
 
-import matplotlib.pyplot as plt
 import networkx as nx
 
 
@@ -112,26 +111,27 @@ def graph_to_check_inputs(
 
 
 @public
-def graph_plot(
+def graph_plot_prepare(
     precomp_ctx: MultipleContext,
     full_ctx: MultipleContext,
     out: Point,
-) -> plt.Figure:
+) -> nx.DiGraph:
     """
-    Plot the computation graph, highlighting necessary points and precomputed points.
+    Prepare the computation graph, highlighting necessary points and precomputed points.
 
     Legend:
     - Circles: Necessary points in the computation.
     - Triangles: Unnecessary points in the computation.
     - Blue: Points computed during the full computation phase.
-    - Red: Unnecessary points computed during the full computation phase (dummies).
     - Green: Points computed during the precomputation phase.
     - Cyan: Precomputed points (stored by the multiplier).
+
+    Plot the result using `nx.display`.
 
     :param precomp_ctx: The context containing the points and formulas (precomputation phase).
     :param full_ctx: The context containing the points and formulas (full computation).
     :param out: The output point of the computation.
-    :return: The matplotlib figure object representing the graph.
+    :return: The networkx graph.
     """
     graph = full_ctx.to_networkx()
 
@@ -146,67 +146,37 @@ def graph_plot(
         graph.nodes[node]["necessary"] = True
         for n in graph.predecessors(node):
             queue.add(n)
-    fig, ax = plt.subplots(figsize=(60, 10))
-    pos = nx.multipartite_layout(graph, subset_key="layer")
-    for point, p in pos.items():
-        p[0] *= 0.15
-        if not graph.nodes[point]["necessary"]:
-            p[1] += 0.01
-        if point in precomp_ctx.points.keys():
-            if graph.nodes[point]["precomp"]:
-                p[1] -= 0.01
 
-    colors = {}
-    necessary = []
-    unnecessary = []
+    nx.multipartite_layout(graph, subset_key="layer", store_pos_as="pos")
+
     for point in graph.nodes():
-        if graph.nodes[point]["necessary"]:
-            color = "#202080"
-            necessary.append(point)
-        else:
-            color = "#802020"
-            unnecessary.append(point)
+        node = graph.nodes[point]
+        node["label"] = {
+            "label": node["multiple"],
+            "color": "black",
+            "bbox": {"boxstyle": "square", "alpha": 0.7, "facecolor": "white"}
+        }
 
         if point in precomp_ctx.points.keys():
-            color = "#208020"
-            if graph.nodes[point]["precomp"]:
-                color = "#30a0a0"
-        colors[point] = color
+            node["color"] = "#208020"
+            if node["precomp"]:
+                node["pos"][1] -= 0.01
+                node["color"] = "#30a0a0"
+        else:
+            node["color"] = "#202080"
 
-    nx.draw_networkx_nodes(
-        graph,
-        pos,
-        nodelist=necessary,
-        ax=ax,
-        node_color=[colors[pt] for pt in necessary],
-        node_shape="o",
-        node_size=500,
-        margins=[0.1, 0.1],
-    )
-    nx.draw_networkx_nodes(
-        graph,
-        pos,
-        nodelist=unnecessary,
-        ax=ax,
-        node_color=[colors[pt] for pt in unnecessary],
-        node_shape="^",
-        node_size=500,
-        margins=[0.1, 0.1],
-    )
-    nx.draw_networkx_edges(graph, pos, ax=ax, connectionstyle="arc3,rad=0.05")
-    nx.draw_networkx_edge_labels(
-        graph,
-        pos,
-        ax=ax,
-        edge_labels={(u, v): graph.edges[u, v]["formula"] for u, v in graph.edges()},
-    )
-    for p in pos.values():
-        p[1] += 0.003
-    nx.draw_networkx_labels(
-        graph, pos, ax=ax, labels={n: graph.nodes[n]["multiple"] for n in graph.nodes()}
-    )
-    fig.tight_layout()
-    return fig
+        if node["necessary"]:
+            node["shape"] = "o"
+        else:
+            node["shape"] = "^"
+            node["pos"][1] += 0.01
+
+    for u, v in graph.edges():
+        edge = graph.edges[u, v]
+        edge["label"] = edge["formula"]
+        edge["curvature"] = "arc3,rad=0.05"
+
+    return graph
 
 
 @public
