@@ -1,7 +1,10 @@
 import random
 from functools import partial
 
+import networkx as nx
 import pytest
+
+from matplotlib import pyplot as plt
 
 from pyecsca.ec.coordinates import EFDCoordinateModel
 from pyecsca.ec.curve import EllipticCurve
@@ -10,7 +13,7 @@ from pyecsca.ec.model import ShortWeierstrassModel
 from pyecsca.ec.params import Point, InfinityPoint
 from pyecsca.ec.mult import *
 from pyecsca.sca.re.rpa import multiple_graph, multiples_from_graph
-from pyecsca.sca.re.epa import errors_out, graph_to_check_inputs, graph_plot
+from pyecsca.sca.re.epa import errors_out, graph_to_check_inputs, graph_plot_prepare
 
 
 def test_errors_out(secp128r1):
@@ -348,8 +351,11 @@ def test_plot(toy_params, mult, plot_path):
         mult_class=mult_class,
         mult_factory=mult_factory,
     )
-    fig = graph_plot(precomp_ctx, full_ctx, out)
+    fig, ax = plt.subplots(figsize=[60, 10])
+    graph = graph_plot_prepare(precomp_ctx, full_ctx, out)
+    nx.display(graph, canvas=ax, node_size=700)
     fig.savefig(str(plot_path()) + ".png")
+    plt.close()
 
 
 def test_independent_check_inputs(secp128r1, mult):
