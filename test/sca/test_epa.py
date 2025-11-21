@@ -1,4 +1,5 @@
 import random
+import sys
 from functools import partial
 
 import networkx as nx
@@ -343,6 +344,7 @@ def toy_params():
     return DomainParameters(curve, g, 0xCB5E1D94601A3AC5, 1)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="Requires Python 3.11 or higher (networkx >= 3.5)")
 def test_plot(toy_params, mult, plot_path):
     mult_class, mult_factory = mult
     precomp_ctx, full_ctx, out = multiple_graph(
