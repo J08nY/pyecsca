@@ -147,7 +147,8 @@ def graph_plot_prepare(
         for n in graph.predecessors(node):
             queue.add(n)
 
-    nx.multipartite_layout(graph, subset_key="layer", store_pos_as="pos")
+    pos = nx.multipartite_layout(graph, subset_key="layer")
+    nx.set_node_attributes(graph, pos, "pos")
 
     for point in graph.nodes():
         node = graph.nodes[point]
