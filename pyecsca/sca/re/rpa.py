@@ -59,7 +59,12 @@ class MultipleContext(Context):
     formulas: MutableMapping[Point, str]
     """The mapping of points to the formula types they are a result of."""
     precomp: MutableMapping[int, Point]
-    """The mapping of precomputed multiples to the points they represent."""
+    """
+    The mapping of precomputed points the scalar multiplier stored.
+
+    .. note::
+        The keys are the indices used by the scalar multiplier, not (necessarily) the multiples.
+    """
     result: Optional[Point]
     """The resulting point of the computation."""
     inside: List[Action]

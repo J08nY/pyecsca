@@ -57,7 +57,7 @@ def graph_to_check_inputs(
         affine_points = {out}
 
     def _necessary(ctx, for_what):
-        res = {out}
+        res = {*for_what}
         queue = {*for_what}
         while queue:
             point = queue.pop()

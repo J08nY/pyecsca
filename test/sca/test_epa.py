@@ -146,7 +146,7 @@ def test_errors_out_precomp(secp128r1):
         use_init=True,
         use_multiply=False,
     )
-    assert set(affine_multiples) == set(precomp_ctx.precomp.keys())
+    assert set(affine_multiples) == set(precomp_ctx.points[pt] for pt in precomp_ctx.precomp.values())
     assert set(add_multiples) == {(1, 2)}
 
     # Here we check all, during both precomp and final multiply.
@@ -164,7 +164,7 @@ def test_errors_out_precomp(secp128r1):
         use_multiply=True,
     )
     # There should be all of the results of the precomp, plus the final multiply result.
-    assert set(affine_multiples) == set(precomp_ctx.precomp.keys()) | {
+    assert set(affine_multiples) == set(precomp_ctx.points[pt] for pt in precomp_ctx.precomp.values()) | {
         full_ctx.points[out]
     }
     # The add multiples should be the same as before, plus any inputs to add that happened
