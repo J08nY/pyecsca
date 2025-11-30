@@ -3,16 +3,16 @@ PERF_SCRIPTS = test.ec.perf_mod test.ec.perf_formula test.ec.perf_mult test.sca.
 all: help
 
 test:
-	pytest -m "not slow" --cov=pyecsca --doctest-ignore-import-errors
+	pytest -m "not slow" --cov=pyecsca
 
 test-plots:
-	env PYECSCA_TEST_PLOTS=1 pytest -m "not slow" --doctest-ignore-import-errors
+	env PYECSCA_TEST_PLOTS=1 pytest -m "not slow"
 
 test-all:
-	pytest --cov=pyecsca --doctest-ignore-import-errors
+	pytest --cov=pyecsca
 
 test-notebooks:
-	pytest -m "not slow" --doctest-ignore-import-errors --nbmake --cov=pyecsca --cov-append notebook/simulation.ipynb notebook/visualization.ipynb
+	pytest -m "not slow" --nbmake --cov=pyecsca --cov-append notebook/simulation.ipynb notebook/visualization.ipynb
 
 typecheck:
 	mypy --namespace-packages -p pyecsca --ignore-missing-imports --show-error-codes --check-untyped-defs

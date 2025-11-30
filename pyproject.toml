@@ -94,7 +94,7 @@
   markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
   ]
-  addopts = ["--doctest-modules"]
+  addopts = ["--doctest-modules", "--doctest-ignore-import-errors"]
   filterwarnings = [
     "ignore:(?s).*pkg_resources is deprecated as an API:UserWarning:chipwhisperer.capture.trace.TraceWhisperer", # ChipWhisperer
     "ignore:Deprecated call to `pkg_resources.declare_namespace", # sphinxcontrib
