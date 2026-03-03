@@ -1,6 +1,8 @@
-============================
-:fas:`file-alt;fa-fw` Papers
-============================
+======================================
+:fas:`file-alt;fa-fw` Papers and Talks
+======================================
+
+
 
 pyecsca: Reverse engineering black-box elliptic curve cryptography via side-channel analysis
 ============================================================================================
@@ -162,3 +164,48 @@ also the exact value of the random mask used. Using the techniques, we successfu
 reverse-engineered the countermeasures on 13 cryptographic smartcards from 5 major
 manufacturers – all but one we tested on. Finally, we discuss what mitigations can
 be applied to prevent such reverse engineering, and whether it is possible at all.
+
+
+
+Kerckhoff's Principle in Practice: Addressing Security by Obscurity in Secure Hardware
+======================================================================================
+
+Vojtech Suchanek, Jan Jancar, Jan Kvapil, Petr Svenda, Lukasz Chmielewski
+
+`RWC 2026, Taipei, Taiwan <https://rwc.iacr.org/2026/>`_
+
+.. grid::
+    :margin: 2 0 0 2
+    :padding: 2 0 0 2
+
+
+    .. grid-item::
+        :columns: auto
+
+        .. button-link:: _static/kerckhoff_rwc26_slides.pdf
+            :color: secondary
+
+            :fas:`file-alt;fa-fw` Slides
+
+Abstract
+--------
+
+The Kerckhoff's principle, a cornerstone of cryptographic theory, states that a cryptosystem's
+security should not rely on secrecy, but rather on the secrecy of the key. However, in the
+secure hardware space, secrecy is widespread, with vendors revealing minimal information about
+their implementations. This secrecy can lead to the delayed discovery of vulnerabilities,
+leading to more impactful attacks. What can we do to address this gap between cryptographic
+theory (Kerckhoff's) and the practice in the secure hardware space (security by obscurity)?
+
+In this talk, we make the case against security by obscurity by demonstrating automated
+reverse-engineering of black-box elliptic curve cryptography (ECC) implementations on real-world
+devices, thereby showing that obscurity provides only a limited defense. We showcase two
+approaches to recovering key details of ECC implementations on JavaCards: using side-channels
+and using out-of-spec parameters.
+
+Using our techniques, we were able to reverse-engineer scalar randomization countermeasures
+in several real-world implementations of JavaCards from major vendors. We will demonstrate
+how simple algebra and lying can be used to bypass the obscurity around these devices. Finally,
+we will discuss how security certifications reward obscurity and how we believe that there is
+a usable compromise that provides transparency and keeps the vendors' intellectual property
+secret. We take first steps towards this in the sec-certs.org project.
