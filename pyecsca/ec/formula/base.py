@@ -48,6 +48,8 @@ class OpResult:
             parents = "1" + char + str(self.parents[0])
         elif self.op == OpType.Neg:
             parents = char + str(self.parents[0])
+        elif self.op == OpType.Sqr:
+            parents = str(self.parents[0]) + char + "2"
         else:
             parents = char.join(str(parent) for parent in self.parents)
         return f"{self.name} = {parents}"
