@@ -19,4 +19,5 @@
 .. [SG14] Shay Gueron & Vlad Krasnov. Fast prime field elliptic-curve cryptography with 256-bit primes, https://link.springer.com/article/10.1007/s13389-014-0090-x
 .. [B51] Andrew D. Booth. A signed binary multiplication technique.
 .. [M61] O.L. Macsorley. High-speed arithmetic in binary computers.
+.. [Pip76] N. Pippenger. On the Evaluation of Powers and Related Problems, 1976.
 .. [RFC7748] A. Langley, M. Hamburg, S. Turner, https://datatracker.ietf.org/doc/html/rfc7748
