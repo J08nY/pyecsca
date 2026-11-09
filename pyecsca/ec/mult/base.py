@@ -64,13 +64,12 @@ class PrecomputationAction(ResultAction):
 
 
 @public
-class ScalarMultiplier(ABC):
+class MultiplierBase(ABC):
     """
-    A scalar multiplication algorithm.
+    Common machinery shared by scalar and multi-scalar multipliers.
 
-    .. note::
-        The __init__ method of all concrete subclasses needs to have type annotations so that
-        configuration enumeration works.
+    It validates the set of formulas a concrete multiplier is constructed with and provides
+    thin wrappers around them (with optional short-circuit on the neutral point).
 
     :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
                           of the point at infinity.
@@ -86,8 +85,6 @@ class ScalarMultiplier(ABC):
     formulas: Mapping[str, Formula]
     """All formulas the multiplier was initialized with."""
     _params: DomainParameters
-    _point: Point
-    _bits: int
     _initialized: bool = False
 
     def __init__(self, short_circuit: bool = True, **formulas: Optional[Formula]):
@@ -181,6 +178,24 @@ class ScalarMultiplier(ABC):
         return self.formulas["neg"](
             self._params.curve.prime, point, **self._params.curve.parameters
         )[0]
+
+
+@public
+class ScalarMultiplier(MultiplierBase, ABC):
+    """
+    A scalar multiplication algorithm.
+
+    .. note::
+        The __init__ method of all concrete subclasses needs to have type annotations so that
+        configuration enumeration works.
+
+    :param short_circuit: Whether the use of formulas will be guarded by short-circuit on inputs
+                          of the point at infinity.
+    :param formulas: Formulas this instance will use.
+    """
+
+    _point: Point
+    _bits: int
 
     def __hash__(self):
         return hash(
